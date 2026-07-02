@@ -10,7 +10,6 @@ const checkinForm = document.getElementById("checkinForm");
 const message = document.getElementById("message");
 
 let currentProfile = null;
-let currentStay = null;
 
 function setMessage(text) {
   message.textContent = text || "";
@@ -23,15 +22,20 @@ function setProgress(step) {
 }
 
 function showScene(name) {
-  [lobbyScene, preparingScene, suiteScene].forEach((scene) => scene.classList.remove("active"));
+  [lobbyScene, preparingScene, suiteScene].forEach((scene) => {
+    scene.classList.remove("active");
+  });
+
   if (name === "lobby") {
     lobbyScene.classList.add("active");
     setProgress(1);
   }
+
   if (name === "preparing") {
     preparingScene.classList.add("active");
     setProgress(2);
   }
+
   if (name === "suite") {
     suiteScene.classList.add("active");
     setProgress(3);
@@ -41,22 +45,32 @@ function showScene(name) {
 function showCheckIn() {
   authPanel.classList.add("hidden");
   checkinForm.classList.remove("hidden");
+
   const name = currentProfile?.first_name || "guest";
   document.getElementById("welcomeLine").textContent = `Welcome back, ${name}.`;
 }
 
 function renderSuite(stay) {
   const name = currentProfile?.first_name || "guest";
+
   document.getElementById("suiteWelcome").textContent =
     `Welcome back, ${name}. Room ${stay.cycle_day_claimed} is ready for you.`;
 
-  const connector = stay.inner_season === stay.feels_like_inner_season ? "and" : "but";
+  const connector =
+    stay.inner_season === stay.feels_like_inner_season ? "and" : "but";
+
   document.getElementById("suiteSubline").textContent =
     `You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
 
-  document.getElementById("suiteCycleDay").textContent = `Day ${stay.cycle_day_claimed}`;
-  document.getElementById("suiteSeason").textContent = stay.inner_season || "Not recorded";
-  document.getElementById("suiteFeelsLike").textContent = stay.feels_like_inner_season || "Not recorded";
+  document.getElementById("suiteCycleDay").textContent =
+    `Day ${stay.cycle_day_claimed}`;
+
+  document.getElementById("suiteSeason").textContent =
+    stay.inner_season || "Not recorded";
+
+  document.getElementById("suiteFeelsLike").textContent =
+    stay.feels_like_inner_season || "Not recorded";
+
   document.getElementById("suiteMoon").textContent =
     `${stay.moon_phase || "Moon phase"} · ${stay.moon_inner_season || ""}`;
 
@@ -72,6 +86,7 @@ function renderSuite(stay) {
 async function handleCreateGuest() {
   try {
     setMessage("Creating your guest key...");
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
     const firstName = document.getElementById("firstName").value.trim();
@@ -81,8 +96,9 @@ async function handleCreateGuest() {
       return;
     }
 
-    await signUpWithEmail(email, password, { firstName });
+    await signUpWithEmail(email, password);
     currentProfile = await ensureProfile({ firstName });
+
     setMessage("");
     showCheckIn();
   } catch (error) {
@@ -93,6 +109,7 @@ async function handleCreateGuest() {
 async function handleSignIn() {
   try {
     setMessage("Opening your guest key...");
+
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
 
@@ -102,6 +119,7 @@ async function handleSignIn() {
     }
 
     await signInWithEmail(email, password);
+
     currentProfile = await getCurrentProfile();
 
     if (!currentProfile) {
@@ -133,10 +151,10 @@ async function handleCheckIn() {
     setMessage("");
     showScene("preparing");
 
-    currentStay = await createStay({ cycleDay, feelsLike });
+    const stay = await createStay({ cycleDay, feelsLike });
 
     setTimeout(() => {
-      renderSuite(currentStay);
+      renderSuite(stay);
       showScene("suite");
     }, 850);
   } catch (error) {

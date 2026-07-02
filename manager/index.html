@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtel Concierge Desk</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="front-desk">
+    <section class="hero">
+      <p class="eyebrow">FLOWTEL</p>
+      <h1>Concierge Desk</h1>
+      <p>I’m here to moderate the flow.</p>
+    </section>
+
+    <section class="login-card" id="loginCard">
+      <h2>Concierge Key</h2>
+      <label>Email</label>
+      <input id="managerEmail" type="email" />
+      <label>Password</label>
+      <input id="managerPassword" type="password" />
+      <button id="managerSignInButton">Open Concierge Desk</button>
+      <p id="managerMessage"></p>
+    </section>
+
+    <section class="dashboard hidden" id="dashboard">
+      <section class="stats">
+        <div><span>Guests in House</span><strong id="guestsInHouse">0</strong></div>
+        <div><span>Awaiting Welcome</span><strong id="awaitingWelcome">0</strong></div>
+        <div><span>Witnessed Today</span><strong id="witnessedToday">0</strong></div>
+        <div><span>Checked Out</span><strong id="checkedOut">0</strong></div>
+      </section>
+
+      <section class="queue">
+        <h2>🌹 Guests Awaiting Welcome</h2>
+        <div id="arrivalQueue"></div>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+body {
+  margin: 0;
+  padding: 40px;
+  background: #f7f6f1;
+  color: #6d4e41;
+  font-family: system-ui, sans-serif;
+}
+.front-desk {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.hero, .login-card, .stats div, .card {
+  background: white;
+  border: 1px solid rgba(109, 78, 65, .12);
+  border-radius: 28px;
+  padding: 26px;
+  box-shadow: 0 14px 34px rgba(109, 78, 65, .08);
+}
+.hero {
+  text-align: center;
+  margin-bottom: 22px;
+}
+.eyebrow {
+  letter-spacing: .18em;
+  font-weight: 800;
+  font-size: .78rem;
+}
+.login-card {
+  max-width: 420px;
+  margin: 0 auto;
+}
+.hidden {
+  display: none !important;
+}
+label {
+  display: block;
+  font-weight: 800;
+  margin-top: 14px;
+}
+input {
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 6px;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(109, 78, 65, .25);
+}
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin: 24px 0;
+}
+.stats span {
+  display: block;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-size: .72rem;
+  font-weight: 800;
+  color: #b06f81;
+}
+.stats strong {
+  display: block;
+  font-size: 2rem;
+  margin-top: 8px;
+}
+.queue {
+  margin-top: 28px;
+}
+.card {
+  margin-bottom: 16px;
+}
+button {
+  border: none;
+  border-radius: 16px;
+  background: #d1c2d9;
+  color: #6d4e41;
+  font-weight: 800;
+  padding: 13px 18px;
+  cursor: pointer;
+  margin-top: 16px;
+}
+button:hover {
+  background: #f1b5cc;
+}
+@media (max-width: 800px) {
+  body {
+    padding: 20px;
+  }
+  .stats {
+    grid-template-columns: 1fr;
+  }
+}
