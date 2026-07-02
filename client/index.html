@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtel Lobby</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="flowtel-app">
+    <section class="flowtel-shell">
+      <div class="progress-ribbon" aria-hidden="true">
+        <span class="active"></span><span></span><span></span>
+      </div>
+      <div class="rose-mark" aria-hidden="true">🌹</div>
+
+      <section class="scene active" id="lobbyScene">
+        <p class="eyebrow">WELCOME HOME</p>
+        <h1>to the Flowtel</h1>
+        <p class="subtext">A quiet place<br>to meet yourself<br>on the moon.</p>
+
+        <div class="auth-panel" id="authPanel">
+          <p class="panel-title">Guest Key</p>
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" />
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" />
+          <label for="firstName">First name</label>
+          <input id="firstName" type="text" autocomplete="given-name" />
+          <button id="signInButton" type="button">Sign In</button>
+          <button id="createGuestButton" type="button" class="secondary">Create Test Guest</button>
+          <p class="microcopy">For testing only. Squarespace member connection comes after this live data loop works.</p>
+        </div>
+
+        <div class="checkin-form hidden" id="checkinForm">
+          <p class="welcome-line" id="welcomeLine">Welcome back.</p>
+          <label for="cycleDay">I am on Day</label>
+          <input id="cycleDay" type="number" min="1" max="40" inputmode="numeric" />
+          <label for="feelsLike">Today feels like</label>
+          <select id="feelsLike">
+            <option value="">Select</option>
+            <option>Inner Winter</option>
+            <option>Inner Spring</option>
+            <option>Inner Summer</option>
+            <option>Inner Autumn</option>
+          </select>
+          <button id="checkInButton" type="button">Check In</button>
+        </div>
+
+        <p id="message" role="status"></p>
+      </section>
+
+      <section class="scene" id="preparingScene">
+        <p class="eyebrow">FLOWTEL</p>
+        <h2>Preparing your room...</h2>
+        <div class="moon-glow" aria-hidden="true">☾</div>
+      </section>
+
+      <section class="scene" id="suiteScene">
+        <p class="eyebrow">YOUR SUITE</p>
+        <h2 id="suiteWelcome">Room is ready for you.</h2>
+        <p class="suite-subline" id="suiteSubline"></p>
+
+        <div class="suite-card">
+          <div><span>Cycle Day</span><strong id="suiteCycleDay"></strong></div>
+          <div><span>Inner Season</span><strong id="suiteSeason"></strong></div>
+          <div><span>Feels Like</span><strong id="suiteFeelsLike"></strong></div>
+          <div><span>Moon Magic</span><strong id="suiteMoon"></strong></div>
+        </div>
+
+        <div class="concierge-note hidden" id="witnessNote">
+          <h3>Your Concierge visited your room today.</h3>
+          <p id="witnessText"></p>
+        </div>
+
+        <button id="returnLobbyButton" type="button" class="secondary">Return to Lobby</button>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
