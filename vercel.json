@@ -1,0 +1,18 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/client/index.html"
+    },
+    {
+      "source": "/flowtel",
+      "destination": "/client/index.html"
+    },
+    {
+      "source": "/concierge",
+      "destination": "/manager/index.html"
+    }
+  ]
+}

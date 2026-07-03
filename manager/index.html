@@ -6,42 +6,67 @@
   <title>Flowtel Concierge Desk</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
+
 <body>
   <main class="front-desk">
-    <img class="rose-corner" src="../assets/flowtel-rose.png" alt="" onerror="this.style.display='none'" />
     <section class="hero">
       <p class="eyebrow">FLOWTEL</p>
       <h1>Concierge Desk</h1>
-      <p>Welcome back. Here’s today’s flow at the Flowtel.</p>
+      <p>I’m here to moderate the flow.</p>
     </section>
 
     <section class="login-card" id="loginCard">
       <p class="eyebrow">CONCIERGE KEY</p>
       <h2>Open the Desk</h2>
-      <label>Email</label><input id="managerEmail" type="email" />
-      <label>Password</label><input id="managerPassword" type="password" />
+
+      <label>Email</label>
+      <input id="managerEmail" type="email" />
+
+      <label>Password</label>
+      <input id="managerPassword" type="password" />
+
       <button id="managerSignInButton">Open Concierge Desk</button>
       <p id="managerMessage"></p>
     </section>
 
     <section class="dashboard hidden" id="dashboard">
+      <section class="owner-overview">
+        <div>
+          <p class="eyebrow">TODAY’S FLOW</p>
+          <h2>The hotel is open.</h2>
+        </div>
+        <p class="desk-note">Guests who have arrived and are waiting to be welcomed will appear below.</p>
+      </section>
+
       <section class="stats">
-        <button class="stat-card" data-filter="in-house"><span>Guests in House</span><strong id="guestsInHouse">0</strong><em>View all →</em></button>
-        <button class="stat-card active" data-filter="queue"><span>Queue / New Arrivals</span><strong id="awaitingWelcome">0</strong><em>View all →</em></button>
-        <button class="stat-card" data-filter="extended"><span>Extended Stay 14+ Days</span><strong id="extendedStay">0</strong><em>View all →</em></button>
-        <button class="stat-card" data-filter="witnessed"><span>Witnessed Today</span><strong id="witnessedToday">0</strong><em>View all →</em></button>
-        <button class="stat-card" data-filter="checked-out"><span>Checked Out Today</span><strong id="checkedOut">0</strong><em>View all →</em></button>
+        <div>
+          <span>Guests in House</span>
+          <strong id="guestsInHouse">0</strong>
+        </div>
+        <div>
+          <span>Awaiting Welcome</span>
+          <strong id="awaitingWelcome">0</strong>
+        </div>
+        <div>
+          <span>Witnessed Today</span>
+          <strong id="witnessedToday">0</strong>
+        </div>
+        <div>
+          <span>Checked Out</span>
+          <strong id="checkedOut">0</strong>
+        </div>
       </section>
 
       <section class="queue">
         <div class="section-heading">
-          <p class="eyebrow" id="activeFilterLabel">QUEUE / NEW ARRIVALS</p>
-          <h2 id="activeFilterTitle">🌹 Guests Awaiting Welcome</h2>
+          <p class="eyebrow">ARRIVALS BOARD</p>
+          <h2>🌹 Guests Awaiting Welcome</h2>
         </div>
         <div id="arrivalQueue"></div>
       </section>
     </section>
   </main>
+
   <script type="module" src="./app.js"></script>
 </body>
 </html>
