@@ -1,19 +1,9 @@
 # 🌹 Flowtel Release 0.4.3
 
 ## Feature
-Luxury Suite Refinement + Turndown Service
+Luxury Suite & Concierge Refinement
 
-## Additional Refinements Included
-
-- Concierge Desk button changed from “Go to My Suite” to “Clock Out.”
-- Added placeholder “My Guests” section for future assigned clients.
-- Removed repeated feels-like / inner-season flag beside the Concierge action button.
-- Updated Turndown copy to “a little extra love today.”
-- Added welcome-page copy normalization for “WELCOME HOME TO” and “the Flowtel.”
-- Moved “You Are Here” lower so it clears SOUTH.
-- Pulled cardinal directions inward so they remain inside the wheel card perimeter while staying outside the number ring.
-- Center compass upgraded into a gold rose compass with compass points, rose spiral, and subtle blooming petals.
-- Strengthened the Medicine Wheel rings for a cream-and-gold luxury spa-day look.
+This is an Application Release for the existing `flowtel-v4` repository. It does not include standalone components, demo files, SSO, routing redesign, or Squarespace integration.
 
 ## Changed Files
 
@@ -26,24 +16,22 @@ manager/styles.css
 shared/turndown.js
 database/migration-004-turndown-service.sql
 docs/RELEASE.md
+docs/DESIGN_SYSTEM.md
+docs/MEDICINE_WHEEL_SPEC.md
+docs/CONCIERGE_SPEC.md
+docs/FLOWTEL_LANGUAGE.md
+docs/CHANGELOG.md
 ```
 
 ## Database
 
-Run this migration in the Supabase SQL Editor if you have not already run the 0.4.3 migration:
+Run this migration in Supabase SQL Editor:
 
 ```txt
 database/migration-004-turndown-service.sql
 ```
 
-This adds Turndown Service request tracking to existing stays:
-
-```txt
-turndown_requested_at
-turndown_status
-```
-
-No additional database changes were added for the extra refinements.
+This adds Turndown Service request fields to existing stay records so guests only appear in the Concierge queue when they request extra care.
 
 ## Installation Instructions
 
@@ -125,43 +113,96 @@ Run:
 Release-0.4.3/database/migration-004-turndown-service.sql
 ```
 
-in the Supabase SQL Editor if it has not already been run.
+in the Supabase SQL Editor.
 
-## Notes
+Add the documentation files in:
 
-This release does not work on Squarespace integration, SSO, URL routing, or database redesign.
+```txt
+Release-0.4.3/docs/
+```
 
-The “Open My Passport” replacement copy is intentionally not changed yet because the final replacement text has not been confirmed.
+to:
 
-The “My Guests” area is a visual placeholder only. No assigned-client data model was added in this release.
+```txt
+flowtel-v4/docs/
+```
+
+## What Changed
+
+### Compass Medicine Wheel
+
+- Refines the wheel instead of replacing it.
+- Day 1 sits just below WEST.
+- Day 28+ sits just above WEST.
+- All 28 day markers are equally spaced around the wheel.
+- Numbers move counter-clockwise from Day 1 toward SOUTH, EAST, NORTH, and back to WEST.
+- Cardinal directions now sit outside the number ring but inside the wheel card boundary.
+- Inner Season labels now anchor the four corners around the wheel.
+- Center rose has been upgraded into a gold rose compass with a compass rose and blooming spiral.
+- The current-room marker is a precise gold star/diamond layered directly over the active day.
+- The “YOU ARE HERE” legend sits lower, with helper text below it.
+
+### Suite Refinement
+
+- Removes repetitive “Room X is ready” language from the Suite subline.
+- Expands the Medicine Wheel card and Moon Magic card for better balance against the right column.
+- Keeps the Suite layout familiar and restrained.
+
+### Turndown Service
+
+- Replaces passive Concierge copy with a hospitality-style Turndown Service request.
+- Guests can request extra care from the Suite.
+- The button hides after request and shows “Turndown Service Requested.”
+- Fulfilled Concierge notes display like a handwritten note left in the room.
+
+### Concierge Desk
+
+- Renames the return button to “Clock Out.”
+- Removes the “Witnessed Today” metric.
+- Renames the queue to “Guests Awaiting Turndown Service.”
+- Only guests who requested Turndown Service appear in the primary care queue.
+- Adds a placeholder “My Guests” section for future assigned clients.
+- Guest cards display name, current room, cycle day, and calculated inner season without repeated side flags.
+
+### Documentation
+
+- Adds first living Flowtel design documents:
+  - `DESIGN_SYSTEM.md`
+  - `MEDICINE_WHEEL_SPEC.md`
+  - `CONCIERGE_SPEC.md`
+  - `FLOWTEL_LANGUAGE.md`
+  - `CHANGELOG.md`
 
 ## QA Checklist
 
-1. Replace the changed files.
-2. Run the Turndown migration if it has not already been run.
-3. Sign in as a guest.
-4. Confirm the welcome copy reads “WELCOME HOME TO” and “the Flowtel.”
-5. Enter cycle day and feels-like season.
-6. Check into the Suite.
-7. Confirm Medicine Wheel placement:
-   - Day 1 is directly below WEST.
-   - Day 28+ is directly above WEST.
-   - numbers are evenly spaced.
-   - cardinal directions sit inside the wheel card perimeter but outside the number ring.
-   - “You Are Here” no longer overlaps SOUTH.
-   - gold marker sits directly over the active room.
-8. Confirm the center reads as a gold rose compass, not four pillars.
-9. Confirm Turndown copy says “a little extra love today.”
-10. Request Turndown Service.
-11. Sign into Concierge as practitioner/owner/admin.
-12. Confirm the Suite action says “Clock Out.”
-13. Confirm the placeholder “My Guests” section appears.
-14. Confirm the Turndown queue cards do not repeat feels-like / inner-season data beside the action button.
-15. Leave a Concierge Note and confirm the guest leaves the Turndown queue.
+- Sign in as a guest.
+- Enter cycle day and feels-like inner season.
+- Check into the Flowtel.
+- Confirm Suite opens normally.
+- Confirm wheel geometry and current marker position.
+- Confirm Moon Magic card aligns visually with wheel card width.
+- Request Turndown Service.
+- Confirm the request button disappears and requested state appears.
+- Sign in as practitioner / owner / admin.
+- Confirm Concierge Desk opens.
+- Confirm only Turndown requests appear in the Turndown queue.
+- Leave a Concierge note.
+- Confirm guest is removed from queue.
+- Return to Suite and confirm Concierge note state appears.
+- Confirm Lounge still loads previous visits.
+- Confirm Clock Into / Clock Out flows still route correctly.
 
 ## Commit
 
 ```bash
-git add client/app.js client/styles.css manager/index.html manager/app.js manager/styles.css shared/turndown.js database/migration-004-turndown-service.sql docs/RELEASE.md
+git add .
 git commit -m "Release 0.4.3 - Luxury suite refinement and Turndown Service"
+```
+
+## Optional Tag
+
+```bash
+git tag -a v0.4.3 -m "Flowtel Release 0.4.3"
+git push origin main
+git push origin v0.4.3
 ```

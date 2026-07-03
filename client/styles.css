@@ -178,3 +178,132 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .wheel-gold-compass .bloom-two{transform:translate(-50%,-50%) rotate(78deg)}
 .wheel-gold-compass .bloom-three{transform:translate(-50%,-50%) rotate(138deg)}
 @media(max-width:900px){.wheel-panel{padding:34px 24px 52px}.wheel-cardinal-north{top:10%}.wheel-cardinal-south{bottom:10%}.wheel-cardinal-east{right:8%}.wheel-cardinal-west{left:8%}.you-are-here{margin-top:38px}.wheel-gold-compass{width:118px;height:118px}}
+
+/* Release 0.4.3 final specification pass — luxury cream-and-gold medicine wheel */
+.wheel-panel{
+  padding:44px 44px 66px;
+  background:linear-gradient(145deg,rgba(255,253,249,.96),rgba(251,247,241,.98));
+  border-color:rgba(216,168,79,.2);
+  box-shadow:0 20px 54px rgba(109,78,65,.08), inset 0 0 0 1px rgba(255,255,255,.75);
+}
+.medicine-wheel{
+  width:min(100%,560px);
+  margin:0 auto;
+  background:
+    radial-gradient(circle at center,rgba(255,253,249,1) 0 24%,transparent 24.6%),
+    radial-gradient(circle at center,transparent 0 48%,rgba(216,168,79,.34) 48.5%,rgba(216,168,79,.34) 49.4%,transparent 50.2%),
+    radial-gradient(circle at center,transparent 0 66.8%,rgba(216,168,79,.34) 67.3%,rgba(216,168,79,.34) 68.2%,transparent 69%),
+    linear-gradient(135deg,rgba(248,231,227,.34),rgba(255,253,249,.98) 48%,rgba(251,247,241,.98));
+  box-shadow:inset 0 0 46px rgba(109,78,65,.05), inset 0 0 0 1px rgba(216,168,79,.08);
+}
+.wheel-compass-ring{
+  inset:14.2%;
+  border:1px solid rgba(216,168,79,.34);
+  box-shadow:0 0 0 9px rgba(255,253,249,.22), inset 0 0 0 1px rgba(255,253,249,.52);
+}
+.wheel-axis{opacity:.42;background:linear-gradient(90deg,transparent,rgba(216,168,79,.22),transparent)}
+.wheel-axis-vertical{height:68%}.wheel-axis-horizontal{width:68%}
+.wheel-cardinal{
+  z-index:4;
+  font-size:.52rem;
+  letter-spacing:.2em;
+  color:rgba(109,78,65,.54);
+  max-width:74px;
+  text-align:center;
+  white-space:nowrap;
+}
+.wheel-cardinal-north{top:12.2%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-south{bottom:12.2%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:11.6%;top:50%;transform:translateY(-50%) rotate(90deg)}
+.wheel-cardinal-west{left:11.6%;top:50%;transform:translateY(-50%) rotate(-90deg)}
+.wheel-season{
+  z-index:5;
+  min-width:128px;
+  padding:8px 10px;
+  border-radius:18px;
+  background:rgba(255,253,249,.62);
+  box-shadow:0 8px 20px rgba(109,78,65,.04);
+  font-size:.74rem;
+  color:rgba(216,168,79,.96);
+}
+.wheel-season em{display:block;margin-bottom:2px;font-style:normal;font-size:.82rem;filter:saturate(.9)}
+.wheel-season small{margin-top:2px;font-size:.5rem;color:rgba(90,74,58,.78)}
+.wheel-season-autumn{left:1.75%;top:1.75%}.wheel-season-summer{right:1.75%;top:1.75%}.wheel-season-spring{right:1.75%;bottom:1.75%}.wheel-season-winter{left:1.75%;bottom:1.75%}
+.wheel-room{
+  width:33px;
+  height:33px;
+  font-size:.78rem;
+  background:rgba(255,253,249,.99);
+  border:1.5px solid rgba(216,168,79,.52);
+  color:#5A4A3A;
+  box-shadow:0 6px 15px rgba(109,78,65,.08), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.wheel-room.active{
+  background:#f3d4cf;
+  border-color:rgba(216,168,79,.72);
+  box-shadow:0 0 0 5px rgba(243,212,207,.24),0 8px 18px rgba(109,78,65,.12);
+}
+.wheel-current-star{
+  z-index:9;
+  font-size:1.28rem;
+  transform:translate(-50%,-50%);
+  color:transparent;
+  text-shadow:none;
+  filter:drop-shadow(0 5px 8px rgba(109,78,65,.18));
+}
+.wheel-current-star:before{
+  content:"✦";
+  color:var(--gold);
+  background:linear-gradient(135deg,#f5d58a,#c69231 45%,#f8e4aa 70%,#b98124);
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+.wheel-gold-compass{
+  width:158px;
+  height:158px;
+  filter:drop-shadow(0 15px 18px rgba(109,78,65,.08));
+}
+.wheel-gold-compass:before,
+.wheel-gold-compass:after{
+  border-left-width:8px;
+  border-right-width:8px;
+  border-bottom-width:72px;
+  border-bottom-color:rgba(216,168,79,.76);
+}
+.wheel-gold-compass .compass-spoke{border-left-width:4.5px;border-right-width:4.5px;border-bottom-width:58px;border-bottom-color:rgba(216,168,79,.42)}
+.wheel-gold-compass .rose-spiral{
+  width:68px;
+  height:68px;
+  border:1.6px solid rgba(216,168,79,.78);
+  border-left-color:transparent;
+  box-shadow:inset 0 0 0 12px rgba(255,253,249,.74),0 0 0 9px rgba(255,253,249,.5),0 0 18px rgba(216,168,79,.08);
+}
+.wheel-gold-compass .rose-spiral:before{inset:12px;border-color:rgba(216,168,79,.64);border-right-color:transparent}
+.wheel-gold-compass .rose-spiral:after{content:"";position:absolute;inset:22px;border:1.4px solid rgba(216,168,79,.54);border-top-color:transparent;border-radius:50%;transform:rotate(32deg)}
+.wheel-gold-compass .rose-bloom{width:46px;height:24px;border-color:rgba(216,168,79,.58)}
+.you-are-here{
+  margin:54px 0 0;
+  top:12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  color:rgba(90,74,58,.8);
+}
+.you-are-here:before{content:"✦";font-size:1rem;color:var(--gold)}
+.wheel-legend-helper{
+  margin:18px auto 0;
+  max-width:360px;
+  font-size:.82rem;
+  line-height:1.45;
+  color:rgba(155,119,104,.8);
+}
+@media(max-width:900px){
+  .wheel-panel{padding:34px 22px 58px}
+  .medicine-wheel{width:min(100%,500px)}
+  .wheel-room{width:28px;height:28px;font-size:.66rem}
+  .wheel-cardinal-north{top:11.5%}.wheel-cardinal-south{bottom:11.5%}.wheel-cardinal-east{right:10.4%}.wheel-cardinal-west{left:10.4%}
+  .wheel-season{min-width:100px;font-size:.63rem;padding:7px 8px}
+  .wheel-gold-compass{width:120px;height:120px}
+  .you-are-here{margin-top:48px}
+}

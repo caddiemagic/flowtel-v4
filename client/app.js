@@ -100,10 +100,13 @@ function normalizedRoom(day){
 function wheelPosition(day){
   const room=normalizedRoom(day);
   const step=360/28;
+
+  // Day 1 sits just below WEST and Day 28+ sits just above WEST.
+  // All markers are equally spaced with the normal 1/28 circle gap.
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=36;
+  const radius=38;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -126,10 +129,10 @@ function renderWheel(activeRoom){
     <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
     <span class="wheel-cardinal wheel-cardinal-west">WEST</span>
 
-    <span class="wheel-season wheel-season-autumn">Inner Autumn<small>Days 20–26</small></span>
-    <span class="wheel-season wheel-season-summer">Inner Summer<small>Days 12–19</small></span>
-    <span class="wheel-season wheel-season-spring">Inner Spring<small>Days 6–11</small></span>
-    <span class="wheel-season wheel-season-winter">Inner Winter<small>Days 27–5</small></span>
+    <span class="wheel-season wheel-season-autumn"><em>🍁</em>Inner Autumn<small>Days 20–26</small></span>
+    <span class="wheel-season wheel-season-summer"><em>☀</em>Inner Summer<small>Days 12–19</small></span>
+    <span class="wheel-season wheel-season-spring"><em>🌸</em>Inner Spring<small>Days 6–11</small></span>
+    <span class="wheel-season wheel-season-winter"><em>❄</em>Inner Winter<small>Days 27–5</small></span>
 
     <div class="wheel-gold-compass" aria-hidden="true">
       <span class="compass-spoke compass-spoke-primary"></span>
@@ -236,6 +239,21 @@ function renderSuite(stay){
   renderConciergeCare(stay);
 
   renderWheel(stay.cycle_day_claimed);
+  refineWheelLegend();
+}
+
+function refineWheelLegend(){
+  const label=document.querySelector(".you-are-here");
+  if(!label) return;
+
+  label.textContent="YOU ARE HERE";
+  if(!document.getElementById("wheelLegendHelper")){
+    const helper=document.createElement("p");
+    helper.id="wheelLegendHelper";
+    helper.className="wheel-legend-helper";
+    helper.textContent="Click on a day to see your previous visits below.";
+    label.insertAdjacentElement("afterend",helper);
+  }
 }
 
 function hasTurndownRequest(stay){
