@@ -1,73 +1,57 @@
-# 🌹 Flowtel Release 0.4.7
+# Flowtel Release 0.4.8 — Number Ring Radius Correction
+
+This is a focused Application Release.
 
 ## Feature
-Final Medicine Wheel spacing and rose compass refinement.
+Medicine Wheel number ring radius correction.
 
 ## Changed Files
 
-```txt
+```text
 client/app.js
-client/styles.css
 docs/RELEASE.md
 ```
 
 ## Database
 None.
 
-## Installation Instructions
+## What Changed
+
+- Reduced the Medicine Wheel day-marker radius from `37.4` to `36.75` inside `wheelPosition()`.
+- This pulls the full 28-day number ring inward so the day circles sit cleanly between the existing two gold rings.
+- The active gold marker continues to use the same `wheelPosition()` calculation, so it stays centered directly over the active day.
+- No non-wheel features were changed.
+- No CSS changes were required.
+
+## Installation
 
 Replace:
 
-```txt
+```text
 flowtel-v4/client/app.js
 ```
 
 with:
 
-```txt
-Release-0.4.7/client/app.js
-```
-
-Replace:
-
-```txt
-flowtel-v4/client/styles.css
-```
-
-with:
-
-```txt
-Release-0.4.7/client/styles.css
+```text
+Release-0.4.8/client/app.js
 ```
 
 Copy:
 
-```txt
-Release-0.4.7/docs/RELEASE.md
+```text
+Release-0.4.8/docs/RELEASE.md
 ```
 
 into:
 
-```txt
-flowtel-v4/docs/RELEASE.md
+```text
+flowtel-v4/docs/RELEASE-0.4.8.md
 ```
-
-## Notes
-
-This is a focused wheel-only application release.
-
-- Removed temporary compass proof text.
-- Removed extra wheel axis / guide details from the rendered wheel.
-- Preserved exactly two gold rings around the number path: one inside the day circles and one outside the day circles.
-- Re-centered the day numbers between the two rings.
-- Kept Day 1 below WEST and Day 28+ above WEST with equally spaced positions.
-- Moved cardinal labels outside the number ring while keeping them inside the wheel card.
-- Moved season blocks inward from card edges and away from the wheel perimeter.
-- Simplified the rose compass details and strengthened the blooming spiral center.
 
 ## Commit
 
 ```bash
-git add .
-git commit -m "Release 0.4.7 - Final medicine wheel spacing and rose compass"
+git add client/app.js docs/RELEASE-0.4.8.md
+git commit -m "Release 0.4.8 - medicine wheel number ring radius correction"
 ```
