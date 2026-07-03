@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flowtel Suite</title>
+  <title>Flowtel Passport</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
@@ -18,29 +18,60 @@
         <p class="subtext">A quiet place<br />to meet yourself<br />on the moon.</p>
 
         <div class="auth-panel" id="authPanel">
-          <p class="panel-title">Guest Key</p>
-          <label for="email">Email</label><input id="email" type="email" autocomplete="email" />
-          <label for="password">Password</label><input id="password" type="password" autocomplete="current-password" />
-          <label for="firstName">First name</label><input id="firstName" type="text" autocomplete="given-name" />
-          <button id="signInButton" type="button">Sign In</button>
-          <button id="createGuestButton" type="button" class="secondary">Create Test Guest</button>
-          <p class="microcopy">Temporary testing entrance. Squarespace member connection comes later.</p>
+          <p class="panel-title">Flowtel Passport</p>
+          <p class="microcopy passport-note">
+            Beta entrance for Flow FM and Queendom members.
+          </p>
+
+          <label for="email">Email</label>
+          <input id="email" type="email" autocomplete="email" />
+
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" />
+
+          <button id="signInButton" type="button">Open My Passport</button>
+
+          <p class="microcopy">
+            Need help entering the Flowtel? Message Maddie.
+          </p>
         </div>
 
         <div class="checkin-form hidden" id="checkinForm">
           <p class="welcome-line" id="welcomeLine">Welcome back.</p>
-          <label for="cycleDay">I am on Day</label><input id="cycleDay" type="number" min="1" max="40" inputmode="numeric" />
-          <label for="feelsLike">Today feels like</label>
-          <select id="feelsLike">
-            <option value="">Select</option>
-            <option>Inner Winter</option>
-            <option>Inner Spring</option>
-            <option>Inner Summer</option>
-            <option>Inner Autumn</option>
-          </select>
-          <button id="checkInButton" type="button">Check In</button>
+
+          <div class="arrival-choice" id="arrivalChoice">
+            <button id="guestModeButton" type="button">Check Into the Flowtel</button>
+            <button id="clockInButton" type="button" class="secondary hidden">Clock Into the Flowtel</button>
+          </div>
+
+          <div id="guestCheckinFields" class="guest-checkin-fields hidden">
+            <label for="cycleDay">I am on Day</label>
+            <input id="cycleDay" type="number" min="1" max="40" inputmode="numeric" />
+
+            <label for="feelsLike">Today feels like</label>
+            <select id="feelsLike">
+              <option value="">Select</option>
+              <option>Inner Winter</option>
+              <option>Inner Spring</option>
+              <option>Inner Summer</option>
+              <option>Inner Autumn</option>
+            </select>
+
+            <button id="checkInButton" type="button">Receive My Room Key</button>
+          </div>
         </div>
+
         <p id="message" role="status"></p>
+      </section>
+
+      <section class="scene" id="keyScene">
+        <p class="eyebrow">FLOWTEL PASSPORT</p>
+        <div class="hotel-key-card">
+          <img src="../assets/flowtel-rose.png" alt="" onerror="this.style.display='none'" />
+          <h2 id="keyGuestName">Your key is ready.</h2>
+          <p id="keyRoomLine"></p>
+          <p id="keyCourtLine"></p>
+        </div>
       </section>
 
       <section class="scene" id="preparingScene">
@@ -109,14 +140,14 @@
         </section>
 
         <div class="suite-actions">
-          <button id="vipLobbyButton" type="button">Go to VIP Lobby</button>
+          <button id="flowtelLoungeButton" type="button">Go to Flowtel Lounge</button>
           <button id="returnLobbyButton" type="button" class="secondary">Return to Lobby</button>
         </div>
       </section>
 
-      <section class="scene vip-scene" id="vipScene">
-        <p class="eyebrow">VIP LOBBY</p>
-        <h2 id="vipCourtTitle">Your Season Court is ready.</h2>
+      <section class="scene lounge-scene" id="loungeScene">
+        <p class="eyebrow">FLOWTEL LOUNGE</p>
+        <h2 id="loungeCourtTitle">Your Season Court is ready.</h2>
         <p class="suite-subline">Your work here is done for now. Take what you need, relax, and go on about your day.</p>
 
         <section class="video-lounge-card">
@@ -135,10 +166,10 @@
           <p id="checkoutMessage"></p>
         </section>
 
-        <section class="visits-drawer vip-visits">
+        <section class="visits-drawer lounge-visits">
           <p class="eyebrow">PREVIOUS VISITS</p>
           <h3>Your recent stays</h3>
-          <div id="vipVisitsList"></div>
+          <div id="loungeVisitsList"></div>
         </section>
 
         <button id="backToSuiteButton" type="button" class="secondary">Return to Suite</button>
