@@ -347,12 +347,91 @@
     }
   </style>
 
+
+  <style>
+    /* Release 0.6.6 — Cycle Tracker final polish */
+    .tracker-shell{
+      max-width:960px!important;
+      padding-top:28px!important;
+    }
+
+    .tracker-hero{
+      max-width:880px!important;
+      margin:0 auto 18px!important;
+      padding:26px 28px!important;
+      border-radius:28px!important;
+    }
+
+    .tracker-hero h1{
+      font-size:clamp(2.6rem,6vw,4.6rem)!important;
+      margin:.08em 0 .12em!important;
+      letter-spacing:.10em!important;
+      text-transform:uppercase!important;
+    }
+
+    .tracker-hero p:not(.tracker-eyebrow){
+      font-size:.98rem!important;
+      line-height:1.45!important;
+      max-width:560px!important;
+      margin:0 auto!important;
+      color:#9b7768!important;
+    }
+
+    #cycleTrackerApp{
+      padding-top:10px!important;
+    }
+
+    #cycleTrackerApp #cycleMainHeading{
+      margin-top:0!important;
+    }
+
+    #cycleTrackerApp #cycleTagline{
+      display:none!important;
+    }
+
+    #cycleTrackerApp .question{
+      margin:18px auto!important;
+      padding:28px!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:28px!important;
+      background:rgba(255,253,249,.92)!important;
+      box-shadow:0 18px 50px rgba(109,78,65,.10)!important;
+    }
+
+    #cycleTrackerApp .question h2{
+      margin:0 0 12px!important;
+      font-size:clamp(1.8rem,4vw,3rem)!important;
+      line-height:1.05!important;
+    }
+
+    #cycleTrackerApp .question p{
+      margin:0 0 20px!important;
+    }
+
+    #cycleTrackerApp .button-grid{
+      display:grid!important;
+      gap:14px!important;
+      margin-top:14px!important;
+    }
+
+    #cycleTrackerApp .button-grid button{
+      min-height:48px!important;
+      padding:13px 18px!important;
+      box-shadow:0 8px 22px rgba(109,78,65,.08)!important;
+    }
+
+    .tracker-cta{
+      max-width:880px!important;
+      margin-top:26px!important;
+    }
+  </style>
+
 </head>
 <body>
   <main class="tracker-shell">
     <section class="tracker-hero">
-      <p class="tracker-eyebrow">FLOWTEL</p>
-      <h1>Cycle Tracker</h1>
+      <p class="tracker-eyebrow">WELCOME TO THE</p>
+      <h1>FLOWTEL</h1>
       <p>Track your cycle and unlock your cycle data using the Flowtel framework.</p>
     </section>
 
@@ -551,7 +630,7 @@
       <div class="progress-wrap"><div class="progress-bar" id="cycleProgressBar"></div></div>
 
       <h1 id="cycleMainHeading">Track Your Cycle</h1>
-      <p class="tagline" id="cycleTagline">Every cycle check-in tells a story.</p>
+      <p class="tagline" id="cycleTagline"></p>
       <p class="intro" id="cycleSubHeading">Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.</p>
 
       <div id="cycleQuestion1" class="question active">
@@ -1294,6 +1373,85 @@
     }
   </style>
 
+
+  <style>
+    /* Release 0.6.6 — Cycle Tracker final polish */
+    .tracker-shell{
+      max-width:960px!important;
+      padding-top:28px!important;
+    }
+
+    .tracker-hero{
+      max-width:880px!important;
+      margin:0 auto 18px!important;
+      padding:26px 28px!important;
+      border-radius:28px!important;
+    }
+
+    .tracker-hero h1{
+      font-size:clamp(2.6rem,6vw,4.6rem)!important;
+      margin:.08em 0 .12em!important;
+      letter-spacing:.10em!important;
+      text-transform:uppercase!important;
+    }
+
+    .tracker-hero p:not(.tracker-eyebrow){
+      font-size:.98rem!important;
+      line-height:1.45!important;
+      max-width:560px!important;
+      margin:0 auto!important;
+      color:#9b7768!important;
+    }
+
+    #cycleTrackerApp{
+      padding-top:10px!important;
+    }
+
+    #cycleTrackerApp #cycleMainHeading{
+      margin-top:0!important;
+    }
+
+    #cycleTrackerApp #cycleTagline{
+      display:none!important;
+    }
+
+    #cycleTrackerApp .question{
+      margin:18px auto!important;
+      padding:28px!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:28px!important;
+      background:rgba(255,253,249,.92)!important;
+      box-shadow:0 18px 50px rgba(109,78,65,.10)!important;
+    }
+
+    #cycleTrackerApp .question h2{
+      margin:0 0 12px!important;
+      font-size:clamp(1.8rem,4vw,3rem)!important;
+      line-height:1.05!important;
+    }
+
+    #cycleTrackerApp .question p{
+      margin:0 0 20px!important;
+    }
+
+    #cycleTrackerApp .button-grid{
+      display:grid!important;
+      gap:14px!important;
+      margin-top:14px!important;
+    }
+
+    #cycleTrackerApp .button-grid button{
+      min-height:48px!important;
+      padding:13px 18px!important;
+      box-shadow:0 8px 22px rgba(109,78,65,.08)!important;
+    }
+
+    .tracker-cta{
+      max-width:880px!important;
+      margin-top:26px!important;
+    }
+  </style>
+
 </head>
           <body>
             <h1 class="snapshot-title">${snapshotTitle}</h1>
@@ -1391,120 +1549,3 @@
 
 </body>
           </html>
-        `);
-
-        printWindow.document.close();
-      }
-
-      window.cycleRestartQuiz = function(){
-        currentStep = 1;
-        screenHistory = ["cycleQuestion1"];
-        cycleUpdateHeader("Track Your Cycle","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
-        cycleShowScreen("cycleQuestion1", false);
-        document.getElementById("cyclePeriodDate").value = "";
-        const label = document.getElementById("cycleDatePickerText");
-        if(label) label.textContent = "Tap here to select a date";
-      }
-    })();
-  </script>
-</div>
-
-    <section class="tracker-cta">
-      <p class="tracker-eyebrow">YOUR ROOM CAN REMEMBER YOU</p>
-      <h2>Want to keep tracking inside the Flowtel?</h2>
-      <p>Join the Queendom to save your stays, reflections, previous visits, and Concierge notes.</p>
-      <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
-    </section>
-  </main>
-
-  <script>
-    (function(){
-      function addInvite(){
-        var results=document.getElementById("cycleResultsContent") || document.getElementById("cycleResults");
-        if(!results || document.getElementById("flowtelTrackerInvite")) return;
-        var invite=document.createElement("section");
-        invite.id="flowtelTrackerInvite";
-        invite.className="flowtel-tracker-invite";
-        invite.innerHTML='<p class="tracker-eyebrow">YOUR ROOM CAN REMEMBER YOU</p><h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
-        results.insertAdjacentElement("afterend",invite);
-      }
-
-      function polishTracker(){
-        var btn=document.getElementById("cycleRevealBtn");
-        if(btn){
-          btn.textContent="My Cycle Data";
-          btn.addEventListener("click",function(){setTimeout(addInvite,450);});
-        }
-
-        document.addEventListener("click",function(event){
-          var target=event.target;
-          if(!target) return;
-          var text=(target.textContent||"").trim();
-          if(target.matches("button,[role='button'],a") && (/^\d+\+?$/.test(text) || /day/i.test(text))){
-            setTimeout(addInvite,300);
-          }
-        });
-      }
-
-      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",polishTracker);
-      else polishTracker();
-    })();
-  </script>
-
-
-  <script>
-    /* Release 0.6.5 — Tracker button repair + Queendom invitation */
-    (function(){
-      function enableCycleButton(){
-        var input=document.getElementById("cyclePeriodDate");
-        var btn=document.getElementById("cycleRevealBtn");
-        if(!input || !btn) return;
-        btn.textContent="My Cycle Data";
-        btn.disabled=!input.value;
-      }
-
-      function addFlowtelInvite(){
-        var results=document.getElementById("cycleResultsContent");
-        if(!results || document.querySelector(".flowtel-tracker-invite")) return;
-        var invite=document.createElement("div");
-        invite.className="flowtel-tracker-invite";
-        invite.innerHTML='<h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
-        results.insertAdjacentElement("afterend",invite);
-      }
-
-      function initTrackerPatch(){
-        var input=document.getElementById("cyclePeriodDate");
-        var btn=document.getElementById("cycleRevealBtn");
-
-        if(input){
-          input.addEventListener("input",enableCycleButton);
-          input.addEventListener("change",function(){
-            enableCycleButton();
-            setTimeout(enableCycleButton,80);
-          });
-        }
-
-        if(btn){
-          btn.textContent="My Cycle Data";
-          btn.addEventListener("click",function(){
-            setTimeout(addFlowtelInvite,500);
-          });
-        }
-
-        document.addEventListener("click",function(event){
-          var text=(event.target && event.target.textContent || "").trim();
-          if(/^\d+\+?$/.test(text) || /day/i.test(text)){
-            setTimeout(addFlowtelInvite,350);
-          }
-        });
-
-        enableCycleButton();
-      }
-
-      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initTrackerPatch);
-      else initTrackerPatch();
-    })();
-  </script>
-
-</body>
-</html>

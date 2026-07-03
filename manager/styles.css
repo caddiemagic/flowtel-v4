@@ -315,3 +315,84 @@
   .stats{grid-template-columns:1fr!important}
   .hero{padding:24px}
 }
+
+
+/* Release 0.6.6 — Concierge compact polish */
+.dashboard-snapshot > .my-guests-card{
+  display:none !important;
+}
+
+.hero{
+  padding-top:24px !important;
+  padding-bottom:24px !important;
+}
+
+.hero h1{
+  margin-bottom:18px !important;
+}
+
+.concierge-identity-inline{
+  margin-top:0 !important;
+  max-width:760px !important;
+  padding:0 !important;
+  border:0 !important;
+  box-shadow:none !important;
+  background:transparent !important;
+}
+
+.concierge-identity-inline h2{
+  margin:0 0 4px !important;
+  font-size:clamp(1.5rem,2.6vw,2.2rem) !important;
+}
+
+.concierge-identity-inline p{
+  margin:0 0 10px !important;
+  max-width:760px !important;
+}
+
+.concierge-affirmation{
+  margin-top:18px !important;
+  padding-top:18px !important;
+  border-top:1px solid rgba(109,78,65,.12);
+  font-style:italic;
+}
+
+.moon-progress{
+  position:relative;
+  max-width:520px;
+  height:13px !important;
+  background:rgba(216,168,79,.14) !important;
+  border:1px solid rgba(216,168,79,.22) !important;
+  border-radius:999px;
+  overflow:visible !important;
+}
+
+.moon-progress span{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:rgba(216,168,79,.48) !important;
+}
+
+.moon-progress b{
+  position:absolute;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:24px;
+  height:24px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#fffdf9;
+  color:#9b6f27;
+  border:1px solid rgba(216,168,79,.45);
+  box-shadow:0 6px 16px rgba(109,78,65,.14);
+  font-size:1.25rem !important;
+  line-height:1;
+  z-index:2;
+}
+
+@media(max-width:760px){
+  .dashboard-snapshot{grid-template-columns:1fr !important;}
+  .stats{grid-template-columns:repeat(2,1fr) !important;}
+}
