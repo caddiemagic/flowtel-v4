@@ -36,6 +36,19 @@ export async function autoCloseOpenStayIfNeeded(clientId){
   return data;
 }
 
+export async function getTodaysStay(){
+  const user=await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+  const {data,error}=await supabase.from("flowtel_stays").select("*")
+    .eq("client_id",user.id)
+    .eq("checkin_date",todayISO())
+    .order("checked_in_at",{ascending:false})
+    .limit(1)
+    .maybeSingle();
+  if(error) throw error;
+  return data;
+}
+
 export async function createStay({cycleDay,feelsLike}){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");

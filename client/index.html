@@ -39,11 +39,6 @@
         <div class="checkin-form hidden" id="checkinForm">
           <p class="welcome-line" id="welcomeLine">Welcome back.</p>
 
-          <div class="arrival-choice" id="arrivalChoice">
-            <button id="guestModeButton" type="button">Check Into the Flowtel</button>
-            <button id="clockInButton" type="button" class="secondary hidden">Clock Into the Flowtel</button>
-          </div>
-
           <div id="guestCheckinFields" class="guest-checkin-fields hidden">
             <label for="cycleDay">I am on Day</label>
             <input id="cycleDay" type="number" min="1" max="40" inputmode="numeric" />
@@ -57,7 +52,10 @@
               <option>Inner Autumn</option>
             </select>
 
-            <button id="checkInButton" type="button">Receive My Room Key</button>
+            <div class="arrival-choice" id="arrivalChoice">
+              <button id="checkInButton" type="button">Check In</button>
+              <button id="clockInButton" type="button" class="secondary hidden">Clock In</button>
+            </div>
           </div>
         </div>
 
