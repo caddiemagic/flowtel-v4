@@ -93,3 +93,37 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .arrival-choice.is-open{margin-top:18px}
 .arrival-choice.is-open:before{content:"Choose your arrival";display:block;margin:2px 0 0;font-family:Arial,sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rose)}
 .lounge-clockin-button{margin-top:18px}
+
+/* Release 0.4.3 — Luxury Suite & Turndown refinement */
+.suite-grid{grid-template-columns:minmax(460px,620px) minmax(360px,500px);gap:34px;align-items:start}
+.wheel-column{gap:22px}
+.wheel-panel,.moon-card{width:min(100%,620px);max-width:620px}
+.wheel-panel{padding:34px 34px 40px}
+.medicine-wheel{width:min(100%,540px);background:radial-gradient(circle at center,rgba(255,253,249,.98) 0 24%,rgba(255,255,255,.72) 25% 30%,transparent 31%),radial-gradient(circle at center,transparent 0 57%,rgba(216,168,79,.12) 58%,rgba(216,168,79,.12) 59%,transparent 60%),radial-gradient(circle at center,transparent 0 69%,rgba(109,78,65,.09) 70%,transparent 71%),linear-gradient(135deg,rgba(248,231,227,.38),rgba(255,253,249,.92) 46%,rgba(251,247,241,.94));}
+.wheel-compass-ring{inset:8%;border-color:rgba(216,168,79,.22)}
+.wheel-axis-vertical{height:76%}.wheel-axis-horizontal{width:76%}
+.wheel-cardinal{font-size:.56rem;letter-spacing:.24em;color:rgba(109,78,65,.46)}
+.wheel-cardinal-north{top:-8.25%}.wheel-cardinal-south{bottom:-8.25%}.wheel-cardinal-east{right:-10.25%}.wheel-cardinal-west{left:-10.25%}
+.wheel-season{min-width:118px;font-size:.76rem;color:rgba(109,78,65,.68)}
+.wheel-season small{font-size:.5rem;color:rgba(191,127,116,.68)}
+.wheel-season-autumn{left:-1%;top:-1%}.wheel-season-summer{right:-1%;top:-1%}.wheel-season-spring{right:-1%;bottom:-1%}.wheel-season-winter{left:-1%;bottom:-1%}
+.wheel-gold-compass{position:absolute;z-index:3;left:50%;top:50%;width:132px;height:132px;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none;filter:drop-shadow(0 16px 20px rgba(109,78,65,.09))}
+.wheel-gold-compass:before,.wheel-gold-compass:after{content:"";position:absolute;left:50%;top:50%;width:7px;height:118px;background:linear-gradient(180deg,transparent,rgba(216,168,79,.92),transparent);border-radius:999px;transform:translate(-50%,-50%)}
+.wheel-gold-compass:after{transform:translate(-50%,-50%) rotate(90deg)}
+.wheel-gold-compass span{position:absolute;left:50%;top:50%;width:4px;height:100px;background:linear-gradient(180deg,transparent,rgba(216,168,79,.52),transparent);border-radius:999px;transform-origin:center}
+.wheel-gold-compass span:nth-child(1){transform:translate(-50%,-50%) rotate(45deg)}.wheel-gold-compass span:nth-child(2){transform:translate(-50%,-50%) rotate(135deg)}.wheel-gold-compass span:nth-child(3){transform:translate(-50%,-50%) rotate(22.5deg)}.wheel-gold-compass span:nth-child(4){transform:translate(-50%,-50%) rotate(112.5deg)}
+.wheel-gold-compass i{position:absolute;left:50%;top:50%;width:54px;height:54px;border:1px solid rgba(216,168,79,.52);border-radius:50% 50% 48% 52%;transform:translate(-50%,-50%) rotate(28deg);box-shadow:inset 0 0 0 10px rgba(255,253,249,.72)}
+.wheel-room{width:31px;height:31px;font-size:.76rem;box-shadow:0 6px 16px rgba(109,78,65,.07)}
+.wheel-current-star{font-size:1.05rem;transform:translate(-50%,-184%);color:var(--gold)}
+.you-are-here{margin:28px 0 0;display:inline-flex;align-items:center;justify-content:center;gap:8px;color:rgba(191,127,116,.86)}
+.you-are-here:before{content:"◆";color:var(--gold);font-size:.86rem;letter-spacing:0}
+.moon-card{min-height:170px;padding:24px 26px}
+.concierge-note{background:rgba(255,253,249,.88);border-color:rgba(216,168,79,.18)}
+.concierge-note.quiet{background:rgba(255,253,249,.78);opacity:1}
+.concierge-note #witnessText{display:grid;gap:10px;color:var(--soft-brown);line-height:1.55}
+.concierge-note #witnessText strong{display:block;color:var(--brown);font-weight:400;font-size:1.18rem}
+.concierge-note #witnessText span,.concierge-note #witnessText small{display:block;color:var(--soft-brown)}
+.concierge-note #witnessText button{width:auto;margin-top:6px;justify-self:start;padding:12px 18px}
+.concierge-fulfilled{background:linear-gradient(135deg,rgba(255,253,249,.94),rgba(248,231,227,.46));border-color:rgba(216,168,79,.22)}
+.concierge-note-text{margin:8px 0 0;padding:16px;border-radius:16px;background:#fff;border:1px solid var(--line);font-style:italic;color:var(--brown)}
+@media(max-width:900px){.wheel-panel,.moon-card{width:min(100%,540px)}.medicine-wheel{width:min(100%,500px)}.wheel-cardinal-north{top:-7%}.wheel-cardinal-south{bottom:-7%}.wheel-cardinal-east{right:-8%}.wheel-cardinal-west{left:-8%}.wheel-season{min-width:96px;font-size:.64rem}.wheel-gold-compass{width:104px;height:104px}.wheel-gold-compass:before{height:94px}.wheel-gold-compass:after{height:94px}.wheel-room{width:27px;height:27px;font-size:.64rem}}

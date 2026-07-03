@@ -7,3 +7,9 @@
 .suite-return-card p:not(.eyebrow){margin:0;color:var(--soft-brown)}
 .suite-return-card button{min-width:190px;background:var(--blush-2);box-shadow:0 10px 24px rgba(109,78,65,.08);text-transform:uppercase;letter-spacing:.1em;font-family:Arial,sans-serif;font-size:.72rem;font-weight:700}
 @media(max-width:900px){.suite-return-card{grid-template-columns:1fr}.suite-return-card button{width:100%}}
+
+/* Release 0.4.3 — Concierge Turndown refinement */
+.stats{grid-template-columns:repeat(4,1fr)}
+.owner-overview,.suite-return-card{background:rgba(255,253,249,.9);border:1px solid var(--line);border-radius:26px;box-shadow:0 16px 42px rgba(109,78,65,.08)}
+.owner-overview{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:24px 28px;margin-bottom:18px}
+.desk-note,.queue-subtext{color:var(--soft-brown);line-height:1.55}.queue-subtext{margin:2px 0 18px}.suite-return-card{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:22px 26px;margin:18px 0;background:linear-gradient(135deg,rgba(255,253,249,.96),rgba(248,231,227,.46))}.suite-return-card button{min-width:180px}.guest-row{grid-template-columns:1fr 140px 150px;align-items:center;padding:22px}.guest-row h3{font-size:1.35rem;letter-spacing:.03em}.guest-row p{margin:4px 0;color:var(--soft-brown);line-height:1.35}.stat-card span{min-height:auto}.stat-card em{display:block;margin-top:4px}@media(max-width:900px){.stats,.guest-row,.owner-overview,.suite-return-card{grid-template-columns:1fr}.owner-overview{display:block}.suite-return-card button{width:100%}}

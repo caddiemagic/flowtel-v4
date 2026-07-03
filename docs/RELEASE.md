@@ -1,29 +1,37 @@
-# 🌹 Flowtel Release 0.4.2
+# 🌹 Flowtel Release 0.4.3
 
 ## Feature
-Compass Medicine Wheel + Arrival Flow Refinement
+Luxury Suite Refinement + Turndown Service
 
 ## Changed Files
-- `client/app.js`
-- `client/styles.css`
-- `manager/index.html`
-- `manager/app.js`
-- `manager/styles.css`
-- `docs/RELEASE.md`
+
+```txt
+client/app.js
+client/styles.css
+manager/index.html
+manager/app.js
+manager/styles.css
+shared/turndown.js
+database/migration-004-turndown-service.sql
+docs/RELEASE.md
+```
 
 ## Database
-None.
 
-This release preserves current check-in logging by continuing to write arrivals through the existing `createStay()` / `flowtel_stays` flow. Clock-in preparation is handled with the existing stay record plus Concierge handoff values in `sessionStorage`:
+Run this migration in the Supabase SQL Editor:
 
-- `flowtel:clockInStayId`
-- `flowtel:clockInAt`
-- `flowtel:lastSuiteStay`
-- `flowtel:openSuiteFromConcierge`
+```txt
+database/migration-004-turndown-service.sql
+```
 
-A dedicated clock-in table is intentionally not included yet. For private beta, this keeps the release small and avoids adding a second source of truth before the Passport model is finalized.
+This adds Turndown Service request tracking to existing stays:
 
-## Install Instructions
+```txt
+turndown_requested_at
+turndown_status
+```
+
+## Installation Instructions
 
 Replace:
 
@@ -34,7 +42,7 @@ flowtel-v4/client/app.js
 with:
 
 ```txt
-Release-0.4.2/client/app.js
+Release-0.4.3/client/app.js
 ```
 
 Replace:
@@ -46,7 +54,7 @@ flowtel-v4/client/styles.css
 with:
 
 ```txt
-Release-0.4.2/client/styles.css
+Release-0.4.3/client/styles.css
 ```
 
 Replace:
@@ -58,7 +66,7 @@ flowtel-v4/manager/index.html
 with:
 
 ```txt
-Release-0.4.2/manager/index.html
+Release-0.4.3/manager/index.html
 ```
 
 Replace:
@@ -70,7 +78,7 @@ flowtel-v4/manager/app.js
 with:
 
 ```txt
-Release-0.4.2/manager/app.js
+Release-0.4.3/manager/app.js
 ```
 
 Replace:
@@ -82,37 +90,92 @@ flowtel-v4/manager/styles.css
 with:
 
 ```txt
-Release-0.4.2/manager/styles.css
+Release-0.4.3/manager/styles.css
 ```
 
-No SQL migration is required.
+Add:
+
+```txt
+Release-0.4.3/shared/turndown.js
+```
+
+to:
+
+```txt
+flowtel-v4/shared/turndown.js
+```
+
+Run:
+
+```txt
+Release-0.4.3/database/migration-004-turndown-service.sql
+```
+
+in the Supabase SQL Editor.
+
+## Notes
+
+This release does not work on Squarespace integration, SSO, URL routing, or database redesign.
+
+The Medicine Wheel was refined, not redesigned:
+
+- Day 1 sits directly below WEST.
+- Day 28+ sits directly above WEST.
+- All 28 day markers are equally spaced.
+- Cardinal directions sit outside the number ring.
+- Inner Seasons anchor the four corners surrounding the wheel.
+- The center rose has been replaced with an elegant gold compass rose.
+- The “You Are Here” label sits lower with a gold diamond legend.
+
+The Suite was refined:
+
+- Removed repeated “Room X is ready.” language.
+- Increased Moon Magic card width to align with the Medicine Wheel card.
+- Replaced the old Concierge note state with Turndown Service language.
+
+The Concierge Desk was refined:
+
+- Removed the Witnessed Today stat pill.
+- Renamed the queue to Guests Awaiting Turndown Service.
+- Queue now only shows stays with a Turndown Service request.
+- Completing a Concierge Note removes the guest from the Turndown queue.
+
+## Important Shared Module Note
+
+`shared/turndown.js` dynamically looks for your existing Supabase client export in one of these files:
+
+```txt
+shared/supabase.js
+shared/supabaseClient.js
+shared/client.js
+```
+
+It expects one of those modules to export `supabase` or a default Supabase client. If your project uses a different shared Supabase filename, update the candidate list at the top of `shared/turndown.js`.
 
 ## QA Checklist
 
-1. Sign into the Flowtel Passport.
-2. Confirm cycle day and feels-like fields are visible before the arrival choice.
-3. Confirm regular guests only see `Check Into the Flowtel`.
-4. Confirm practitioners, owners, and admins see both `Check Into the Flowtel` and `Clock Into the Flowtel`.
-5. Enter a cycle day and feels-like inner season.
-6. Click `Check Into the Flowtel` and confirm the Suite opens normally.
-7. Confirm the stay is still saved in Supabase.
-8. Confirm the Medicine Wheel:
-   - Day 1 sits just below WEST.
-   - Day 28+ sits just above WEST.
-   - Days travel Day 1 → SOUTH → EAST → NORTH → 28+.
-   - Cardinal directions sit outside the number ring.
-   - Inner Season labels sit in the four square corners.
-9. Confirm the Moon Magic card width visually matches the Medicine Wheel card width.
-10. As a practitioner, click `Clock Into the Flowtel` and confirm the app routes to `../manager/`.
-11. Sign into the Concierge Desk.
-12. Confirm the dashboard stats and filters load without console errors.
-13. Confirm `Go to My Suite` appears when a Suite handoff exists.
-14. Click `Go to My Suite` and confirm the app returns to the client Suite using the cached stay.
-15. Open the Flowtel Lounge as a practitioner and confirm `Clock Into the Flowtel` remains available.
+1. Run the Supabase migration.
+2. Replace the changed files.
+3. Sign in as a guest.
+4. Enter cycle day and feels-like season.
+5. Check into the Suite.
+6. Confirm Medicine Wheel placement:
+   - Day 1 below WEST.
+   - Day 28+ above WEST.
+   - numbers are evenly spaced.
+   - cardinal directions are outside the number ring.
+7. Confirm Moon Magic card width aligns visually with the Medicine Wheel card.
+8. Click Request Turndown Service.
+9. Confirm the request state changes to Turndown Service Requested.
+10. Sign into Concierge as practitioner/owner/admin.
+11. Confirm the guest appears in Guests Awaiting Turndown Service.
+12. Leave a Concierge Note.
+13. Confirm the guest leaves the Turndown queue.
+14. Return to the Suite and confirm the Concierge note card appears.
 
 ## Commit
 
 ```bash
-git add client/app.js client/styles.css manager/index.html manager/app.js manager/styles.css docs/RELEASE.md
-git commit -m "Release 0.4.2 - Compass Medicine Wheel and arrival flow refinement"
+git add client/app.js client/styles.css manager/index.html manager/app.js manager/styles.css shared/turndown.js database/migration-004-turndown-service.sql docs/RELEASE.md
+git commit -m "Release 0.4.3 - Luxury suite refinement and Turndown Service"
 ```

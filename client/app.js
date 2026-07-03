@@ -89,12 +89,11 @@ function normalizedRoom(day){
 
 function wheelPosition(day){
   const room=normalizedRoom(day);
-  const startAngle=195;
-  const sweep=330;
-  const step=sweep/27;
+  const step=360/28;
+  const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=38;
+  const radius=36;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -117,13 +116,16 @@ function renderWheel(activeRoom){
     <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
     <span class="wheel-cardinal wheel-cardinal-west">WEST</span>
 
-    <span class="wheel-season wheel-season-winter">Inner Winter<small>Days 27–5</small></span>
-    <span class="wheel-season wheel-season-spring">Inner Spring<small>Days 6–11</small></span>
-    <span class="wheel-season wheel-season-summer">Inner Summer<small>Days 12–19</small></span>
     <span class="wheel-season wheel-season-autumn">Inner Autumn<small>Days 20–26</small></span>
+    <span class="wheel-season wheel-season-summer">Inner Summer<small>Days 12–19</small></span>
+    <span class="wheel-season wheel-season-spring">Inner Spring<small>Days 6–11</small></span>
+    <span class="wheel-season wheel-season-winter">Inner Winter<small>Days 27–5</small></span>
 
-    <img class="wheel-rose" src="../assets/flowtel-rose.png" alt="" onerror="this.outerHTML='<div class=&quot;wheel-center&quot;>🌹</div>'" />
-    <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">✦</span>
+    <div class="wheel-gold-compass" aria-hidden="true">
+      <span></span><span></span><span></span><span></span>
+      <i></i>
+    </div>
+    <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{
       const p=wheelPosition(room);
       const isActive=room===activeNormalizedRoom;
@@ -196,7 +198,7 @@ function renderSuite(stay){
   document.getElementById("suiteWelcome").textContent=`Welcome home, ${name}.`;
 
   const connector=stay.inner_season===stay.feels_like_inner_season?"and":"but";
-  document.getElementById("suiteSubline").textContent=`Room ${room} is ready. You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
+  document.getElementById("suiteSubline").textContent=`You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
 
   document.getElementById("loungeCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
 
@@ -213,16 +215,84 @@ function renderSuite(stay){
 
   document.getElementById("reflectionInput").value=stay.reflection||"";
 
-  const witnessNote=document.getElementById("witnessNote");
-  if(stay.witness_note){
-    witnessNote.classList.remove("quiet");
-    document.getElementById("witnessText").textContent=stay.witness_note;
-  } else {
-    witnessNote.classList.add("quiet");
-    document.getElementById("witnessText").textContent="No card has been left yet.";
-  }
+  renderConciergeCare(stay);
 
   renderWheel(stay.cycle_day_claimed);
+}
+
+function hasTurndownRequest(stay){
+  return !!(stay?.turndown_requested_at || stay?.turndown_status==="requested" || sessionStorage.getItem(`flowtel:turndown:${stay?.id}`)==="requested");
+}
+
+function renderConciergeCare(stay){
+  const witnessNote=document.getElementById("witnessNote");
+  const witnessText=document.getElementById("witnessText");
+  if(!witnessNote||!witnessText) return;
+
+  witnessNote.classList.toggle("quiet",!stay?.witness_note && !hasTurndownRequest(stay));
+
+  if(stay?.witness_note){
+    witnessNote.classList.add("concierge-fulfilled");
+    witnessText.innerHTML=`
+      <strong>🌹 Your Concierge stopped by today.</strong>
+      <span>✨ A note has been left in your room.</span>
+      <button type="button" class="secondary read-note-button" id="readConciergeNoteButton">Read Note →</button>
+      <p class="concierge-note-text hidden" id="conciergeNoteText">${escapeHtml(stay.witness_note)}</p>
+    `;
+    const readButton=document.getElementById("readConciergeNoteButton");
+    const noteText=document.getElementById("conciergeNoteText");
+    if(readButton&&noteText){
+      readButton.addEventListener("click",()=>{
+        noteText.classList.remove("hidden");
+        readButton.classList.add("hidden");
+      });
+    }
+    return;
+  }
+
+  if(hasTurndownRequest(stay)){
+    witnessText.innerHTML=`
+      <strong>🌙 Turndown Service Requested</strong>
+      <span>A concierge has been notified.</span>
+    `;
+    return;
+  }
+
+  witnessText.innerHTML=`
+    <strong>Your Concierge is available.</strong>
+    <span>Need a little extra care today?</span>
+    <button type="button" id="requestTurndownButton">🌙 Request Turndown Service</button>
+    <small>A concierge will be notified that you've requested a little extra witnessing today.</small>
+  `;
+
+  const button=document.getElementById("requestTurndownButton");
+  if(button){
+    button.addEventListener("click",()=>handleTurndownRequest(stay));
+  }
+}
+
+function escapeHtml(value){
+  return String(value||"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
+}
+
+async function handleTurndownRequest(stay){
+  if(!stay?.id) return;
+
+  const button=document.getElementById("requestTurndownButton");
+  if(button) button.disabled=true;
+
+  try{
+    const { requestTurndownService } = await import("../shared/turndown.js");
+    const updatedStay=await requestTurndownService(stay.id);
+    currentStay={...stay,...updatedStay,turndown_requested_at:updatedStay?.turndown_requested_at||new Date().toISOString(),turndown_status:updatedStay?.turndown_status||"requested"};
+  }catch(error){
+    console.warn("Turndown request could not be saved through Supabase yet; keeping local request state.",error);
+    sessionStorage.setItem(`flowtel:turndown:${stay.id}`,"requested");
+    currentStay={...stay,turndown_requested_at:new Date().toISOString(),turndown_status:"requested"};
+  }
+
+  cacheSuiteStay(currentStay);
+  renderConciergeCare(currentStay);
 }
 
 async function handleSignIn(){

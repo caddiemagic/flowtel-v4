@@ -35,7 +35,7 @@
           <p class="eyebrow">TODAY’S FLOW</p>
           <h2>The hotel is open.</h2>
         </div>
-        <p class="desk-note">Guests who have arrived and are waiting to be welcomed will appear below.</p>
+        <p class="desk-note">These guests have requested a little extra witnessing today.</p>
       </section>
 
       <section class="suite-return-card hidden" id="suiteReturnCard">
@@ -49,9 +49,9 @@
 
       <section class="stats">
         <button class="stat-card active" type="button" data-filter="queue">
-          <span>Awaiting Welcome</span>
+          <span>Awaiting Turndown</span>
           <strong id="awaitingWelcome">0</strong>
-          <em>New arrivals</em>
+          <em>Care requested</em>
         </button>
         <button class="stat-card" type="button" data-filter="in-house">
           <span>Guests in House</span>
@@ -63,11 +63,6 @@
           <strong id="extendedStay">0</strong>
           <em>14+ days</em>
         </button>
-        <button class="stat-card" type="button" data-filter="witnessed">
-          <span>Witnessed Today</span>
-          <strong id="witnessedToday">0</strong>
-          <em>Cards left</em>
-        </button>
         <button class="stat-card" type="button" data-filter="checked-out">
           <span>Checked Out</span>
           <strong id="checkedOut">0</strong>
@@ -77,8 +72,9 @@
 
       <section class="queue">
         <div class="section-heading">
-          <p class="eyebrow" id="activeFilterLabel">QUEUE / NEW ARRIVALS</p>
-          <h2 id="activeFilterTitle">🌹 Guests Awaiting Welcome</h2>
+          <p class="eyebrow" id="activeFilterLabel">TURNDOWN SERVICE</p>
+          <h2 id="activeFilterTitle">🌙 Guests Awaiting Turndown Service</h2>
+          <p class="queue-subtext" id="activeFilterSubtext">These guests have requested a little extra witnessing today.</p>
         </div>
         <div id="arrivalQueue"></div>
       </section>
