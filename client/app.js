@@ -119,7 +119,7 @@ function renderWheel(activeRoom){
   const activeNormalizedRoom=normalizedRoom(activeRoom);
   const activePosition=wheelPosition(activeNormalizedRoom);
 
- =medicineWheel.innerHTML = `
+ medicineWheel.innerHTML = `
   <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
   <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
   <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
@@ -135,7 +135,7 @@ function renderWheel(activeRoom){
 
   <img
     class="rose-compass-center"
-    src="../assets/gold-rose-compass.png"
+    src="../assets/rose_compass_center.png"
     alt=""
     aria-hidden="true"
   />
