@@ -657,32 +657,12 @@ async function handleBetaLogin(email){
     setMessage(`Opening beta account for ${account.firstName}...`);
     await signOut();
 
-    try {
-  await signInWithEmail(account.email, BETA_PASSWORD);
-
-} catch (signInError) {
-
-  console.log("Sign in failed:", signInError);
-
-  try {
-
-    await signUpWithEmail(account.email, BETA_PASSWORD);
-
-    console.log("Created new beta account.");
-
-    await signInWithEmail(account.email, BETA_PASSWORD);
-
-  } catch (signUpError) {
-
-    console.error("Bridge sign up failed:", signUpError);
-
-    setMessage(
-      `Bridge Error: ${signUpError.message || "Unknown bridge error"}`
-    );
-
-    return;
-  }
-}
+    try{
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }catch(signInError){
+      await signUpWithEmail(account.email,BETA_PASSWORD);
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }
 
     currentProfile=await ensureProfile({
       firstName:account.firstName,
@@ -734,12 +714,10 @@ async function handleSignIn(){
     }
 
     showCheckIn();
-  }catch (error) {
-  console.error(error);
-  setMessage(
-    "Your Passport could not be opened. Please check your email and password or message the Front Desk."
-  );
-}
+  }catch(error){
+    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
+    console.error(error);
+  }
 }
 
 function readArrivalFields(){
