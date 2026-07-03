@@ -106,7 +106,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=43.8;
+  const radius=37.4;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -120,12 +120,6 @@ function renderWheel(activeRoom){
   const activePosition=wheelPosition(activeNormalizedRoom);
 
   medicineWheel.innerHTML = `
-    <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9999;padding:6px 12px;border-radius:999px;background:#fffdf9;border:1px solid #d8a84f;color:#6d4e41;font:700 11px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 18px rgba(109,78,65,.14);pointer-events:none;">Compass Medicine Wheel 0.4.6</div>
-    <div style="position:absolute;top:42px;left:50%;transform:translateX(-50%);z-index:9999;padding:5px 10px;border-radius:999px;background:#f8e7e3;border:1px solid #d8a84f;color:#6d4e41;font:700 10px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 8px 18px rgba(109,78,65,.12);pointer-events:none;">WHEEL PATCH 0.4.6</div>
-    <div class="wheel-compass-ring" aria-hidden="true"></div>
-    <div class="wheel-axis wheel-axis-vertical" aria-hidden="true"></div>
-    <div class="wheel-axis wheel-axis-horizontal" aria-hidden="true"></div>
-
     <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
     <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
     <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
@@ -168,10 +162,6 @@ function renderWheel(activeRoom){
           <path d="M181 181 L130 141 L126 126 Z" opacity=".52"/>
           <path d="M39 181 L94 126 L90 141 Z" opacity=".52"/>
         </g>
-        <g class="sacred-guide-rings" fill="none" stroke="url(#flowtelCompassSoftGold)" stroke-width="1" opacity=".34">
-          <circle cx="110" cy="110" r="46"/>
-          <circle cx="110" cy="110" r="72" stroke-dasharray="2 8"/>
-        </g>
         <g class="rose-petals" fill="rgba(255,253,249,.20)" stroke="url(#flowtelCompassGold)" stroke-width="2.2" opacity=".78">
           <ellipse cx="110" cy="82" rx="24" ry="10"/>
           <ellipse cx="110" cy="138" rx="24" ry="10"/>
@@ -182,21 +172,15 @@ function renderWheel(activeRoom){
           <ellipse cx="130" cy="130" rx="20" ry="8" transform="rotate(-45 130 130)"/>
           <ellipse cx="90" cy="130" rx="20" ry="8" transform="rotate(45 90 130)"/>
         </g>
-        <g class="rose-lines" fill="none" stroke="url(#flowtelCompassGold)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M112 111c16-14 5-40-18-35-22 5-30 32-10 48 22 17 58 3 59-30" opacity=".90"/>
-          <path d="M110 110c-15 8-16 30 0 38 20 10 45-6 42-30-3-34-47-45-69-16" opacity=".76"/>
-          <path d="M109 110c10 13 30 12 38-3 9-18-6-39-28-37-29 3-41 38-20 57" opacity=".68"/>
-          <path d="M110 110c-8-7-22-4-25 6-6 14 6 30 22 28 22-2 31-28 16-44" opacity=".58"/>
-        </g>
-        <g class="rose-flourishes" fill="none" stroke="url(#flowtelCompassSoftGold)" stroke-width="1.6" stroke-linecap="round" opacity=".58">
-          <path d="M74 78c-12 2-18 10-16 19 2 7 11 6 13 0"/>
-          <path d="M146 78c12 2 18 10 16 19-2 7-11 6-13 0"/>
-          <path d="M74 142c-12-2-18-10-16-19 2-7 11-6 13 0"/>
-          <path d="M146 142c12-2 18-10 16-19-2-7-11-6-13 0"/>
+        <g class="rose-lines" fill="none" stroke="url(#flowtelCompassGold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M111 110c18-15 7-42-17-37-23 5-30 33-9 49 23 17 58 2 59-31" opacity=".88"/>
+          <path d="M110 110c-16 8-16 31 0 39 21 10 45-7 42-31-3-34-48-44-70-14" opacity=".74"/>
+          <path d="M110 110c10 13 30 12 38-4 8-18-7-39-29-36-29 3-40 38-19 57" opacity=".64"/>
+          <path d="M110 110c-8-7-22-4-25 6-5 14 7 29 22 27 21-2 30-27 16-43" opacity=".54"/>
+          <path d="M110 111c5-6 15-5 18 2 4 9-4 18-14 16-11-2-15-14-8-22" opacity=".70"/>
         </g>
         <circle cx="110" cy="110" r="4" fill="url(#flowtelCompassGold)"/>
       </svg>
-      <span class="rose-compass-proof">ROSE COMPASS 0.4.5</span>
     </div>
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{
