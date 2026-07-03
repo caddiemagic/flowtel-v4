@@ -3,6 +3,7 @@ import { getCurrentProfile } from "../shared/profiles.js";
 import { getFrontDeskStays, witnessStay } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
+const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 let allStays=[], activeFilter="queue";
 
 function guestName(stay){return [stay.profiles?.first_name,stay.profiles?.last_name].filter(Boolean).join(" ")||stay.profiles?.email||"Guest";}
@@ -19,12 +20,13 @@ function visibleStays(){
   if(activeFilter==="checked-out") return allStays.filter(checkedOutToday);
   return allStays;
 }
+function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 function updateStats(){
-  document.getElementById("guestsInHouse").textContent=allStays.filter(s=>s.stay_status!=="checked_out").length;
-  document.getElementById("awaitingWelcome").textContent=allStays.filter(isQueue).length;
-  document.getElementById("extendedStay").textContent=allStays.filter(isExtended).length;
-  document.getElementById("witnessedToday").textContent=allStays.filter(s=>!!s.witnessed_at).length;
-  document.getElementById("checkedOut").textContent=allStays.filter(checkedOutToday).length;
+  setText("guestsInHouse",allStays.filter(s=>s.stay_status!=="checked_out").length);
+  setText("awaitingWelcome",allStays.filter(isQueue).length);
+  setText("extendedStay",allStays.filter(isExtended).length);
+  setText("witnessedToday",allStays.filter(s=>!!s.witnessed_at).length);
+  setText("checkedOut",allStays.filter(checkedOutToday).length);
 }
 function setFilter(filter){
   activeFilter=filter;
@@ -36,10 +38,34 @@ function setFilter(filter){
     witnessed:["RECENTLY WITNESSED","Guests with Concierge Cards"],
     "checked-out":["CHECKED OUT TODAY","Guests who closed today’s stay"],
   };
-  document.getElementById("activeFilterLabel").textContent=titles[filter][0];
-  document.getElementById("activeFilterTitle").textContent=titles[filter][1];
+  setText("activeFilterLabel",titles[filter][0]);
+  setText("activeFilterTitle",titles[filter][1]);
   renderQueue();
 }
+
+function getCachedSuiteStay(){
+  try{
+    const cached=sessionStorage.getItem("flowtel:lastSuiteStay");
+    return cached?JSON.parse(cached):null;
+  }catch(error){
+    console.warn("Suite handoff could not be read.",error);
+    return null;
+  }
+}
+function updateSuiteReturn(){
+  const stay=getCachedSuiteStay();
+  if(!suiteReturnCard||!stay) return;
+  const room=Number(stay.cycle_day_claimed)>=28?"28+":stay.cycle_day_claimed;
+  suiteReturnCard.classList.remove("hidden");
+  if(suiteReturnNote){
+    suiteReturnNote.textContent=`Room ${room} is open. Return to your Suite whenever you're ready.`;
+  }
+}
+function goToSuite(){
+  sessionStorage.setItem("flowtel:openSuiteFromConcierge","true");
+  window.location.href="../client/?suite=1";
+}
+
 function renderQueue(){
   const stays=visibleStays();
   if(!stays.length){queue.innerHTML="<p>✨ No guests in this category right now.</p>";return;}
@@ -69,8 +95,11 @@ async function openDesk(){
     const profile=await getCurrentProfile();
     if(!profile||!["owner","admin","practitioner"].includes(profile.role)){managerMessage.textContent="This key does not open the Concierge Desk yet.";return;}
     loginCard.classList.add("hidden");dashboard.classList.remove("hidden");
+    updateSuiteReturn();
     await loadDesk();
   }catch(error){managerMessage.textContent=error.message;}
 }
 document.getElementById("managerSignInButton").addEventListener("click",openDesk);
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
+
+if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);

@@ -16,6 +16,7 @@ const medicineWheel=document.getElementById("medicineWheel");
 
 let currentProfile=null;
 let currentStay=null;
+let pendingArrivalStay=null;
 
 function setMessage(text){ message.textContent=text||""; }
 
@@ -29,7 +30,7 @@ function showScene(name){
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();ensureLoungeClockInButton();}
 }
 
 function canClockIn(profile){
@@ -43,8 +44,17 @@ function showCheckIn(){
   const name=currentProfile?.first_name||"guest";
   document.getElementById("welcomeLine").textContent=`Welcome back, ${name}.`;
 
-  if(canClockIn(currentProfile)){
-    document.getElementById("clockInButton").classList.remove("hidden");
+  // Release 0.4.2 arrival flow:
+  // guests enter cycle data first, then choose Check In or Clock In.
+  openGuestFields();
+  const arrivalChoice=document.getElementById("arrivalChoice");
+  if(arrivalChoice){
+    arrivalChoice.classList.add("is-open");
+  }
+
+  const clockInButton=document.getElementById("clockInButton");
+  if(clockInButton){
+    clockInButton.classList.toggle("hidden",!canClockIn(currentProfile));
   }
 }
 
@@ -82,9 +92,9 @@ function wheelPosition(day){
   const startAngle=195;
   const sweep=330;
   const step=sweep/27;
-  const angleDeg=startAngle - ((room-1)*step);
+  const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=43;
+  const radius=38;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -233,6 +243,12 @@ async function handleSignIn(){
     if(!currentProfile) currentProfile=await ensureProfile({});
 
     setMessage("");
+
+    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+      return;
+    }
+
     showCheckIn();
   }catch(error){
     setMessage("Your Passport could not be opened. Please check your email and password or message Maddie.");
@@ -240,25 +256,80 @@ async function handleSignIn(){
   }
 }
 
+function readArrivalFields(){
+  const cycleDay=Number(document.getElementById("cycleDay").value);
+  const feelsLike=document.getElementById("feelsLike").value;
+
+  if(!(cycleDay>=1&&cycleDay<=40)){
+    setMessage("Enter a cycle day between 1 and 40.");
+    return null;
+  }
+
+  if(!feelsLike){
+    setMessage("Choose what today feels like.");
+    return null;
+  }
+
+  return {cycleDay,feelsLike};
+}
+
+function cacheSuiteStay(stay){
+  try{
+    sessionStorage.setItem("flowtel:lastSuiteStay",JSON.stringify(stay));
+  }catch(error){
+    console.warn("Suite stay could not be cached for Concierge handoff.",error);
+  }
+}
+
+function getCachedSuiteStay(){
+  try{
+    const cached=sessionStorage.getItem("flowtel:lastSuiteStay");
+    return cached?JSON.parse(cached):null;
+  }catch(error){
+    console.warn("Cached Suite stay could not be read.",error);
+    return null;
+  }
+}
+
+function shouldOpenSuiteFromConcierge(){
+  const params=new URLSearchParams(window.location.search);
+  return params.get("suite")==="1" || sessionStorage.getItem("flowtel:openSuiteFromConcierge")==="true";
+}
+
+function restoreSuiteFromConcierge(){
+  const stay=getCachedSuiteStay();
+  if(!stay) return false;
+
+  currentStay=stay;
+  pendingArrivalStay=stay;
+  renderSuite(stay);
+  showScene("suite");
+  return true;
+}
+
+async function ensureArrivalStay(){
+  if(currentStay) return currentStay;
+  if(pendingArrivalStay) return pendingArrivalStay;
+
+  const arrival=readArrivalFields();
+  if(!arrival) return null;
+
+  pendingArrivalStay=await createStay(arrival);
+  currentStay=pendingArrivalStay;
+  cacheSuiteStay(currentStay);
+  return currentStay;
+}
+
 async function handleCheckIn(){
   try{
-    const cycleDay=Number(document.getElementById("cycleDay").value);
-    const feelsLike=document.getElementById("feelsLike").value;
-
-    if(!(cycleDay>=1&&cycleDay<=40)){
-      setMessage("Enter a cycle day between 1 and 40.");
-      return;
-    }
-
-    if(!feelsLike){
-      setMessage("Choose what today feels like.");
-      return;
-    }
-
     setMessage("");
     showScene("preparing");
 
-    const stay=await createStay({cycleDay,feelsLike});
+    const stay=await ensureArrivalStay();
+    if(!stay){
+      showScene("lobby");
+      return;
+    }
 
     setTimeout(()=>{
       renderKey(stay);
@@ -297,13 +368,45 @@ function openGuestFields(){
   document.getElementById("arrivalChoice").classList.add("is-open");
 }
 
-function clockIn(){
-  window.location.href="../manager/";
+async function handleClockIn(){
+  if(!canClockIn(currentProfile)){
+    setMessage("Clocking into the Flowtel is reserved for practitioners and the internal team.");
+    return;
+  }
+
+  try{
+    setMessage("");
+    const stay=await ensureArrivalStay();
+    if(!stay) return;
+
+    cacheSuiteStay(stay);
+    sessionStorage.setItem("flowtel:clockInStayId",stay.id);
+    sessionStorage.setItem("flowtel:clockInAt",new Date().toISOString());
+    window.location.href="../manager/";
+  }catch(error){
+    setMessage("The Concierge Desk could not receive your clock-in. Please try again or message Maddie.");
+    console.error(error);
+  }
+}
+
+function ensureLoungeClockInButton(){
+  if(!canClockIn(currentProfile)||!loungeScene) return;
+  if(document.getElementById("loungeClockInButton")) return;
+
+  const button=document.createElement("button");
+  button.id="loungeClockInButton";
+  button.type="button";
+  button.className="secondary lounge-clockin-button";
+  button.textContent="Clock Into the Flowtel";
+  button.addEventListener("click",handleClockIn);
+
+  const target=loungeScene.querySelector(".suite-actions")||loungeScene.querySelector(".video-lounge-card")||loungeScene;
+  target.appendChild(button);
 }
 
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 document.getElementById("guestModeButton").addEventListener("click",openGuestFields);
-document.getElementById("clockInButton").addEventListener("click",clockIn);
+document.getElementById("clockInButton").addEventListener("click",handleClockIn);
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
 document.getElementById("checkoutButton").addEventListener("click",handleCheckout);

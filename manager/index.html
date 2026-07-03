@@ -38,29 +38,47 @@
         <p class="desk-note">Guests who have arrived and are waiting to be welcomed will appear below.</p>
       </section>
 
-      <section class="stats">
+      <section class="suite-return-card hidden" id="suiteReturnCard">
         <div>
-          <span>Guests in House</span>
-          <strong id="guestsInHouse">0</strong>
+          <p class="eyebrow">YOUR SUITE</p>
+          <h2>Return to your room.</h2>
+          <p id="suiteReturnNote">Your Suite key is still warm.</p>
         </div>
-        <div>
+        <button id="goToSuiteButton" type="button">Go to My Suite</button>
+      </section>
+
+      <section class="stats">
+        <button class="stat-card active" type="button" data-filter="queue">
           <span>Awaiting Welcome</span>
           <strong id="awaitingWelcome">0</strong>
-        </div>
-        <div>
+          <em>New arrivals</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="in-house">
+          <span>Guests in House</span>
+          <strong id="guestsInHouse">0</strong>
+          <em>Open stays</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="extended">
+          <span>Extended Stay</span>
+          <strong id="extendedStay">0</strong>
+          <em>14+ days</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="witnessed">
           <span>Witnessed Today</span>
           <strong id="witnessedToday">0</strong>
-        </div>
-        <div>
+          <em>Cards left</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="checked-out">
           <span>Checked Out</span>
           <strong id="checkedOut">0</strong>
-        </div>
+          <em>Closed today</em>
+        </button>
       </section>
 
       <section class="queue">
         <div class="section-heading">
-          <p class="eyebrow">ARRIVALS BOARD</p>
-          <h2>🌹 Guests Awaiting Welcome</h2>
+          <p class="eyebrow" id="activeFilterLabel">QUEUE / NEW ARRIVALS</p>
+          <h2 id="activeFilterTitle">🌹 Guests Awaiting Welcome</h2>
         </div>
         <div id="arrivalQueue"></div>
       </section>

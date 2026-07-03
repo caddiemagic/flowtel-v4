@@ -37,29 +37,29 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .hotel-key-card p{font-size:1.15rem;color:var(--soft-brown)}
 .moon-glow{margin:42px auto 0;width:145px;height:145px;border-radius:50%;display:grid;place-items:center;font-size:6rem;color:var(--gold);background:radial-gradient(circle,rgba(248,231,227,.95),rgba(243,212,207,.3));animation:moonPulse 1.8s ease-in-out infinite}
 .suite-subline{margin:14px auto 28px;max-width:740px;color:var(--soft-brown);line-height:1.55}
-.suite-grid{display:grid;grid-template-columns:minmax(420px,1fr) 340px;gap:28px;align-items:start;margin-top:28px}
+.suite-grid{display:grid;grid-template-columns:minmax(420px,520px) minmax(420px,520px);gap:28px;align-items:start;justify-content:center;margin-top:28px}
 .suite-rail{display:grid;gap:14px}
 .wheel-column{display:grid;gap:18px}
-.wheel-panel{padding:30px}
-.medicine-wheel{position:relative;width:min(100%,520px);aspect-ratio:1;margin:0 auto;border-radius:50%;overflow:hidden;background:radial-gradient(circle at center,rgba(255,253,249,.96) 0 26%,rgba(255,255,255,.7) 27% 30%,transparent 31%),radial-gradient(circle at center,transparent 0 58%,rgba(216,168,79,.14) 59%,rgba(216,168,79,.14) 60%,transparent 61%),radial-gradient(circle at center,transparent 0 72%,rgba(109,78,65,.1) 73%,transparent 74%),linear-gradient(135deg,rgba(248,231,227,.46),rgba(255,253,249,.9) 46%,rgba(251,247,241,.9));box-shadow:inset 0 0 42px rgba(109,78,65,.06)}
+.wheel-panel{width:min(100%,580px);margin:0 auto;padding:30px}
+.medicine-wheel{position:relative;width:min(100%,520px);aspect-ratio:1;margin:0 auto;border-radius:50%;overflow:visible;background:radial-gradient(circle at center,rgba(255,253,249,.96) 0 26%,rgba(255,255,255,.7) 27% 30%,transparent 31%),radial-gradient(circle at center,transparent 0 58%,rgba(216,168,79,.14) 59%,rgba(216,168,79,.14) 60%,transparent 61%),radial-gradient(circle at center,transparent 0 72%,rgba(109,78,65,.1) 73%,transparent 74%),linear-gradient(135deg,rgba(248,231,227,.46),rgba(255,253,249,.9) 46%,rgba(251,247,241,.9));box-shadow:inset 0 0 42px rgba(109,78,65,.06)}
 .wheel-compass-ring{position:absolute;inset:6.5%;border:1px solid rgba(216,168,79,.24);border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
 .wheel-axis{position:absolute;left:50%;top:50%;background:linear-gradient(90deg,transparent,rgba(109,78,65,.12),transparent);transform-origin:center;pointer-events:none}
 .wheel-axis-vertical{width:1px;height:82%;transform:translate(-50%,-50%)}
 .wheel-axis-horizontal{width:82%;height:1px;transform:translate(-50%,-50%)}
 .wheel-cardinal{position:absolute;z-index:2;font-family:Arial,sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.2em;color:rgba(109,78,65,.52);text-transform:uppercase;pointer-events:none}
-.wheel-cardinal-north{top:4.5%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-east{right:4.1%;top:50%;transform:translateY(-50%) rotate(90deg)}
-.wheel-cardinal-south{bottom:4.5%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-west{left:4.1%;top:50%;transform:translateY(-50%) rotate(-90deg)}
+.wheel-cardinal-north{top:-5.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:-7.5%;top:50%;transform:translateY(-50%) rotate(90deg)}
+.wheel-cardinal-south{bottom:-5.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-west{left:-7.5%;top:50%;transform:translateY(-50%) rotate(-90deg)}
 .wheel-season{position:absolute;z-index:2;display:grid;gap:3px;text-align:center;font-size:.78rem;line-height:1.1;color:rgba(109,78,65,.72);pointer-events:none}
 .wheel-season small{font-family:Arial,sans-serif;font-size:.52rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,127,116,.74)}
-.wheel-season-winter{left:17%;bottom:23%}
-.wheel-season-spring{right:17%;bottom:23%}
-.wheel-season-summer{right:17%;top:23%}
-.wheel-season-autumn{left:17%;top:23%}
+.wheel-season-winter{left:2%;bottom:4%}
+.wheel-season-spring{right:2%;bottom:4%}
+.wheel-season-summer{right:2%;top:4%}
+.wheel-season-autumn{left:2%;top:4%}
 .wheel-rose{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:168px;height:168px;object-fit:contain;opacity:.6;filter:saturate(.9) contrast(.94) drop-shadow(0 18px 22px rgba(109,78,65,.1));mix-blend-mode:multiply;pointer-events:none}
 .wheel-center{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);font-size:4rem;pointer-events:none}
-.wheel-room{position:absolute;z-index:4;left:var(--x);top:var(--y);width:40px;height:40px;transform:translate(-50%,-50%);margin:0;padding:0;border-radius:50%;background:rgba(255,253,249,.96);border:1px solid rgba(109,78,65,.18);box-shadow:0 8px 20px rgba(109,78,65,.08);font-family:Georgia,serif;font-size:.95rem;color:var(--brown);letter-spacing:0;transition:transform .28s ease,box-shadow .28s ease,background .28s ease}
+.wheel-room{position:absolute;z-index:4;left:var(--x);top:var(--y);width:34px;height:34px;transform:translate(-50%,-50%);margin:0;padding:0;border-radius:50%;background:rgba(255,253,249,.96);border:1px solid rgba(109,78,65,.18);box-shadow:0 8px 20px rgba(109,78,65,.08);font-family:Georgia,serif;font-size:.84rem;color:var(--brown);letter-spacing:0;transition:transform .28s ease,box-shadow .28s ease,background .28s ease}
 .wheel-room:hover{transform:translate(-50%,-50%) scale(1.04)}
 .wheel-room.active{background:#f4c8c4;color:var(--brown);border-color:#d89a91;box-shadow:0 0 0 7px rgba(244,200,196,.28),0 12px 24px rgba(109,78,65,.12);animation:bubblePulse 1.8s ease-in-out infinite}
 .wheel-current-star{position:absolute;z-index:5;left:var(--x);top:var(--y);transform:translate(-168%,-50%);color:var(--gold);font-size:1.5rem;filter:drop-shadow(0 4px 8px rgba(109,78,65,.2));pointer-events:none}
@@ -73,7 +73,7 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .room-card .eyebrow,.journal-card .eyebrow,.checkout-card .eyebrow,.visits-drawer .eyebrow,.video-lounge-card .eyebrow{margin-top:0}
 .room-stack{display:grid;gap:12px}
 .room-stack article,.visit-card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:16px}
-.moon-card{max-width:620px;margin:0 auto}
+.moon-card{width:min(100%,580px);max-width:580px;margin:0 auto}
 .suite-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
 .visit-card{margin-bottom:12px}
 .visit-reflection{font-style:italic;opacity:.8}
@@ -86,179 +86,10 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 @keyframes softSlide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @keyframes moonPulse{0%,100%{transform:scale(1);opacity:.92}50%{transform:scale(1.04);opacity:1}}
 @keyframes bubblePulse{0%,100%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.05)}}
-@media(max-width:900px){.flowtel-shell{padding:44px 20px 32px}.rose-corner{width:92px;height:92px;right:14px}.eyebrow{margin-top:64px}.suite-grid,.suite-actions{grid-template-columns:1fr}.wheel-room{width:33px;height:33px;font-size:.78rem}.wheel-rose{width:132px;height:132px}}
+@media(max-width:900px){.flowtel-shell{padding:44px 20px 32px}.rose-corner{width:92px;height:92px;right:14px}.eyebrow{margin-top:64px}.suite-grid,.suite-actions{grid-template-columns:1fr}.wheel-panel,.moon-card{width:min(100%,520px)}.wheel-room{width:29px;height:29px;font-size:.68rem}.wheel-rose{width:132px;height:132px}.wheel-cardinal{font-size:.5rem}.wheel-season{font-size:.66rem}.wheel-season small{font-size:.45rem}}
 
-.moon-card {
-  width: min(100%, 520px);
-  max-width: 520px;
-  margin: 0 auto;
-}
 
-.wheel-room {
-  left: var(--x);
-  top: var(--y);
-}
-
-.wheel-current-star {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  transform: translate(-175%, -50%);
-  color: var(--gold);
-  font-size: 1.8rem;
-  z-index: 7;
-  pointer-events: none;
-}
-
-.wheel-cardinal,
-.wheel-season {
-  position: absolute;
-  z-index: 3;
-  font-family: Arial, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--soft-brown);
-  font-size: .62rem;
-}
-
-.wheel-cardinal-north { top: 5%; left: 50%; transform: translateX(-50%); }
-.wheel-cardinal-east { right: 2%; top: 50%; transform: translateY(-50%); }
-.wheel-cardinal-south { bottom: 5%; left: 50%; transform: translateX(-50%); }
-.wheel-cardinal-west { left: 2%; top: 50%; transform: translateY(-50%); }
-
-.wheel-season {
-  font-size: .58rem;
-  opacity: .75;
-}
-
-.wheel-season small {
-  display: block;
-  font-size: .52rem;
-  margin-top: 3px;
-  letter-spacing: .08em;
-  text-transform: none;
-}
-
-.wheel-season-winter { left: 16%; bottom: 22%; text-align: left; }
-.wheel-season-spring { right: 14%; bottom: 22%; text-align: right; }
-.wheel-season-summer { right: 13%; top: 20%; text-align: right; }
-.wheel-season-autumn { left: 14%; top: 20%; text-align: left; }
-
-.wheel-axis {
-  position: absolute;
-  background: rgba(109, 78, 65, .12);
-  z-index: 1;
-}
-
-.wheel-axis-vertical {
-  width: 1px;
-  height: 78%;
-  left: 50%;
-  top: 11%;
-}
-
-.wheel-axis-horizontal {
-  height: 1px;
-  width: 78%;
-  left: 11%;
-  top: 50%;
-}
-
-.wheel-compass-ring {
-  position: absolute;
-  inset: 9%;
-  border: 1px solid rgba(109, 78, 65, .13);
-  border-radius: 50%;
-  z-index: 1;
-}
-
-.wheel-room {
-  left: var(--x);
-  top: var(--y);
-}
-
-.wheel-current-star {
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  transform: translate(-175%, -50%);
-  color: var(--gold);
-  font-size: 1.8rem;
-  z-index: 7;
-  pointer-events: none;
-}
-
-.wheel-cardinal,
-.wheel-season {
-  position: absolute;
-  z-index: 3;
-  font-family: Arial, sans-serif;
-  text-transform: uppercase;
-  letter-spacing: .14em;
-  color: var(--soft-brown);
-  font-size: .62rem;
-}
-
-.wheel-cardinal-north { top: 5%; left: 50%; transform: translateX(-50%); }
-.wheel-cardinal-east { right: 2%; top: 50%; transform: translateY(-50%); }
-.wheel-cardinal-south { bottom: 5%; left: 50%; transform: translateX(-50%); }
-.wheel-cardinal-west { left: 2%; top: 50%; transform: translateY(-50%); }
-
-.wheel-season {
-  font-size: .58rem;
-  opacity: .75;
-}
-
-.wheel-season small {
-  display: block;
-  font-size: .52rem;
-  margin-top: 3px;
-  letter-spacing: .08em;
-  text-transform: none;
-}
-
-.wheel-season-winter { left: 16%; bottom: 22%; text-align: left; }
-.wheel-season-spring { right: 14%; bottom: 22%; text-align: right; }
-.wheel-season-summer { right: 13%; top: 20%; text-align: right; }
-.wheel-season-autumn { left: 14%; top: 20%; text-align: left; }
-
-.wheel-axis {
-  position: absolute;
-  background: rgba(109, 78, 65, .12);
-  z-index: 1;
-}
-
-.wheel-axis-vertical {
-  width: 1px;
-  height: 78%;
-  left: 50%;
-  top: 11%;
-}
-
-.wheel-axis-horizontal {
-  height: 1px;
-  width: 78%;
-  left: 11%;
-  top: 50%;
-}
-
-.wheel-compass-ring {
-  position: absolute;
-  inset: 9%;
-  border: 1px solid rgba(109, 78, 65, .13);
-  border-radius: 50%;
-  z-index: 1;
-}
-
-body::before {
-  content: "CSS UPDATED";
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 999999;
-  background: gold;
-  color: black;
-  padding: 10px;
-}
-
-/* FLOWTEL CSS PATH TEST */
+/* Release 0.4.2: arrival flow and practitioner lounge refinement */
+.arrival-choice.is-open{margin-top:18px}
+.arrival-choice.is-open:before{content:"Choose your arrival";display:block;margin:2px 0 0;font-family:Arial,sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rose)}
+.lounge-clockin-button{margin-top:18px}
