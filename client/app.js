@@ -2,17 +2,18 @@ import { signInWithEmail, signUpWithEmail } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
 import { createStay, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
 
-const lobbyScene=document.getElementById("lobbyScene"), preparingScene=document.getElementById("preparingScene"), suiteScene=document.getElementById("suiteScene");
+const lobbyScene=document.getElementById("lobbyScene"), preparingScene=document.getElementById("preparingScene"), suiteScene=document.getElementById("suiteScene"), vipScene=document.getElementById("vipScene");
 const authPanel=document.getElementById("authPanel"), checkinForm=document.getElementById("checkinForm"), message=document.getElementById("message"), medicineWheel=document.getElementById("medicineWheel");
 let currentProfile=null, currentStay=null;
 
 function setMessage(text){ message.textContent=text||""; }
 function setProgress(step){ document.querySelectorAll(".progress-ribbon span").forEach((item,index)=>item.classList.toggle("active",index<step)); }
 function showScene(name){
-  [lobbyScene,preparingScene,suiteScene].forEach(scene=>scene.classList.remove("active"));
+  [lobbyScene,preparingScene,suiteScene,vipScene].forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
+  if(name==="vip"){vipScene.classList.add("active");setProgress(3); renderVipVisits();}
 }
 function showCheckIn(){
   authPanel.classList.add("hidden"); checkinForm.classList.remove("hidden");
@@ -29,12 +30,14 @@ function endTypeLabel(type){
 }
 function wheelPosition(day){
   const room=Number(day)>=28?28:Number(day);
-  const angle=((room-1)/28)*Math.PI*2-Math.PI/2, radius=43;
-  return {x:50+radius*Math.cos(angle), y:50+radius*Math.sin(angle)};
+  const angleDeg=180-((room-1)*(360/28));
+  const angle=angleDeg*Math.PI/180;
+  const radius=43;
+  return {x:50+radius*Math.cos(angle), y:50-radius*Math.sin(angle)};
 }
 function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
-  medicineWheel.innerHTML=`<div class="wheel-center">🌹</div>`+rooms.map(room=>{
+  medicineWheel.innerHTML=`<img class="wheel-rose" src="../assets/flowtel-rose.png" alt="" onerror="this.outerHTML='<div class=&quot;wheel-center&quot;>🌹</div>'" />`+rooms.map(room=>{
     const p=wheelPosition(room), isActive=(Number(activeRoom)>=28?room===28:room===Number(activeRoom));
     return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="left:${p.x}%;top:${p.y}%">${room===28?"28+":room}</button>`;
   }).join("");
@@ -50,12 +53,19 @@ async function openVisitsForRoom(room){
     visits.map(visit=>`<article class="visit-card"><strong>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</strong><p>${visit.stay_length_days||1} day stay</p><p>${endTypeLabel(visit.stay_end_type)}</p>${visit.reflection?`<p class="visit-reflection">${visit.reflection}</p>`:""}</article>`).join("");
   drawer.classList.remove("hidden");
 }
+async function renderVipVisits(){
+  if(!currentProfile) return;
+  const visits=await getPreviousVisits(currentProfile.id);
+  const list=document.getElementById("vipVisitsList");
+  list.innerHTML = !visits.length ? "<p>No previous visits yet.</p>" :
+    visits.slice(0,10).map(visit=>`<article class="visit-card"><strong>Room ${visit.cycle_day_claimed>=28?"28+":visit.cycle_day_claimed}</strong><p>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</p><p>${visit.stay_length_days||1} day stay · ${endTypeLabel(visit.stay_end_type)}</p></article>`).join("");
+}
 function renderSuite(stay){
   currentStay=stay;
   const name=currentProfile?.first_name||"guest", room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed, content=getDayContent(stay.cycle_day_claimed);
-  document.getElementById("suiteWelcome").textContent=`Welcome back, ${name}. Room ${room} is ready for you.`;
+  document.getElementById("suiteWelcome").textContent=`Welcome home, ${name}.`;
   const connector=stay.inner_season===stay.feels_like_inner_season?"and":"but";
-  document.getElementById("suiteSubline").textContent=`You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
+  document.getElementById("suiteSubline").textContent=`Room ${room} is ready. You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
   document.getElementById("suiteMoon").textContent=`${stay.moon_phase||"Moon phase"} · Day ${stay.moon_day||""}`;
   document.getElementById("suiteMoonTheme").textContent=stay.moon_theme||"";
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
@@ -65,8 +75,9 @@ function renderSuite(stay){
   document.getElementById("roomPrompt").textContent=content.prompt;
   document.getElementById("roomQueenMove").textContent=content.queenMove;
   document.getElementById("reflectionInput").value=stay.reflection||"";
-  if(stay.witness_note){document.getElementById("witnessNote").classList.remove("hidden");document.getElementById("witnessText").textContent=stay.witness_note;} 
-  else {document.getElementById("witnessNote").classList.add("hidden");document.getElementById("witnessText").textContent="";}
+  const witnessNote=document.getElementById("witnessNote");
+  if(stay.witness_note){witnessNote.classList.remove("quiet");document.getElementById("witnessText").textContent=stay.witness_note;} 
+  else {witnessNote.classList.add("quiet");document.getElementById("witnessText").textContent="No card has been left yet.";}
   renderWheel(stay.cycle_day_claimed);
 }
 async function handleCreateGuest(){
@@ -106,6 +117,7 @@ async function handleCheckout(){
   if(!currentStay) return;
   currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
   document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
+  renderVipVisits();
 }
 document.getElementById("createGuestButton").addEventListener("click",handleCreateGuest);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
@@ -113,4 +125,6 @@ document.getElementById("checkInButton").addEventListener("click",handleCheckIn)
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
 document.getElementById("checkoutButton").addEventListener("click",handleCheckout);
 document.getElementById("returnLobbyButton").addEventListener("click",()=>showScene("lobby"));
+document.getElementById("vipLobbyButton").addEventListener("click",()=>showScene("vip"));
+document.getElementById("backToSuiteButton").addEventListener("click",()=>showScene("suite"));
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));

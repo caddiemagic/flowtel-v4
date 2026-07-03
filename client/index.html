@@ -10,12 +10,13 @@
   <main class="flowtel-app">
     <section class="flowtel-shell">
       <div class="progress-ribbon" aria-hidden="true"><span class="active"></span><span></span><span></span></div>
-      <div class="rose-mark" aria-hidden="true">🌹</div>
+      <img class="rose-corner" src="../assets/flowtel-rose.png" alt="" onerror="this.style.display='none'" />
 
       <section class="scene active" id="lobbyScene">
         <p class="eyebrow">WELCOME HOME</p>
         <h1>to the Flowtel</h1>
         <p class="subtext">A quiet place<br />to meet yourself<br />on the moon.</p>
+
         <div class="auth-panel" id="authPanel">
           <p class="panel-title">Guest Key</p>
           <label for="email">Email</label><input id="email" type="email" autocomplete="email" />
@@ -25,18 +26,27 @@
           <button id="createGuestButton" type="button" class="secondary">Create Test Guest</button>
           <p class="microcopy">Temporary testing entrance. Squarespace member connection comes later.</p>
         </div>
+
         <div class="checkin-form hidden" id="checkinForm">
           <p class="welcome-line" id="welcomeLine">Welcome back.</p>
           <label for="cycleDay">I am on Day</label><input id="cycleDay" type="number" min="1" max="40" inputmode="numeric" />
           <label for="feelsLike">Today feels like</label>
-          <select id="feelsLike"><option value="">Select</option><option>Inner Winter</option><option>Inner Spring</option><option>Inner Summer</option><option>Inner Autumn</option></select>
+          <select id="feelsLike">
+            <option value="">Select</option>
+            <option>Inner Winter</option>
+            <option>Inner Spring</option>
+            <option>Inner Summer</option>
+            <option>Inner Autumn</option>
+          </select>
           <button id="checkInButton" type="button">Check In</button>
         </div>
         <p id="message" role="status"></p>
       </section>
 
       <section class="scene" id="preparingScene">
-        <p class="eyebrow">FLOWTEL</p><h2>Preparing your room...</h2><div class="moon-glow" aria-hidden="true">☾</div>
+        <p class="eyebrow">FLOWTEL</p>
+        <h2>Preparing your room...</h2>
+        <div class="moon-glow" aria-hidden="true">☾</div>
       </section>
 
       <section class="scene suite-scene" id="suiteScene">
@@ -45,26 +55,41 @@
         <p class="suite-subline" id="suiteSubline"></p>
 
         <section class="suite-grid">
-          <div class="wheel-panel">
+          <aside class="suite-rail">
+            <article class="info-card current-room-card">
+              <span>Current Room</span>
+              <strong id="suiteRoom"></strong>
+              <p id="suiteSeason"></p>
+            </article>
+
+            <article class="concierge-note quiet" id="witnessNote">
+              <h3>💌 Concierge Card</h3>
+              <p id="witnessText">No card has been left yet.</p>
+            </article>
+
+            <article class="room-card">
+              <p class="eyebrow">TODAY'S ROOM</p>
+              <h3 id="roomTitle"></h3>
+
+              <div class="room-stack">
+                <article><span>Affirmation</span><p id="roomAffirmation"></p></article>
+                <article><span>Journal Prompt</span><p id="roomPrompt"></p></article>
+                <article><span>Queen Move</span><p id="roomQueenMove"></p></article>
+              </div>
+            </article>
+          </aside>
+
+          <section class="wheel-panel">
             <div class="medicine-wheel" id="medicineWheel" aria-label="Medicine wheel"></div>
             <p class="you-are-here">You are here</p>
-          </div>
-          <div class="suite-info">
-            <article class="info-card"><span>Moon Magic</span><strong id="suiteMoon"></strong><p id="suiteMoonTheme"></p></article>
-            <article class="info-card"><span>Current Room</span><strong id="suiteRoom"></strong><p id="suiteSeason"></p></article>
-          </div>
+          </section>
         </section>
 
-        <section class="room-card">
-          <p class="eyebrow">TODAY'S ROOM</p><h3 id="roomTitle"></h3>
-          <div class="room-content-grid">
-            <article><span>Affirmation</span><p id="roomAffirmation"></p></article>
-            <article><span>Journal Prompt</span><p id="roomPrompt"></p></article>
-            <article><span>Queen Move</span><p id="roomQueenMove"></p></article>
-          </div>
-        </section>
-
-        <section class="concierge-note hidden" id="witnessNote"><h3>💌 A card has been left in your room.</h3><p id="witnessText"></p></section>
+        <article class="info-card moon-card">
+          <span>Moon Magic</span>
+          <strong id="suiteMoon"></strong>
+          <p id="suiteMoonTheme"></p>
+        </article>
 
         <section class="journal-card">
           <p class="eyebrow">REFLECTION</p>
@@ -73,19 +98,40 @@
           <p id="reflectionMessage"></p>
         </section>
 
+        <section class="visits-drawer hidden" id="visitsDrawer">
+          <button id="closeVisitsButton" type="button" class="drawer-close">Close</button>
+          <p class="eyebrow" id="visitsRoomLabel">ROOM</p>
+          <h3 id="visitsTitle">Previous Visits</h3>
+          <div id="visitsList"></div>
+        </section>
+
+        <div class="suite-actions">
+          <button id="vipLobbyButton" type="button">Go to VIP Lobby</button>
+          <button id="returnLobbyButton" type="button" class="secondary">Return to Lobby</button>
+        </div>
+      </section>
+
+      <section class="scene vip-scene" id="vipScene">
+        <p class="eyebrow">VIP LOBBY</p>
+        <h2>Previous Visits have been prepared.</h2>
+        <p class="suite-subline">This is where you can close today’s stay and return to what the Flowtel remembers.</p>
+
         <section class="checkout-card">
-          <p class="eyebrow">CHECK OUT</p><h3>Before you leave...</h3><p>Leave a note for tomorrow's concierge.</p>
+          <p class="eyebrow">CHECK OUT</p>
+          <h3>Before you leave...</h3>
+          <p>Leave a note for tomorrow’s concierge.</p>
           <textarea id="checkoutInput" placeholder="What did you notice by the end of your stay?"></textarea>
-          <button id="checkoutButton" type="button" class="secondary">Personally Check Out</button>
+          <button id="checkoutButton" type="button">Personally Check Out</button>
           <p id="checkoutMessage"></p>
         </section>
 
-        <section class="visits-drawer hidden" id="visitsDrawer">
-          <button id="closeVisitsButton" type="button" class="drawer-close">Close</button>
-          <p class="eyebrow" id="visitsRoomLabel">ROOM</p><h3 id="visitsTitle">Previous Visits</h3><div id="visitsList"></div>
+        <section class="visits-drawer vip-visits">
+          <p class="eyebrow">PREVIOUS VISITS</p>
+          <h3>Your recent stays</h3>
+          <div id="vipVisitsList"></div>
         </section>
 
-        <button id="returnLobbyButton" type="button" class="secondary">Return to Lobby</button>
+        <button id="backToSuiteButton" type="button" class="secondary">Return to Suite</button>
       </section>
     </section>
   </main>
