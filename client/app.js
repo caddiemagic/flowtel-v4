@@ -714,10 +714,12 @@ async function handleSignIn(){
     }
 
     showCheckIn();
-  }catch(error){
-    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
-    console.error(error);
-  }
+  }catch (error) {
+  console.error(error);
+  setMessage(
+    "Your Passport could not be opened. Please check your email and password or message the Front Desk."
+  );
+}
 }
 
 function readArrivalFields(){
