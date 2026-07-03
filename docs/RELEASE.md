@@ -1,71 +1,72 @@
-# 🌹 Flowtel Release 0.4.9
+# 🌹 Flowtel Release 0.4.10
 
 ## Feature
-Final medicine wheel geometry before SSO.
+Medicine Wheel DOM Ring Placement Patch
 
-This is a focused Application Release. It only touches the Medicine Wheel number-ring geometry and the rose compass image scale.
+This is a focused Application Release. It updates only the Medicine Wheel render path and styling so the two gold rings are real DOM elements mathematically tied to the day-number radius.
 
 ## Changed Files
 
-```text
-client/app.js
-client/styles.css
-docs/RELEASE.md
-```
+- `client/app.js`
+- `client/styles.css`
+- `docs/RELEASE.md`
 
 ## Database
+
 None.
 
-## What Changed
-
-- Repositioned the number-ring radius so the 28 day circles sit cleanly between the existing inner and outer gold rings.
-- Preserved equal spacing across all 28 positions.
-- Preserved Day 1 below WEST, Day 28+ above WEST, and counter-clockwise order.
-- Kept the existing gold rings as the source of truth.
-- Enlarged the `rose_compass_center.png` center image while preserving aspect ratio and centering.
-- Did not modify workflow, SSO, Concierge, Lounge, Turndown Service, or database behavior.
-
-## Installation
+## Installation Instructions
 
 Replace:
 
-```text
+```txt
 flowtel-v4/client/app.js
 ```
 
 with:
 
-```text
-Release-0.4.9/client/app.js
+```txt
+Release-0.4.10/client/app.js
 ```
 
 Replace:
 
-```text
+```txt
 flowtel-v4/client/styles.css
 ```
 
 with:
 
-```text
-Release-0.4.9/client/styles.css
+```txt
+Release-0.4.10/client/styles.css
 ```
 
 Copy:
 
-```text
-Release-0.4.9/docs/RELEASE.md
+```txt
+Release-0.4.10/docs/RELEASE.md
 ```
 
 into:
 
-```text
-flowtel-v4/docs/RELEASE-0.4.9.md
+```txt
+flowtel-v4/docs/RELEASE-0.4.10.md
 ```
+
+## Confirmed Diff
+
+- `wheelPosition()` now uses `const radius = 44.25;`.
+- `renderWheel()` now renders:
+  - `.wheel-number-ring.wheel-number-ring-inner`
+  - `.wheel-number-ring.wheel-number-ring-outer`
+- Old compass/ring guide DOM elements were removed from `renderWheel()`.
+- `.medicine-wheel` no longer relies on radial-gradient gold rings.
+- Number circles use `--day-size: 38px`.
+- The inner and outer gold rings are calculated from `--day-radius` and `--day-size`.
 
 ## Commit
 
 ```bash
 git add .
-git commit -m "Release 0.4.9 - Final medicine wheel geometry before SSO"
+git commit -m "Release 0.4.10 - DOM-tied medicine wheel rings"
 ```
