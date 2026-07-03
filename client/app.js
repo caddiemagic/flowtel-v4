@@ -8,33 +8,45 @@ let currentProfile=null, currentStay=null;
 
 function setMessage(text){ message.textContent=text||""; }
 function setProgress(step){ document.querySelectorAll(".progress-ribbon span").forEach((item,index)=>item.classList.toggle("active",index<step)); }
+
 function showScene(name){
   [lobbyScene,preparingScene,suiteScene,vipScene].forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="vip"){vipScene.classList.add("active");setProgress(3); renderVipVisits();}
+  if(name==="vip"){vipScene.classList.add("active");setProgress(3);renderVipVisits();}
 }
+
 function showCheckIn(){
   authPanel.classList.add("hidden"); checkinForm.classList.remove("hidden");
   document.getElementById("welcomeLine").textContent=`Welcome back, ${currentProfile?.first_name||"guest"}.`;
 }
+
 function formatDate(dateString){
   if(!dateString) return "Open";
   return new Date(dateString).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
 }
+
 function endTypeLabel(type){
   if(type==="manual") return "Personally checked out";
   if(type==="automatic") return "Automatically checked out";
   return "Stay still open";
 }
+
+/*
+  Medicine wheel integrity:
+  Day 1 starts at West.
+  Days count counter-clockwise from there.
+  Day 28+ lands just above Day 1 so 1 and 28+ meet at West.
+*/
 function wheelPosition(day){
   const room=Number(day)>=28?28:Number(day);
-  const angleDeg=180-((room-1)*(360/28));
+  const angleDeg=180 + ((room-1)*(360/28));
   const angle=angleDeg*Math.PI/180;
   const radius=43;
-  return {x:50+radius*Math.cos(angle), y:50-radius*Math.sin(angle)};
+  return {x:50+radius*Math.cos(angle), y:50+radius*Math.sin(angle)};
 }
+
 function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
   medicineWheel.innerHTML=`<img class="wheel-rose" src="../assets/flowtel-rose.png" alt="" onerror="this.outerHTML='<div class=&quot;wheel-center&quot;>🌹</div>'" />`+rooms.map(room=>{
@@ -43,6 +55,7 @@ function renderWheel(activeRoom){
   }).join("");
   medicineWheel.querySelectorAll("[data-room]").forEach(button=>button.addEventListener("click",()=>openVisitsForRoom(button.dataset.room)));
 }
+
 async function openVisitsForRoom(room){
   if(!currentProfile) return;
   const visits=await getPreviousVisits(currentProfile.id,room);
@@ -53,6 +66,7 @@ async function openVisitsForRoom(room){
     visits.map(visit=>`<article class="visit-card"><strong>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</strong><p>${visit.stay_length_days||1} day stay</p><p>${endTypeLabel(visit.stay_end_type)}</p>${visit.reflection?`<p class="visit-reflection">${visit.reflection}</p>`:""}</article>`).join("");
   drawer.classList.remove("hidden");
 }
+
 async function renderVipVisits(){
   if(!currentProfile) return;
   const visits=await getPreviousVisits(currentProfile.id);
@@ -60,12 +74,14 @@ async function renderVipVisits(){
   list.innerHTML = !visits.length ? "<p>No previous visits yet.</p>" :
     visits.slice(0,10).map(visit=>`<article class="visit-card"><strong>Room ${visit.cycle_day_claimed>=28?"28+":visit.cycle_day_claimed}</strong><p>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</p><p>${visit.stay_length_days||1} day stay · ${endTypeLabel(visit.stay_end_type)}</p></article>`).join("");
 }
+
 function renderSuite(stay){
   currentStay=stay;
   const name=currentProfile?.first_name||"guest", room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed, content=getDayContent(stay.cycle_day_claimed);
   document.getElementById("suiteWelcome").textContent=`Welcome home, ${name}.`;
   const connector=stay.inner_season===stay.feels_like_inner_season?"and":"but";
   document.getElementById("suiteSubline").textContent=`Room ${room} is ready. You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
+  document.getElementById("vipCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
   document.getElementById("suiteMoon").textContent=`${stay.moon_phase||"Moon phase"} · Day ${stay.moon_day||""}`;
   document.getElementById("suiteMoonTheme").textContent=stay.moon_theme||"";
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
@@ -80,6 +96,7 @@ function renderSuite(stay){
   else {witnessNote.classList.add("quiet");document.getElementById("witnessText").textContent="No card has been left yet.";}
   renderWheel(stay.cycle_day_claimed);
 }
+
 async function handleCreateGuest(){
   try{
     setMessage("Creating your guest key...");
@@ -88,6 +105,7 @@ async function handleCreateGuest(){
     await signUpWithEmail(email,password); currentProfile=await ensureProfile({firstName}); setMessage(""); showCheckIn();
   }catch(error){setMessage(error.message);}
 }
+
 async function handleSignIn(){
   try{
     setMessage("Opening your guest key...");
@@ -98,6 +116,7 @@ async function handleSignIn(){
     setMessage(""); showCheckIn();
   }catch(error){setMessage(error.message);}
 }
+
 async function handleCheckIn(){
   try{
     const cycleDay=Number(document.getElementById("cycleDay").value), feelsLike=document.getElementById("feelsLike").value;
@@ -108,17 +127,21 @@ async function handleCheckIn(){
     setTimeout(()=>{renderSuite(stay); showScene("suite");},850);
   }catch(error){showScene("lobby"); setMessage(error.message);}
 }
+
 async function handleSaveReflection(){
   if(!currentStay) return;
   currentStay=await saveReflection(currentStay.id,document.getElementById("reflectionInput").value);
+  document.getElementById("reflectionInput").value="";
   document.getElementById("reflectionMessage").textContent="Reflection saved.";
 }
+
 async function handleCheckout(){
   if(!currentStay) return;
   currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
   document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
   renderVipVisits();
 }
+
 document.getElementById("createGuestButton").addEventListener("click",handleCreateGuest);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
