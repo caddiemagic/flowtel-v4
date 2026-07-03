@@ -878,3 +878,23 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   .wheel-season small{font-size:.42rem}
   .wheel-cardinal{font-size:.56rem}
 }
+
+
+/* Release 0.4.9 — Final medicine wheel geometry before SSO
+   Gold rings are the source of truth. Number circles sit between the inner and outer gold rings.
+   The rings are intentionally unchanged from 0.4.8; only the number path and center image scale are refined. */
+.rose-compass-center{
+  width:360px;
+  height:360px;
+  max-width:58%;
+  max-height:58%;
+  object-fit:contain;
+}
+@media(max-width:900px){
+  .rose-compass-center{
+    width:230px;
+    height:230px;
+    max-width:56%;
+    max-height:56%;
+  }
+}

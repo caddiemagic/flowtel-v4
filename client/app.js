@@ -106,7 +106,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=44.1;
+  const radius=44.25;
 
   return {
     x:50 + radius*Math.cos(angle),
