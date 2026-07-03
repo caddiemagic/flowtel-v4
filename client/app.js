@@ -106,7 +106,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=44.25;
+  const radius=39.5;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -193,7 +193,6 @@ function renderWheel(activeRoom){
         </g>
         <circle cx="110" cy="110" r="4" fill="url(#flowtelCompassGold)"/>
       </svg>
-      <span class="rose-compass-proof">ROSE COMPASS 0.4.5</span>
     </div>
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{

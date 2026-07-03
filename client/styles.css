@@ -785,37 +785,25 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
    The two gold rings are now real elements tied to the number radius.
    Number circles sit exactly between the inner and outer ring. */
 .medicine-wheel{
-  --day-radius:44.25%;
-  --day-size:38px;
-  background:linear-gradient(145deg, rgba(255,253,249,.995), rgba(251,247,241,.985))!important;
-  box-shadow:inset 0 0 58px rgba(109,78,65,.045)!important;
+  --day-radius:39.5%;
+  --day-size:34px;
 }
-.wheel-compass-ring,
-.wheel-axis,
-.wheel-rose{display:none!important}
-.wheel-number-ring{
-  position:absolute;
-  left:50%;
-  top:50%;
-  border:2px solid rgba(216,168,79,.72);
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  z-index:2;
-}
+
 .wheel-number-ring-inner{
-  width:calc((var(--day-radius) * 2) - var(--day-size));
-  height:calc((var(--day-radius) * 2) - var(--day-size));
+  width:calc((var(--day-radius) * 2) - var(--day-size) - 12px);
+  height:calc((var(--day-radius) * 2) - var(--day-size) - 12px);
 }
+
 .wheel-number-ring-outer{
-  width:calc((var(--day-radius) * 2) + var(--day-size));
-  height:calc((var(--day-radius) * 2) + var(--day-size));
+  width:calc((var(--day-radius) * 2) + var(--day-size) + 12px);
+  height:calc((var(--day-radius) * 2) + var(--day-size) + 12px);
 }
-.wheel-room{
-  width:var(--day-size)!important;
-  height:var(--day-size)!important;
+
+.rose-compass-center{
+  width:230px !important;
+  height:230px !important;
 }
-.wheel-current-star{
-  width:var(--day-size)!important;
-  height:var(--day-size)!important;
+
+.rose-compass-proof{
+  display:none !important;
 }
