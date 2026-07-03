@@ -2,7 +2,6 @@
 export { getCurrentProfile, ensureProfile } from "./profiles.js";
 export {
   createStay,
-  getTodaysStay,
   saveReflection,
   closeStayPersonally,
   getPreviousVisits,

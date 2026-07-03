@@ -1,105 +1,21 @@
-# 🌹 Flowtel Release 0.5.0
+# Flowtel Release 0.4.9d — Medicine Wheel Radius Lock
 
-## Feature
-Arrival Flow + SSO Prep
+## Changed files
+- client/app.js
+- client/styles.css
 
-## Changed Files
+## What changed
+- Shrunk the shared day/ring radius to 31%.
+- Tied the day number ring, inner gold ring, and outer gold ring to the same geometry.
+- Added breathing room between day circles and gold rings.
+- Restored the rose compass image path to `../assets/rose_compass_center.png`.
+- Removed old rose compass proof text from the rendered wheel.
+- Fixed the accidental `=medicineWheel.innerHTML` syntax issue if present.
 
-- `client/index.html`
-- `client/app.js`
-- `client/styles.css`
-- `shared/stays.js`
-- `shared/flowtel.js`
-
-## Database
-
-None.
-
-## What Changed
-
-- Removed the top arrival choice buttons from the cycle input flow.
-- Guests now enter cycle day and feels-like inner season first.
-- Replaced the room-key button with `Check In`.
-- Added practitioner-only `Clock In` below `Check In`.
-- Added daily routing after Supabase sign-in:
-  - if today’s stay exists, open the Suite automatically.
-  - if today’s stay does not exist, open the arrival/check-in form.
-- Added a Suite-level `Clock In` button for practitioner/admin/owner roles so practitioners can clock in later after checking in as guests.
-- Kept the Lounge-level `Clock In` option for practitioner/admin/owner roles.
-- Added clear Squarespace SSO prep hooks while preserving the current Supabase email/password beta login.
-- Added `getTodaysStay()` to the shared stay layer and exported it through `shared/flowtel.js`.
-
-## Medicine Wheel
-
-No Medicine Wheel geometry, styling, rendering, or behavior was intentionally changed in this release.
-
-## Installation Instructions
-
+## Install
 Replace:
+- `flowtel-v4/client/app.js`
+- `flowtel-v4/client/styles.css`
 
-```txt
-flowtel-v4/client/index.html
-```
-
-with:
-
-```txt
-Release-0.5.0/client/index.html
-```
-
-Replace:
-
-```txt
-flowtel-v4/client/app.js
-```
-
-with:
-
-```txt
-Release-0.5.0/client/app.js
-```
-
-Replace:
-
-```txt
-flowtel-v4/client/styles.css
-```
-
-with:
-
-```txt
-Release-0.5.0/client/styles.css
-```
-
-Replace:
-
-```txt
-flowtel-v4/shared/stays.js
-```
-
-with:
-
-```txt
-Release-0.5.0/shared/stays.js
-```
-
-Replace:
-
-```txt
-flowtel-v4/shared/flowtel.js
-```
-
-with:
-
-```txt
-Release-0.5.0/shared/flowtel.js
-```
-
-No SQL migration is required.
-
-## Commit
-
-```bash
-git add .
-git commit -m "Release 0.5.0 - Arrival flow and SSO prep"
-```
+Commit:
+`Release 0.4.9d - Lock medicine wheel radius`

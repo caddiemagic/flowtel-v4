@@ -1,6 +1,6 @@
 import { signInWithEmail } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent, getTodaysStay } from "../shared/flowtel.js";
+import { createStay, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -28,35 +28,6 @@ function refineLobbyCopy(){
 
 refineLobbyCopy();
 
-// Release 0.5.0 SSO prep hook.
-// Squarespace member identity can later be passed into this function before falling back to Supabase email/password.
-function getSquarespaceMemberIdentity(){
-  return window.FlowtelSquarespaceMember || null;
-}
-
-function hasSquarespaceMemberIdentity(){
-  return !!getSquarespaceMemberIdentity();
-}
-
-async function routeAfterArrivalAuth(){
-  if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
-    sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
-    return;
-  }
-
-  const todaysStay=await getTodaysStay();
-  if(todaysStay){
-    currentStay=todaysStay;
-    pendingArrivalStay=todaysStay;
-    cacheSuiteStay(todaysStay);
-    renderSuite(todaysStay);
-    showScene("suite");
-    return;
-  }
-
-  showCheckIn();
-}
-
 function setMessage(text){ message.textContent=text||""; }
 
 function setProgress(step){
@@ -83,8 +54,13 @@ function showCheckIn(){
   const name=currentProfile?.first_name||"guest";
   document.getElementById("welcomeLine").textContent=`Welcome back, ${name}.`;
 
-  const guestFields=document.getElementById("guestCheckinFields");
-  if(guestFields) guestFields.classList.remove("hidden");
+  // Release 0.4.2 arrival flow:
+  // guests enter cycle data first, then choose Check In or Clock In.
+  openGuestFields();
+  const arrivalChoice=document.getElementById("arrivalChoice");
+  if(arrivalChoice){
+    arrivalChoice.classList.add("is-open");
+  }
 
   const clockInButton=document.getElementById("clockInButton");
   if(clockInButton){
@@ -115,6 +91,10 @@ function endTypeLabel(type){
   EAST = 360° / 0°
   NORTH = 90°
 */
+const WHEEL_DAY_RADIUS = 31;
+const WHEEL_DAY_SIZE = 34;
+const WHEEL_RING_GAP = 12;
+
 function normalizedRoom(day){
   const value=Number(day);
   if(!Number.isFinite(value)) return 1;
@@ -130,7 +110,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=39.5;
+  const radius=WHEEL_DAY_RADIUS;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -143,7 +123,12 @@ function renderWheel(activeRoom){
   const activeNormalizedRoom=normalizedRoom(activeRoom);
   const activePosition=wheelPosition(activeNormalizedRoom);
 
- medicineWheel.innerHTML = `
+  medicineWheel.style.setProperty("--day-radius", `${WHEEL_DAY_RADIUS}%`);
+  medicineWheel.style.setProperty("--ring-base", `${WHEEL_DAY_RADIUS * 2}%`);
+  medicineWheel.style.setProperty("--day-size", `${WHEEL_DAY_SIZE}px`);
+  medicineWheel.style.setProperty("--ring-offset", `${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px`);
+
+  medicineWheel.innerHTML = `
   <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
   <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
   <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
@@ -261,7 +246,6 @@ function renderSuite(stay){
   renderWheel(stay.cycle_day_claimed);
   refineWheelLegend();
   renderReflectionMoonMagic(stay);
-  ensureSuiteClockInButton();
 }
 
 function refineWheelLegend(){
@@ -401,11 +385,12 @@ async function handleSignIn(){
 
     setMessage("");
 
-    if(hasSquarespaceMemberIdentity()){
-      console.info("Flowtel Squarespace identity hook detected; Supabase login remains active for beta testing.");
+    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+      return;
     }
 
-    await routeAfterArrivalAuth();
+    showCheckIn();
   }catch(error){
     setMessage("Your Passport could not be opened. Please check your email and password or message Maddie.");
     console.error(error);
@@ -521,6 +506,7 @@ async function handleCheckout(){
 
 function openGuestFields(){
   guestCheckinFields.classList.remove("hidden");
+  document.getElementById("arrivalChoice").classList.add("is-open");
 }
 
 async function handleClockIn(){
@@ -544,27 +530,6 @@ async function handleClockIn(){
   }
 }
 
-function ensureSuiteClockInButton(){
-  const actions=document.querySelector("#suiteScene .suite-actions");
-  if(!actions) return;
-
-  const existing=document.getElementById("suiteClockInButton");
-  if(!canClockIn(currentProfile)){
-    if(existing) existing.remove();
-    return;
-  }
-
-  if(existing) return;
-
-  const button=document.createElement("button");
-  button.id="suiteClockInButton";
-  button.type="button";
-  button.className="secondary suite-clockin-button";
-  button.textContent="Clock In";
-  button.addEventListener("click",handleClockIn);
-  actions.appendChild(button);
-}
-
 function ensureLoungeClockInButton(){
   if(!canClockIn(currentProfile)||!loungeScene) return;
   if(document.getElementById("loungeClockInButton")) return;
@@ -573,7 +538,7 @@ function ensureLoungeClockInButton(){
   button.id="loungeClockInButton";
   button.type="button";
   button.className="secondary lounge-clockin-button";
-  button.textContent="Clock In";
+  button.textContent="Clock Into the Flowtel";
   button.addEventListener("click",handleClockIn);
 
   const target=loungeScene.querySelector(".suite-actions")||loungeScene.querySelector(".video-lounge-card")||loungeScene;
@@ -581,8 +546,7 @@ function ensureLoungeClockInButton(){
 }
 
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
-const guestModeButton=document.getElementById("guestModeButton");
-if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
+document.getElementById("guestModeButton").addEventListener("click",openGuestFields);
 document.getElementById("clockInButton").addEventListener("click",handleClockIn);
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
