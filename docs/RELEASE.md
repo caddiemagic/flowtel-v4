@@ -1,72 +1,34 @@
-# 🌹 Flowtel Release 0.4.10
+# Flowtel Release 0.4.9 — Tiny Radius Tightening Patch
 
 ## Feature
-Medicine Wheel DOM Ring Placement Patch
-
-This is a focused Application Release. It updates only the Medicine Wheel render path and styling so the two gold rings are real DOM elements mathematically tied to the day-number radius.
+Medicine Wheel radius tightening only.
 
 ## Changed Files
-
-- `client/app.js`
-- `client/styles.css`
-- `docs/RELEASE.md`
+- client/app.js
+- client/styles.css
 
 ## Database
-
 None.
 
-## Installation Instructions
-
+## Installation
 Replace:
 
-```txt
-flowtel-v4/client/app.js
-```
+`flowtel-v4/client/app.js`
 
 with:
 
-```txt
-Release-0.4.10/client/app.js
-```
+`Release-0.4.9-radius-tighten/client/app.js`
 
 Replace:
 
-```txt
-flowtel-v4/client/styles.css
-```
+`flowtel-v4/client/styles.css`
 
 with:
 
-```txt
-Release-0.4.10/client/styles.css
-```
+`Release-0.4.9-radius-tighten/client/styles.css`
 
-Copy:
-
-```txt
-Release-0.4.10/docs/RELEASE.md
-```
-
-into:
-
-```txt
-flowtel-v4/docs/RELEASE-0.4.10.md
-```
-
-## Confirmed Diff
-
-- `wheelPosition()` now uses `const radius = 44.25;`.
-- `renderWheel()` now renders:
-  - `.wheel-number-ring.wheel-number-ring-inner`
-  - `.wheel-number-ring.wheel-number-ring-outer`
-- Old compass/ring guide DOM elements were removed from `renderWheel()`.
-- `.medicine-wheel` no longer relies on radial-gradient gold rings.
-- Number circles use `--day-size: 38px`.
-- The inner and outer gold rings are calculated from `--day-radius` and `--day-size`.
+## Notes
+This patch only reduces the shared Medicine Wheel day radius from `39.5` to `36.75`, and updates the CSS `--day-radius` from `39.5%` to `36.75%`. The day circles, inner gold ring, and outer gold ring remain mathematically tied together. No workflow, Concierge, Lounge, Turndown, Reflection, navigation, authentication, or database behavior was changed.
 
 ## Commit
-
-```bash
-git add .
-git commit -m "Release 0.4.10 - DOM-tied medicine wheel rings"
-```
+`git commit -m "Flowtel Release 0.4.9 — Medicine Wheel radius tightening"`
