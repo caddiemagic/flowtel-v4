@@ -20,6 +20,15 @@ export async function getOpenStayForClient(clientId){
   return data;
 }
 
+
+export async function getTodayStayForClient(clientId){
+  const {data,error}=await supabase.from("flowtel_stays").select("*")
+    .eq("client_id",clientId).eq("checkin_date",todayISO())
+    .order("checked_in_at",{ascending:false}).limit(1).maybeSingle();
+  if(error) throw error;
+  return data;
+}
+
 export async function autoCloseOpenStayIfNeeded(clientId){
   const openStay=await getOpenStayForClient(clientId);
   if(!openStay) return null;

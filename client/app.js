@@ -1,6 +1,6 @@
 import { signInWithEmail } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -54,13 +54,8 @@ function showCheckIn(){
   const name=currentProfile?.first_name||"guest";
   document.getElementById("welcomeLine").textContent=`Welcome back, ${name}.`;
 
-  // Release 0.4.2 arrival flow:
-  // guests enter cycle data first, then choose Check In or Clock In.
+  // Guests enter cycle data first, then choose whether they are checking in or clocking in.
   openGuestFields();
-  const arrivalChoice=document.getElementById("arrivalChoice");
-  if(arrivalChoice){
-    arrivalChoice.classList.add("is-open");
-  }
 
   const clockInButton=document.getElementById("clockInButton");
   if(clockInButton){
@@ -390,6 +385,10 @@ async function handleSignIn(){
       return;
     }
 
+    if(await openTodaySuiteIfPresent()){
+      return;
+    }
+
     showCheckIn();
   }catch(error){
     setMessage("Your Passport could not be opened. Please check your email and password or message Maddie.");
@@ -443,6 +442,23 @@ function restoreSuiteFromConcierge(){
 
   currentStay=stay;
   pendingArrivalStay=stay;
+  renderSuite(stay);
+  showScene("suite");
+  return true;
+}
+
+async function openTodaySuiteIfPresent(){
+  if(!currentProfile?.id) return false;
+
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("forceCheckin")==="1") return false;
+
+  const stay=await getTodayStayForClient(currentProfile.id);
+  if(!stay) return false;
+
+  currentStay=stay;
+  pendingArrivalStay=stay;
+  cacheSuiteStay(stay);
   renderSuite(stay);
   showScene("suite");
   return true;
@@ -506,7 +522,8 @@ async function handleCheckout(){
 
 function openGuestFields(){
   guestCheckinFields.classList.remove("hidden");
-  document.getElementById("arrivalChoice").classList.add("is-open");
+  const arrivalChoice=document.getElementById("arrivalChoice");
+  if(arrivalChoice) arrivalChoice.classList.add("is-open");
 }
 
 async function handleClockIn(){
@@ -546,7 +563,8 @@ function ensureLoungeClockInButton(){
 }
 
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
-document.getElementById("guestModeButton").addEventListener("click",openGuestFields);
+const guestModeButton=document.getElementById("guestModeButton");
+if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
 document.getElementById("clockInButton").addEventListener("click",handleClockIn);
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);

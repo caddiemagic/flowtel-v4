@@ -39,10 +39,7 @@
         <div class="checkin-form hidden" id="checkinForm">
           <p class="welcome-line" id="welcomeLine">Welcome back.</p>
 
-          <div class="arrival-choice" id="arrivalChoice">
-            <button id="guestModeButton" type="button">Check Into the Flowtel</button>
-            <button id="clockInButton" type="button" class="secondary hidden">Clock Into the Flowtel</button>
-          </div>
+          <div class="arrival-choice hidden" id="arrivalChoice" aria-hidden="true"></div>
 
           <div id="guestCheckinFields" class="guest-checkin-fields hidden">
             <label for="cycleDay">I am on Day</label>
@@ -57,7 +54,10 @@
               <option>Inner Autumn</option>
             </select>
 
-            <button id="checkInButton" type="button">Receive My Room Key</button>
+            <button id="checkInButton" type="button">Check Into the Flowtel</button>
+            <button id="clockInButton" type="button" class="secondary hidden">
+              Clock Into the Flowtel
+            </button>
           </div>
         </div>
 

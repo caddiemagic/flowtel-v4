@@ -5,6 +5,42 @@ import { getFrontDeskStays, witnessStay } from "../shared/flowtel.js";
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 let allStays=[], activeFilter="queue";
+let clockInContext=null;
+
+function getClockInContext(){
+  try{
+    const cached=sessionStorage.getItem("flowtel:lastSuiteStay");
+    return cached?JSON.parse(cached):null;
+  }catch(error){
+    console.warn("Clock-in context could not be read.",error);
+    return null;
+  }
+}
+
+function oppositeWingForWing(wing){
+  return {
+    "East Wing":"West Wing",
+    "West Wing":"East Wing",
+    "North Wing":"South Wing",
+    "South Wing":"North Wing",
+  }[wing]||null;
+}
+
+function assignedWingForPractitioner(){
+  return oppositeWingForWing(clockInContext?.wing);
+}
+
+function assignmentLine(){
+  const ownWing=clockInContext?.wing;
+  const assigned=assignedWingForPractitioner();
+
+  if(ownWing&&assigned){
+    return `You are clocked into the ${ownWing}. Today you are tending the ${assigned}.`;
+  }
+
+  return "You are clocked into the Concierge Desk. Today you can view all turndown requests.";
+}
+
 
 function guestName(stay){return [stay.profiles?.first_name,stay.profiles?.last_name].filter(Boolean).join(" ")||stay.profiles?.email||"Guest";}
 function startOfToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
