@@ -984,3 +984,21 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 }
 .checkout-complete-scene h2{max-width:720px;margin-inline:auto;}
 
+
+
+/* Release 0.6.2 — Explicit temporary bridge paths */
+.bridge-question{
+  margin-top: 1rem;
+  color: var(--brown);
+  opacity: .8;
+  font-weight: 600;
+}
+
+#memberBridgeNewButton,
+#memberBridgeReturningButton{
+  margin-top: .7rem;
+}
+
+#memberBridgeReturningButton{
+  background: transparent;
+}

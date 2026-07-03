@@ -76,9 +76,34 @@ function updateDoorwayCopy(){
   if(memberEmail && detectedEmail) memberEmail.value=detectedEmail;
 }
 
-async function openMemberBridge(){
+function memberBridgeEmail(){
   const emailInput=document.getElementById("memberEmail");
-  const email=(emailInput?.value || extractSquarespaceEmail()).trim().toLowerCase();
+  return (emailInput?.value || extractSquarespaceEmail() || "").trim().toLowerCase();
+}
+
+async function completeMemberBridgeEntrance(email){
+  currentProfile=await ensureProfile({
+    firstName:firstNameFromEmail(email),
+    membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
+    squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
+  });
+
+  setMessage("");
+
+  if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+    sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+    return;
+  }
+
+  if(await openTodaySuiteIfPresent()){
+    return;
+  }
+
+  showCheckIn();
+}
+
+async function createNewMemberBridge(){
+  const email=memberBridgeEmail();
 
   if(!email){
     setMessage("Add the email you use for your Idyll Collective membership.");
@@ -86,44 +111,45 @@ async function openMemberBridge(){
   }
 
   try{
-    setMessage("Preparing your Flowtel room...");
+    setMessage("Preparing your Flowtel profile...");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
 
     await signOut();
+    await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+    await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+    await completeMemberBridgeEntrance(email);
+  }catch(error){
+    console.error("Flowtel New Member Bridge Error:", error);
 
-    try{
-      await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
-    }catch(signInError){
-      await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
-      await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
-    }
-
-    currentProfile=await ensureProfile({
-      firstName:firstNameFromEmail(email),
-      membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
-      squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
-    });
-
-    setMessage("");
-
-    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
-      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+    const message=String(error?.message || "").toLowerCase();
+    if(message.includes("already") || message.includes("registered") || message.includes("exists")){
+      setMessage("This email has already stayed at the Flowtel. Choose “I've Stayed Before” and enter your Flowtel password.");
+      openReturningMemberLogin(false);
       return;
     }
 
-    if(await openTodaySuiteIfPresent()){
-      return;
-    }
-
-    showCheckIn();
-  }catch (error) {
-  console.error("Flowtel Bridge Error:", error);
-
-  setMessage(
-    `Bridge Error: ${error?.message || "Unknown error"}`
-  );
+    setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
+  }
 }
 
+function openReturningMemberLogin(showMessage=true){
+  const email=memberBridgeEmail();
+  const devLoginCard=document.getElementById("devLoginCard");
+  const emailField=document.getElementById("email");
+
+  if(emailField && email) emailField.value=email;
+  if(devLoginCard) devLoginCard.open=true;
+
+  if(showMessage){
+    setMessage("Welcome back. Enter the password you used for Flowtel, then choose Enter the Flowtel.");
+  }
+
+  setTimeout(()=>document.getElementById("password")?.focus(),100);
+}
+
+async function openMemberBridge(){
+  // Kept for future Squarespace auto-bridge support. During beta, auto-bridge creates a new temporary profile only when explicitly requested with ?auto=1 or ?bridge=1.
+  await createNewMemberBridge();
 }
 
 
@@ -908,8 +934,10 @@ function ensureLoungeClockInButton(){
 
 renderBetaLoginPanel();
 
-const memberBridgeButton=document.getElementById("memberBridgeButton");
-if(memberBridgeButton) memberBridgeButton.addEventListener("click",openMemberBridge);
+const memberBridgeNewButton=document.getElementById("memberBridgeNewButton");
+if(memberBridgeNewButton) memberBridgeNewButton.addEventListener("click",createNewMemberBridge);
+const memberBridgeReturningButton=document.getElementById("memberBridgeReturningButton");
+if(memberBridgeReturningButton) memberBridgeReturningButton.addEventListener("click",()=>openReturningMemberLogin(true));
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const guestModeButton=document.getElementById("guestModeButton");
 if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
