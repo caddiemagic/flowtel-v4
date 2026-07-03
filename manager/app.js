@@ -142,17 +142,42 @@ function canOpenTurndownRoom(stay){
   return isQueue(stay) && stay.wing===assigned;
 }
 
+function updatePractitionerIdentity(){
+  const profile=currentManagerProfile || {};
+  const initiation=getFlowFmInitiationStatus(profile);
+  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Concierge";
+
+  setText("practitionerIdentityName",name);
+
+  if(profile.role==="practitioner" || profile.role==="owner" || profile.role==="admin"){
+    const moonName=initiation.moon?.name || "Moon not set";
+    const monthLine=initiation.monthLine || "Month not set";
+    const theme=initiation.moon?.theme ? ` · ${initiation.moon.theme}` : "";
+    setText("practitionerIdentityLevel",`${initiation.level} · ${moonName} · ${monthLine}${theme}`);
+    const progress=document.getElementById("initiationProgressBar");
+    if(progress){
+      const percent=initiation.moonIndex ? Math.min(100,(initiation.moonIndex/13)*100) : 0;
+      progress.style.width=`${percent}%`;
+    }
+  }else{
+    setText("practitionerIdentityLevel","Guest access");
+    const progress=document.getElementById("initiationProgressBar");
+    if(progress) progress.style.width="0%";
+  }
+}
+
 function updateTodayFlow(){
   const ownWing=clockInContext?.wing;
   const assigned=assignedWingForPractitioner();
-  const initiation=getFlowFmInitiationStatus(currentManagerProfile || {});
+
+  updatePractitionerIdentity();
 
   if(ownWing&&assigned){
     setText("deskAssignmentTitle",`You are clocked into the ${ownWing}.`);
-    setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}. ${initiation.line}`);
+    setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
   }else{
     setText("deskAssignmentTitle","The Concierge Desk is open.");
-    setText("deskAssignmentNote",`${initiation.line} Clock in through your Suite to receive a wing assignment, or view all turndown requests here.`);
+    setText("deskAssignmentNote","Clock in through your Suite to receive a wing assignment, or view all turndown requests here.");
   }
 }
 

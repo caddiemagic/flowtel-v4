@@ -44,6 +44,10 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
   const isInitiated = elapsed >= 13 || !!profile?.is_initiated;
   const level = isInitiated ? "Moon Priestess" : "Initiate";
 
+  const monthLine = isInitiated
+    ? "Initiated Moon Priestess"
+    : `Month ${moonIndex} of 13`;
+
   return {
     hasStartDate: true,
     startedAt,
@@ -52,8 +56,9 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
     moon,
     level,
     isInitiated,
+    monthLine,
     label: `${level} · ${moon.name}`,
-    line: `${level} · Moon ${moonIndex}: ${moon.name}`,
+    line: `${level} · ${moon.name} · ${monthLine}`,
   };
 }
 

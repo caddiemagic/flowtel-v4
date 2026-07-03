@@ -81,3 +81,50 @@
 .desk-note {
   line-height: 1.6;
 }
+
+
+/* Release 0.5.3 — Practitioner identity separated from Today's Flow */
+.practitioner-identity-card{
+  display:grid;
+  grid-template-columns:1fr minmax(160px,260px);
+  gap:22px;
+  align-items:center;
+  margin:0 0 18px;
+  padding:24px 28px;
+  background:linear-gradient(135deg,rgba(255,253,249,.95),rgba(248,231,227,.34));
+  border:1px solid var(--line);
+  border-radius:26px;
+  box-shadow:0 16px 42px rgba(109,78,65,.08);
+}
+
+.practitioner-identity-card h2{
+  margin-bottom:6px;
+  letter-spacing:.04em;
+}
+
+.practitioner-identity-card p:not(.eyebrow){
+  margin:0;
+  color:var(--soft-brown);
+  line-height:1.55;
+}
+
+.initiation-progress{
+  height:10px;
+  border-radius:999px;
+  background:rgba(216,168,79,.16);
+  border:1px solid rgba(216,168,79,.22);
+  overflow:hidden;
+}
+
+.initiation-progress span{
+  display:block;
+  width:0%;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#e8c27a,#d8a84f);
+  transition:width .35s ease;
+}
+
+@media(max-width:900px){
+  .practitioner-identity-card{grid-template-columns:1fr}
+}
