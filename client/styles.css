@@ -249,3 +249,14 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   border-radius: 50%;
   z-index: 1;
 }
+
+body::before {
+  content: "CSS UPDATED";
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 999999;
+  background: gold;
+  color: black;
+  padding: 10px;
+}
