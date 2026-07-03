@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Find Your Room | Flowtel Cycle Tracker</title>
+  <title>Cycle Tracker | Flowtel</title>
   <style>
     body{margin:0;min-height:100vh;background:radial-gradient(circle at top right,rgba(243,212,207,.55),transparent 34%),linear-gradient(180deg,#fff,#fbf7f1);color:#6d4e41;font-family:Georgia,"Times New Roman",serif;}
     .tracker-shell{max-width:980px;margin:0 auto;padding:42px 18px 70px;}
@@ -145,6 +145,205 @@
       text-transform:uppercase;
       font-size:.82rem;
       font-weight:700;
+    }
+  </style>
+
+
+  <style>
+    /* Release 0.6.5 — Public Cycle Tracker Flowtel styling */
+    #cycleTrackerApp{
+      max-width:980px!important;
+      padding:26px 0 0!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+    }
+
+    #cycleTrackerApp .cycle-widget{
+      background:rgba(255,253,249,.92)!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:34px!important;
+      box-shadow:0 24px 70px rgba(109,78,65,.12)!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .cycle-widget::before{
+      opacity:.14!important;
+      filter:saturate(.75)!important;
+    }
+
+    #cycleTrackerApp h1,
+    #cycleTrackerApp h2,
+    #cycleTrackerApp h3{
+      font-family:Georgia,"Times New Roman",serif!important;
+      color:#6d4e41!important;
+      font-weight:400!important;
+      letter-spacing:.025em!important;
+    }
+
+    #cycleTrackerApp #cycleMainHeading{
+      font-size:clamp(2.1rem,5vw,4.6rem)!important;
+      text-transform:uppercase!important;
+      letter-spacing:.12em!important;
+      margin-bottom:10px!important;
+    }
+
+    #cycleTrackerApp .tagline,
+    #cycleTrackerApp .intro,
+    #cycleTrackerApp p,
+    #cycleTrackerApp .helper-text{
+      color:#9b7768!important;
+      line-height:1.65!important;
+    }
+
+    #cycleTrackerApp .progress{
+      background:rgba(216,168,79,.16)!important;
+      border:1px solid rgba(216,168,79,.22)!important;
+      border-radius:999px!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .progress-bar{
+      background:linear-gradient(90deg,#e9c176,#d8a84f)!important;
+      border-radius:999px!important;
+    }
+
+    #cycleTrackerApp button,
+    #cycleTrackerApp .button-grid button,
+    #cycleTrackerApp .action-row button{
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:999px!important;
+      background:#f8e7e3!important;
+      color:#6d4e41!important;
+      font-family:Arial,sans-serif!important;
+      font-size:.75rem!important;
+      font-weight:700!important;
+      letter-spacing:.13em!important;
+      text-transform:uppercase!important;
+      box-shadow:0 12px 28px rgba(109,78,65,.08)!important;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease!important;
+    }
+
+    #cycleTrackerApp button:hover:not(:disabled){
+      transform:translateY(-1px)!important;
+      box-shadow:0 18px 36px rgba(109,78,65,.12)!important;
+      background:#f3d4cf!important;
+    }
+
+    #cycleTrackerApp button:disabled{
+      opacity:.45!important;
+      cursor:not-allowed!important;
+    }
+
+    #cycleTrackerApp .text-button,
+    #cycleTrackerApp .secondary-button,
+    #cycleTrackerApp .back-button{
+      background:rgba(255,253,249,.78)!important;
+    }
+
+    #cycleTrackerApp .date-picker-wrap,
+    #cycleTrackerApp input,
+    #cycleTrackerApp .stat,
+    #cycleTrackerApp .stat-wide,
+    #cycleTrackerApp .prompt,
+    #cycleTrackerApp .framework,
+    #cycleTrackerApp .result-card{
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:26px!important;
+      background:rgba(255,253,249,.88)!important;
+      box-shadow:0 16px 42px rgba(109,78,65,.08)!important;
+      color:#6d4e41!important;
+    }
+
+    #cycleTrackerApp .stat span,
+    #cycleTrackerApp .stat-wide span,
+    #cycleTrackerApp .result-topline{
+      font-family:Arial,sans-serif!important;
+      color:#bf7f74!important;
+      letter-spacing:.16em!important;
+      text-transform:uppercase!important;
+      font-size:.68rem!important;
+      font-weight:700!important;
+    }
+
+    #cycleTrackerApp .stat strong,
+    #cycleTrackerApp .stat-wide strong{
+      color:#6d4e41!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+      font-weight:400!important;
+    }
+
+    #cycleTrackerApp .result-card{
+      position:relative!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .result-card::before{
+      content:"";
+      position:absolute;
+      top:24px;
+      right:24px;
+      width:150px;
+      height:150px;
+      background:url("../assets/rose_compass_center.png") center/contain no-repeat;
+      opacity:.18;
+      pointer-events:none;
+    }
+
+    .tracker-cta{
+      background:linear-gradient(135deg,rgba(255,253,249,.95),rgba(248,231,227,.42))!important;
+      border-color:rgba(216,168,79,.25)!important;
+    }
+
+    .tracker-cta h3{
+      color:#6d4e41!important;
+      font-size:1.55rem!important;
+      font-weight:400!important;
+      margin-bottom:8px!important;
+    }
+
+    .tracker-cta a{
+      background:#f8e7e3!important;
+      color:#6d4e41!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      box-shadow:0 12px 28px rgba(109,78,65,.08)!important;
+    }
+
+    .flowtel-tracker-invite{
+      margin:24px auto 0;
+      padding:24px;
+      border:1px solid rgba(216,168,79,.28);
+      border-radius:28px;
+      background:linear-gradient(135deg,rgba(255,253,249,.96),rgba(255,246,219,.72));
+      box-shadow:0 18px 46px rgba(109,78,65,.10);
+      text-align:center;
+      color:#6d4e41;
+    }
+
+    .flowtel-tracker-invite h3{
+      margin:0 0 8px;
+      font-size:1.55rem;
+      font-weight:400;
+    }
+
+    .flowtel-tracker-invite p{
+      max-width:620px;
+      margin:0 auto 14px;
+      color:#9b7768;
+      line-height:1.6;
+    }
+
+    .flowtel-tracker-invite a{
+      display:inline-block;
+      border:1px solid rgba(109,78,65,.14);
+      border-radius:999px;
+      padding:12px 18px;
+      background:#f8e7e3;
+      color:#6d4e41;
+      text-decoration:none;
+      font-family:Arial,sans-serif;
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
     }
   </style>
 
@@ -896,6 +1095,205 @@
     }
   </style>
 
+
+  <style>
+    /* Release 0.6.5 — Public Cycle Tracker Flowtel styling */
+    #cycleTrackerApp{
+      max-width:980px!important;
+      padding:26px 0 0!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+    }
+
+    #cycleTrackerApp .cycle-widget{
+      background:rgba(255,253,249,.92)!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:34px!important;
+      box-shadow:0 24px 70px rgba(109,78,65,.12)!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .cycle-widget::before{
+      opacity:.14!important;
+      filter:saturate(.75)!important;
+    }
+
+    #cycleTrackerApp h1,
+    #cycleTrackerApp h2,
+    #cycleTrackerApp h3{
+      font-family:Georgia,"Times New Roman",serif!important;
+      color:#6d4e41!important;
+      font-weight:400!important;
+      letter-spacing:.025em!important;
+    }
+
+    #cycleTrackerApp #cycleMainHeading{
+      font-size:clamp(2.1rem,5vw,4.6rem)!important;
+      text-transform:uppercase!important;
+      letter-spacing:.12em!important;
+      margin-bottom:10px!important;
+    }
+
+    #cycleTrackerApp .tagline,
+    #cycleTrackerApp .intro,
+    #cycleTrackerApp p,
+    #cycleTrackerApp .helper-text{
+      color:#9b7768!important;
+      line-height:1.65!important;
+    }
+
+    #cycleTrackerApp .progress{
+      background:rgba(216,168,79,.16)!important;
+      border:1px solid rgba(216,168,79,.22)!important;
+      border-radius:999px!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .progress-bar{
+      background:linear-gradient(90deg,#e9c176,#d8a84f)!important;
+      border-radius:999px!important;
+    }
+
+    #cycleTrackerApp button,
+    #cycleTrackerApp .button-grid button,
+    #cycleTrackerApp .action-row button{
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:999px!important;
+      background:#f8e7e3!important;
+      color:#6d4e41!important;
+      font-family:Arial,sans-serif!important;
+      font-size:.75rem!important;
+      font-weight:700!important;
+      letter-spacing:.13em!important;
+      text-transform:uppercase!important;
+      box-shadow:0 12px 28px rgba(109,78,65,.08)!important;
+      transition:transform .18s ease, box-shadow .18s ease, background .18s ease!important;
+    }
+
+    #cycleTrackerApp button:hover:not(:disabled){
+      transform:translateY(-1px)!important;
+      box-shadow:0 18px 36px rgba(109,78,65,.12)!important;
+      background:#f3d4cf!important;
+    }
+
+    #cycleTrackerApp button:disabled{
+      opacity:.45!important;
+      cursor:not-allowed!important;
+    }
+
+    #cycleTrackerApp .text-button,
+    #cycleTrackerApp .secondary-button,
+    #cycleTrackerApp .back-button{
+      background:rgba(255,253,249,.78)!important;
+    }
+
+    #cycleTrackerApp .date-picker-wrap,
+    #cycleTrackerApp input,
+    #cycleTrackerApp .stat,
+    #cycleTrackerApp .stat-wide,
+    #cycleTrackerApp .prompt,
+    #cycleTrackerApp .framework,
+    #cycleTrackerApp .result-card{
+      border:1px solid rgba(109,78,65,.14)!important;
+      border-radius:26px!important;
+      background:rgba(255,253,249,.88)!important;
+      box-shadow:0 16px 42px rgba(109,78,65,.08)!important;
+      color:#6d4e41!important;
+    }
+
+    #cycleTrackerApp .stat span,
+    #cycleTrackerApp .stat-wide span,
+    #cycleTrackerApp .result-topline{
+      font-family:Arial,sans-serif!important;
+      color:#bf7f74!important;
+      letter-spacing:.16em!important;
+      text-transform:uppercase!important;
+      font-size:.68rem!important;
+      font-weight:700!important;
+    }
+
+    #cycleTrackerApp .stat strong,
+    #cycleTrackerApp .stat-wide strong{
+      color:#6d4e41!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+      font-weight:400!important;
+    }
+
+    #cycleTrackerApp .result-card{
+      position:relative!important;
+      overflow:hidden!important;
+    }
+
+    #cycleTrackerApp .result-card::before{
+      content:"";
+      position:absolute;
+      top:24px;
+      right:24px;
+      width:150px;
+      height:150px;
+      background:url("../assets/rose_compass_center.png") center/contain no-repeat;
+      opacity:.18;
+      pointer-events:none;
+    }
+
+    .tracker-cta{
+      background:linear-gradient(135deg,rgba(255,253,249,.95),rgba(248,231,227,.42))!important;
+      border-color:rgba(216,168,79,.25)!important;
+    }
+
+    .tracker-cta h3{
+      color:#6d4e41!important;
+      font-size:1.55rem!important;
+      font-weight:400!important;
+      margin-bottom:8px!important;
+    }
+
+    .tracker-cta a{
+      background:#f8e7e3!important;
+      color:#6d4e41!important;
+      border:1px solid rgba(109,78,65,.14)!important;
+      box-shadow:0 12px 28px rgba(109,78,65,.08)!important;
+    }
+
+    .flowtel-tracker-invite{
+      margin:24px auto 0;
+      padding:24px;
+      border:1px solid rgba(216,168,79,.28);
+      border-radius:28px;
+      background:linear-gradient(135deg,rgba(255,253,249,.96),rgba(255,246,219,.72));
+      box-shadow:0 18px 46px rgba(109,78,65,.10);
+      text-align:center;
+      color:#6d4e41;
+    }
+
+    .flowtel-tracker-invite h3{
+      margin:0 0 8px;
+      font-size:1.55rem;
+      font-weight:400;
+    }
+
+    .flowtel-tracker-invite p{
+      max-width:620px;
+      margin:0 auto 14px;
+      color:#9b7768;
+      line-height:1.6;
+    }
+
+    .flowtel-tracker-invite a{
+      display:inline-block;
+      border:1px solid rgba(109,78,65,.14);
+      border-radius:999px;
+      padding:12px 18px;
+      background:#f8e7e3;
+      color:#6d4e41;
+      text-decoration:none;
+      font-family:Arial,sans-serif;
+      font-size:.72rem;
+      font-weight:700;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+  </style>
+
 </head>
           <body>
             <h1 class="snapshot-title">${snapshotTitle}</h1>
@@ -933,6 +1331,61 @@
 
       if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",polishTracker);
       else polishTracker();
+    })();
+  </script>
+
+
+  <script>
+    /* Release 0.6.5 — Tracker button repair + Queendom invitation */
+    (function(){
+      function enableCycleButton(){
+        var input=document.getElementById("cyclePeriodDate");
+        var btn=document.getElementById("cycleRevealBtn");
+        if(!input || !btn) return;
+        btn.textContent="My Cycle Data";
+        btn.disabled=!input.value;
+      }
+
+      function addFlowtelInvite(){
+        var results=document.getElementById("cycleResultsContent");
+        if(!results || document.querySelector(".flowtel-tracker-invite")) return;
+        var invite=document.createElement("div");
+        invite.className="flowtel-tracker-invite";
+        invite.innerHTML='<h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
+        results.insertAdjacentElement("afterend",invite);
+      }
+
+      function initTrackerPatch(){
+        var input=document.getElementById("cyclePeriodDate");
+        var btn=document.getElementById("cycleRevealBtn");
+
+        if(input){
+          input.addEventListener("input",enableCycleButton);
+          input.addEventListener("change",function(){
+            enableCycleButton();
+            setTimeout(enableCycleButton,80);
+          });
+        }
+
+        if(btn){
+          btn.textContent="My Cycle Data";
+          btn.addEventListener("click",function(){
+            setTimeout(addFlowtelInvite,500);
+          });
+        }
+
+        document.addEventListener("click",function(event){
+          var text=(event.target && event.target.textContent || "").trim();
+          if(/^\d+\+?$/.test(text) || /day/i.test(text)){
+            setTimeout(addFlowtelInvite,350);
+          }
+        });
+
+        enableCycleButton();
+      }
+
+      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initTrackerPatch);
+      else initTrackerPatch();
     })();
   </script>
 
@@ -995,6 +1448,61 @@
 
       if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",polishTracker);
       else polishTracker();
+    })();
+  </script>
+
+
+  <script>
+    /* Release 0.6.5 — Tracker button repair + Queendom invitation */
+    (function(){
+      function enableCycleButton(){
+        var input=document.getElementById("cyclePeriodDate");
+        var btn=document.getElementById("cycleRevealBtn");
+        if(!input || !btn) return;
+        btn.textContent="My Cycle Data";
+        btn.disabled=!input.value;
+      }
+
+      function addFlowtelInvite(){
+        var results=document.getElementById("cycleResultsContent");
+        if(!results || document.querySelector(".flowtel-tracker-invite")) return;
+        var invite=document.createElement("div");
+        invite.className="flowtel-tracker-invite";
+        invite.innerHTML='<h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
+        results.insertAdjacentElement("afterend",invite);
+      }
+
+      function initTrackerPatch(){
+        var input=document.getElementById("cyclePeriodDate");
+        var btn=document.getElementById("cycleRevealBtn");
+
+        if(input){
+          input.addEventListener("input",enableCycleButton);
+          input.addEventListener("change",function(){
+            enableCycleButton();
+            setTimeout(enableCycleButton,80);
+          });
+        }
+
+        if(btn){
+          btn.textContent="My Cycle Data";
+          btn.addEventListener("click",function(){
+            setTimeout(addFlowtelInvite,500);
+          });
+        }
+
+        document.addEventListener("click",function(event){
+          var text=(event.target && event.target.textContent || "").trim();
+          if(/^\d+\+?$/.test(text) || /day/i.test(text)){
+            setTimeout(addFlowtelInvite,350);
+          }
+        });
+
+        enableCycleButton();
+      }
+
+      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initTrackerPatch);
+      else initTrackerPatch();
     })();
   </script>
 

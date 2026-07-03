@@ -231,15 +231,18 @@ export async function witnessStay(stayId,witnessNote=""){
 }
 
 
-export async function cleanCheckedOutRoom(stayId, note=""){
+export async function prepareRoomAfterCheckout(stayId, practitionerLabel=""){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
-  const now=new Date().toISOString();
+  const note=practitionerLabel
+    ? `${practitionerLabel} lovingly prepared your room for your next visit.`
+    : "Your room was lovingly prepared for your next visit.";
   const {data,error}=await supabase.from("flowtel_stays").update({
     witnessed_by:user.id,
-    witnessed_at:now,
+    witnessed_at:new Date().toISOString(),
     witness_note:note,
-    updated_at:now,
+    stay_status:"room_prepared",
+    updated_at:new Date().toISOString(),
   }).eq("id",stayId).select().single();
   if(error) throw error;
   return data;

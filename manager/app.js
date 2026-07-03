@@ -1,10 +1,10 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { getFrontDeskStays, witnessStay, cleanCheckedOutRoom, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
-let allStays=[], connectionRequests=[], myClients=[], activeFilter="queue";
+let allStays=[], activeFilter="queue";
 let clockInContext=null;
 let currentManagerProfile=null;
 
@@ -22,6 +22,105 @@ const BETA_CLIENT_RELATIONSHIPS={
   "flowtel.practitioner3@test.local":["flowtel.guest1@test.local"],
   "flowtel.practitioner4@test.local":["flowtel.guest2@test.local"],
 };
+
+const FLOWTEL_AFFIRMATIONS=[
+  "My womb is the root of all wealth in my life",
+  "I create wealth by expressing my truth",
+  "I allow money to flow through me",
+  "My creative power is my currency",
+  "I welcome new avenues for wealth to flow into my life",
+  "The universe loves to spoil me",
+  "My bank account is always overflowing",
+  "I treat money with respect and reverence",
+  "My womb is a magnet for wealth and overflow",
+  "I am grateful for all of the money I have right now",
+  "I trust the natural intelligence that lives within my womb",
+  "Money always returns to me multiplied",
+  "The more I spend, the more I receive",
+  "I spend money in wise and fun ways",
+  "I always get what I want",
+  "I use money to make my life easier",
+  "My angels complete tasks on my behalf so that I can rest",
+  "I welcome new forms of abundance into my life",
+  "I am resourced from within",
+  "I have autonomy and authority over my own life force energy",
+  "Wealth flows naturally from my womb’s wisdom",
+  "My womb is fertile with ideas",
+  "I am worthy of increasing my income",
+  "I am generously paid to exist",
+  "I have more than enough money to meet all of my needs",
+  "More money means more peace",
+  "My womb leads, and wealth follows",
+  "My cyclical nature is my greatest financial advantage",
+  "Money loves to flow through me",
+  "Money belongs in my hands",
+  "I release all fears of being wealthy",
+  "Money is safe with me",
+  "Spending money on myself is a form of self love",
+  "My time is worth millions",
+  "Money is a currency of love",
+  "I adorn myself in luxury",
+  "I invest in who I am becoming",
+  "My energy is currency",
+  "Money loves to multiply in my hands",
+  "I am financially free",
+  "Wealth is encoded into my feminine essence",
+  "Everyone I meet helps me succeed",
+  "I honor my inner seasons and they multiply my prosperity",
+  "I am richly supported by life",
+  "Prosperity flows to and through me",
+  "My pleasure expands my capacity to receive",
+  "My boundaries protect and multiply my abundance",
+  "I am happy, healthy, and wealthy",
+  "I get paid to be myself",
+  "I am safe to have more than enough",
+  "I love checking my bank account",
+  "I am the source, the creator, and the vessel of wealth",
+  "Making money comes easily to me",
+  "People love to pay me for my energy",
+  "Money loves to see me happy",
+  "Money is always there for me",
+  "All my needs are met",
+  "Money loves to make my dreams come true",
+  "I see abundance everywhere I look",
+  "I magnetize money from the north, south, east, and west",
+  "Money grows on trees for me",
+  "I am available for overflow in all areas of my life",
+  "Money is a vessel that divine love flows through",
+  "My magic blesses me and everyone I serve",
+  "I make good decisions with my money",
+  "The more peaceful I feel, the more money I receive",
+  "Money loves calm, clear direction",
+  "My energy feels like luxury to others",
+  "Abundance is drawn to me",
+  "Opportunities to make more money fall into my lap",
+  "I am open to receiving more money",
+  "What I want wants me more",
+  "My time is more valuable than money",
+  "My sensitivity is my superpower",
+  "Money wants me to be free and happy",
+  "More money is always on the way to me",
+  "I am divinely compensated for the love I spread in this world",
+  "I am safe to receive large amounts of money",
+  "My desires are sacred instructions towards abundance",
+  "I have all the resources I need to take the next step",
+  "Receiving large sums of money is normal to me",
+  "My voice is worth millions",
+  "I am finally secure and stable",
+  "I am the creator of my reality",
+  "Money loves to please me",
+  "I am living the life of my dreams",
+  "Money magnifies my brilliance",
+  "Making money tastes like honey"
+];
+
+function affirmationForSession(){
+  const email=currentManagerProfile?.email || "flowtel";
+  const today=new Date().toISOString().slice(0,10);
+  let seed=0;
+  `${email}:${today}`.split("").forEach(char=>{seed=(seed+char.charCodeAt(0)*17)%100000;});
+  return FLOWTEL_AFFIRMATIONS[seed%FLOWTEL_AFFIRMATIONS.length];
+}
 
 function getClockInContext(){
   try{
@@ -161,8 +260,7 @@ function updatePractitionerIdentity(){
       const marker=document.getElementById("initiationMoonMarker");
       if(marker) marker.style.left=`${percent}%`;
       const note=document.getElementById("conciergeHeaderNote");
-      const assigned=assignedWingForPractitioner();
-      if(note && assigned) note.textContent=`Today you’re tending the ${assigned}.`;
+      if(note) note.textContent=affirmationForSession();
     }
   }else{
     setText("practitionerIdentityLevel","Guest access");
@@ -178,7 +276,8 @@ function updateTodayFlow(){
   updatePractitionerIdentity();
 
   if(ownWing&&assigned){
-    setText("deskAssignmentTitle",`You are clocked into the ${ownWing}.`);
+    const day=clockInContext?.cycle_day_claimed || clockInContext?.cycle_day_calculated || "—";
+    setText("deskAssignmentTitle",`You’re on day ${day} and clocked into the ${ownWing}.`);
     setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
   }else{
     setText("deskAssignmentTitle","The Concierge Desk is open.");
@@ -192,49 +291,49 @@ function daysOpen(stay){const start=new Date(stay.checkin_date);start.setHours(0
 function checkedOutToday(stay){return stay.checked_out_at && new Date(stay.checked_out_at)>=startOfToday();}
 function isExtended(stay){return !stay.checked_out_at && daysOpen(stay)>=14;}
 function hasTurndownRequest(stay){return !!(stay.turndown_requested_at || stay.turndown_status==="requested");}
-function assignedToCurrentWing(stay){
+function isQueue(stay){return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out";}
+function isAssignedToPractitioner(stay){
   const assigned=assignedWingForQueue();
   return !assigned || stay.wing===assigned;
 }
-function isTurndownQueueItem(stay){
-  return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out" && assignedToCurrentWing(stay);
+
+function needsCheckoutConfirmation(stay){
+  return checkedOutToday(stay) && !stay.witnessed_at;
 }
-function isCheckoutQueueItem(stay){
-  return checkedOutToday(stay) && !stay.witnessed_at && assignedToCurrentWing(stay);
+
+function isServiceQueueItem(stay){
+  return isAssignedToPractitioner(stay) && (isQueue(stay) || needsCheckoutConfirmation(stay));
 }
-function serviceQueueItems(){
-  return allStays.filter(stay=>isTurndownQueueItem(stay) || isCheckoutQueueItem(stay));
-}
+
 function visibleStays(){
   if(activeFilter==="in-house") return allStays.filter(s=>s.stay_status!=="checked_out");
-  if(activeFilter==="queue") return serviceQueueItems();
+  if(activeFilter==="queue") return allStays.filter(isServiceQueueItem);
   if(activeFilter==="extended") return allStays.filter(isExtended);
+  if(activeFilter==="connections") return [];
+  if(activeFilter==="clients") return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 function updateStats(){
   setText("guestsInHouse",allStays.filter(s=>s.checkin_date===new Date().toISOString().slice(0,10)).length);
+  const serviceItems=allStays.filter(isServiceQueueItem).length;
   setText("extendedStay",allStays.filter(isExtended).length);
-  setText("newConnectionsCount",connectionRequests.length);
-  setText("clientsCount",myClients.length);
-  const serviceCount=serviceQueueItems().length;
-  const queueCard=document.getElementById("serviceQueueCard");
-  if(queueCard) queueCard.classList.toggle("has-requests",serviceCount>0);
+  const queueCard=document.querySelector(".queue");
+  if(queueCard) queueCard.classList.toggle("has-requests",serviceItems>0);
 }
 function setFilter(filter){
   activeFilter=filter;
   document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
   const titles={
-    "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays remain here, but only requested care appears in the Turndown queue."],
-    queue:["TURNDOWN SERVICE","🌙 Guests Awaiting Turndown Service","These guests have requested a little extra witnessing today or have checked out and are ready for room care."],
+    "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays remain here, but only requested care appears in the service queue."],
+    queue:["TURNDOWN SERVICE","🌙 Guests Awaiting Turndown Service","These guests have requested extra love or have personally checked out and are ready for room care."],
     extended:["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
-    connections:["NEW CONNECTIONS","Connection Requests","Guests who have asked to connect with you will appear here."],
-    clients:["YOUR CLIENTS","Your Clients","Connected clients you are currently holding space for."],
+    connections:["NEW CONNECTIONS","New Connection Requests","Guests who would like to connect with you will appear above."],
+    clients:["YOUR CLIENTS","Your Connected Clients","Your connected guests will appear above."],
   };
-  const title=titles[filter] || titles.queue;
-  setText("activeFilterLabel",title[0]);
-  setText("activeFilterTitle",title[1]);
-  setText("activeFilterSubtext",title[2]);
+  setText("activeFilterLabel",titles[filter][0]);
+  setText("activeFilterTitle",titles[filter][1]);
+  setText("activeFilterSubtext",titles[filter][2]);
   renderQueue();
 }
 
@@ -271,110 +370,47 @@ async function goToSuite(){
   window.location.href="../client/?suite=1";
 }
 
+function practitionerCareLabel(){
+  const profile=currentManagerProfile || {};
+  const initiation=getFlowFmInitiationStatus(profile);
+  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Your concierge";
+  return `${initiation.level || "Concierge"} ${name}`;
+}
+
 function renderQueue(){
-  if(activeFilter==="connections"){
-    renderConnectionQueue();
-    return;
-  }
-
-  if(activeFilter==="clients"){
-    renderClientQueue();
-    return;
-  }
-
   const stays=visibleStays();
   if(!stays.length){queue.innerHTML="<p>✨ No guests in this category right now.</p>";return;}
   queue.innerHTML=stays.map(stay=>{
     const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
-    const checkoutItem=isCheckoutQueueItem(stay);
-    const actionLabel=checkoutItem ? "Clean Room" : "Open Room";
-    const itemLabel=checkoutItem ? "Checkout Confirmation" : "Turndown Request";
+    const checkoutItem=needsCheckoutConfirmation(stay);
+    const actionLabel=checkoutItem?"Clean Room":"Open Room";
+    const statusLine=checkoutItem
+      ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
+      : `<p>Turndown request · ${stay.turndown_requested_at ? new Date(stay.turndown_requested_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Today"}</p>`;
+
     return `
-      <article class="guest-row ${checkoutItem?"checkout-row":"turndown-row"}">
+      <article class="guest-row ${checkoutItem ? "checkout-row" : "turndown-row"}">
         <div>
-          <p class="queue-item-type">${itemLabel}</p>
           <h3>${guestName(stay)}</h3>
+          ${statusLine}
           <p>Today's Room: ${room}</p>
           <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
           <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
-          ${checkoutItem ? `<p>Checked out: ${formatTime(stay.checked_out_at)}</p>` : `<p>Requested: ${formatTime(stay.turndown_requested_at)}</p>`}
         </div>
-        ${checkoutItem
-          ? `<button data-clean-id="${stay.id}">${actionLabel}</button>`
-          : canOpenTurndownRoom(stay)
-            ? `<button data-id="${stay.id}">${actionLabel}</button>`
-            : `<span class="guest-row-status">Not assigned to your wing</span>`}
+        <button data-id="${stay.id}" data-action="${checkoutItem ? "clean" : "witness"}">${actionLabel}</button>
       </article>
     `;
   }).join("");
+
   document.querySelectorAll("[data-id]").forEach(button=>button.addEventListener("click",async()=>{
-    const note=prompt("Leave a handwritten Concierge Note for this room");
-    await witnessStay(button.dataset.id,note||"");
+    if(button.dataset.action==="clean"){
+      await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
+    }else{
+      const note=prompt("Leave a handwritten Concierge Note for this room");
+      await witnessStay(button.dataset.id,note||"");
+    }
     await loadDesk();
   }));
-  document.querySelectorAll("[data-clean-id]").forEach(button=>button.addEventListener("click",async()=>{
-    await cleanCheckedOutRoom(button.dataset.cleanId,roomPreparedNote());
-    await loadDesk();
-  }));
-}
-
-function formatTime(value){
-  if(!value) return "Today";
-  try{
-    return new Date(value).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
-  }catch(error){
-    return "Today";
-  }
-}
-
-function roomPreparedNote(){
-  const profile=currentManagerProfile || {};
-  const initiation=getFlowFmInitiationStatus(profile);
-  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || "your Concierge";
-  return `${initiation.level} ${name} lovingly prepared your room for your next visit.`;
-}
-
-function renderConnectionQueue(){
-  if(!connectionRequests.length){
-    queue.innerHTML="<p>✨ No new connection requests right now.</p>";
-    return;
-  }
-
-  queue.innerHTML=connectionRequests.map(row=>`
-    <article class="guest-row connection-row">
-      <div>
-        <p class="queue-item-type">New Connection</p>
-        <h3>${relationshipGuestName(row)}</h3>
-        <p>Would like to connect and share Flowtel stays.</p>
-      </div>
-      <button type="button" data-connect-id="${row.id}">Connect</button>
-    </article>
-  `).join("");
-
-  queue.querySelectorAll("[data-connect-id]").forEach(button=>{
-    button.addEventListener("click",async()=>{
-      button.disabled=true;
-      await connectWithGuest(button.dataset.connectId);
-      await loadDesk();
-    });
-  });
-}
-
-function renderClientQueue(){
-  if(!myClients.length){
-    queue.innerHTML="<p>✨ No connected clients yet.</p>";
-    return;
-  }
-
-  queue.innerHTML=myClients.map(row=>`
-    <article class="guest-row connection-row">
-      <div>
-        <p class="queue-item-type">Connected Client</p>
-        <h3>${relationshipGuestName(row)}</h3>
-        <p>Connected client</p>
-      </div>
-    </article>
-  `).join("");
 }
 
 function relationshipGuestName(row){
@@ -383,31 +419,71 @@ function relationshipGuestName(row){
 }
 
 async function renderConnectionRequests(){
+  const holder=document.getElementById("connectionRequests");
+  if(!holder) return;
+
   try{
-    connectionRequests=await listConnectionRequestsForPractitioner();
+    const requests=await listConnectionRequestsForPractitioner();
+    setText("newConnectionsCount",requests.length);
+    if(!requests.length){
+      holder.innerHTML="<p>No new connection requests.</p>";
+      return;
+    }
+
+    holder.innerHTML=requests.map(row=>`
+      <article class="guest-row connection-row">
+        <div>
+          <h3>${relationshipGuestName(row)}</h3>
+          <p>Would like to connect and share Flowtel stays.</p>
+        </div>
+        <button type="button" data-connect-id="${row.id}">Connect</button>
+      </article>
+    `).join("");
+
+    holder.querySelectorAll("[data-connect-id]").forEach(button=>{
+      button.addEventListener("click",async()=>{
+        button.disabled=true;
+        await connectWithGuest(button.dataset.connectId);
+        await renderConnectionRequests();
+        await renderMyClients();
+      });
+    });
   }catch(error){
     console.warn("Connection requests are not available yet.",error);
-    connectionRequests=[];
+    setText("newConnectionsCount","0");
+    holder.innerHTML="<p>Connection requests will appear after the relationship migration is installed.</p>";
   }
 }
 
 async function renderMyClients(){
+  const holder=document.getElementById("myClientsList");
+  if(!holder) return;
+
   try{
-    myClients=await listMyClients();
+    const clients=await listMyClients();
+    setText("clientsCount",clients.length);
+    if(!clients.length){
+      holder.innerHTML="<p>No connected clients yet.</p>";
+      return;
+    }
+
+    holder.innerHTML=clients.map(row=>`
+      <article class="guest-row connection-row">
+        <div>
+          <h3>${relationshipGuestName(row)}</h3>
+          <p>Connected client</p>
+        </div>
+      </article>
+    `).join("");
   }catch(error){
     console.warn("Client list is not available yet.",error);
-    myClients=[];
+    setText("clientsCount","0");
+    holder.innerHTML="<p>Connected clients will appear after the relationship migration is installed.</p>";
   }
 }
 
 
-async function loadDesk(){
-  allStays=await getFrontDeskStays();
-  await renderConnectionRequests();
-  await renderMyClients();
-  updateStats();
-  renderQueue();
-}
+async function loadDesk(){allStays=await getFrontDeskStays();updateStats();renderQueue();await renderConnectionRequests();await renderMyClients();}
 async function openDesk(){
   try{
     managerMessage.textContent="Opening the Concierge Desk...";
