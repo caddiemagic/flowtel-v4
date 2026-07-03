@@ -12,7 +12,18 @@
     <section class="hero">
       <p class="eyebrow">FLOWTEL</p>
       <h1>Concierge Desk</h1>
-      <p>I’m here to moderate the flow.</p>
+      <div class="concierge-identity">
+        <span class="concierge-avatar" id="practitionerAvatar" aria-hidden="true"></span>
+        <div>
+          <h2 id="practitionerIdentityName">Concierge</h2>
+          <p id="practitionerIdentityLevel">Flow FM initiation status will appear here.</p>
+          <div class="initiation-progress moon-progress" aria-hidden="true">
+            <span id="initiationProgressBar"></span>
+            <b id="initiationMoonMarker">☾</b>
+          </div>
+        </div>
+      </div>
+      <p id="conciergeHeaderNote">I’m here to moderate the flow.</p>
     </section>
 
     <section class="login-card" id="loginCard">
@@ -37,18 +48,8 @@
     </section>
 
     <section class="dashboard hidden" id="dashboard">
-      <section class="practitioner-identity-card" id="practitionerIdentityCard">
-        <div>
-          <p class="eyebrow">PRACTITIONER</p>
-          <h2 id="practitionerIdentityName">Concierge</h2>
-          <p id="practitionerIdentityLevel">Flow FM initiation status will appear here.</p>
-        </div>
-        <div class="initiation-progress" aria-hidden="true">
-          <span id="initiationProgressBar"></span>
-        </div>
-      </section>
-
-      <section class="owner-overview">
+      <section class="dashboard-snapshot">
+      <section class="owner-overview snapshot-card">
         <div>
           <p class="eyebrow">TODAY’S FLOW</p>
           <h2 id="deskAssignmentTitle">The Concierge Desk is open.</h2>
@@ -56,7 +57,7 @@
         <p class="desk-note" id="deskAssignmentNote">These guests have requested a little extra witnessing today.</p>
       </section>
 
-      <section class="suite-return-card hidden" id="suiteReturnCard">
+      <section class="suite-return-card snapshot-card hidden" id="suiteReturnCard">
         <div>
           <p class="eyebrow">YOUR SUITE</p>
           <h2>Return to your room.</h2>
@@ -65,7 +66,7 @@
         <button id="goToSuiteButton" type="button">Clock Out</button>
       </section>
 
-      <section class="my-guests-card">
+      <section class="my-guests-card snapshot-card">
         <div>
           <p class="eyebrow">NEW CONNECTIONS</p>
           <h2>Connection Requests</h2>
@@ -75,7 +76,7 @@
         </div>
       </section>
 
-      <section class="my-guests-card">
+      <section class="my-guests-card snapshot-card">
         <div>
           <p class="eyebrow">YOUR CLIENTS</p>
           <h2>My Guests</h2>
@@ -83,6 +84,8 @@
             <p>Connected clients will live here.</p>
           </div>
         </div>
+      </section>
+
       </section>
 
       <section class="stats">

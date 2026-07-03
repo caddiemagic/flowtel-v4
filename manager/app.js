@@ -158,6 +158,11 @@ function updatePractitionerIdentity(){
     if(progress){
       const percent=initiation.moonIndex ? Math.min(100,(initiation.moonIndex/13)*100) : 0;
       progress.style.width=`${percent}%`;
+      const marker=document.getElementById("initiationMoonMarker");
+      if(marker) marker.style.left=`${percent}%`;
+      const note=document.getElementById("conciergeHeaderNote");
+      const assigned=assignedWingForPractitioner();
+      if(note && assigned) note.textContent=`Today you’re tending the ${assigned}.`;
     }
   }else{
     setText("practitionerIdentityLevel","Guest access");
@@ -198,9 +203,12 @@ function visibleStays(){
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 function updateStats(){
   setText("guestsInHouse",allStays.filter(s=>s.checkin_date===new Date().toISOString().slice(0,10)).length);
-  setText("awaitingWelcome",allStays.filter(isQueue).length);
+  const awaiting=allStays.filter(isQueue).length;
+  setText("awaitingWelcome",awaiting);
   setText("extendedStay",allStays.filter(isExtended).length);
   setText("checkedOut",allStays.filter(checkedOutToday).length);
+  const turndownCard=document.querySelector('[data-filter="queue"]');
+  if(turndownCard) turndownCard.classList.toggle("has-requests",awaiting>0);
 }
 function setFilter(filter){
   activeFilter=filter;
@@ -361,7 +369,24 @@ async function openDesk(){
     await loadDesk();
   }catch(error){managerMessage.textContent=error.message;}
 }
+async function autoOpenExistingManager(){
+  try{
+    const profile=await getCurrentProfile();
+    if(!profile || !["owner","admin","practitioner"].includes(profile.role)) return;
+    currentManagerProfile=profile;
+    clockInContext=getClockInContext();
+    if(loginCard) loginCard.classList.add("hidden");
+    if(dashboard) dashboard.classList.remove("hidden");
+    updateSuiteReturn();
+    updateTodayFlow();
+    await loadDesk();
+  }catch(error){
+    console.warn("Auto Concierge open skipped.",error);
+  }
+}
+
 renderBetaPractitionerPanel();
+autoOpenExistingManager();
 
 document.getElementById("managerSignInButton").addEventListener("click",openDesk);
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));

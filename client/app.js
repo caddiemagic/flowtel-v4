@@ -327,11 +327,6 @@ function renderWheel(activeRoom){
   medicineWheel.style.setProperty("--ring-offset", `${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px`);
 
   medicineWheel.innerHTML = `
-  <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
-  <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
-  <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
-  <span class="wheel-cardinal wheel-cardinal-west">WEST</span>
-
   <span class="wheel-season wheel-season-autumn"><em>🍁</em>Inner Autumn<small>Days 20–26</small></span>
   <span class="wheel-season wheel-season-summer"><em>☀</em>Inner Summer<small>Days 12–19</small></span>
   <span class="wheel-season wheel-season-spring"><em>🌸</em>Inner Spring<small>Days 6–11</small></span>
@@ -956,6 +951,7 @@ async function handleClockIn(){
     cacheSuiteStay(stay);
     sessionStorage.setItem("flowtel:clockInStayId",stay.id);
     sessionStorage.setItem("flowtel:clockInAt",new Date().toISOString());
+    sessionStorage.setItem("flowtel:managerHandoff","true");
 
     try{
       const session=await clockInPractitioner(stay);

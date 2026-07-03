@@ -14,13 +14,147 @@
     .tracker-cta{max-width:760px;margin:28px auto 0;padding:26px;border:1px solid rgba(109,78,65,.14);border-radius:26px;background:rgba(255,253,249,.9);box-shadow:0 16px 42px rgba(109,78,65,.08);text-align:center;}
     .tracker-cta a{display:inline-block;margin-top:12px;padding:13px 20px;border-radius:999px;background:#6d4e41;color:white;text-decoration:none;letter-spacing:.08em;text-transform:uppercase;font-size:.75rem;}
   </style>
+
+  <style>
+    /* Release 0.6.3 — Flowtel public tracker styling */
+    :root{--flowtel-cream:#fbf7f1;--flowtel-paper:#fffdf9;--flowtel-blush:#f3d4cf;--flowtel-rose:#bf7f74;--flowtel-brown:#6d4e41;--flowtel-soft-brown:#9b7768;--flowtel-gold:#d8a84f;--flowtel-line:rgba(109,78,65,.14)}
+    body{
+      background:
+        radial-gradient(circle at top right,rgba(243,212,207,.62),transparent 34%),
+        linear-gradient(180deg,#fff,var(--flowtel-cream))!important;
+      color:var(--flowtel-brown)!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+    }
+    .tracker-shell{max-width:1040px!important;padding:46px 18px 76px!important}
+    .tracker-hero,.tracker-cta{
+      background:rgba(255,253,249,.82)!important;
+      border:1px solid var(--flowtel-line)!important;
+      border-radius:32px!important;
+      box-shadow:0 20px 60px rgba(109,78,65,.12)!important;
+      padding:34px!important;
+      text-align:center!important;
+    }
+    .tracker-eyebrow,
+    #cycleTrackerApp .eyebrow,
+    #cycleTrackerApp .small-label{
+      color:var(--flowtel-soft-brown)!important;
+      letter-spacing:.18em!important;
+      text-transform:uppercase!important;
+      font-size:.76rem!important;
+      font-family:Montserrat,Arial,sans-serif!important;
+    }
+    .tracker-hero h1{
+      margin:.1em 0 .3em!important;
+      font-size:clamp(2.3rem,6vw,5rem)!important;
+      color:var(--flowtel-brown)!important;
+      font-weight:400!important;
+      letter-spacing:.02em!important;
+    }
+    #cycleTrackerApp{
+      --light-purple:#f3d4cf!important;
+      --dark-brown:#6d4e41!important;
+      --off-white:#fbf7f1!important;
+      --light-pink:#f8e7e3!important;
+      --pastel-crimson:#bf7f74!important;
+      --grey-crimson:#9b7768!important;
+      --light-magenta:#fff7ee!important;
+      max-width:960px!important;
+      font-family:Montserrat,Arial,sans-serif!important;
+    }
+    #cycleTrackerApp .cycle-widget,
+    #cycleTrackerApp .question,
+    #cycleTrackerApp .result-card,
+    #cycleTrackerApp .dashboard-card,
+    #cycleTrackerApp .season-card{
+      background:rgba(255,253,249,.9)!important;
+      border:1px solid var(--flowtel-line)!important;
+      border-radius:30px!important;
+      box-shadow:0 18px 50px rgba(109,78,65,.12)!important;
+    }
+    #cycleTrackerApp h1,
+    #cycleTrackerApp h2,
+    #cycleTrackerApp h3,
+    #cycleTrackerApp .result-title{
+      font-family:Georgia,"Times New Roman",serif!important;
+      color:var(--flowtel-brown)!important;
+      font-weight:400!important;
+    }
+    #cycleTrackerApp button,
+    .tracker-cta a{
+      border:none!important;
+      border-radius:999px!important;
+      padding:15px 22px!important;
+      background:linear-gradient(135deg,var(--flowtel-brown),#8c6658)!important;
+      color:#fffdf9!important;
+      box-shadow:0 14px 32px rgba(109,78,65,.18)!important;
+      letter-spacing:.08em!important;
+      text-transform:uppercase!important;
+      font-weight:700!important;
+      text-decoration:none!important;
+    }
+    #cycleTrackerApp button:hover,
+    .tracker-cta a:hover{
+      transform:translateY(-2px)!important;
+      box-shadow:0 18px 40px rgba(109,78,65,.24)!important;
+    }
+    #cycleTrackerApp button.text-button,
+    #cycleTrackerApp .text-button,
+    #cycleTrackerApp .back-button{
+      background:rgba(255,253,249,.8)!important;
+      color:var(--flowtel-brown)!important;
+      border:1px solid rgba(216,168,79,.34)!important;
+      box-shadow:none!important;
+    }
+    #cycleTrackerApp input,
+    #cycleTrackerApp select,
+    #cycleTrackerApp .date-picker-trigger,
+    #cycleTrackerApp .date-field{
+      border:1px solid rgba(216,168,79,.34)!important;
+      border-radius:20px!important;
+      background:rgba(255,253,249,.88)!important;
+      color:var(--flowtel-brown)!important;
+    }
+    #cycleTrackerApp img[src*="base64"],
+    #cycleTrackerApp .cycle-widget::before{
+      opacity:.16!important;
+    }
+    .flowtel-tracker-invite{
+      margin-top:20px;
+      padding:22px;
+      border:1px solid rgba(216,168,79,.34);
+      border-radius:26px;
+      background:linear-gradient(135deg,rgba(255,253,249,.94),rgba(248,231,227,.74));
+      box-shadow:0 14px 36px rgba(109,78,65,.10);
+      text-align:center;
+      color:var(--flowtel-brown);
+    }
+    .flowtel-tracker-invite h3{
+      margin:0 0 8px;
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:400;
+    }
+    .flowtel-tracker-invite a{
+      display:inline-flex;
+      margin-top:12px;
+      padding:12px 18px;
+      border-radius:999px;
+      background:var(--flowtel-brown);
+      color:#fffdf9;
+      text-decoration:none;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.82rem;
+      font-weight:700;
+    }
+  </style>
+
 </head>
 <body>
   <main class="tracker-shell">
     <section class="tracker-hero">
       <p class="tracker-eyebrow">FLOWTEL</p>
-      <h1>Find Your Room</h1>
-      <p>Use the same cycle tracker framework you already know to discover today’s cycle day, inner season, and wing.</p>
+      <h1>Cycle Tracker</h1>
+      <p>Track your cycle and unlock your cycle data using the Flowtel framework.</p>
     </section>
 
 
@@ -250,7 +384,7 @@
           <input class="date-field" type="date" id="cyclePeriodDate" onchange="cycleUpdateDateLabel()" onclick="cycleOpenDatePicker(this)" onfocus="cycleOpenDatePicker(this)">
         </div>
         <div class="button-grid">
-          <button type="button" id="cycleRevealBtn" onclick="cycleCalculateWombCycle()" disabled>Reveal My Cycle Data</button>
+          <button type="button" id="cycleRevealBtn" onclick="cycleCalculateWombCycle()" disabled>My Cycle Data</button>
           <button type="button" class="text-button" onclick="cycleShowMoonCycle('unknown-date')">I don’t know when my last period was</button>
         </div>
       </div>
@@ -628,12 +762,181 @@
               .timestamp{font-size:.7rem;color:rgba(109,78,65,.72);margin-top:12px}
               @page{size:letter;margin:.35in}
             </style>
-          </head>
+          
+  <style>
+    /* Release 0.6.3 — Flowtel public tracker styling */
+    :root{--flowtel-cream:#fbf7f1;--flowtel-paper:#fffdf9;--flowtel-blush:#f3d4cf;--flowtel-rose:#bf7f74;--flowtel-brown:#6d4e41;--flowtel-soft-brown:#9b7768;--flowtel-gold:#d8a84f;--flowtel-line:rgba(109,78,65,.14)}
+    body{
+      background:
+        radial-gradient(circle at top right,rgba(243,212,207,.62),transparent 34%),
+        linear-gradient(180deg,#fff,var(--flowtel-cream))!important;
+      color:var(--flowtel-brown)!important;
+      font-family:Georgia,"Times New Roman",serif!important;
+    }
+    .tracker-shell{max-width:1040px!important;padding:46px 18px 76px!important}
+    .tracker-hero,.tracker-cta{
+      background:rgba(255,253,249,.82)!important;
+      border:1px solid var(--flowtel-line)!important;
+      border-radius:32px!important;
+      box-shadow:0 20px 60px rgba(109,78,65,.12)!important;
+      padding:34px!important;
+      text-align:center!important;
+    }
+    .tracker-eyebrow,
+    #cycleTrackerApp .eyebrow,
+    #cycleTrackerApp .small-label{
+      color:var(--flowtel-soft-brown)!important;
+      letter-spacing:.18em!important;
+      text-transform:uppercase!important;
+      font-size:.76rem!important;
+      font-family:Montserrat,Arial,sans-serif!important;
+    }
+    .tracker-hero h1{
+      margin:.1em 0 .3em!important;
+      font-size:clamp(2.3rem,6vw,5rem)!important;
+      color:var(--flowtel-brown)!important;
+      font-weight:400!important;
+      letter-spacing:.02em!important;
+    }
+    #cycleTrackerApp{
+      --light-purple:#f3d4cf!important;
+      --dark-brown:#6d4e41!important;
+      --off-white:#fbf7f1!important;
+      --light-pink:#f8e7e3!important;
+      --pastel-crimson:#bf7f74!important;
+      --grey-crimson:#9b7768!important;
+      --light-magenta:#fff7ee!important;
+      max-width:960px!important;
+      font-family:Montserrat,Arial,sans-serif!important;
+    }
+    #cycleTrackerApp .cycle-widget,
+    #cycleTrackerApp .question,
+    #cycleTrackerApp .result-card,
+    #cycleTrackerApp .dashboard-card,
+    #cycleTrackerApp .season-card{
+      background:rgba(255,253,249,.9)!important;
+      border:1px solid var(--flowtel-line)!important;
+      border-radius:30px!important;
+      box-shadow:0 18px 50px rgba(109,78,65,.12)!important;
+    }
+    #cycleTrackerApp h1,
+    #cycleTrackerApp h2,
+    #cycleTrackerApp h3,
+    #cycleTrackerApp .result-title{
+      font-family:Georgia,"Times New Roman",serif!important;
+      color:var(--flowtel-brown)!important;
+      font-weight:400!important;
+    }
+    #cycleTrackerApp button,
+    .tracker-cta a{
+      border:none!important;
+      border-radius:999px!important;
+      padding:15px 22px!important;
+      background:linear-gradient(135deg,var(--flowtel-brown),#8c6658)!important;
+      color:#fffdf9!important;
+      box-shadow:0 14px 32px rgba(109,78,65,.18)!important;
+      letter-spacing:.08em!important;
+      text-transform:uppercase!important;
+      font-weight:700!important;
+      text-decoration:none!important;
+    }
+    #cycleTrackerApp button:hover,
+    .tracker-cta a:hover{
+      transform:translateY(-2px)!important;
+      box-shadow:0 18px 40px rgba(109,78,65,.24)!important;
+    }
+    #cycleTrackerApp button.text-button,
+    #cycleTrackerApp .text-button,
+    #cycleTrackerApp .back-button{
+      background:rgba(255,253,249,.8)!important;
+      color:var(--flowtel-brown)!important;
+      border:1px solid rgba(216,168,79,.34)!important;
+      box-shadow:none!important;
+    }
+    #cycleTrackerApp input,
+    #cycleTrackerApp select,
+    #cycleTrackerApp .date-picker-trigger,
+    #cycleTrackerApp .date-field{
+      border:1px solid rgba(216,168,79,.34)!important;
+      border-radius:20px!important;
+      background:rgba(255,253,249,.88)!important;
+      color:var(--flowtel-brown)!important;
+    }
+    #cycleTrackerApp img[src*="base64"],
+    #cycleTrackerApp .cycle-widget::before{
+      opacity:.16!important;
+    }
+    .flowtel-tracker-invite{
+      margin-top:20px;
+      padding:22px;
+      border:1px solid rgba(216,168,79,.34);
+      border-radius:26px;
+      background:linear-gradient(135deg,rgba(255,253,249,.94),rgba(248,231,227,.74));
+      box-shadow:0 14px 36px rgba(109,78,65,.10);
+      text-align:center;
+      color:var(--flowtel-brown);
+    }
+    .flowtel-tracker-invite h3{
+      margin:0 0 8px;
+      font-family:Georgia,"Times New Roman",serif;
+      font-weight:400;
+    }
+    .flowtel-tracker-invite a{
+      display:inline-flex;
+      margin-top:12px;
+      padding:12px 18px;
+      border-radius:999px;
+      background:var(--flowtel-brown);
+      color:#fffdf9;
+      text-decoration:none;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      font-size:.82rem;
+      font-weight:700;
+    }
+  </style>
+
+</head>
           <body>
             <h1 class="snapshot-title">${snapshotTitle}</h1>
             ${card.outerHTML}
             <script>window.onload=function(){window.print();}<\/script>
-          </body>
+          
+  <script>
+    (function(){
+      function addInvite(){
+        var results=document.getElementById("cycleResultsContent") || document.getElementById("cycleResults");
+        if(!results || document.getElementById("flowtelTrackerInvite")) return;
+        var invite=document.createElement("section");
+        invite.id="flowtelTrackerInvite";
+        invite.className="flowtel-tracker-invite";
+        invite.innerHTML='<p class="tracker-eyebrow">YOUR ROOM CAN REMEMBER YOU</p><h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
+        results.insertAdjacentElement("afterend",invite);
+      }
+
+      function polishTracker(){
+        var btn=document.getElementById("cycleRevealBtn");
+        if(btn){
+          btn.textContent="My Cycle Data";
+          btn.addEventListener("click",function(){setTimeout(addInvite,450);});
+        }
+
+        document.addEventListener("click",function(event){
+          var target=event.target;
+          if(!target) return;
+          var text=(target.textContent||"").trim();
+          if(target.matches("button,[role='button'],a") && (/^\d+\+?$/.test(text) || /day/i.test(text))){
+            setTimeout(addInvite,300);
+          }
+        });
+      }
+
+      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",polishTracker);
+      else polishTracker();
+    })();
+  </script>
+
+</body>
           </html>
         `);
 
@@ -660,5 +963,40 @@
       <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
     </section>
   </main>
+
+  <script>
+    (function(){
+      function addInvite(){
+        var results=document.getElementById("cycleResultsContent") || document.getElementById("cycleResults");
+        if(!results || document.getElementById("flowtelTrackerInvite")) return;
+        var invite=document.createElement("section");
+        invite.id="flowtelTrackerInvite";
+        invite.className="flowtel-tracker-invite";
+        invite.innerHTML='<p class="tracker-eyebrow">YOUR ROOM CAN REMEMBER YOU</p><h3>Want to keep tracking inside the Flowtel?</h3><p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p><a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>';
+        results.insertAdjacentElement("afterend",invite);
+      }
+
+      function polishTracker(){
+        var btn=document.getElementById("cycleRevealBtn");
+        if(btn){
+          btn.textContent="My Cycle Data";
+          btn.addEventListener("click",function(){setTimeout(addInvite,450);});
+        }
+
+        document.addEventListener("click",function(event){
+          var target=event.target;
+          if(!target) return;
+          var text=(target.textContent||"").trim();
+          if(target.matches("button,[role='button'],a") && (/^\d+\+?$/.test(text) || /day/i.test(text))){
+            setTimeout(addInvite,300);
+          }
+        });
+      }
+
+      if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",polishTracker);
+      else polishTracker();
+    })();
+  </script>
+
 </body>
 </html>

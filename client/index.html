@@ -74,6 +74,7 @@
             <button id="clockInButton" type="button" class="secondary hidden">
               Clock Into the Flowtel
             </button>
+            <a class="cycle-data-link" href="../tracker/">I don't know my cycle day</a>
           </div>
         </div>
 
@@ -106,6 +107,11 @@
             <div class="wheel-panel">
               <div class="medicine-wheel" id="medicineWheel" aria-label="Medicine wheel"></div>
               <p class="you-are-here">You are here</p>
+              <article class="info-card current-room-card wheel-current-room">
+                <span>Current Room</span>
+                <strong id="suiteRoom"></strong>
+                <p id="suiteSeason"></p>
+              </article>
             </div>
 
             <article class="info-card moon-card">
@@ -116,12 +122,6 @@
           </section>
 
           <aside class="suite-rail">
-            <article class="info-card current-room-card">
-              <span>Current Room</span>
-              <strong id="suiteRoom"></strong>
-              <p id="suiteSeason"></p>
-            </article>
-
             <article class="concierge-note quiet" id="witnessNote">
               <h3>💌 Concierge Card</h3>
               <p id="witnessText">No card has been left yet.</p>
