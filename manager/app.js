@@ -1,10 +1,10 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { getFrontDeskStays, witnessStay, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
+import { getFrontDeskStays, witnessStay, cleanCheckedOutRoom, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
-let allStays=[], activeFilter="queue";
+let allStays=[], connectionRequests=[], myClients=[], activeFilter="queue";
 let clockInContext=null;
 let currentManagerProfile=null;
 
@@ -192,36 +192,49 @@ function daysOpen(stay){const start=new Date(stay.checkin_date);start.setHours(0
 function checkedOutToday(stay){return stay.checked_out_at && new Date(stay.checked_out_at)>=startOfToday();}
 function isExtended(stay){return !stay.checked_out_at && daysOpen(stay)>=14;}
 function hasTurndownRequest(stay){return !!(stay.turndown_requested_at || stay.turndown_status==="requested");}
-function isQueue(stay){return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out";}
+function assignedToCurrentWing(stay){
+  const assigned=assignedWingForQueue();
+  return !assigned || stay.wing===assigned;
+}
+function isTurndownQueueItem(stay){
+  return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out" && assignedToCurrentWing(stay);
+}
+function isCheckoutQueueItem(stay){
+  return checkedOutToday(stay) && !stay.witnessed_at && assignedToCurrentWing(stay);
+}
+function serviceQueueItems(){
+  return allStays.filter(stay=>isTurndownQueueItem(stay) || isCheckoutQueueItem(stay));
+}
 function visibleStays(){
   if(activeFilter==="in-house") return allStays.filter(s=>s.stay_status!=="checked_out");
-  if(activeFilter==="queue") return allStays.filter(stay=>isQueue(stay) && (!assignedWingForQueue() || stay.wing===assignedWingForQueue()));
+  if(activeFilter==="queue") return serviceQueueItems();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(activeFilter==="checked-out") return allStays.filter(checkedOutToday);
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 function updateStats(){
   setText("guestsInHouse",allStays.filter(s=>s.checkin_date===new Date().toISOString().slice(0,10)).length);
-  const awaiting=allStays.filter(isQueue).length;
-  setText("awaitingWelcome",awaiting);
   setText("extendedStay",allStays.filter(isExtended).length);
-  setText("checkedOut",allStays.filter(checkedOutToday).length);
-  const turndownCard=document.querySelector('[data-filter="queue"]');
-  if(turndownCard) turndownCard.classList.toggle("has-requests",awaiting>0);
+  setText("newConnectionsCount",connectionRequests.length);
+  setText("clientsCount",myClients.length);
+  const serviceCount=serviceQueueItems().length;
+  const queueCard=document.getElementById("serviceQueueCard");
+  if(queueCard) queueCard.classList.toggle("has-requests",serviceCount>0);
 }
 function setFilter(filter){
   activeFilter=filter;
   document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
   const titles={
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays remain here, but only requested care appears in the Turndown queue."],
-    queue:["TURNDOWN SERVICE","🌙 Guests Awaiting Turndown Service","These guests have requested a little extra witnessing today."],
+    queue:["TURNDOWN SERVICE","🌙 Guests Awaiting Turndown Service","These guests have requested a little extra witnessing today or have checked out and are ready for room care."],
     extended:["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
-    "checked-out":["CHECKED OUT TODAY","Guests who closed today’s stay","These rooms have been personally closed today."],
+    connections:["NEW CONNECTIONS","Connection Requests","Guests who have asked to connect with you will appear here."],
+    clients:["YOUR CLIENTS","Your Clients","Connected clients you are currently holding space for."],
   };
-  setText("activeFilterLabel",titles[filter][0]);
-  setText("activeFilterTitle",titles[filter][1]);
-  setText("activeFilterSubtext",titles[filter][2]);
+  const title=titles[filter] || titles.queue;
+  setText("activeFilterLabel",title[0]);
+  setText("activeFilterTitle",title[1]);
+  setText("activeFilterSubtext",title[2]);
   renderQueue();
 }
 
@@ -259,22 +272,37 @@ async function goToSuite(){
 }
 
 function renderQueue(){
+  if(activeFilter==="connections"){
+    renderConnectionQueue();
+    return;
+  }
+
+  if(activeFilter==="clients"){
+    renderClientQueue();
+    return;
+  }
+
   const stays=visibleStays();
   if(!stays.length){queue.innerHTML="<p>✨ No guests in this category right now.</p>";return;}
   queue.innerHTML=stays.map(stay=>{
     const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
+    const checkoutItem=isCheckoutQueueItem(stay);
+    const actionLabel=checkoutItem ? "Clean Room" : "Open Room";
+    const itemLabel=checkoutItem ? "Checkout Confirmation" : "Turndown Request";
     return `
-      <article class="guest-row">
+      <article class="guest-row ${checkoutItem?"checkout-row":"turndown-row"}">
         <div>
+          <p class="queue-item-type">${itemLabel}</p>
           <h3>${guestName(stay)}</h3>
           <p>Today's Room: ${room}</p>
           <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
           <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
+          ${checkoutItem ? `<p>Checked out: ${formatTime(stay.checked_out_at)}</p>` : `<p>Requested: ${formatTime(stay.turndown_requested_at)}</p>`}
         </div>
-        ${canOpenTurndownRoom(stay)
-          ? `<button data-id="${stay.id}">Open Room</button>`
-          : isClientOfCurrentPractitioner(stay)
-            ? `<span class="guest-row-status">Connected client</span>`
+        ${checkoutItem
+          ? `<button data-clean-id="${stay.id}">${actionLabel}</button>`
+          : canOpenTurndownRoom(stay)
+            ? `<button data-id="${stay.id}">${actionLabel}</button>`
             : `<span class="guest-row-status">Not assigned to your wing</span>`}
       </article>
     `;
@@ -284,6 +312,69 @@ function renderQueue(){
     await witnessStay(button.dataset.id,note||"");
     await loadDesk();
   }));
+  document.querySelectorAll("[data-clean-id]").forEach(button=>button.addEventListener("click",async()=>{
+    await cleanCheckedOutRoom(button.dataset.cleanId,roomPreparedNote());
+    await loadDesk();
+  }));
+}
+
+function formatTime(value){
+  if(!value) return "Today";
+  try{
+    return new Date(value).toLocaleTimeString([],{hour:"numeric",minute:"2-digit"});
+  }catch(error){
+    return "Today";
+  }
+}
+
+function roomPreparedNote(){
+  const profile=currentManagerProfile || {};
+  const initiation=getFlowFmInitiationStatus(profile);
+  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || "your Concierge";
+  return `${initiation.level} ${name} lovingly prepared your room for your next visit.`;
+}
+
+function renderConnectionQueue(){
+  if(!connectionRequests.length){
+    queue.innerHTML="<p>✨ No new connection requests right now.</p>";
+    return;
+  }
+
+  queue.innerHTML=connectionRequests.map(row=>`
+    <article class="guest-row connection-row">
+      <div>
+        <p class="queue-item-type">New Connection</p>
+        <h3>${relationshipGuestName(row)}</h3>
+        <p>Would like to connect and share Flowtel stays.</p>
+      </div>
+      <button type="button" data-connect-id="${row.id}">Connect</button>
+    </article>
+  `).join("");
+
+  queue.querySelectorAll("[data-connect-id]").forEach(button=>{
+    button.addEventListener("click",async()=>{
+      button.disabled=true;
+      await connectWithGuest(button.dataset.connectId);
+      await loadDesk();
+    });
+  });
+}
+
+function renderClientQueue(){
+  if(!myClients.length){
+    queue.innerHTML="<p>✨ No connected clients yet.</p>";
+    return;
+  }
+
+  queue.innerHTML=myClients.map(row=>`
+    <article class="guest-row connection-row">
+      <div>
+        <p class="queue-item-type">Connected Client</p>
+        <h3>${relationshipGuestName(row)}</h3>
+        <p>Connected client</p>
+      </div>
+    </article>
+  `).join("");
 }
 
 function relationshipGuestName(row){
@@ -292,67 +383,31 @@ function relationshipGuestName(row){
 }
 
 async function renderConnectionRequests(){
-  const holder=document.getElementById("connectionRequests");
-  if(!holder) return;
-
   try{
-    const requests=await listConnectionRequestsForPractitioner();
-    if(!requests.length){
-      holder.innerHTML="<p>No new connection requests.</p>";
-      return;
-    }
-
-    holder.innerHTML=requests.map(row=>`
-      <article class="guest-row connection-row">
-        <div>
-          <h3>${relationshipGuestName(row)}</h3>
-          <p>Would like to connect and share Flowtel stays.</p>
-        </div>
-        <button type="button" data-connect-id="${row.id}">Connect</button>
-      </article>
-    `).join("");
-
-    holder.querySelectorAll("[data-connect-id]").forEach(button=>{
-      button.addEventListener("click",async()=>{
-        button.disabled=true;
-        await connectWithGuest(button.dataset.connectId);
-        await renderConnectionRequests();
-        await renderMyClients();
-      });
-    });
+    connectionRequests=await listConnectionRequestsForPractitioner();
   }catch(error){
     console.warn("Connection requests are not available yet.",error);
-    holder.innerHTML="<p>Connection requests will appear after the relationship migration is installed.</p>";
+    connectionRequests=[];
   }
 }
 
 async function renderMyClients(){
-  const holder=document.getElementById("myClientsList");
-  if(!holder) return;
-
   try{
-    const clients=await listMyClients();
-    if(!clients.length){
-      holder.innerHTML="<p>No connected clients yet.</p>";
-      return;
-    }
-
-    holder.innerHTML=clients.map(row=>`
-      <article class="guest-row connection-row">
-        <div>
-          <h3>${relationshipGuestName(row)}</h3>
-          <p>Connected client</p>
-        </div>
-      </article>
-    `).join("");
+    myClients=await listMyClients();
   }catch(error){
     console.warn("Client list is not available yet.",error);
-    holder.innerHTML="<p>Connected clients will appear after the relationship migration is installed.</p>";
+    myClients=[];
   }
 }
 
 
-async function loadDesk(){allStays=await getFrontDeskStays();updateStats();renderQueue();await renderConnectionRequests();await renderMyClients();}
+async function loadDesk(){
+  allStays=await getFrontDeskStays();
+  await renderConnectionRequests();
+  await renderMyClients();
+  updateStats();
+  renderQueue();
+}
 async function openDesk(){
   try{
     managerMessage.textContent="Opening the Concierge Desk...";

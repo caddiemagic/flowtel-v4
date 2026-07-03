@@ -229,3 +229,18 @@ export async function witnessStay(stayId,witnessNote=""){
   if(error) throw error;
   return data;
 }
+
+
+export async function cleanCheckedOutRoom(stayId, note=""){
+  const user=await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+  const now=new Date().toISOString();
+  const {data,error}=await supabase.from("flowtel_stays").update({
+    witnessed_by:user.id,
+    witnessed_at:now,
+    witness_note:note,
+    updated_at:now,
+  }).eq("id",stayId).select().single();
+  if(error) throw error;
+  return data;
+}

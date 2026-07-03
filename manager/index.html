@@ -12,16 +12,11 @@
     <section class="hero">
       <p class="eyebrow">FLOWTEL</p>
       <h1>Concierge Desk</h1>
-      <div class="concierge-identity">
-        <span class="concierge-avatar" id="practitionerAvatar" aria-hidden="true"></span>
-        <div>
-          <h2 id="practitionerIdentityName">Concierge</h2>
-          <p id="practitionerIdentityLevel">Flow FM initiation status will appear here.</p>
-          <div class="initiation-progress moon-progress" aria-hidden="true">
-            <span id="initiationProgressBar"></span>
-            <b id="initiationMoonMarker">☾</b>
-          </div>
-        </div>
+      <h2 id="practitionerIdentityName" class="concierge-name">Concierge</h2>
+      <p id="practitionerIdentityLevel" class="concierge-level">Flow FM initiation status will appear here.</p>
+      <div class="initiation-progress moon-progress hero-progress" aria-hidden="true">
+        <span id="initiationProgressBar"></span>
+        <b id="initiationMoonMarker">☾</b>
       </div>
       <p id="conciergeHeaderNote">I’m here to moderate the flow.</p>
     </section>
@@ -49,50 +44,34 @@
 
     <section class="dashboard hidden" id="dashboard">
       <section class="dashboard-snapshot">
-      <section class="owner-overview snapshot-card">
-        <div>
-          <p class="eyebrow">TODAY’S FLOW</p>
-          <h2 id="deskAssignmentTitle">The Concierge Desk is open.</h2>
-        </div>
-        <p class="desk-note" id="deskAssignmentNote">These guests have requested a little extra witnessing today.</p>
-      </section>
-
-      <section class="suite-return-card snapshot-card hidden" id="suiteReturnCard">
-        <div>
-          <p class="eyebrow">YOUR SUITE</p>
-          <h2>Return to your room.</h2>
-          <p id="suiteReturnNote">Your Suite key is still warm.</p>
-        </div>
-        <button id="goToSuiteButton" type="button">Clock Out</button>
-      </section>
-
-      <section class="my-guests-card snapshot-card">
-        <div>
-          <p class="eyebrow">NEW CONNECTIONS</p>
-          <h2>Connection Requests</h2>
-          <div id="connectionRequests">
-            <p>New guest connection requests will appear here.</p>
+        <section class="owner-overview snapshot-card">
+          <div>
+            <p class="eyebrow">TODAY’S FLOW</p>
+            <h2 id="deskAssignmentTitle">The Concierge Desk is open.</h2>
           </div>
-        </div>
-      </section>
+          <p class="desk-note" id="deskAssignmentNote">These guests have requested a little extra witnessing today.</p>
+        </section>
 
-      <section class="my-guests-card snapshot-card">
-        <div>
-          <p class="eyebrow">YOUR CLIENTS</p>
-          <h2>My Guests</h2>
-          <div id="myClientsList">
-            <p>Connected clients will live here.</p>
+        <section class="suite-return-card snapshot-card hidden" id="suiteReturnCard">
+          <div>
+            <p class="eyebrow">YOUR SUITE</p>
+            <h2>Return to your room.</h2>
+            <p id="suiteReturnNote">Your Suite key is still warm.</p>
           </div>
-        </div>
-      </section>
-
+          <button id="goToSuiteButton" type="button">Clock Out</button>
+        </section>
       </section>
 
       <section class="stats">
-        <button class="stat-card active" type="button" data-filter="queue">
-          <span>Awaiting Turndown</span>
-          <strong id="awaitingWelcome">0</strong>
-          <em>Care requested</em>
+        <button class="stat-card" type="button" data-filter="connections">
+          <span>New Connections</span>
+          <strong id="newConnectionsCount">0</strong>
+          <em>Waiting to connect</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="clients">
+          <span>Your Clients</span>
+          <strong id="clientsCount">0</strong>
+          <em>Connected guests</em>
         </button>
         <button class="stat-card" type="button" data-filter="in-house">
           <span>Guests in House</span>
@@ -104,14 +83,9 @@
           <strong id="extendedStay">0</strong>
           <em>14+ days</em>
         </button>
-        <button class="stat-card" type="button" data-filter="checked-out">
-          <span>Checked Out</span>
-          <strong id="checkedOut">0</strong>
-          <em>Closed today</em>
-        </button>
       </section>
 
-      <section class="queue">
+      <section class="queue" id="serviceQueueCard">
         <div class="section-heading">
           <p class="eyebrow" id="activeFilterLabel">TURNDOWN SERVICE</p>
           <h2 id="activeFilterTitle">🌙 Guests Awaiting Turndown Service</h2>

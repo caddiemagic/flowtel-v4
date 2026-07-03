@@ -10,6 +10,7 @@ export {
   getPreviousVisits,
   getFrontDeskStays,
   witnessStay,
+  cleanCheckedOutRoom,
 } from "./stays.js";
 export { getMoonMagic } from "./moon.js";
 export { getDayContent } from "./content.js";
