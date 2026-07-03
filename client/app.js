@@ -60,15 +60,29 @@ function endTypeLabel(type){
 }
 
 /*
-  Medicine wheel integrity:
-  Day 1 starts at West.
-  Days count COUNTER-CLOCKWISE from Day 1.
-  Day 28+ returns to meet Day 1 at West.
+  Medicine Wheel Compass integrity:
+  Day 1 sits directly below WEST.
+  Day 28+ sits directly above WEST.
+  Days move COUNTER-CLOCKWISE around the compass.
+
+  Compass math uses a 330° sweep from the lower-west gate to the upper-west gate:
+  WEST = 180°
+  SOUTH = 270°
+  EAST = 360° / 0°
+  NORTH = 90°
 */
+function normalizedRoom(day){
+  const value=Number(day);
+  if(!Number.isFinite(value)) return 1;
+  return value>=28?28:Math.max(1,Math.min(28,value));
+}
+
 function wheelPosition(day){
-  const room=Number(day)>=28?28:Number(day);
-  const step=360/28;
-  const angleDeg=180 - ((room-1)*step);
+  const room=normalizedRoom(day);
+  const startAngle=195;
+  const sweep=330;
+  const step=sweep/27;
+  const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
   const radius=43;
 
@@ -80,14 +94,32 @@ function wheelPosition(day){
 
 function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
+  const activeNormalizedRoom=normalizedRoom(activeRoom);
+  const activePosition=wheelPosition(activeNormalizedRoom);
 
-  medicineWheel.innerHTML =
-    `<img class="wheel-rose" src="../assets/flowtel-rose.png" alt="" onerror="this.outerHTML='<div class=&quot;wheel-center&quot;>🌹</div>'" />` +
-    rooms.map(room=>{
+  medicineWheel.innerHTML = `
+    <div class="wheel-compass-ring" aria-hidden="true"></div>
+    <div class="wheel-axis wheel-axis-vertical" aria-hidden="true"></div>
+    <div class="wheel-axis wheel-axis-horizontal" aria-hidden="true"></div>
+
+    <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
+    <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
+    <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
+    <span class="wheel-cardinal wheel-cardinal-west">WEST</span>
+
+    <span class="wheel-season wheel-season-winter">Inner Winter<small>Days 27–5</small></span>
+    <span class="wheel-season wheel-season-spring">Inner Spring<small>Days 6–11</small></span>
+    <span class="wheel-season wheel-season-summer">Inner Summer<small>Days 12–19</small></span>
+    <span class="wheel-season wheel-season-autumn">Inner Autumn<small>Days 20–26</small></span>
+
+    <img class="wheel-rose" src="../assets/flowtel-rose.png" alt="" onerror="this.outerHTML='<div class=&quot;wheel-center&quot;>🌹</div>'" />
+    <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">✦</span>
+    ${rooms.map(room=>{
       const p=wheelPosition(room);
-      const isActive=(Number(activeRoom)>=28 ? room===28 : room===Number(activeRoom));
-      return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="left:${p.x}%;top:${p.y}%">${room===28?"28+":room}</button>`;
-    }).join("");
+      const isActive=room===activeNormalizedRoom;
+      return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="--x:${p.x}%;--y:${p.y}%" aria-label="Open previous visits for Room ${room===28?"28 plus":room}">${room===28?"28+":room}</button>`;
+    }).join("")}
+  `;
 
   medicineWheel.querySelectorAll("[data-room]").forEach(button=>{
     button.addEventListener("click",()=>openVisitsForRoom(button.dataset.room));

@@ -41,12 +41,28 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .suite-rail{display:grid;gap:14px}
 .wheel-column{display:grid;gap:18px}
 .wheel-panel{padding:30px}
-.medicine-wheel{position:relative;width:min(100%,520px);aspect-ratio:1;margin:0 auto;border-radius:50%;background:radial-gradient(circle at center,rgba(255,255,255,.08),rgba(255,255,255,.68) 31%,transparent 32%),radial-gradient(circle at center,transparent 0 61%,rgba(109,78,65,.08) 62%,transparent 64%)}
-.wheel-rose{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:188px;height:188px;object-fit:contain;opacity:.68;filter:saturate(.92) contrast(.95) drop-shadow(0 18px 22px rgba(109,78,65,.1));mix-blend-mode:multiply}
-.wheel-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:4rem}
-.wheel-room{position:absolute;width:42px;height:42px;transform:translate(-50%,-50%);margin:0;padding:0;border-radius:50%;background:rgba(255,253,249,.96);border:1px solid rgba(109,78,65,.18);box-shadow:0 8px 20px rgba(109,78,65,.08);font-family:Georgia,serif;font-size:1rem;color:var(--brown);letter-spacing:0}
-.wheel-room.active{background:#f4c8c4;color:var(--brown);border-color:#d89a91;animation:bubblePulse 1.8s ease-in-out infinite}
-.wheel-room.active:after{content:"✦";position:absolute;left:-27px;top:50%;transform:translateY(-50%);color:var(--gold);font-size:1.65rem;filter:drop-shadow(0 4px 8px rgba(109,78,65,.2))}
+.medicine-wheel{position:relative;width:min(100%,520px);aspect-ratio:1;margin:0 auto;border-radius:50%;overflow:hidden;background:radial-gradient(circle at center,rgba(255,253,249,.96) 0 26%,rgba(255,255,255,.7) 27% 30%,transparent 31%),radial-gradient(circle at center,transparent 0 58%,rgba(216,168,79,.14) 59%,rgba(216,168,79,.14) 60%,transparent 61%),radial-gradient(circle at center,transparent 0 72%,rgba(109,78,65,.1) 73%,transparent 74%),linear-gradient(135deg,rgba(248,231,227,.46),rgba(255,253,249,.9) 46%,rgba(251,247,241,.9));box-shadow:inset 0 0 42px rgba(109,78,65,.06)}
+.wheel-compass-ring{position:absolute;inset:6.5%;border:1px solid rgba(216,168,79,.24);border-radius:50%;box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+.wheel-axis{position:absolute;left:50%;top:50%;background:linear-gradient(90deg,transparent,rgba(109,78,65,.12),transparent);transform-origin:center;pointer-events:none}
+.wheel-axis-vertical{width:1px;height:82%;transform:translate(-50%,-50%)}
+.wheel-axis-horizontal{width:82%;height:1px;transform:translate(-50%,-50%)}
+.wheel-cardinal{position:absolute;z-index:2;font-family:Arial,sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.2em;color:rgba(109,78,65,.52);text-transform:uppercase;pointer-events:none}
+.wheel-cardinal-north{top:4.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:4.1%;top:50%;transform:translateY(-50%) rotate(90deg)}
+.wheel-cardinal-south{bottom:4.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-west{left:4.1%;top:50%;transform:translateY(-50%) rotate(-90deg)}
+.wheel-season{position:absolute;z-index:2;display:grid;gap:3px;text-align:center;font-size:.78rem;line-height:1.1;color:rgba(109,78,65,.72);pointer-events:none}
+.wheel-season small{font-family:Arial,sans-serif;font-size:.52rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(191,127,116,.74)}
+.wheel-season-winter{left:17%;bottom:23%}
+.wheel-season-spring{right:17%;bottom:23%}
+.wheel-season-summer{right:17%;top:23%}
+.wheel-season-autumn{left:17%;top:23%}
+.wheel-rose{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);width:168px;height:168px;object-fit:contain;opacity:.6;filter:saturate(.9) contrast(.94) drop-shadow(0 18px 22px rgba(109,78,65,.1));mix-blend-mode:multiply;pointer-events:none}
+.wheel-center{position:absolute;z-index:3;left:50%;top:50%;transform:translate(-50%,-50%);font-size:4rem;pointer-events:none}
+.wheel-room{position:absolute;z-index:4;left:var(--x);top:var(--y);width:40px;height:40px;transform:translate(-50%,-50%);margin:0;padding:0;border-radius:50%;background:rgba(255,253,249,.96);border:1px solid rgba(109,78,65,.18);box-shadow:0 8px 20px rgba(109,78,65,.08);font-family:Georgia,serif;font-size:.95rem;color:var(--brown);letter-spacing:0;transition:transform .28s ease,box-shadow .28s ease,background .28s ease}
+.wheel-room:hover{transform:translate(-50%,-50%) scale(1.04)}
+.wheel-room.active{background:#f4c8c4;color:var(--brown);border-color:#d89a91;box-shadow:0 0 0 7px rgba(244,200,196,.28),0 12px 24px rgba(109,78,65,.12);animation:bubblePulse 1.8s ease-in-out infinite}
+.wheel-current-star{position:absolute;z-index:5;left:var(--x);top:var(--y);transform:translate(-168%,-50%);color:var(--gold);font-size:1.5rem;filter:drop-shadow(0 4px 8px rgba(109,78,65,.2));pointer-events:none}
 .you-are-here{margin:16px 0 0;font-family:Arial,sans-serif;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.18em;color:var(--rose)}
 .info-card,.room-card,.journal-card,.checkout-card,.visits-drawer,.concierge-note,.video-lounge-card{padding:20px;text-align:left}
 .info-card span,.room-stack span{display:block;margin-bottom:8px;font-family:Arial,sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--rose)}
