@@ -82,7 +82,7 @@ function wheelPosition(day){
   const startAngle=195;
   const sweep=330;
   const step=sweep/27;
-  const angleDeg=startAngle + ((room-1)*step);
+  const angleDeg=startAngle - ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
   const radius=43;
 
