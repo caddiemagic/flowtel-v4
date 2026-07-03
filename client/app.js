@@ -102,6 +102,22 @@ async function completeMemberBridgeEntrance(email){
   showCheckIn();
 }
 
+function isAlreadyRegisteredError(error){
+  const message=String(error?.message || "").toLowerCase();
+  return message.includes("already") || message.includes("registered") || message.includes("exists");
+}
+
+function isInvalidCredentialsError(error){
+  const message=String(error?.message || "").toLowerCase();
+  return message.includes("invalid login") || message.includes("invalid credentials");
+}
+
+async function enterWithBridgePassword(email){
+  await signOut();
+  await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+  await completeMemberBridgeEntrance(email);
+}
+
 async function createNewMemberBridge(){
   const email=memberBridgeEmail();
 
@@ -121,14 +137,50 @@ async function createNewMemberBridge(){
   }catch(error){
     console.error("Flowtel New Member Bridge Error:", error);
 
-    const message=String(error?.message || "").toLowerCase();
-    if(message.includes("already") || message.includes("registered") || message.includes("exists")){
-      setMessage("This email has already stayed at the Flowtel. Choose “I've Stayed Before” and enter your Flowtel password.");
+    if(isAlreadyRegisteredError(error)){
+      try{
+        setMessage("This email already has a Flowtel room. Opening it through your member doorway...");
+        await enterWithBridgePassword(email);
+        return;
+      }catch(signInError){
+        console.error("Existing bridge account could not be opened with the bridge password:", signInError);
+        if(isInvalidCredentialsError(signInError)){
+          setMessage("This email already has a Flowtel room with a custom password. Choose “I've Stayed Before” and enter that password.");
+          openReturningMemberLogin(false);
+          return;
+        }
+
+        setMessage(`Returning Member Error: ${signInError?.message || "Unknown error"}`);
+        return;
+      }
+    }
+
+    setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
+  }
+}
+
+async function openReturningMemberBridge(){
+  const email=memberBridgeEmail();
+
+  if(!email){
+    setMessage("Add the email you use for your Idyll Collective membership.");
+    return;
+  }
+
+  try{
+    setMessage("Welcome back. Opening your Flowtel room...");
+    try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
+    await enterWithBridgePassword(email);
+  }catch(error){
+    console.error("Flowtel Returning Member Bridge Error:", error);
+
+    if(isInvalidCredentialsError(error)){
+      setMessage("This Flowtel room uses a custom password. Enter your Flowtel password below, then choose Enter the Flowtel.");
       openReturningMemberLogin(false);
       return;
     }
 
-    setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
+    setMessage(`Returning Member Error: ${error?.message || "Unknown error"}`);
   }
 }
 
@@ -141,7 +193,7 @@ function openReturningMemberLogin(showMessage=true){
   if(devLoginCard) devLoginCard.open=true;
 
   if(showMessage){
-    setMessage("Welcome back. Enter the password you used for Flowtel, then choose Enter the Flowtel.");
+    setMessage("Welcome back. Enter your Flowtel password, then choose Enter the Flowtel.");
   }
 
   setTimeout(()=>document.getElementById("password")?.focus(),100);
@@ -687,7 +739,7 @@ async function handleBetaLogin(email){
 
 async function handleSignIn(){
   try{
-    setMessage("Opening your Flowtel Passport...");
+    setMessage("Entering the Flowtel...");
 
     const email=document.getElementById("email").value.trim();
     const password=document.getElementById("password").value;
@@ -700,8 +752,8 @@ async function handleSignIn(){
     await signInWithEmail(email,password);
 
     currentProfile=await ensureProfile({
-      membershipType:SQUARESPACE_MEMBERSHIP || null,
-      squarespaceSource:SQUARESPACE_MEMBERSHIP || null,
+      membershipType:SQUARESPACE_MEMBERSHIP || undefined,
+      squarespaceSource:SQUARESPACE_MEMBERSHIP || undefined,
     });
 
     setMessage("");
@@ -717,8 +769,8 @@ async function handleSignIn(){
 
     showCheckIn();
   }catch(error){
-    console.error("Returning Member Login Error:", error);
-    setMessage(`Returning Member Login Error: ${error?.message || "Unknown error"}`);
+    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
+    console.error(error);
   }
 }
 
@@ -939,7 +991,7 @@ renderBetaLoginPanel();
 const memberBridgeNewButton=document.getElementById("memberBridgeNewButton");
 if(memberBridgeNewButton) memberBridgeNewButton.addEventListener("click",createNewMemberBridge);
 const memberBridgeReturningButton=document.getElementById("memberBridgeReturningButton");
-if(memberBridgeReturningButton) memberBridgeReturningButton.addEventListener("click",()=>openReturningMemberLogin(true));
+if(memberBridgeReturningButton) memberBridgeReturningButton.addEventListener("click",openReturningMemberBridge);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const guestModeButton=document.getElementById("guestModeButton");
 if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
