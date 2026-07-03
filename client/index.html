@@ -18,23 +18,31 @@
         <p class="subtext">A quiet place<br />to meet yourself<br />on the moon.</p>
 
         <div class="auth-panel" id="authPanel">
-          <p class="panel-title">Flowtel Passport</p>
-          <p class="microcopy passport-note">
-            Beta entrance for Flow FM and Queendom members.
+          <p class="panel-title" id="doorwayTitle">Flowtel Entrance</p>
+          <p class="microcopy passport-note" id="doorwayNote">
+            Enter through your protected Idyll Collective member doorway.
           </p>
 
-          <label for="email">Email</label>
-          <input id="email" type="email" autocomplete="email" />
+          <div class="member-bridge-card" id="memberBridgeCard">
+            <label for="memberEmail">Member email</label>
+            <input id="memberEmail" type="email" autocomplete="email" />
+            <button id="memberBridgeButton" type="button">Enter the Flowtel</button>
+            <p class="microcopy">
+              Beta bridge: Squarespace protects the doorway; Flowtel uses this email to prepare your Supabase profile.
+            </p>
+          </div>
 
-          <label for="password">Password</label>
-          <input id="password" type="password" autocomplete="current-password" />
+          <details class="dev-login-card" id="devLoginCard">
+            <summary>Developer login</summary>
+            <p class="microcopy">Use only if the Squarespace bridge is unavailable during testing.</p>
 
-          <button id="signInButton" type="button">Open My Passport</button>
+            <label for="email">Email</label>
+            <input id="email" type="email" autocomplete="email" />
 
-          <details class="beta-login-card">
-            <summary>Beta test accounts</summary>
-            <p class="microcopy">Use these while we test roles, concierge notes, and wing assignments.</p>
-            <div class="beta-login-grid" id="betaLoginPanel"></div>
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="current-password" />
+
+            <button id="signInButton" type="button">Open My Passport</button>
           </details>
 
           <p class="microcopy">

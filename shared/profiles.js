@@ -2,6 +2,7 @@
 
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
+import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
 
 export async function getCurrentProfile() {
   const user = await getCurrentUser();
@@ -31,6 +32,12 @@ export async function ensureProfile(profile = {}) {
 
   const existing = await getCurrentProfile();
 
+  const incomingMembership = normalizeMembership(profile.membershipType || profile.membership || profile.source);
+  const resolvedMembership = resolveMembership(existing?.membership_type, incomingMembership);
+  const resolvedRole = (user.email?.endsWith("@test.local") && profile.forceBetaRole)
+    ? (profile.role || "client")
+    : roleFromResolvedMembership(resolvedMembership, existing?.role || profile.role || "client");
+
   const payload = {
     id: user.id,
     email: user.email,
@@ -44,7 +51,18 @@ export async function ensureProfile(profile = {}) {
       existing?.last_name ||
       user.user_metadata?.last_name ||
       null,
-    role: (user.email?.endsWith("@test.local") && profile.forceBetaRole) ? (profile.role || "client") : (existing?.role || profile.role || "client"),
+    role: resolvedRole,
+    membership_type: resolvedMembership || existing?.membership_type || null,
+    membership_rank: rankForMembership(resolvedMembership || existing?.membership_type),
+    squarespace_source:
+      profile.squarespaceSource ||
+      profile.source ||
+      existing?.squarespace_source ||
+      null,
+    source_updated_at:
+      profile.squarespaceSource || profile.source
+        ? new Date().toISOString()
+        : existing?.source_updated_at || null,
     flowfm_started_at:
       profile.flowfmStartedAt ||
       existing?.flowfm_started_at ||

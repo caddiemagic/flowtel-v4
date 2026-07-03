@@ -1,6 +1,7 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
 import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
+import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -17,6 +18,110 @@ const medicineWheel=document.getElementById("medicineWheel");
 
 let currentProfile=null;
 let currentStay=null;
+
+const SQUARESPACE_MEMBERSHIP = membershipFromUrl();
+const FLOWTEL_BRIDGE_PASSWORD = "FlowtelMemberBridge!2026";
+
+function urlParam(name){
+  return new URLSearchParams(window.location.search).get(name);
+}
+
+function extractSquarespaceEmail(){
+  const explicit = urlParam("email") || urlParam("memberEmail");
+  if(explicit) return explicit.trim();
+
+  try{
+    const cached = localStorage.getItem("flowtel:memberEmail");
+    if(cached) return cached.trim();
+  }catch(error){}
+
+  // Best-effort hooks for future Squarespace code injection.
+  const candidates = [
+    window.FlowtelMember?.email,
+    window.Squarespace?.Member?.email,
+    window.Static?.SQUARESPACE_CONTEXT?.authenticatedAccount?.email,
+    window.Static?.SQUARESPACE_CONTEXT?.member?.email,
+  ];
+
+  return (candidates.find(Boolean) || "").trim();
+}
+
+function firstNameFromEmail(email){
+  const local=String(email||"").split("@")[0] || "guest";
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map(part=>part.charAt(0).toUpperCase()+part.slice(1))
+    .join(" ") || "Guest";
+}
+
+function updateDoorwayCopy(){
+  const title=document.getElementById("doorwayTitle");
+  const note=document.getElementById("doorwayNote");
+  const memberEmail=document.getElementById("memberEmail");
+
+  if(title){
+    title.textContent = SQUARESPACE_MEMBERSHIP
+      ? `${labelForMembership(SQUARESPACE_MEMBERSHIP)} Entrance`
+      : "Flowtel Entrance";
+  }
+
+  if(note){
+    note.textContent = SQUARESPACE_MEMBERSHIP
+      ? `You entered through the ${labelForMembership(SQUARESPACE_MEMBERSHIP)} doorway.`
+      : "Enter through your protected Idyll Collective member doorway.";
+  }
+
+  const detectedEmail=extractSquarespaceEmail();
+  if(memberEmail && detectedEmail) memberEmail.value=detectedEmail;
+}
+
+async function openMemberBridge(){
+  const emailInput=document.getElementById("memberEmail");
+  const email=(emailInput?.value || extractSquarespaceEmail()).trim().toLowerCase();
+
+  if(!email){
+    setMessage("Add the email you use for your Idyll Collective membership.");
+    return;
+  }
+
+  try{
+    setMessage("Preparing your Flowtel room...");
+    try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
+
+    await signOut();
+
+    try{
+      await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+    }catch(signInError){
+      await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+      await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+    }
+
+    currentProfile=await ensureProfile({
+      firstName:firstNameFromEmail(email),
+      membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
+      squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
+    });
+
+    setMessage("");
+
+    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+      return;
+    }
+
+    if(await openTodaySuiteIfPresent()){
+      return;
+    }
+
+    showCheckIn();
+  }catch(error){
+    console.error(error);
+    setMessage("The Squarespace bridge could not open Flowtel yet. Use Developer login or message Maddie.");
+  }
+}
+
 
 const BETA_PASSWORD="FlowtelBeta!2026";
 const BETA_ACCOUNTS=[
@@ -41,6 +146,7 @@ function refineLobbyCopy(){
 }
 
 refineLobbyCopy();
+updateDoorwayCopy();
 
 function setMessage(text){ message.textContent=text||""; }
 
@@ -701,6 +807,8 @@ function ensureLoungeClockInButton(){
 
 renderBetaLoginPanel();
 
+const memberBridgeButton=document.getElementById("memberBridgeButton");
+if(memberBridgeButton) memberBridgeButton.addEventListener("click",openMemberBridge);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const guestModeButton=document.getElementById("guestModeButton");
 if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
@@ -714,3 +822,10 @@ document.getElementById("backToSuiteButton").addEventListener("click",()=>showSc
 const checkoutReturnButton=document.getElementById("checkoutReturnButton");
 if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>showScene("lobby"));
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));
+
+
+// Auto-enter is opt-in for later Squarespace code injection.
+// Example: /client/?membership=flowfm&email=member@example.com&auto=1
+if((urlParam("auto")==="1" || urlParam("bridge")==="1") && extractSquarespaceEmail()){
+  openMemberBridge();
+}
