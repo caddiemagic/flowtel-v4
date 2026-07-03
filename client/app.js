@@ -116,10 +116,14 @@ async function openMemberBridge(){
     }
 
     showCheckIn();
-  }catch(error){
-    console.error(error);
-    setMessage("The Squarespace bridge could not open Flowtel yet. Try Developer login or Message the Front Desk.");
-  }
+  }catch (error) {
+  console.error("Flowtel Bridge Error:", error);
+
+  setMessage(
+    `Bridge Error: ${error?.message || "Unknown error"}`
+  );
+}
+
 }
 
 
