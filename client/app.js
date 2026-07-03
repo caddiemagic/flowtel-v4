@@ -134,7 +134,7 @@ function renderWheel(activeRoom){
     <span class="wheel-season wheel-season-spring"><em>🌸</em>Inner Spring<small>Days 6–11</small></span>
     <span class="wheel-season wheel-season-winter"><em>❄</em>Inner Winter<small>Days 27–5</small></span>
 
-    <div class="wheel-gold-compass" aria-hidden="true">
+    <div class="rose-compass-center">
       <svg class="rose-compass-svg" viewBox="0 0 220 220" role="img" aria-label="Gold rose compass">
         <defs>
           <linearGradient id="flowtelCompassGold" x1="42" y1="18" x2="178" y2="202" gradientUnits="userSpaceOnUse">
@@ -194,6 +194,7 @@ function renderWheel(activeRoom){
         </g>
         <circle cx="110" cy="110" r="4" fill="url(#flowtelCompassGold)"/>
       </svg>
+      <span class="rose-compass-proof">ROSE COMPASS 0.4.5</span>
     </div>
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{

@@ -1,103 +1,113 @@
-# 🌹 Flowtel Release 0.4.5a
+# 🌹 Flowtel Release 0.4.5b
 
 ## Feature
-Medicine Wheel v1.0 Design Freeze and suite layout refinement.
+Wheel proof patch only.
 
-This is an Application Release. It integrates into the existing `flowtel-v4` application, includes only changed files, and does not create standalone components, demo files, routing changes, Squarespace integration, SSO, or database redesign.
+This Application Release verifies that the new Rose Compass center markup is rendering live and corrects the Medicine Wheel ring placement.
 
 ## Changed Files
 
-```txt
+```text
 client/app.js
 client/styles.css
 docs/RELEASE.md
-docs/MEDICINE_WHEEL_SPEC.md
 ```
 
 ## Database
 
 None.
 
+## Exact Inspection Notes
+
+### Current `renderWheel()` center markup before this patch
+
+The center compass was rendered as:
+
+```html
+<div class="wheel-gold-compass" aria-hidden="true">
+  <svg class="rose-compass-svg" viewBox="0 0 220 220" role="img" aria-label="Gold rose compass">
+    ...
+  </svg>
+</div>
+```
+
+### CSS selectors controlling the center compass before this patch
+
+The center compass was controlled by `.wheel-gold-compass`, `.wheel-gold-compass:before`, `.wheel-gold-compass:after`, `.rose-compass-svg`, `.rose-compass-svg .compass-points path`, and `.rose-compass-svg .rose-petals ellipse`.
+
+## What Changed
+
+- Replaced the center compass wrapper with one clearly named live element:
+
+```html
+<div class="rose-compass-center">...</div>
+```
+
+- Added a temporary visible proof label inside the compass center:
+
+```text
+ROSE COMPASS 0.4.5
+```
+
+- Hid any old `.wheel-rose` image if cached/legacy markup renders it.
+- Corrected the two-ring placement: one gold ring sits inside the number circle path and one gold ring sits outside the number circle path.
+- Kept the 28 number circles centered between the two rings.
+- Kept the active gold marker precisely centered over the active day circle.
+- Moved season pills inside the wheel card corners with generous spacing from the wheel perimeter and card edge.
+
 ## Installation Instructions
 
 Replace:
 
-```txt
+```text
 flowtel-v4/client/app.js
 ```
 
 with:
 
-```txt
-Release-0.4.5a/client/app.js
+```text
+Release-0.4.5b/client/app.js
 ```
 
 Replace:
 
-```txt
+```text
 flowtel-v4/client/styles.css
 ```
 
 with:
 
-```txt
-Release-0.4.5a/client/styles.css
+```text
+Release-0.4.5b/client/styles.css
 ```
 
 Copy:
 
-```txt
-Release-0.4.5a/docs/RELEASE.md
-Release-0.4.5a/docs/MEDICINE_WHEEL_SPEC.md
+```text
+Release-0.4.5b/docs/RELEASE.md
 ```
 
 into:
 
-```txt
-flowtel-v4/docs/
+```text
+flowtel-v4/docs/RELEASE.md
 ```
-
-No Supabase SQL migration is required for this release.
-
-## What Changed
-
-- Finalized the Medicine Wheel as v1.0 design-freeze geometry.
-- Locked the gold ring rule: exactly two gold rings bracket the number circles, with one ring inside the number circles and one ring outside the number circles.
-- Kept all 28 day positions equally spaced.
-- Preserved Day 1 directly below WEST and Day 28+ directly above WEST.
-- Kept the day-number circles centered between the inner and outer gold rings.
-- Enlarged and refined the number circles while preserving comfortable spacing.
-- Centered the active gold star/diamond precisely over the active day circle.
-- Repositioned the four Inner Season blocks into the four card corners so they do not overlap the wheel.
-- Finalized the Rose Compass center as a gold, dimensional, feminine compass rose with layered petals and spiral linework.
-- Kept cardinal directions outside the number ring but inside the wheel card boundary.
-- Removed the standalone Moon Magic card and merged Moon Magic data into the Reflection card.
-- Improved suite symmetry so the wheel card can visually balance the right-side column height.
-- Preserved check-in, clock-in, Concierge Desk, Turndown Service, previous visits, reflection saving, Lounge behavior, and practitioner roles.
-- Added `docs/MEDICINE_WHEEL_SPEC.md` as the canonical Medicine Wheel v1.0 design specification.
 
 ## QA Checklist
 
-1. Check in as a guest and confirm the Suite opens.
-2. Confirm the Medicine Wheel appears on the left side of the Suite.
-3. Confirm Day 1 sits directly below WEST and Day 28+ sits directly above WEST.
-4. Confirm all 28 day circles are evenly spaced and do not touch.
-5. Confirm one gold ring sits inside the number circles and one gold ring sits outside the number circles.
-6. Confirm the day-number circles sit centered between the two gold rings.
-7. Confirm the current-room gold star/diamond sits directly over the active day circle.
-8. Confirm NORTH, EAST, SOUTH, and WEST sit inside the wheel card boundary and outside the number ring.
-9. Confirm Inner Autumn, Inner Summer, Inner Spring, and Inner Winter sit in the four card corners without overlapping the wheel.
-10. Confirm the center Rose Compass feels finished, dimensional, gold, and feminine.
-11. Confirm the separate Moon Magic card is gone.
-12. Confirm Moon phase, moon day, and moon theme appear inside the Reflection card.
-13. Save a reflection and confirm it still persists.
-14. Open previous visits from a day circle and confirm the drawer still works.
-15. Request Turndown Service and confirm Concierge behavior is preserved.
-16. Check responsive layout and confirm the wheel remains centered, proportional, and spacious.
+- Confirm the Medicine Wheel renders inside the Guest Suite.
+- Confirm the temporary text `ROSE COMPASS 0.4.5` appears below/inside the rose compass center.
+- Confirm there are exactly two gold rings around the number path.
+- Confirm the number circles sit between the two rings.
+- Confirm Day 1 sits directly below WEST.
+- Confirm Day 28+ sits directly above WEST.
+- Confirm the active gold marker is centered on the active day.
+- Confirm season pills do not overlap the wheel perimeter or card edge.
+- Confirm check-in, clock-in, Turndown Service, reflections, previous visits, Lounge, and Concierge Desk still work.
 
 ## Commit
 
 ```bash
 git add .
-git commit -m "Release 0.4.5a - medicine wheel updates and suite layout refinement"
+git commit -m "Release 0.4.5b - Wheel proof patch only"
 ```
