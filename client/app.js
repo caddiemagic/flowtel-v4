@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -118,7 +118,7 @@ async function openMemberBridge(){
     showCheckIn();
   }catch(error){
     console.error(error);
-    setMessage("The Squarespace bridge could not open Flowtel yet. Use Developer login or message Maddie.");
+    setMessage("The Squarespace bridge could not open Flowtel yet. Try Developer login or Message the Front Desk.");
   }
 }
 
@@ -371,6 +371,7 @@ function renderSuite(stay){
   document.getElementById("reflectionInput").value=stay.reflection||"";
 
   renderConciergeCare(stay);
+  renderPractitionerConnection();
 
   renderWheel(stay.cycle_day_claimed);
   refineWheelLegend();
@@ -470,6 +471,102 @@ function renderConciergeCare(stay){
     button.addEventListener("click",()=>handleTurndownRequest(stay));
   }
 }
+
+
+function practitionerDisplayName(profile){
+  return [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || "Practitioner";
+}
+
+async function renderPractitionerConnection(){
+  const card=document.getElementById("practitionerCard");
+  const title=document.getElementById("practitionerCardTitle");
+  const text=document.getElementById("practitionerCardText");
+  const directory=document.getElementById("practitionerDirectory");
+  const button=document.getElementById("choosePractitionerButton");
+  const note=document.getElementById("practitionerMessage");
+
+  if(!card||!title||!text||!directory||!button) return;
+
+  directory.classList.add("hidden");
+  directory.innerHTML="";
+  if(note) note.textContent="";
+
+  try{
+    const relationship=await getMyPractitionerRelationship();
+
+    if(relationship?.status==="connected"){
+      const name=practitionerDisplayName(relationship.practitioner);
+      title.textContent=name;
+      text.textContent="You are connected. Your practitioner can view the Flowtel stays you have chosen to share.";
+      button.textContent="Connected";
+      button.disabled=true;
+      return;
+    }
+
+    if(relationship?.status==="requested"){
+      const name=practitionerDisplayName(relationship.practitioner);
+      title.textContent=`Connection requested with ${name}.`;
+      text.textContent="Your practitioner will see your request at the Concierge Desk and can choose Connect.";
+      button.textContent="Request Sent";
+      button.disabled=true;
+      return;
+    }
+
+    title.textContent="No practitioner connected.";
+    text.textContent="Choose a practitioner when you are ready to share your Flowtel stays.";
+    button.textContent="Choose Practitioner";
+    button.disabled=false;
+
+    button.onclick=async()=>{
+      try{
+        button.disabled=true;
+        if(note) note.textContent="Opening practitioner directory...";
+        const practitioners=await listPractitioners();
+
+        if(!practitioners.length){
+          directory.classList.remove("hidden");
+          directory.innerHTML="<p>No practitioners are available yet.</p>";
+          if(note) note.textContent="";
+          button.disabled=false;
+          return;
+        }
+
+        directory.classList.remove("hidden");
+        directory.innerHTML=`
+          <p class="microcopy">By connecting, you choose to share check-ins, reflections, concierge notes, and previous stays. You can disconnect later.</p>
+          ${practitioners.map(practitioner=>`
+            <button type="button" class="practitioner-option" data-practitioner-id="${practitioner.id}">
+              Connect with ${escapeHtml(practitionerDisplayName(practitioner))}
+            </button>
+          `).join("")}
+        `;
+
+        directory.querySelectorAll("[data-practitioner-id]").forEach(option=>{
+          option.addEventListener("click",async()=>{
+            option.disabled=true;
+            if(note) note.textContent="Sending connection request...";
+            await requestPractitionerConnection(option.dataset.practitionerId);
+            if(note) note.textContent="Connection request sent.";
+            await renderPractitionerConnection();
+          });
+        });
+
+        if(note) note.textContent="";
+        button.disabled=false;
+      }catch(error){
+        console.error(error);
+        if(note) note.textContent="Practitioner connection is not available yet. Run the 0.6.1 relationship migration.";
+        button.disabled=false;
+      }
+    };
+  }catch(error){
+    console.warn("Practitioner relationship lookup failed.",error);
+    title.textContent="Your Practitioner";
+    text.textContent="Practitioner connections will appear here after the relationship migration is installed.";
+    button.disabled=true;
+  }
+}
+
 
 function escapeHtml(value){
   return String(value||"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
@@ -588,7 +685,7 @@ async function handleSignIn(){
 
     showCheckIn();
   }catch(error){
-    setMessage("Your Passport could not be opened. Please check your email and password or message Maddie.");
+    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
     console.error(error);
   }
 }
@@ -696,7 +793,7 @@ async function handleCheckIn(){
     },650);
   }catch(error){
     showScene("lobby");
-    setMessage("Your room key could not be prepared. Please try again or message Maddie.");
+    setMessage("Your room key could not be prepared. Please try again or message the Front Desk.");
     console.error(error);
   }
 }
@@ -720,7 +817,7 @@ async function handleSaveReflection(){
     currentStay=await saveReflection(currentStay.id,value);
     cacheSuiteStay(currentStay);
     input.value="";
-    if(message) message.textContent="Reflection saved.";
+    if(message) message.textContent="Reflection saved. Your stay has remembered this note.";
 
     // Refresh open previous-visit drawer if the current room is being viewed.
     const drawer=document.getElementById("visitsDrawer");
@@ -785,7 +882,7 @@ async function handleClockIn(){
 
     window.location.href="../manager/";
   }catch(error){
-    setMessage("The Concierge Desk could not receive your clock-in. Please try again or message Maddie.");
+    setMessage("The Concierge Desk could not receive your clock-in. Please try again or message the Front Desk.");
     console.error(error);
   }
 }

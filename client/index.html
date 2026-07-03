@@ -26,9 +26,9 @@
           <div class="member-bridge-card" id="memberBridgeCard">
             <label for="memberEmail">Member email</label>
             <input id="memberEmail" type="email" autocomplete="email" />
-            <button id="memberBridgeButton" type="button">Enter the Flowtel</button>
+            <button id="memberBridgeButton" type="button">Claim My Flowtel Room</button>
             <p class="microcopy">
-              Beta bridge: Squarespace protects the doorway; Flowtel uses this email to prepare your Supabase profile.
+              Temporary beta bridge: enter the same email you use for Squarespace so Flowtel can prepare your profile until the API bridge is unlocked.
             </p>
           </div>
 
@@ -46,7 +46,7 @@
           </details>
 
           <p class="microcopy">
-            Need help entering the Flowtel? Message Maddie.
+            Need help entering the Flowtel? Message the Front Desk.
           </p>
         </div>
 
@@ -125,6 +125,15 @@
               <p id="witnessText">No card has been left yet.</p>
             </article>
 
+            <article class="practitioner-card" id="practitionerCard">
+              <p class="eyebrow">YOUR PRACTITIONER</p>
+              <h3 id="practitionerCardTitle">No practitioner connected.</h3>
+              <p id="practitionerCardText">Choose a practitioner when you are ready to share your Flowtel stays.</p>
+              <div id="practitionerDirectory" class="practitioner-directory"></div>
+              <button id="choosePractitionerButton" type="button" class="secondary">Choose Practitioner</button>
+              <p id="practitionerMessage" class="microcopy"></p>
+            </article>
+
             <article class="room-card">
               <p class="eyebrow">TODAY'S ROOM</p>
               <h3 id="roomTitle"></h3>
@@ -193,7 +202,7 @@
         <p class="eyebrow">FLOWTEL</p>
         <h2>We trust you enjoyed your stay.</h2>
         <p class="suite-subline">Same time tomorrow.</p>
-        <button id="checkoutReturnButton" type="button" class="secondary">Return to the Lobby</button>
+        <button id="checkoutReturnButton" type="button" class="secondary">Return Home</button>
       </section>
     </section>
   </main>

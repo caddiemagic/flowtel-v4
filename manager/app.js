@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { getFrontDeskStays, witnessStay, clockOutPractitioner, getFlowFmInitiationStatus } from "../shared/flowtel.js";
+import { getFrontDeskStays, witnessStay, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -266,7 +266,7 @@ function renderQueue(){
         ${canOpenTurndownRoom(stay)
           ? `<button data-id="${stay.id}">Open Room</button>`
           : isClientOfCurrentPractitioner(stay)
-            ? `<button class="secondary" disabled>View Guest</button>`
+            ? `<span class="guest-row-status">Connected client</span>`
             : `<span class="guest-row-status">Not assigned to your wing</span>`}
       </article>
     `;
@@ -277,7 +277,74 @@ function renderQueue(){
     await loadDesk();
   }));
 }
-async function loadDesk(){allStays=await getFrontDeskStays();updateStats();renderQueue();}
+
+function relationshipGuestName(row){
+  const client=row?.client || {};
+  return [client.first_name, client.last_name].filter(Boolean).join(" ") || client.email || "Guest";
+}
+
+async function renderConnectionRequests(){
+  const holder=document.getElementById("connectionRequests");
+  if(!holder) return;
+
+  try{
+    const requests=await listConnectionRequestsForPractitioner();
+    if(!requests.length){
+      holder.innerHTML="<p>No new connection requests.</p>";
+      return;
+    }
+
+    holder.innerHTML=requests.map(row=>`
+      <article class="guest-row connection-row">
+        <div>
+          <h3>${relationshipGuestName(row)}</h3>
+          <p>Would like to connect and share Flowtel stays.</p>
+        </div>
+        <button type="button" data-connect-id="${row.id}">Connect</button>
+      </article>
+    `).join("");
+
+    holder.querySelectorAll("[data-connect-id]").forEach(button=>{
+      button.addEventListener("click",async()=>{
+        button.disabled=true;
+        await connectWithGuest(button.dataset.connectId);
+        await renderConnectionRequests();
+        await renderMyClients();
+      });
+    });
+  }catch(error){
+    console.warn("Connection requests are not available yet.",error);
+    holder.innerHTML="<p>Connection requests will appear after the relationship migration is installed.</p>";
+  }
+}
+
+async function renderMyClients(){
+  const holder=document.getElementById("myClientsList");
+  if(!holder) return;
+
+  try{
+    const clients=await listMyClients();
+    if(!clients.length){
+      holder.innerHTML="<p>No connected clients yet.</p>";
+      return;
+    }
+
+    holder.innerHTML=clients.map(row=>`
+      <article class="guest-row connection-row">
+        <div>
+          <h3>${relationshipGuestName(row)}</h3>
+          <p>Connected client</p>
+        </div>
+      </article>
+    `).join("");
+  }catch(error){
+    console.warn("Client list is not available yet.",error);
+    holder.innerHTML="<p>Connected clients will appear after the relationship migration is installed.</p>";
+  }
+}
+
+
+async function loadDesk(){allStays=await getFrontDeskStays();updateStats();renderQueue();await renderConnectionRequests();await renderMyClients();}
 async function openDesk(){
   try{
     managerMessage.textContent="Opening the Concierge Desk...";

@@ -128,3 +128,8 @@
 @media(max-width:900px){
   .practitioner-identity-card{grid-template-columns:1fr}
 }
+
+
+.connection-row{margin-top:12px}
+.connection-row button{min-width:120px}
+

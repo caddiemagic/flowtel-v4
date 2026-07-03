@@ -18,3 +18,5 @@ export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./se
 export { getFlowFmInitiationStatus, FLOW_FM_MOONS } from "./initiation.js";
 
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
+
+export { listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection, listConnectionRequestsForPractitioner, listMyClients, connectWithGuest } from "./relationships.js";
