@@ -307,3 +307,152 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   .wheel-gold-compass{width:120px;height:120px}
   .you-are-here{margin-top:48px}
 }
+
+/* Release 0.4.4 — final medicine wheel and suite layout refinement */
+.suite-grid{
+  grid-template-columns:minmax(500px,660px) minmax(380px,500px);
+  align-items:stretch;
+  gap:34px;
+}
+.wheel-column{
+  display:flex;
+  flex-direction:column;
+  gap:0;
+  min-height:100%;
+}
+.wheel-panel{
+  width:100%;
+  max-width:660px;
+  min-height:100%;
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:72px 58px 76px;
+  overflow:visible;
+  background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.99));
+  border-color:rgba(216,168,79,.24);
+  box-shadow:0 22px 58px rgba(109,78,65,.085), inset 0 0 0 1px rgba(255,255,255,.78);
+}
+.medicine-wheel{
+  width:min(100%,560px);
+  max-width:560px;
+  overflow:visible;
+  background:
+    radial-gradient(circle at center,rgba(255,253,249,1) 0 25%,transparent 25.6%),
+    radial-gradient(circle at center,transparent 0 35.6%,rgba(216,168,79,.48) 36.1%,rgba(216,168,79,.48) 36.9%,transparent 37.5%),
+    radial-gradient(circle at center,transparent 0 47.4%,rgba(216,168,79,.48) 47.9%,rgba(216,168,79,.48) 48.8%,transparent 49.5%),
+    linear-gradient(135deg,rgba(248,231,227,.3),rgba(255,253,249,.99) 48%,rgba(251,247,241,.98));
+  box-shadow:inset 0 0 50px rgba(109,78,65,.045), inset 0 0 0 1px rgba(216,168,79,.07);
+}
+.wheel-compass-ring{display:none}
+.wheel-axis{opacity:.32;background:linear-gradient(90deg,transparent,rgba(216,168,79,.18),transparent)}
+.wheel-axis-vertical{height:64%}.wheel-axis-horizontal{width:64%}
+.wheel-room{
+  width:38px;
+  height:38px;
+  font-size:.86rem;
+  border:1.5px solid rgba(216,168,79,.58);
+  box-shadow:0 7px 16px rgba(109,78,65,.075), inset 0 1px 0 rgba(255,255,255,.92);
+}
+.wheel-room.active{
+  background:#f3d4cf;
+  border-color:rgba(216,168,79,.82);
+  box-shadow:0 0 0 4px rgba(243,212,207,.22),0 9px 18px rgba(109,78,65,.12);
+}
+.wheel-current-star{
+  transform:translate(-50%,-50%);
+  font-size:1.42rem;
+}
+.wheel-cardinal{
+  z-index:4;
+  font-size:.5rem;
+  letter-spacing:.18em;
+  color:rgba(90,74,58,.52);
+}
+.wheel-cardinal-north{top:4.2%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-south{bottom:4.2%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:3.3%;top:50%;transform:translateY(-50%) rotate(90deg)}
+.wheel-cardinal-west{left:3.3%;top:50%;transform:translateY(-50%) rotate(-90deg)}
+.wheel-season{
+  z-index:6;
+  min-width:132px;
+  padding:9px 12px;
+  background:rgba(255,253,249,.74);
+  border:1px solid rgba(216,168,79,.14);
+  box-shadow:0 10px 24px rgba(109,78,65,.045);
+}
+.wheel-season-autumn{left:-12%;top:-7%}
+.wheel-season-summer{right:-12%;top:-7%}
+.wheel-season-spring{right:-12%;bottom:-7%}
+.wheel-season-winter{left:-12%;bottom:-7%}
+.wheel-gold-compass{
+  width:176px;
+  height:176px;
+  filter:drop-shadow(0 16px 20px rgba(109,78,65,.09));
+}
+.wheel-gold-compass:before,.wheel-gold-compass:after,.wheel-gold-compass .compass-spoke,.wheel-gold-compass .rose-spiral,.wheel-gold-compass .rose-bloom{display:none!important}
+.rose-compass-svg{display:block;width:100%;height:100%;overflow:visible}
+.rose-compass-svg .compass-points path{filter:drop-shadow(0 2px 2px rgba(109,78,65,.08))}
+.you-are-here{
+  margin:72px 0 0;
+  position:relative;
+  top:0;
+  letter-spacing:.18em;
+}
+.wheel-legend-helper{margin-top:16px}
+.moon-card{display:none!important}
+.journal-card{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+.reflection-moon-magic{
+  display:grid;
+  grid-template-columns:auto 1fr;
+  gap:4px 12px;
+  align-items:center;
+  margin:2px 0 4px;
+  padding:13px 15px;
+  border:1px solid rgba(216,168,79,.18);
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(248,231,227,.38),rgba(255,253,249,.88));
+}
+.reflection-moon-label{
+  grid-row:1 / span 2;
+  align-self:center;
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(255,253,249,.88);
+  border:1px solid rgba(216,168,79,.18);
+  font-family:Arial,sans-serif;
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  color:var(--rose);
+}
+.reflection-moon-magic strong{
+  display:block;
+  font-weight:400;
+  color:rgba(90,74,58,.88);
+}
+.reflection-moon-magic small{
+  display:block;
+  color:rgba(155,119,104,.86);
+  line-height:1.35;
+}
+
+@media(max-width:900px){
+  .suite-grid{grid-template-columns:1fr;align-items:start}
+  .wheel-panel{max-width:560px;min-height:auto;margin:0 auto;padding:58px 30px 70px}
+  .medicine-wheel{width:min(100%,470px)}
+  .wheel-room{width:30px;height:30px;font-size:.68rem}
+  .wheel-season{min-width:104px;font-size:.62rem;padding:7px 8px}
+  .wheel-season-autumn{left:-4%;top:-8%}.wheel-season-summer{right:-4%;top:-8%}.wheel-season-spring{right:-4%;bottom:-8%}.wheel-season-winter{left:-4%;bottom:-8%}
+  .wheel-cardinal-north{top:4%}.wheel-cardinal-south{bottom:4%}.wheel-cardinal-east{right:2.8%}.wheel-cardinal-west{left:2.8%}
+  .wheel-gold-compass{width:128px;height:128px}
+  .you-are-here{margin-top:62px}
+  .reflection-moon-magic{grid-template-columns:1fr;text-align:left}
+  .reflection-moon-label{grid-row:auto;justify-self:start}
+}

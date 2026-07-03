@@ -106,7 +106,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=38;
+  const radius=42;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -135,16 +135,48 @@ function renderWheel(activeRoom){
     <span class="wheel-season wheel-season-winter"><em>❄</em>Inner Winter<small>Days 27–5</small></span>
 
     <div class="wheel-gold-compass" aria-hidden="true">
-      <span class="compass-spoke compass-spoke-primary"></span>
-      <span class="compass-spoke compass-spoke-primary"></span>
-      <span class="compass-spoke compass-spoke-soft"></span>
-      <span class="compass-spoke compass-spoke-soft"></span>
-      <span class="compass-spoke compass-spoke-soft"></span>
-      <span class="compass-spoke compass-spoke-soft"></span>
-      <i class="rose-spiral"></i>
-      <b class="rose-bloom bloom-one"></b>
-      <b class="rose-bloom bloom-two"></b>
-      <b class="rose-bloom bloom-three"></b>
+      <svg class="rose-compass-svg" viewBox="0 0 200 200" role="img" aria-label="Gold rose compass">
+        <defs>
+          <linearGradient id="flowtelCompassGold" x1="35" y1="20" x2="165" y2="180" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f8e7b4"/>
+            <stop offset="0.36" stop-color="#d8a84f"/>
+            <stop offset="0.68" stop-color="#b98229"/>
+            <stop offset="1" stop-color="#f2d184"/>
+          </linearGradient>
+          <radialGradient id="flowtelCompassGlow" cx="50%" cy="50%" r="55%">
+            <stop offset="0" stop-color="#fff8e8" stop-opacity=".95"/>
+            <stop offset="1" stop-color="#d8a84f" stop-opacity=".08"/>
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="55" fill="url(#flowtelCompassGlow)" opacity=".62"/>
+        <g class="compass-points" fill="url(#flowtelCompassGold)" opacity=".92">
+          <path d="M100 10 L111 91 L100 82 L89 91 Z"/>
+          <path d="M100 190 L89 109 L100 118 L111 109 Z"/>
+          <path d="M190 100 L109 111 L118 100 L109 89 Z"/>
+          <path d="M10 100 L91 89 L82 100 L91 111 Z"/>
+          <path d="M164 36 L116 89 L119 76 Z" opacity=".58"/>
+          <path d="M36 36 L81 76 L84 89 Z" opacity=".58"/>
+          <path d="M164 164 L119 124 L116 111 Z" opacity=".58"/>
+          <path d="M36 164 L84 111 L81 124 Z" opacity=".58"/>
+        </g>
+        <g class="rose-lines" fill="none" stroke="url(#flowtelCompassGold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M102 101c13-12 4-33-15-29-18 4-25 27-8 40 18 14 48 2 49-25" opacity=".86"/>
+          <path d="M100 100c-13 7-14 25 0 32 17 8 37-5 35-25-3-28-39-37-57-13" opacity=".74"/>
+          <path d="M99 100c8 11 25 10 31-2 8-15-5-33-23-31-24 2-34 31-16 48" opacity=".66"/>
+          <path d="M100 100c-7-6-18-3-21 5-5 12 5 25 19 24 18-2 25-24 13-37" opacity=".58"/>
+        </g>
+        <g class="rose-petals" fill="none" stroke="url(#flowtelCompassGold)" stroke-width="2.2" opacity=".72">
+          <ellipse cx="100" cy="82" rx="18" ry="9"/>
+          <ellipse cx="118" cy="100" rx="18" ry="9" transform="rotate(90 118 100)"/>
+          <ellipse cx="100" cy="118" rx="18" ry="9"/>
+          <ellipse cx="82" cy="100" rx="18" ry="9" transform="rotate(90 82 100)"/>
+          <ellipse cx="113" cy="87" rx="15" ry="7" transform="rotate(45 113 87)"/>
+          <ellipse cx="87" cy="87" rx="15" ry="7" transform="rotate(-45 87 87)"/>
+          <ellipse cx="113" cy="113" rx="15" ry="7" transform="rotate(-45 113 113)"/>
+          <ellipse cx="87" cy="113" rx="15" ry="7" transform="rotate(45 87 113)"/>
+        </g>
+        <circle cx="100" cy="100" r="3.5" fill="url(#flowtelCompassGold)"/>
+      </svg>
     </div>
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{
@@ -240,6 +272,7 @@ function renderSuite(stay){
 
   renderWheel(stay.cycle_day_claimed);
   refineWheelLegend();
+  renderReflectionMoonMagic(stay);
 }
 
 function refineWheelLegend(){
@@ -254,6 +287,35 @@ function refineWheelLegend(){
     helper.textContent="Click on a day to see your previous visits below.";
     label.insertAdjacentElement("afterend",helper);
   }
+}
+
+
+function renderReflectionMoonMagic(stay){
+  const reflectionInput=document.getElementById("reflectionInput");
+  if(!reflectionInput) return;
+
+  const legacyMoonCard=document.querySelector(".moon-card");
+  if(legacyMoonCard){
+    legacyMoonCard.setAttribute("aria-hidden","true");
+  }
+
+  let moonRow=document.getElementById("reflectionMoonMagic");
+  if(!moonRow){
+    moonRow=document.createElement("div");
+    moonRow.id="reflectionMoonMagic";
+    moonRow.className="reflection-moon-magic";
+    reflectionInput.insertAdjacentElement("beforebegin",moonRow);
+  }
+
+  const phase=stay?.moon_phase || "Moon phase";
+  const moonDay=stay?.moon_day ? `Day ${stay.moon_day}` : "Moon day";
+  const theme=stay?.moon_theme || "A quiet reflection field for today's moon.";
+
+  moonRow.innerHTML=`
+    <span class="reflection-moon-label">Moon Magic</span>
+    <strong>${escapeHtml(phase)} · ${escapeHtml(moonDay)}</strong>
+    <small>${escapeHtml(theme)}</small>
+  `;
 }
 
 function hasTurndownRequest(stay){
