@@ -106,7 +106,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=36.75;
+  const radius=44.1;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -120,6 +120,7 @@ function renderWheel(activeRoom){
   const activePosition=wheelPosition(activeNormalizedRoom);
 
   medicineWheel.innerHTML = `
+    <div class="wheel-compass-ring" aria-hidden="true"></div>
     <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>
     <span class="wheel-cardinal wheel-cardinal-east">EAST</span>
     <span class="wheel-cardinal wheel-cardinal-south">SOUTH</span>
@@ -130,58 +131,7 @@ function renderWheel(activeRoom){
     <span class="wheel-season wheel-season-spring"><em>🌸</em>Inner Spring<small>Days 6–11</small></span>
     <span class="wheel-season wheel-season-winter"><em>❄</em>Inner Winter<small>Days 27–5</small></span>
 
-    <div class="rose-compass-center">
-      <svg class="rose-compass-svg" viewBox="0 0 220 220" role="img" aria-label="Gold rose compass">
-        <defs>
-          <linearGradient id="flowtelCompassGold" x1="42" y1="18" x2="178" y2="202" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#fff0be"/>
-            <stop offset="0.28" stop-color="#d8a84f"/>
-            <stop offset="0.54" stop-color="#b77d24"/>
-            <stop offset="0.78" stop-color="#f2d289"/>
-            <stop offset="1" stop-color="#a96f1d"/>
-          </linearGradient>
-          <linearGradient id="flowtelCompassSoftGold" x1="60" y1="32" x2="160" y2="190" gradientUnits="userSpaceOnUse">
-            <stop offset="0" stop-color="#fff7d7"/>
-            <stop offset="0.5" stop-color="#d8a84f"/>
-            <stop offset="1" stop-color="#b98229"/>
-          </linearGradient>
-          <radialGradient id="flowtelCompassGlow" cx="50%" cy="50%" r="58%">
-            <stop offset="0" stop-color="#fff9e8" stop-opacity=".96"/>
-            <stop offset="0.55" stop-color="#f5d995" stop-opacity=".20"/>
-            <stop offset="1" stop-color="#d8a84f" stop-opacity=".02"/>
-          </radialGradient>
-        </defs>
-        <circle cx="110" cy="110" r="64" fill="url(#flowtelCompassGlow)" opacity=".9"/>
-        <g class="compass-points" fill="url(#flowtelCompassGold)">
-          <path d="M110 8 L121 96 L110 86 L99 96 Z"/>
-          <path d="M110 212 L99 124 L110 134 L121 124 Z" opacity=".82"/>
-          <path d="M212 110 L124 121 L134 110 L124 99 Z" opacity=".72"/>
-          <path d="M8 110 L96 99 L86 110 L96 121 Z" opacity=".72"/>
-          <path d="M181 39 L126 94 L130 79 Z" opacity=".52"/>
-          <path d="M39 39 L90 79 L94 94 Z" opacity=".52"/>
-          <path d="M181 181 L130 141 L126 126 Z" opacity=".52"/>
-          <path d="M39 181 L94 126 L90 141 Z" opacity=".52"/>
-        </g>
-        <g class="rose-petals" fill="rgba(255,253,249,.20)" stroke="url(#flowtelCompassGold)" stroke-width="2.2" opacity=".78">
-          <ellipse cx="110" cy="82" rx="24" ry="10"/>
-          <ellipse cx="110" cy="138" rx="24" ry="10"/>
-          <ellipse cx="82" cy="110" rx="10" ry="24"/>
-          <ellipse cx="138" cy="110" rx="10" ry="24"/>
-          <ellipse cx="130" cy="90" rx="20" ry="8" transform="rotate(45 130 90)"/>
-          <ellipse cx="90" cy="90" rx="20" ry="8" transform="rotate(-45 90 90)"/>
-          <ellipse cx="130" cy="130" rx="20" ry="8" transform="rotate(-45 130 130)"/>
-          <ellipse cx="90" cy="130" rx="20" ry="8" transform="rotate(45 90 130)"/>
-        </g>
-        <g class="rose-lines" fill="none" stroke="url(#flowtelCompassGold)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M111 110c18-15 7-42-17-37-23 5-30 33-9 49 23 17 58 2 59-31" opacity=".88"/>
-          <path d="M110 110c-16 8-16 31 0 39 21 10 45-7 42-31-3-34-48-44-70-14" opacity=".74"/>
-          <path d="M110 110c10 13 30 12 38-4 8-18-7-39-29-36-29 3-40 38-19 57" opacity=".64"/>
-          <path d="M110 110c-8-7-22-4-25 6-5 14 7 29 22 27 21-2 30-27 16-43" opacity=".54"/>
-          <path d="M110 111c5-6 15-5 18 2 4 9-4 18-14 16-11-2-15-14-8-22" opacity=".70"/>
-        </g>
-        <circle cx="110" cy="110" r="4" fill="url(#flowtelCompassGold)"/>
-      </svg>
-    </div>
+    <img class="rose-compass-center" src="../assets/rose_compass_center.png" alt="" aria-hidden="true" />
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{
       const p=wheelPosition(room);

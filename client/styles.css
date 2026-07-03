@@ -640,13 +640,15 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 }
 
 
-/* Release 0.4.7 — Final medicine wheel spacing and rose compass */
+/* Release 0.4.5b — Wheel proof patch only
+   Center compass proof: app.js now renders .rose-compass-center with the temporary ROSE COMPASS 0.4.5 label.
+   Ring correction: number circles sit BETWEEN exactly two gold rings: one inner, one outer. */
 .wheel-panel{
   display:flex;
   flex-direction:column;
   justify-content:center;
   min-height:100%;
-  padding:48px 48px 58px;
+  padding:42px 42px 54px;
 }
 .medicine-wheel{
   position:relative;
@@ -657,31 +659,33 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   overflow:visible;
   border-radius:30px;
   background:
-    radial-gradient(circle at center, transparent 0 32.35%, rgba(216,168,79,.72) 32.6%, rgba(216,168,79,.72) 33.18%, transparent 33.45%),
-    radial-gradient(circle at center, transparent 0 40.15%, rgba(216,168,79,.72) 40.45%, rgba(216,168,79,.72) 41.05%, transparent 41.35%),
-    radial-gradient(circle at center, rgba(255,253,249,.98) 0 28%, rgba(255,253,249,.76) 28.4%, transparent 29%),
+    radial-gradient(circle at center, transparent 0 38.9%, rgba(216,168,79,.66) 39.15%, rgba(216,168,79,.66) 39.75%, transparent 40.05%),
+    radial-gradient(circle at center, transparent 0 47.55%, rgba(216,168,79,.66) 47.85%, rgba(216,168,79,.66) 48.45%, transparent 48.75%),
+    radial-gradient(circle at center, rgba(255,253,249,.96) 0 30%, rgba(255,253,249,.76) 30.4%, transparent 30.8%),
     linear-gradient(145deg, rgba(255,253,249,.995), rgba(251,247,241,.985));
-  box-shadow:inset 0 0 54px rgba(109,78,65,.042);
+  box-shadow:inset 0 0 58px rgba(109,78,65,.045);
 }
 .wheel-compass-ring,
-.wheel-axis,
 .wheel-rose{display:none!important}
+.wheel-axis{opacity:.16;background:linear-gradient(90deg,transparent,rgba(216,168,79,.2),transparent)}
+.wheel-axis-vertical{height:58%}
+.wheel-axis-horizontal{width:58%}
 .wheel-room{
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   left:var(--x);
   top:var(--y);
   z-index:7;
   background:rgba(255,253,249,.995);
-  border:1.5px solid rgba(216,168,79,.70);
+  border:1.5px solid rgba(216,168,79,.68);
   color:#5A4A3A;
-  font-size:.92rem;
-  box-shadow:0 9px 18px rgba(109,78,65,.07), inset 0 1px 0 rgba(255,255,255,.95);
+  font-size:.96rem;
+  box-shadow:0 10px 20px rgba(109,78,65,.075), inset 0 1px 0 rgba(255,255,255,.95);
 }
 .wheel-room.active{
   background:rgba(255,253,249,.995);
-  border-color:rgba(216,168,79,.76);
-  box-shadow:0 9px 18px rgba(109,78,65,.07), inset 0 0 0 2px rgba(255,255,255,.92);
+  border-color:rgba(216,168,79,.72);
+  box-shadow:0 10px 20px rgba(109,78,65,.075), inset 0 0 0 2px rgba(255,255,255,.92);
   animation:none;
 }
 .wheel-room.active:after{content:none!important}
@@ -690,13 +694,13 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   left:var(--x);
   top:var(--y);
   z-index:10;
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   display:grid;
   place-items:center;
   transform:translate(-50%,-50%);
   color:#D4AF37;
-  font-size:1.12rem;
+  font-size:1.18rem;
   line-height:1;
   text-shadow:0 2px 8px rgba(109,78,65,.12);
   pointer-events:none;
@@ -704,70 +708,173 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .wheel-cardinal{
   z-index:8;
   color:#4B3D2A;
-  font-size:.66rem;
+  font-size:.74rem;
   letter-spacing:.13em;
   font-family:Georgia,"Times New Roman",serif;
-  opacity:.78;
-  background:rgba(255,253,249,.72);
-  padding:2px 6px;
-  border-radius:999px;
+  opacity:.84;
 }
-.wheel-cardinal-north{top:6.2%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-south{bottom:6.2%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-east{right:6.2%;top:50%;transform:translateY(-50%)}
-.wheel-cardinal-west{left:6.2%;top:50%;transform:translateY(-50%)}
+.wheel-cardinal-north{top:6.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-south{bottom:6.5%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:5.8%;top:50%;transform:translateY(-50%)}
+.wheel-cardinal-west{left:5.8%;top:50%;transform:translateY(-50%)}
 .wheel-season{
   z-index:9;
-  width:112px;
-  min-width:112px;
-  padding:9px 10px;
-  background:rgba(255,253,249,.90);
+  width:118px;
+  min-width:118px;
+  padding:10px 11px;
+  background:rgba(255,253,249,.88);
   border:1px solid rgba(216,168,79,.22);
   border-radius:12px;
-  box-shadow:0 12px 24px rgba(109,78,65,.052);
-  font-size:.62rem;
+  box-shadow:0 12px 24px rgba(109,78,65,.055);
+  font-size:.66rem;
 }
-.wheel-season em{font-size:1.08rem;margin-bottom:2px}
-.wheel-season small{font-size:.46rem;letter-spacing:.08em;color:#4B3D2A}
-.wheel-season-autumn{left:5.4%;top:5.4%}
-.wheel-season-summer{right:5.4%;top:5.4%}
-.wheel-season-spring{right:5.4%;bottom:5.4%}
-.wheel-season-winter{left:5.4%;bottom:5.4%}
+.wheel-season em{font-size:1.18rem;margin-bottom:2px}
+.wheel-season small{font-size:.48rem;letter-spacing:.08em;color:#4B3D2A}
+.wheel-season-autumn{left:3.4%;top:3.4%}
+.wheel-season-summer{right:3.4%;top:3.4%}
+.wheel-season-spring{right:3.4%;bottom:3.4%}
+.wheel-season-winter{left:3.4%;bottom:3.4%}
 .rose-compass-center{
   position:absolute;
   z-index:4;
   left:50%;
   top:50%;
-  width:176px;
-  height:176px;
+  width:190px;
+  height:190px;
   transform:translate(-50%,-50%);
   border-radius:50%;
   pointer-events:none;
-  filter:drop-shadow(0 17px 21px rgba(109,78,65,.085));
+  filter:drop-shadow(0 18px 22px rgba(109,78,65,.095));
 }
 .rose-compass-center:before,
-.rose-compass-center:after,
-.rose-compass-center .compass-spoke,
-.rose-compass-center .rose-spiral,
-.rose-compass-center .rose-bloom{content:none!important;display:none!important}
+.rose-compass-center:after{content:none!important;display:none!important}
 .rose-compass-svg{display:block;width:100%;height:100%;overflow:visible}
 .rose-compass-svg .compass-points path{filter:drop-shadow(0 2px 2px rgba(109,78,65,.08))}
 .rose-compass-svg .rose-petals ellipse{filter:drop-shadow(0 1px 1px rgba(109,78,65,.04))}
-.you-are-here{margin-top:46px;position:relative;top:0;z-index:11}
+.rose-compass-proof{
+  position:absolute;
+  left:50%;
+  top:calc(100% + 6px);
+  transform:translateX(-50%);
+  padding:3px 8px;
+  border-radius:999px;
+  background:rgba(255,253,249,.92);
+  border:1px solid rgba(216,168,79,.34);
+  color:#8A5A21;
+  font-family:Arial,sans-serif;
+  font-size:.52rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  white-space:nowrap;
+}
+.you-are-here{margin-top:42px;position:relative;top:0;z-index:11}
 .you-are-here-helper{margin-top:8px}
 @media(max-width:900px){
-  .wheel-panel{padding:36px 22px 50px}
+  .wheel-panel{padding:34px 22px 48px}
   .medicine-wheel{width:min(100%,520px);border-radius:26px}
-  .wheel-room{width:34px;height:34px;font-size:.74rem}
+  .wheel-room{width:34px;height:34px;font-size:.76rem}
   .wheel-current-star{width:34px;height:34px;font-size:1rem}
   .rose-compass-center{width:136px;height:136px}
-  .wheel-season{width:94px;min-width:94px;padding:7px 8px;font-size:.54rem}
-  .wheel-season small{font-size:.40rem}
-  .wheel-cardinal{font-size:.54rem;padding:1px 5px}
-  .wheel-season-autumn{left:4.2%;top:4.2%}
-  .wheel-season-summer{right:4.2%;top:4.2%}
-  .wheel-season-spring{right:4.2%;bottom:4.2%}
-  .wheel-season-winter{left:4.2%;bottom:4.2%}
-  .you-are-here{margin-top:38px}
+  .rose-compass-proof{font-size:.46rem;top:calc(100% + 4px)}
+  .wheel-season{width:96px;min-width:96px;padding:7px 8px;font-size:.56rem}
+  .wheel-season small{font-size:.42rem}
+  .wheel-cardinal{font-size:.58rem}
 }
 
+/* Release 0.4.8 — Medicine Wheel image center and final ring placement
+   Rule: exactly two gold rings bracket the number circles.
+   Ring 1 sits inside the number circle path. Ring 2 sits outside the number circle path. */
+.medicine-wheel{
+  width:min(100%,620px);
+  max-width:620px;
+  aspect-ratio:1;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at center, transparent 0 39.55%, rgba(216,168,79,.72) 39.78%, rgba(216,168,79,.72) 40.20%, transparent 40.45%),
+    radial-gradient(circle at center, transparent 0 48.10%, rgba(216,168,79,.72) 48.33%, rgba(216,168,79,.72) 48.75%, transparent 49.00%),
+    linear-gradient(145deg, rgba(255,253,249,.995), rgba(251,247,241,.985));
+  box-shadow:inset 0 0 58px rgba(109,78,65,.045);
+}
+.wheel-compass-ring,
+.wheel-axis,
+.wheel-rose,
+.rose-compass-svg,
+.rose-compass-proof{display:none!important}
+.wheel-room{
+  width:44px;
+  height:44px;
+  z-index:7;
+  background:rgba(255,253,249,.995);
+  border:1.5px solid rgba(216,168,79,.68);
+  color:#5A4A3A;
+  font-size:.96rem;
+  box-shadow:0 10px 20px rgba(109,78,65,.075), inset 0 1px 0 rgba(255,255,255,.95);
+}
+.wheel-current-star{
+  left:var(--x);
+  top:var(--y);
+  z-index:10;
+  width:44px;
+  height:44px;
+  display:grid;
+  place-items:center;
+  transform:translate(-50%,-50%);
+  color:#D4AF37;
+  font-size:1.18rem;
+  line-height:1;
+  pointer-events:none;
+}
+.rose-compass-center{
+  position:absolute;
+  z-index:4;
+  left:50%;
+  top:50%;
+  width:250px;
+  height:250px;
+  max-width:42%;
+  max-height:42%;
+  object-fit:contain;
+  transform:translate(-50%,-50%);
+  border-radius:0;
+  pointer-events:none;
+  filter:drop-shadow(0 18px 22px rgba(109,78,65,.12));
+  mix-blend-mode:multiply;
+}
+.rose-compass-center:before,
+.rose-compass-center:after{content:none!important;display:none!important}
+.wheel-cardinal{
+  z-index:8;
+  color:#4B3D2A;
+  font-size:.72rem;
+  letter-spacing:.13em;
+  font-family:Georgia,"Times New Roman",serif;
+  opacity:.86;
+}
+.wheel-cardinal-north{top:1.6%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-south{bottom:1.6%;left:50%;transform:translateX(-50%)}
+.wheel-cardinal-east{right:1.6%;top:50%;transform:translateY(-50%)}
+.wheel-cardinal-west{left:1.6%;top:50%;transform:translateY(-50%)}
+.wheel-season{
+  z-index:9;
+  width:118px;
+  min-width:118px;
+  padding:10px 11px;
+  background:rgba(255,253,249,.90);
+  border:1px solid rgba(216,168,79,.22);
+  border-radius:12px;
+  box-shadow:0 12px 24px rgba(109,78,65,.055);
+}
+.wheel-season-autumn{left:4.4%;top:4.4%}
+.wheel-season-summer{right:4.4%;top:4.4%}
+.wheel-season-spring{right:4.4%;bottom:4.4%}
+.wheel-season-winter{left:4.4%;bottom:4.4%}
+.you-are-here{margin-top:48px}
+@media(max-width:900px){
+  .medicine-wheel{width:min(100%,520px);border-radius:26px}
+  .wheel-room{width:34px;height:34px;font-size:.76rem}
+  .wheel-current-star{width:34px;height:34px;font-size:1rem}
+  .rose-compass-center{width:170px;height:170px;max-width:40%;max-height:40%}
+  .wheel-season{width:96px;min-width:96px;padding:7px 8px;font-size:.56rem}
+  .wheel-season small{font-size:.42rem}
+  .wheel-cardinal{font-size:.56rem}
+}
