@@ -18,6 +18,16 @@ let currentProfile=null;
 let currentStay=null;
 let pendingArrivalStay=null;
 
+function refineLobbyCopy(){
+  document.querySelectorAll("h1,h2,p,button").forEach(el=>{
+    const text=(el.textContent||"").trim();
+    if(text==="WELCOME HOME") el.textContent="WELCOME HOME TO";
+    if(text==="to the Flowtel") el.textContent="the Flowtel";
+  });
+}
+
+refineLobbyCopy();
+
 function setMessage(text){ message.textContent=text||""; }
 
 function setProgress(step){
@@ -122,8 +132,16 @@ function renderWheel(activeRoom){
     <span class="wheel-season wheel-season-winter">Inner Winter<small>Days 27–5</small></span>
 
     <div class="wheel-gold-compass" aria-hidden="true">
-      <span></span><span></span><span></span><span></span>
-      <i></i>
+      <span class="compass-spoke compass-spoke-primary"></span>
+      <span class="compass-spoke compass-spoke-primary"></span>
+      <span class="compass-spoke compass-spoke-soft"></span>
+      <span class="compass-spoke compass-spoke-soft"></span>
+      <span class="compass-spoke compass-spoke-soft"></span>
+      <span class="compass-spoke compass-spoke-soft"></span>
+      <i class="rose-spiral"></i>
+      <b class="rose-bloom bloom-one"></b>
+      <b class="rose-bloom bloom-two"></b>
+      <b class="rose-bloom bloom-three"></b>
     </div>
     <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
     ${rooms.map(room=>{
@@ -262,7 +280,7 @@ function renderConciergeCare(stay){
     <strong>Your Concierge is available.</strong>
     <span>Need a little extra care today?</span>
     <button type="button" id="requestTurndownButton">🌙 Request Turndown Service</button>
-    <small>A concierge will be notified that you've requested a little extra witnessing today.</small>
+    <small>A concierge will be notified that you've requested a little extra love today.</small>
   `;
 
   const button=document.getElementById("requestTurndownButton");

@@ -3,6 +3,18 @@
 ## Feature
 Luxury Suite Refinement + Turndown Service
 
+## Additional Refinements Included
+
+- Concierge Desk button changed from “Go to My Suite” to “Clock Out.”
+- Added placeholder “My Guests” section for future assigned clients.
+- Removed repeated feels-like / inner-season flag beside the Concierge action button.
+- Updated Turndown copy to “a little extra love today.”
+- Added welcome-page copy normalization for “WELCOME HOME TO” and “the Flowtel.”
+- Moved “You Are Here” lower so it clears SOUTH.
+- Pulled cardinal directions inward so they remain inside the wheel card perimeter while staying outside the number ring.
+- Center compass upgraded into a gold rose compass with compass points, rose spiral, and subtle blooming petals.
+- Strengthened the Medicine Wheel rings for a cream-and-gold luxury spa-day look.
+
 ## Changed Files
 
 ```txt
@@ -18,7 +30,7 @@ docs/RELEASE.md
 
 ## Database
 
-Run this migration in the Supabase SQL Editor:
+Run this migration in the Supabase SQL Editor if you have not already run the 0.4.3 migration:
 
 ```txt
 database/migration-004-turndown-service.sql
@@ -30,6 +42,8 @@ This adds Turndown Service request tracking to existing stays:
 turndown_requested_at
 turndown_status
 ```
+
+No additional database changes were added for the extra refinements.
 
 ## Installation Instructions
 
@@ -111,67 +125,39 @@ Run:
 Release-0.4.3/database/migration-004-turndown-service.sql
 ```
 
-in the Supabase SQL Editor.
+in the Supabase SQL Editor if it has not already been run.
 
 ## Notes
 
 This release does not work on Squarespace integration, SSO, URL routing, or database redesign.
 
-The Medicine Wheel was refined, not redesigned:
+The “Open My Passport” replacement copy is intentionally not changed yet because the final replacement text has not been confirmed.
 
-- Day 1 sits directly below WEST.
-- Day 28+ sits directly above WEST.
-- All 28 day markers are equally spaced.
-- Cardinal directions sit outside the number ring.
-- Inner Seasons anchor the four corners surrounding the wheel.
-- The center rose has been replaced with an elegant gold compass rose.
-- The “You Are Here” label sits lower with a gold diamond legend.
-
-The Suite was refined:
-
-- Removed repeated “Room X is ready.” language.
-- Increased Moon Magic card width to align with the Medicine Wheel card.
-- Replaced the old Concierge note state with Turndown Service language.
-
-The Concierge Desk was refined:
-
-- Removed the Witnessed Today stat pill.
-- Renamed the queue to Guests Awaiting Turndown Service.
-- Queue now only shows stays with a Turndown Service request.
-- Completing a Concierge Note removes the guest from the Turndown queue.
-
-## Important Shared Module Note
-
-`shared/turndown.js` dynamically looks for your existing Supabase client export in one of these files:
-
-```txt
-shared/supabase.js
-shared/supabaseClient.js
-shared/client.js
-```
-
-It expects one of those modules to export `supabase` or a default Supabase client. If your project uses a different shared Supabase filename, update the candidate list at the top of `shared/turndown.js`.
+The “My Guests” area is a visual placeholder only. No assigned-client data model was added in this release.
 
 ## QA Checklist
 
-1. Run the Supabase migration.
-2. Replace the changed files.
+1. Replace the changed files.
+2. Run the Turndown migration if it has not already been run.
 3. Sign in as a guest.
-4. Enter cycle day and feels-like season.
-5. Check into the Suite.
-6. Confirm Medicine Wheel placement:
-   - Day 1 below WEST.
-   - Day 28+ above WEST.
+4. Confirm the welcome copy reads “WELCOME HOME TO” and “the Flowtel.”
+5. Enter cycle day and feels-like season.
+6. Check into the Suite.
+7. Confirm Medicine Wheel placement:
+   - Day 1 is directly below WEST.
+   - Day 28+ is directly above WEST.
    - numbers are evenly spaced.
-   - cardinal directions are outside the number ring.
-7. Confirm Moon Magic card width aligns visually with the Medicine Wheel card.
-8. Click Request Turndown Service.
-9. Confirm the request state changes to Turndown Service Requested.
-10. Sign into Concierge as practitioner/owner/admin.
-11. Confirm the guest appears in Guests Awaiting Turndown Service.
-12. Leave a Concierge Note.
-13. Confirm the guest leaves the Turndown queue.
-14. Return to the Suite and confirm the Concierge note card appears.
+   - cardinal directions sit inside the wheel card perimeter but outside the number ring.
+   - “You Are Here” no longer overlaps SOUTH.
+   - gold marker sits directly over the active room.
+8. Confirm the center reads as a gold rose compass, not four pillars.
+9. Confirm Turndown copy says “a little extra love today.”
+10. Request Turndown Service.
+11. Sign into Concierge as practitioner/owner/admin.
+12. Confirm the Suite action says “Clock Out.”
+13. Confirm the placeholder “My Guests” section appears.
+14. Confirm the Turndown queue cards do not repeat feels-like / inner-season data beside the action button.
+15. Leave a Concierge Note and confirm the guest leaves the Turndown queue.
 
 ## Commit
 

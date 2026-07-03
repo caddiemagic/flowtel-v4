@@ -57,7 +57,7 @@ function updateSuiteReturn(){
   const room=Number(stay.cycle_day_claimed)>=28?"28+":stay.cycle_day_claimed;
   suiteReturnCard.classList.remove("hidden");
   if(suiteReturnNote){
-    suiteReturnNote.textContent=`Room ${room} is open. Return to your Suite whenever you're ready.`;
+    suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
   }
 }
 function goToSuite(){
@@ -78,7 +78,6 @@ function renderQueue(){
           <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
           <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
         </div>
-        <p>${isExtended(stay)?`${daysOpen(stay)} days`:stay.feels_like_inner_season||""}</p>
         ${isQueue(stay)?`<button data-id="${stay.id}">Open Room</button>`:`<button class="secondary" disabled>View Guest</button>`}
       </article>
     `;

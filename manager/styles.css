@@ -13,3 +13,11 @@
 .owner-overview,.suite-return-card{background:rgba(255,253,249,.9);border:1px solid var(--line);border-radius:26px;box-shadow:0 16px 42px rgba(109,78,65,.08)}
 .owner-overview{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;padding:24px 28px;margin-bottom:18px}
 .desk-note,.queue-subtext{color:var(--soft-brown);line-height:1.55}.queue-subtext{margin:2px 0 18px}.suite-return-card{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center;padding:22px 26px;margin:18px 0;background:linear-gradient(135deg,rgba(255,253,249,.96),rgba(248,231,227,.46))}.suite-return-card button{min-width:180px}.guest-row{grid-template-columns:1fr 140px 150px;align-items:center;padding:22px}.guest-row h3{font-size:1.35rem;letter-spacing:.03em}.guest-row p{margin:4px 0;color:var(--soft-brown);line-height:1.35}.stat-card span{min-height:auto}.stat-card em{display:block;margin-top:4px}@media(max-width:900px){.stats,.guest-row,.owner-overview,.suite-return-card{grid-template-columns:1fr}.owner-overview{display:block}.suite-return-card button{width:100%}}
+
+/* Release 0.4.3 refinement patch — Concierge clock-out and My Guests */
+.my-guests-card{margin:18px 0 24px;padding:24px 28px;background:rgba(255,253,249,.78);border:1px dashed rgba(216,168,79,.3);border-radius:26px;box-shadow:0 14px 34px rgba(109,78,65,.055)}
+.my-guests-card h2{margin-bottom:6px}.my-guests-card p:not(.eyebrow){margin:0;color:var(--soft-brown);line-height:1.55}
+.guest-row{grid-template-columns:1fr 150px;gap:22px}
+.guest-row > p{display:none}
+.suite-return-card button{min-width:150px}
+@media(max-width:900px){.guest-row{grid-template-columns:1fr}.my-guests-card{padding:22px}}
