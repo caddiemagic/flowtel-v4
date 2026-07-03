@@ -91,6 +91,10 @@ function endTypeLabel(type){
   EAST = 360° / 0°
   NORTH = 90°
 */
+const WHEEL_DAY_RADIUS = 35;
+const WHEEL_DAY_SIZE = 34;
+const WHEEL_RING_GAP = 10;
+
 function normalizedRoom(day){
   const value=Number(day);
   if(!Number.isFinite(value)) return 1;
@@ -106,7 +110,7 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=36.75;
+  const radius=WHEEL_DAY_RADIUS;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -118,6 +122,11 @@ function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
   const activeNormalizedRoom=normalizedRoom(activeRoom);
   const activePosition=wheelPosition(activeNormalizedRoom);
+
+  medicineWheel.style.setProperty("--day-size", `${WHEEL_DAY_SIZE}px`);
+  medicineWheel.style.setProperty("--inner-ring-size", `calc(${WHEEL_DAY_RADIUS * 2}% - ${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px)`);
+  medicineWheel.style.setProperty("--outer-ring-size", `calc(${WHEEL_DAY_RADIUS * 2}% + ${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px)`);
+
 
  medicineWheel.innerHTML = `
   <span class="wheel-cardinal wheel-cardinal-north">NORTH</span>

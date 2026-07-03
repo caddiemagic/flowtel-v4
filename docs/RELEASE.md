@@ -1,34 +1,23 @@
-# Flowtel Release 0.4.9 — Tiny Radius Tightening Patch
+# Flowtel Release 0.4.9c — Medicine Wheel Geometry Lock
 
-## Feature
-Medicine Wheel radius tightening only.
-
-## Changed Files
+Changed files:
 - client/app.js
 - client/styles.css
 
-## Database
-None.
+What changed:
+- Locked the day numbers and gold rings to one shared geometry source in `client/app.js`.
+- Removed unreliable CSS multiplication from ring sizing.
+- Day number size, inner ring size, and outer ring size are now derived from:
+  - `WHEEL_DAY_RADIUS`
+  - `WHEEL_DAY_SIZE`
+  - `WHEEL_RING_GAP`
+- Preserved the rose compass image center.
+- Added final CSS overrides so the visible wheel uses the synced geometry.
 
-## Installation
+Install:
 Replace:
+- flowtel-v4/client/app.js
+- flowtel-v4/client/styles.css
 
-`flowtel-v4/client/app.js`
-
-with:
-
-`Release-0.4.9-radius-tighten/client/app.js`
-
-Replace:
-
-`flowtel-v4/client/styles.css`
-
-with:
-
-`Release-0.4.9-radius-tighten/client/styles.css`
-
-## Notes
-This patch only reduces the shared Medicine Wheel day radius from `39.5` to `36.75`, and updates the CSS `--day-radius` from `39.5%` to `36.75%`. The day circles, inner gold ring, and outer gold ring remain mathematically tied together. No workflow, Concierge, Lounge, Turndown, Reflection, navigation, authentication, or database behavior was changed.
-
-## Commit
-`git commit -m "Flowtel Release 0.4.9 — Medicine Wheel radius tightening"`
+Commit:
+Release 0.4.9c - Lock medicine wheel geometry
