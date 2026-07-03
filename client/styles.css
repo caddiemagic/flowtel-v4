@@ -796,35 +796,15 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   display:none !important;
 }
 
-/* Flowtel Release 0.4.9 — Medicine Wheel Final Geometry
-   Final wheel-only override: rings are DOM elements mathematically derived from the day path. */
+
+/* Release 0.4.9d — Medicine wheel radius lock
+   One shared geometry controls the day buttons and both gold rings.
+   Do not add independent ring sizes below this block. */
 .medicine-wheel{
-  --day-radius:35%;
+  --day-radius:31%;
+  --ring-base:62%;
   --day-size:34px;
-  --ring-gap:10px;
-  background:linear-gradient(145deg, rgba(255,253,249,.995), rgba(251,247,241,.985)) !important;
-  box-shadow:inset 0 0 58px rgba(109,78,65,.045);
-}
-
-.wheel-number-ring{
-  position:absolute;
-  left:50%;
-  top:50%;
-  border:2px solid rgba(216,168,79,.72);
-  border-radius:50%;
-  transform:translate(-50%,-50%);
-  pointer-events:none;
-  z-index:2;
-}
-
-.wheel-number-ring-inner{
-  width:calc((var(--day-radius) * 2) - var(--day-size) - (var(--ring-gap) * 2));
-  height:calc((var(--day-radius) * 2) - var(--day-size) - (var(--ring-gap) * 2));
-}
-
-.wheel-number-ring-outer{
-  width:calc((var(--day-radius) * 2) + var(--day-size) + (var(--ring-gap) * 2));
-  height:calc((var(--day-radius) * 2) + var(--day-size) + (var(--ring-gap) * 2));
+  --ring-offset:58px;
 }
 
 .wheel-room{
@@ -832,120 +812,57 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   height:var(--day-size) !important;
 }
 
-.wheel-current-star{
-  width:var(--day-size) !important;
-  height:var(--day-size) !important;
+.wheel-number-ring{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  border:2px solid rgba(216,168,79,.72) !important;
+  border-radius:50% !important;
+  transform:translate(-50%,-50%) !important;
+  pointer-events:none !important;
+  z-index:2 !important;
+}
+
+.wheel-number-ring-inner{
+  width:calc(var(--ring-base) - var(--ring-offset)) !important;
+  height:calc(var(--ring-base) - var(--ring-offset)) !important;
+}
+
+.wheel-number-ring-outer{
+  width:calc(var(--ring-base) + var(--ring-offset)) !important;
+  height:calc(var(--ring-base) + var(--ring-offset)) !important;
 }
 
 .rose-compass-center{
-  position:absolute;
-  left:50%;
-  top:50%;
-  width:min(55%,340px) !important;
-  height:min(55%,340px) !important;
-  transform:translate(-50%,-50%);
-  object-fit:contain;
-  z-index:4;
-  pointer-events:none;
-  border-radius:0;
-  filter:drop-shadow(0 18px 22px rgba(109,78,65,.095));
-}
-
-.rose-compass-center:before,
-.rose-compass-center:after,
-.rose-compass-center .compass-spoke,
-.rose-compass-center .rose-spiral,
-.rose-compass-center .rose-bloom,
-.rose-compass-svg,
-.rose-compass-proof{
-  display:none !important;
-  content:none !important;
-}
-
-.wheel-cardinal-north{top:8.5%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-south{bottom:8.5%;left:50%;transform:translateX(-50%)}
-.wheel-cardinal-east{right:7.8%;top:50%;transform:translateY(-50%)}
-.wheel-cardinal-west{left:7.8%;top:50%;transform:translateY(-50%)}
-
-.wheel-season-autumn{left:5.5%;top:5.5%}
-.wheel-season-summer{right:5.5%;top:5.5%}
-.wheel-season-spring{right:5.5%;bottom:5.5%}
-.wheel-season-winter{left:5.5%;bottom:5.5%}
-
-@media(max-width:900px){
-  .medicine-wheel{--day-radius:35%;--day-size:30px;--ring-gap:8px;}
-  .rose-compass-center{width:min(52%,240px) !important;height:min(52%,240px) !important;}
-  .wheel-season-autumn{left:3.5%;top:3.5%}
-  .wheel-season-summer{right:3.5%;top:3.5%}
-  .wheel-season-spring{right:3.5%;bottom:3.5%}
-  .wheel-season-winter{left:3.5%;bottom:3.5%}
-}
-
-/* Flowtel Release 0.4.9c — wheel geometry lock
-   The day numbers and gold rings now share ONE source of truth from app.js:
-   WHEEL_DAY_RADIUS, WHEEL_DAY_SIZE, and WHEEL_RING_GAP.
-   Do not use calc() multiplication here. */
-.medicine-wheel {
-  background: linear-gradient(145deg, rgba(255,253,249,.995), rgba(251,247,241,.985)) !important;
-  box-shadow: inset 0 0 58px rgba(109,78,65,.045) !important;
-}
-
-.wheel-number-ring {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  border: 2px solid rgba(216,168,79,.72) !important;
-  border-radius: 50% !important;
-  transform: translate(-50%, -50%) !important;
-  pointer-events: none !important;
-  z-index: 2 !important;
-}
-
-.wheel-number-ring-inner {
-  width: var(--inner-ring-size) !important;
-  height: var(--inner-ring-size) !important;
-}
-
-.wheel-number-ring-outer {
-  width: var(--outer-ring-size) !important;
-  height: var(--outer-ring-size) !important;
-}
-
-.wheel-room {
-  width: var(--day-size) !important;
-  height: var(--day-size) !important;
-  left: var(--x) !important;
-  top: var(--y) !important;
-  z-index: 7 !important;
-}
-
-.wheel-current-star {
-  width: var(--day-size) !important;
-  height: var(--day-size) !important;
-  left: var(--x) !important;
-  top: var(--y) !important;
-  transform: translate(-50%, -50%) !important;
-  z-index: 10 !important;
-}
-
-.rose-compass-center {
-  position: absolute !important;
-  left: 50% !important;
-  top: 50% !important;
-  width: min(60%, 340px) !important;
-  height: min(60%, 340px) !important;
-  transform: translate(-50%, -50%) !important;
-  object-fit: contain !important;
-  z-index: 4 !important;
-  pointer-events: none !important;
-  border-radius: 0 !important;
-  filter: drop-shadow(0 18px 22px rgba(109,78,65,.095)) !important;
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  width:min(52%,260px) !important;
+  height:min(52%,260px) !important;
+  transform:translate(-50%,-50%) !important;
+  object-fit:contain !important;
+  border-radius:50% !important;
+  z-index:4 !important;
+  pointer-events:none !important;
+  filter:drop-shadow(0 18px 22px rgba(109,78,65,.095)) !important;
 }
 
 .rose-compass-proof,
-.rose-compass-svg,
-.rose-compass-center:before,
-.rose-compass-center:after {
-  display: none !important;
-  content: none !important;
+.rose-compass-svg{
+  display:none !important;
 }
+
+@media(max-width:900px){
+  .medicine-wheel{
+    --day-radius:31%;
+    --ring-base:62%;
+    --day-size:30px;
+    --ring-offset:50px;
+  }
+
+  .rose-compass-center{
+    width:min(50%,210px) !important;
+    height:min(50%,210px) !important;
+  }
+}
+
