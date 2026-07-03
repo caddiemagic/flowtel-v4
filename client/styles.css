@@ -866,3 +866,47 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   }
 }
 
+
+
+/* Flowtel beta testing tools */
+.beta-login-card{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,.55);
+  text-align:left;
+}
+
+.beta-login-card summary{
+  cursor:pointer;
+  font-family:Arial,sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--rose);
+}
+
+.beta-login-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-top:12px;
+}
+
+.beta-login-button{
+  margin:0;
+  padding:10px 12px;
+  font-size:.64rem;
+  letter-spacing:.08em;
+  box-shadow:none;
+}
+
+.beta-practitioner{
+  background:rgba(248,231,227,.78);
+}
+
+.beta-guest{
+  background:rgba(255,253,249,.95);
+}

@@ -1,11 +1,27 @@
-import { signInWithEmail } from "../shared/auth.js";
-import { getCurrentProfile } from "../shared/profiles.js";
+import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
 import { getFrontDeskStays, witnessStay } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 let allStays=[], activeFilter="queue";
 let clockInContext=null;
+let currentManagerProfile=null;
+
+const BETA_PASSWORD="FlowtelBeta!2026";
+const BETA_PRACTITIONERS=[
+  {label:"Practitioner 1 · Inner Winter",email:"flowtel.practitioner1@test.local",firstName:"Priya",lastName:"Winter",role:"practitioner",cycleDay:2,innerSeason:"Inner Winter",wing:"West Wing"},
+  {label:"Practitioner 2 · Inner Spring",email:"flowtel.practitioner2@test.local",firstName:"Sage",lastName:"Spring",role:"practitioner",cycleDay:8,innerSeason:"Inner Spring",wing:"South Wing"},
+  {label:"Practitioner 3 · Inner Summer",email:"flowtel.practitioner3@test.local",firstName:"Sol",lastName:"Summer",role:"practitioner",cycleDay:18,innerSeason:"Inner Summer",wing:"East Wing"},
+  {label:"Practitioner 4 · Inner Autumn",email:"flowtel.practitioner4@test.local",firstName:"Amina",lastName:"Autumn",role:"practitioner",cycleDay:23,innerSeason:"Inner Autumn",wing:"North Wing"},
+];
+
+const BETA_CLIENT_RELATIONSHIPS={
+  "flowtel.practitioner1@test.local":["flowtel.guest3@test.local"],
+  "flowtel.practitioner2@test.local":["flowtel.guest4@test.local"],
+  "flowtel.practitioner3@test.local":["flowtel.guest1@test.local"],
+  "flowtel.practitioner4@test.local":["flowtel.guest2@test.local"],
+};
 
 function getClockInContext(){
   try{
@@ -42,6 +58,102 @@ function assignmentLine(){
 }
 
 
+
+function renderBetaPractitionerPanel(){
+  const panel=document.getElementById("betaManagerLoginPanel");
+  if(!panel) return;
+
+  panel.innerHTML=BETA_PRACTITIONERS.map(account=>`
+    <button type="button" class="beta-login-button" data-beta-email="${account.email}">
+      ${account.label}
+    </button>
+  `).join("");
+
+  panel.querySelectorAll("[data-beta-email]").forEach(button=>{
+    button.addEventListener("click",()=>handleBetaManagerLogin(button.dataset.betaEmail));
+  });
+}
+
+function betaClockInContext(account){
+  return {
+    id:`beta-clockin-${account.email}`,
+    client_id:null,
+    cycle_day_claimed:account.cycleDay,
+    cycle_day_calculated:account.cycleDay,
+    inner_season:account.innerSeason,
+    feels_like_inner_season:account.innerSeason,
+    wing:account.wing,
+    court:account.innerSeason?.replace("Inner ","")+" Court",
+    checkin_date:new Date().toISOString().slice(0,10),
+  };
+}
+
+async function handleBetaManagerLogin(email){
+  const account=BETA_PRACTITIONERS.find(item=>item.email===email);
+  if(!account) return;
+
+  try{
+    managerMessage.textContent=`Opening beta Concierge Desk for ${account.firstName}...`;
+    await signOut();
+
+    try{
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }catch(signInError){
+      await signUpWithEmail(account.email,BETA_PASSWORD);
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }
+
+    currentManagerProfile=await ensureProfile({
+      firstName:account.firstName,
+      lastName:account.lastName,
+      role:"practitioner",
+      forceBetaRole:true,
+    });
+
+    clockInContext=betaClockInContext(account);
+    sessionStorage.setItem("flowtel:lastSuiteStay",JSON.stringify(clockInContext));
+
+    loginCard.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+    updateSuiteReturn();
+    updateTodayFlow();
+    await loadDesk();
+  }catch(error){
+    managerMessage.textContent="This beta practitioner could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.";
+    console.error(error);
+  }
+}
+
+function isClientOfCurrentPractitioner(stay){
+  const practitionerEmail=currentManagerProfile?.email;
+  const guestEmail=stay.profiles?.email;
+  if(!practitionerEmail||!guestEmail) return false;
+  return (BETA_CLIENT_RELATIONSHIPS[practitionerEmail]||[]).includes(guestEmail);
+}
+
+function assignedWingForQueue(){
+  return assignedWingForPractitioner();
+}
+
+function canOpenTurndownRoom(stay){
+  const assigned=assignedWingForQueue();
+  if(!assigned) return isQueue(stay);
+  return isQueue(stay) && stay.wing===assigned;
+}
+
+function updateTodayFlow(){
+  const ownWing=clockInContext?.wing;
+  const assigned=assignedWingForPractitioner();
+
+  if(ownWing&&assigned){
+    setText("deskAssignmentTitle",`You are clocked into the ${ownWing}.`);
+    setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
+  }else{
+    setText("deskAssignmentTitle","The Concierge Desk is open.");
+    setText("deskAssignmentNote","Clock in through your Suite to receive a wing assignment, or view all turndown requests here.");
+  }
+}
+
 function guestName(stay){return [stay.profiles?.first_name,stay.profiles?.last_name].filter(Boolean).join(" ")||stay.profiles?.email||"Guest";}
 function startOfToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
 function daysOpen(stay){const start=new Date(stay.checkin_date);start.setHours(0,0,0,0);return Math.max(1,Math.round((new Date()-start)/86400000)+1);}
@@ -51,7 +163,7 @@ function hasTurndownRequest(stay){return !!(stay.turndown_requested_at || stay.t
 function isQueue(stay){return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out";}
 function visibleStays(){
   if(activeFilter==="in-house") return allStays.filter(s=>s.stay_status!=="checked_out");
-  if(activeFilter==="queue") return allStays.filter(isQueue);
+  if(activeFilter==="queue") return allStays.filter(stay=>isQueue(stay) && (!assignedWingForQueue() || stay.wing===assignedWingForQueue()));
   if(activeFilter==="extended") return allStays.filter(isExtended);
   if(activeFilter==="checked-out") return allStays.filter(checkedOutToday);
   return allStays;
@@ -114,7 +226,11 @@ function renderQueue(){
           <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
           <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
         </div>
-        ${isQueue(stay)?`<button data-id="${stay.id}">Open Room</button>`:`<button class="secondary" disabled>View Guest</button>`}
+        ${canOpenTurndownRoom(stay)
+          ? `<button data-id="${stay.id}">Open Room</button>`
+          : isClientOfCurrentPractitioner(stay)
+            ? `<button class="secondary" disabled>View Guest</button>`
+            : `<span class="guest-row-status">Not assigned to your wing</span>`}
       </article>
     `;
   }).join("");
@@ -132,12 +248,17 @@ async function openDesk(){
     if(!email||!password){managerMessage.textContent="Add email and password.";return;}
     await signInWithEmail(email,password);
     const profile=await getCurrentProfile();
+    currentManagerProfile=profile;
     if(!profile||!["owner","admin","practitioner"].includes(profile.role)){managerMessage.textContent="This key does not open the Concierge Desk yet.";return;}
+    clockInContext=getClockInContext();
     loginCard.classList.add("hidden");dashboard.classList.remove("hidden");
     updateSuiteReturn();
+    updateTodayFlow();
     await loadDesk();
   }catch(error){managerMessage.textContent=error.message;}
 }
+renderBetaPractitionerPanel();
+
 document.getElementById("managerSignInButton").addEventListener("click",openDesk);
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
 

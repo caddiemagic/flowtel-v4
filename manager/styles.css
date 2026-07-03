@@ -21,3 +21,57 @@
 .guest-row > p{display:none}
 .suite-return-card button{min-width:150px}
 @media(max-width:900px){.guest-row{grid-template-columns:1fr}.my-guests-card{padding:22px}}
+
+
+/* Flowtel beta testing tools */
+.beta-login-card{
+  margin-top:16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:rgba(255,255,255,.55);
+  text-align:left;
+}
+
+.beta-login-card summary{
+  cursor:pointer;
+  font-family:Arial,sans-serif;
+  font-size:.7rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--rose);
+}
+
+.beta-login-grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:8px;
+  margin-top:12px;
+}
+
+.beta-login-button{
+  width:100%;
+  margin:0;
+  padding:10px 12px;
+  font-size:.64rem;
+  letter-spacing:.08em;
+  box-shadow:none;
+}
+
+.guest-row-status{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:10px 14px;
+  font-family:Arial,sans-serif;
+  font-size:.64rem;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--soft-brown);
+  text-align:center;
+}

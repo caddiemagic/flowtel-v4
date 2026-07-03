@@ -1,4 +1,4 @@
-import { signInWithEmail } from "../shared/auth.js";
+import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
 import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
 
@@ -16,6 +16,19 @@ const medicineWheel=document.getElementById("medicineWheel");
 
 let currentProfile=null;
 let currentStay=null;
+
+const BETA_PASSWORD="FlowtelBeta!2026";
+const BETA_ACCOUNTS=[
+  {label:"Practitioner 1 · Inner Winter",email:"flowtel.practitioner1@test.local",firstName:"Priya",lastName:"Winter",role:"practitioner",cycleDay:2,feelsLike:"Inner Winter"},
+  {label:"Practitioner 2 · Inner Spring",email:"flowtel.practitioner2@test.local",firstName:"Sage",lastName:"Spring",role:"practitioner",cycleDay:8,feelsLike:"Inner Spring"},
+  {label:"Practitioner 3 · Inner Summer",email:"flowtel.practitioner3@test.local",firstName:"Sol",lastName:"Summer",role:"practitioner",cycleDay:18,feelsLike:"Inner Summer"},
+  {label:"Practitioner 4 · Inner Autumn",email:"flowtel.practitioner4@test.local",firstName:"Amina",lastName:"Autumn",role:"practitioner",cycleDay:23,feelsLike:"Inner Autumn"},
+  {label:"Guest 1 · Winter",email:"flowtel.guest1@test.local",firstName:"Wren",lastName:"West",role:"client",cycleDay:3,feelsLike:"Inner Winter"},
+  {label:"Guest 2 · Spring",email:"flowtel.guest2@test.local",firstName:"Lila",lastName:"South",role:"client",cycleDay:9,feelsLike:"Inner Spring"},
+  {label:"Guest 3 · Summer",email:"flowtel.guest3@test.local",firstName:"Maya",lastName:"East",role:"client",cycleDay:16,feelsLike:"Inner Summer"},
+  {label:"Guest 4 · Autumn",email:"flowtel.guest4@test.local",firstName:"Noor",lastName:"North",role:"client",cycleDay:24,feelsLike:"Inner Autumn"},
+];
+
 let pendingArrivalStay=null;
 
 function refineLobbyCopy(){
@@ -361,6 +374,69 @@ async function handleTurndownRequest(stay){
   renderConciergeCare(currentStay);
 }
 
+
+function fillArrivalFields(account){
+  const cycleDayInput=document.getElementById("cycleDay");
+  const feelsLikeInput=document.getElementById("feelsLike");
+  if(cycleDayInput) cycleDayInput.value=account.cycleDay||"";
+  if(feelsLikeInput) feelsLikeInput.value=account.feelsLike||"";
+}
+
+function renderBetaLoginPanel(){
+  const panel=document.getElementById("betaLoginPanel");
+  if(!panel) return;
+
+  panel.innerHTML=BETA_ACCOUNTS.map(account=>`
+    <button
+      type="button"
+      class="beta-login-button ${account.role==="practitioner"?"beta-practitioner":"beta-guest"}"
+      data-beta-email="${account.email}"
+    >
+      ${account.label}
+    </button>
+  `).join("");
+
+  panel.querySelectorAll("[data-beta-email]").forEach(button=>{
+    button.addEventListener("click",()=>handleBetaLogin(button.dataset.betaEmail));
+  });
+}
+
+async function handleBetaLogin(email){
+  const account=BETA_ACCOUNTS.find(item=>item.email===email);
+  if(!account) return;
+
+  try{
+    setMessage(`Opening beta account for ${account.firstName}...`);
+    await signOut();
+
+    try{
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }catch(signInError){
+      await signUpWithEmail(account.email,BETA_PASSWORD);
+      await signInWithEmail(account.email,BETA_PASSWORD);
+    }
+
+    currentProfile=await ensureProfile({
+      firstName:account.firstName,
+      lastName:account.lastName,
+      role:account.role,
+      forceBetaRole:true,
+    });
+
+    fillArrivalFields(account);
+    setMessage("");
+
+    if(await openTodaySuiteIfPresent()){
+      return;
+    }
+
+    showCheckIn();
+  }catch(error){
+    setMessage("This beta account could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.");
+    console.error(error);
+  }
+}
+
 async function handleSignIn(){
   try{
     setMessage("Opening your Flowtel Passport...");
@@ -561,6 +637,8 @@ function ensureLoungeClockInButton(){
   const target=loungeScene.querySelector(".suite-actions")||loungeScene.querySelector(".video-lounge-card")||loungeScene;
   target.appendChild(button);
 }
+
+renderBetaLoginPanel();
 
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const guestModeButton=document.getElementById("guestModeButton");

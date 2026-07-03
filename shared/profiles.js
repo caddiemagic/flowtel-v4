@@ -44,7 +44,7 @@ export async function ensureProfile(profile = {}) {
       existing?.last_name ||
       user.user_metadata?.last_name ||
       null,
-    role: existing?.role || profile.role || "client",
+    role: (user.email?.endsWith("@test.local") && profile.forceBetaRole) ? (profile.role || "client") : (existing?.role || profile.role || "client"),
   };
 
   const { data, error } = await supabase
