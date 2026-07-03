@@ -657,12 +657,32 @@ async function handleBetaLogin(email){
     setMessage(`Opening beta account for ${account.firstName}...`);
     await signOut();
 
-    try{
-      await signInWithEmail(account.email,BETA_PASSWORD);
-    }catch(signInError){
-      await signUpWithEmail(account.email,BETA_PASSWORD);
-      await signInWithEmail(account.email,BETA_PASSWORD);
-    }
+    try {
+  await signInWithEmail(account.email, BETA_PASSWORD);
+
+} catch (signInError) {
+
+  console.log("Sign in failed:", signInError);
+
+  try {
+
+    await signUpWithEmail(account.email, BETA_PASSWORD);
+
+    console.log("Created new beta account.");
+
+    await signInWithEmail(account.email, BETA_PASSWORD);
+
+  } catch (signUpError) {
+
+    console.error("Bridge sign up failed:", signUpError);
+
+    setMessage(
+      `Bridge Error: ${signUpError.message || "Unknown bridge error"}`
+    );
+
+    return;
+  }
+}
 
     currentProfile=await ensureProfile({
       firstName:account.firstName,
