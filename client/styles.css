@@ -1002,3 +1002,20 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 #memberBridgeReturningButton{
   background: transparent;
 }
+/* Release 0.6.2b — Suite practitioner card placement */
+.suite-scene > .practitioner-card{
+  width:min(100%,1068px);
+  margin:18px auto 18px;
+  text-align:left;
+}
+
+.suite-scene > .practitioner-card .secondary{
+  width:auto;
+  min-width:190px;
+}
+
+@media (max-width: 900px){
+  .suite-scene > .practitioner-card{
+    width:100%;
+  }
+}

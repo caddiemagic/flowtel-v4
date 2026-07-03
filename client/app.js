@@ -699,8 +699,10 @@ async function handleSignIn(){
 
     await signInWithEmail(email,password);
 
-    currentProfile=await getCurrentProfile();
-    if(!currentProfile) currentProfile=await ensureProfile({});
+    currentProfile=await ensureProfile({
+      membershipType:SQUARESPACE_MEMBERSHIP || null,
+      squarespaceSource:SQUARESPACE_MEMBERSHIP || null,
+    });
 
     setMessage("");
 
@@ -715,8 +717,8 @@ async function handleSignIn(){
 
     showCheckIn();
   }catch(error){
-    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
-    console.error(error);
+    console.error("Returning Member Login Error:", error);
+    setMessage(`Returning Member Login Error: ${error?.message || "Unknown error"}`);
   }
 }
 
