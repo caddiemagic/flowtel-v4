@@ -120,6 +120,8 @@ function renderWheel(activeRoom){
   const activePosition=wheelPosition(activeNormalizedRoom);
 
   medicineWheel.innerHTML = `
+    <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);z-index:9999;padding:6px 12px;border-radius:999px;background:#fffdf9;border:1px solid #d8a84f;color:#6d4e41;font:700 11px Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase;box-shadow:0 8px 18px rgba(109,78,65,.14);pointer-events:none;">Compass Medicine Wheel 0.4.6</div>
+    <div style="position:absolute;top:42px;left:50%;transform:translateX(-50%);z-index:9999;padding:5px 10px;border-radius:999px;background:#f8e7e3;border:1px solid #d8a84f;color:#6d4e41;font:700 10px Arial,sans-serif;letter-spacing:.12em;text-transform:uppercase;box-shadow:0 8px 18px rgba(109,78,65,.12);pointer-events:none;">WHEEL PATCH 0.4.6</div>
     <div class="wheel-compass-ring" aria-hidden="true"></div>
     <div class="wheel-axis wheel-axis-vertical" aria-hidden="true"></div>
     <div class="wheel-axis wheel-axis-horizontal" aria-hidden="true"></div>
