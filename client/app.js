@@ -1,12 +1,13 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getDayContent } from "../shared/flowtel.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
 const preparingScene=document.getElementById("preparingScene");
 const suiteScene=document.getElementById("suiteScene");
 const loungeScene=document.getElementById("loungeScene");
+const checkoutCompleteScene=document.getElementById("checkoutCompleteScene");
 
 const authPanel=document.getElementById("authPanel");
 const checkinForm=document.getElementById("checkinForm");
@@ -48,12 +49,13 @@ function setProgress(step){
 }
 
 function showScene(name){
-  [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene].forEach(scene=>scene.classList.remove("active"));
+  [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene,checkoutCompleteScene].filter(Boolean).forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();ensureLoungeClockInButton();}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();ensureLoungeClockInButton();window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
 }
 
 function canClockIn(profile){
@@ -184,14 +186,27 @@ async function openVisitsForRoom(room){
 
   list.innerHTML = !visits.length
     ? "<p>You have not recorded a previous visit to this room yet.</p>"
-    : visits.map(visit=>`
-        <article class="visit-card">
-          <strong>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</strong>
-          <p>${visit.stay_length_days||1} day stay</p>
-          <p>${endTypeLabel(visit.stay_end_type)}</p>
-          ${visit.reflection?`<p class="visit-reflection">${visit.reflection}</p>`:""}
-        </article>
-      `).join("");
+    : visits.map(visit=>{
+        const reflections=(visit.reflections&&visit.reflections.length)
+          ? visit.reflections.map(entry=>`
+              <p class="visit-reflection">
+                <small>${formatDate(entry.created_at)}</small><br />
+                ${escapeHtml(entry.reflection)}
+              </p>
+            `).join("")
+          : visit.reflection
+            ? `<p class="visit-reflection">${escapeHtml(visit.reflection)}</p>`
+            : "";
+
+        return `
+          <article class="visit-card">
+            <strong>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</strong>
+            <p>${visit.stay_length_days||1} day stay</p>
+            <p>${endTypeLabel(visit.stay_end_type)}</p>
+            ${reflections || "<p>No reflections saved for this visit yet.</p>"}
+          </article>
+        `;
+      }).join("");
 
   drawer.classList.remove("hidden");
 }
@@ -583,17 +598,55 @@ async function handleCheckIn(){
 async function handleSaveReflection(){
   if(!currentStay) return;
 
-  currentStay=await saveReflection(currentStay.id,document.getElementById("reflectionInput").value);
-  document.getElementById("reflectionInput").value="";
-  document.getElementById("reflectionMessage").textContent="Reflection saved.";
+  const input=document.getElementById("reflectionInput");
+  const message=document.getElementById("reflectionMessage");
+  const value=input.value.trim();
+
+  if(!value){
+    if(message) message.textContent="Write a reflection before saving.";
+    return;
+  }
+
+  try{
+    const saveButton=document.getElementById("saveReflectionButton");
+    if(saveButton) saveButton.disabled=true;
+
+    currentStay=await saveReflection(currentStay.id,value);
+    cacheSuiteStay(currentStay);
+    input.value="";
+    if(message) message.textContent="Reflection saved.";
+
+    // Refresh open previous-visit drawer if the current room is being viewed.
+    const drawer=document.getElementById("visitsDrawer");
+    if(drawer && !drawer.classList.contains("hidden")){
+      await openVisitsForRoom(currentStay.cycle_day_claimed);
+    }
+  }catch(error){
+    console.error(error);
+    if(message) message.textContent="Reflection could not be saved. Please try again.";
+  }finally{
+    const saveButton=document.getElementById("saveReflectionButton");
+    if(saveButton) saveButton.disabled=false;
+  }
 }
 
 async function handleCheckout(){
   if(!currentStay) return;
 
-  currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
-  document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
-  renderLoungeVisits();
+  try{
+    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
+    document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
+    renderLoungeVisits();
+
+    const closeScene=document.getElementById("checkoutCompleteScene");
+    if(closeScene){
+      showScene("checkoutComplete");
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+  }catch(error){
+    console.error(error);
+    document.getElementById("checkoutMessage").textContent="Checkout could not be completed. Please try again.";
+  }
 }
 
 function openGuestFields(){
@@ -616,6 +669,14 @@ async function handleClockIn(){
     cacheSuiteStay(stay);
     sessionStorage.setItem("flowtel:clockInStayId",stay.id);
     sessionStorage.setItem("flowtel:clockInAt",new Date().toISOString());
+
+    try{
+      const session=await clockInPractitioner(stay);
+      if(session?.id) sessionStorage.setItem("flowtel:clockSessionId",session.id);
+    }catch(clockError){
+      console.warn("Clock-in session could not be saved yet. Run the 0.5.2 migration to enable persistent clock tracking.",clockError);
+    }
+
     window.location.href="../manager/";
   }catch(error){
     setMessage("The Concierge Desk could not receive your clock-in. Please try again or message Maddie.");
@@ -650,4 +711,6 @@ document.getElementById("checkoutButton").addEventListener("click",handleCheckou
 document.getElementById("returnLobbyButton").addEventListener("click",()=>showScene("lobby"));
 document.getElementById("flowtelLoungeButton").addEventListener("click",()=>showScene("lounge"));
 document.getElementById("backToSuiteButton").addEventListener("click",()=>showScene("suite"));
+const checkoutReturnButton=document.getElementById("checkoutReturnButton");
+if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>showScene("lobby"));
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));

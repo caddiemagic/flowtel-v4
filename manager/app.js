@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { getFrontDeskStays, witnessStay } from "../shared/flowtel.js";
+import { getFrontDeskStays, witnessStay, clockOutPractitioner, getFlowFmInitiationStatus } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -10,10 +10,10 @@ let currentManagerProfile=null;
 
 const BETA_PASSWORD="FlowtelBeta!2026";
 const BETA_PRACTITIONERS=[
-  {label:"Practitioner 1 · Inner Winter",email:"flowtel.practitioner1@test.local",firstName:"Priya",lastName:"Winter",role:"practitioner",cycleDay:2,innerSeason:"Inner Winter",wing:"West Wing"},
-  {label:"Practitioner 2 · Inner Spring",email:"flowtel.practitioner2@test.local",firstName:"Sage",lastName:"Spring",role:"practitioner",cycleDay:8,innerSeason:"Inner Spring",wing:"South Wing"},
-  {label:"Practitioner 3 · Inner Summer",email:"flowtel.practitioner3@test.local",firstName:"Sol",lastName:"Summer",role:"practitioner",cycleDay:18,innerSeason:"Inner Summer",wing:"East Wing"},
-  {label:"Practitioner 4 · Inner Autumn",email:"flowtel.practitioner4@test.local",firstName:"Amina",lastName:"Autumn",role:"practitioner",cycleDay:23,innerSeason:"Inner Autumn",wing:"North Wing"},
+  {label:"Practitioner 1 · Inner Winter",email:"flowtel.practitioner1@test.local",firstName:"Priya",lastName:"Winter",role:"practitioner",cycleDay:2,innerSeason:"Inner Winter",wing:"West Wing",flowfmStartedAt:"2025-11-01"},
+  {label:"Practitioner 2 · Inner Spring",email:"flowtel.practitioner2@test.local",firstName:"Sage",lastName:"Spring",role:"practitioner",cycleDay:8,innerSeason:"Inner Spring",wing:"South Wing",flowfmStartedAt:"2025-12-01"},
+  {label:"Practitioner 3 · Inner Summer",email:"flowtel.practitioner3@test.local",firstName:"Sol",lastName:"Summer",role:"practitioner",cycleDay:18,innerSeason:"Inner Summer",wing:"East Wing",flowfmStartedAt:"2025-06-01"},
+  {label:"Practitioner 4 · Inner Autumn",email:"flowtel.practitioner4@test.local",firstName:"Amina",lastName:"Autumn",role:"practitioner",cycleDay:23,innerSeason:"Inner Autumn",wing:"North Wing",flowfmStartedAt:"2025-08-01"},
 ];
 
 const BETA_CLIENT_RELATIONSHIPS={
@@ -108,6 +108,7 @@ async function handleBetaManagerLogin(email){
       lastName:account.lastName,
       role:"practitioner",
       forceBetaRole:true,
+      flowfmStartedAt:account.flowfmStartedAt,
     });
 
     clockInContext=betaClockInContext(account);
@@ -144,13 +145,14 @@ function canOpenTurndownRoom(stay){
 function updateTodayFlow(){
   const ownWing=clockInContext?.wing;
   const assigned=assignedWingForPractitioner();
+  const initiation=getFlowFmInitiationStatus(currentManagerProfile || {});
 
   if(ownWing&&assigned){
     setText("deskAssignmentTitle",`You are clocked into the ${ownWing}.`);
-    setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
+    setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}. ${initiation.line}`);
   }else{
     setText("deskAssignmentTitle","The Concierge Desk is open.");
-    setText("deskAssignmentNote","Clock in through your Suite to receive a wing assignment, or view all turndown requests here.");
+    setText("deskAssignmentNote",`${initiation.line} Clock in through your Suite to receive a wing assignment, or view all turndown requests here.`);
   }
 }
 
@@ -170,7 +172,7 @@ function visibleStays(){
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 function updateStats(){
-  setText("guestsInHouse",allStays.filter(s=>s.stay_status!=="checked_out").length);
+  setText("guestsInHouse",allStays.filter(s=>s.checkin_date===new Date().toISOString().slice(0,10)).length);
   setText("awaitingWelcome",allStays.filter(isQueue).length);
   setText("extendedStay",allStays.filter(isExtended).length);
   setText("checkedOut",allStays.filter(checkedOutToday).length);
@@ -208,7 +210,17 @@ function updateSuiteReturn(){
     suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
   }
 }
-function goToSuite(){
+async function goToSuite(){
+  try{
+    const clockSessionId=sessionStorage.getItem("flowtel:clockSessionId");
+    if(clockSessionId){
+      await clockOutPractitioner(clockSessionId);
+      sessionStorage.removeItem("flowtel:clockSessionId");
+    }
+  }catch(error){
+    console.warn("Clock-out session could not be saved yet.",error);
+  }
+
   sessionStorage.setItem("flowtel:openSuiteFromConcierge","true");
   window.location.href="../client/?suite=1";
 }

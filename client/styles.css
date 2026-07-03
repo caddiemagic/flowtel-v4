@@ -910,3 +910,28 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .beta-guest{
   background:rgba(255,253,249,.95);
 }
+
+
+/* Release 0.5.2 — checkout completion + reflection log polish */
+.checkout-complete-scene {
+  text-align: center;
+  padding: clamp(3rem, 8vw, 6rem);
+}
+
+.checkout-complete-scene h2 {
+  max-width: 720px;
+  margin: 0 auto 1rem;
+}
+
+.checkout-complete-scene .suite-subline {
+  margin-bottom: 2rem;
+}
+
+.visit-reflection small {
+  display: inline-block;
+  margin-bottom: .25rem;
+  opacity: .68;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-size: .68rem;
+}

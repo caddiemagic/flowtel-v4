@@ -19,7 +19,7 @@ with users as (
     'flowtel.guest4@test.local'
   )
 )
-insert into public.profiles (id,email,first_name,last_name,role)
+insert into public.profiles (id,email,first_name,last_name,role,flowfm_started_at,practitioner_level,is_initiated)
 select
   id,
   email,
@@ -46,10 +46,25 @@ select
   case
     when email like 'flowtel.practitioner%' then 'practitioner'
     else 'client'
-  end
+  end,
+  case email
+    when 'flowtel.practitioner1@test.local' then date '2025-11-01'
+    when 'flowtel.practitioner2@test.local' then date '2025-12-01'
+    when 'flowtel.practitioner3@test.local' then date '2025-06-01'
+    when 'flowtel.practitioner4@test.local' then date '2025-08-01'
+    else null
+  end,
+  case
+    when email like 'flowtel.practitioner%' then 'Initiate'
+    else null
+  end,
+  false
 from users
 on conflict (id) do update set
   email=excluded.email,
   first_name=excluded.first_name,
   last_name=excluded.last_name,
-  role=excluded.role;
+  role=excluded.role,
+  flowfm_started_at=excluded.flowfm_started_at,
+  practitioner_level=excluded.practitioner_level,
+  is_initiated=excluded.is_initiated;

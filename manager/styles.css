@@ -75,3 +75,9 @@
   color:var(--soft-brown);
   text-align:center;
 }
+
+
+/* Release 0.5.2 — initiation metadata in Today's Flow */
+.desk-note {
+  line-height: 1.6;
+}

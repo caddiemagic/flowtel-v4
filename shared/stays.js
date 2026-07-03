@@ -74,11 +74,36 @@ export async function createStay({cycleDay,feelsLike}){
 }
 
 export async function saveReflection(stayId, reflection){
+  const cleaned=String(reflection||"").trim();
+  if(!cleaned) throw new Error("Add a reflection before saving.");
+
+  const user=await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+
+  const savedAt=new Date().toISOString();
+
+  const { data:entry, error:entryError } = await supabase
+    .from("flowtel_reflections")
+    .insert({
+      stay_id: stayId,
+      client_id: user.id,
+      reflection: cleaned,
+      created_at: savedAt,
+    })
+    .select()
+    .single();
+
+  if(entryError) throw entryError;
+
   const {data,error}=await supabase.from("flowtel_stays").update({
-    reflection, stay_status:"settled", updated_at:new Date().toISOString()
+    reflection: cleaned,
+    stay_status:"settled",
+    updated_at:savedAt
   }).eq("id",stayId).select().single();
+
   if(error) throw error;
-  return data;
+
+  return { ...data, latest_reflection_entry: entry };
 }
 
 export async function closeStayPersonally(stayId, checkoutNotes=""){
@@ -96,13 +121,90 @@ export async function closeStayPersonally(stayId, checkoutNotes=""){
   return data;
 }
 
+export async function clockInPractitioner(stay){
+  const user=await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+
+  const clockedInAt=new Date().toISOString();
+
+  const payload={
+    practitioner_id:user.id,
+    stay_id:stay?.id || null,
+    clocked_in_at:clockedInAt,
+    cycle_day_claimed:stay?.cycle_day_claimed || null,
+    inner_season:stay?.inner_season || null,
+    practitioner_wing:stay?.wing || null,
+    assigned_wing:oppositeWing(stay?.wing),
+    created_at:clockedInAt,
+    updated_at:clockedInAt,
+  };
+
+  const {data,error}=await supabase
+    .from("flowtel_practitioner_clock_sessions")
+    .insert(payload)
+    .select()
+    .single();
+
+  if(error) throw error;
+  return data;
+}
+
+export async function clockOutPractitioner(clockSessionId){
+  if(!clockSessionId) return null;
+  const now=new Date().toISOString();
+  const {data,error}=await supabase
+    .from("flowtel_practitioner_clock_sessions")
+    .update({clocked_out_at:now, updated_at:now})
+    .eq("id",clockSessionId)
+    .select()
+    .single();
+
+  if(error) throw error;
+  return data;
+}
+
+function oppositeWing(wing){
+  return {
+    "East Wing":"West Wing",
+    "West Wing":"East Wing",
+    "North Wing":"South Wing",
+    "South Wing":"North Wing",
+  }[wing] || null;
+}
+
+
 export async function getPreviousVisits(clientId, roomNumber=null){
   let q=supabase.from("flowtel_stays").select("*").eq("client_id",clientId)
     .order("checkin_date",{ascending:false}).limit(80);
   if(roomNumber) q=q.eq("cycle_day_claimed",Number(roomNumber));
   const {data,error}=await q;
   if(error) throw error;
-  return data||[];
+
+  const visits=data||[];
+  const ids=visits.map(visit=>visit.id).filter(Boolean);
+  if(!ids.length) return visits;
+
+  const {data:reflectionRows,error:reflectionError}=await supabase
+    .from("flowtel_reflections")
+    .select("*")
+    .in("stay_id",ids)
+    .order("created_at",{ascending:true});
+
+  if(reflectionError){
+    console.warn("Reflection log lookup failed; falling back to stay reflection field.", reflectionError);
+    return visits;
+  }
+
+  const grouped=(reflectionRows||[]).reduce((map,row)=>{
+    if(!map[row.stay_id]) map[row.stay_id]=[];
+    map[row.stay_id].push(row);
+    return map;
+  },{});
+
+  return visits.map(visit=>({
+    ...visit,
+    reflections: grouped[visit.id] || [],
+  }));
 }
 
 export async function getFrontDeskStays(){

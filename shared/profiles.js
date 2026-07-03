@@ -45,6 +45,18 @@ export async function ensureProfile(profile = {}) {
       user.user_metadata?.last_name ||
       null,
     role: (user.email?.endsWith("@test.local") && profile.forceBetaRole) ? (profile.role || "client") : (existing?.role || profile.role || "client"),
+    flowfm_started_at:
+      profile.flowfmStartedAt ||
+      existing?.flowfm_started_at ||
+      null,
+    practitioner_level:
+      existing?.practitioner_level ||
+      profile.practitionerLevel ||
+      "Initiate",
+    is_initiated:
+      existing?.is_initiated ||
+      profile.isInitiated ||
+      false,
   };
 
   const { data, error } = await supabase
