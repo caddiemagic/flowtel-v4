@@ -1445,3 +1445,90 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     font-size:1.05rem !important;
   }
 }
+
+
+/* Release 0.7.2 — mentor language, wheel marker lock, and concierge notes */
+.practitioner-card .eyebrow{
+  letter-spacing:.15em;
+}
+
+.wheel-number-ring{
+  border-width:3.2px !important;
+}
+
+/* Hide all older pseudo-element star attempts. The only marker now is .wheel-star-marker. */
+.wheel-room.active::after,
+.wheel-room.active::before{
+  content:none !important;
+  display:none !important;
+}
+
+.wheel-star-marker{
+  position:absolute !important;
+  left:var(--star-x) !important;
+  top:var(--star-y) !important;
+  transform:translate(-50%,-50%) !important;
+  z-index:14 !important;
+  color:var(--gold) !important;
+  font-size:1.28rem !important;
+  line-height:1 !important;
+  filter:drop-shadow(0 3px 7px rgba(109,78,65,.25)) !important;
+  pointer-events:none !important;
+}
+
+.wheel-room.active{
+  background:rgba(216,168,79,.18) !important;
+  border-color:rgba(216,168,79,.96) !important;
+  box-shadow:
+    0 0 0 4px rgba(216,168,79,.14),
+    0 9px 20px rgba(109,78,65,.11),
+    inset 0 1px 0 rgba(255,255,255,.96) !important;
+}
+
+.you-are-here::before{
+  content:"✦" !important;
+  display:inline-block !important;
+  color:var(--gold) !important;
+  font-size:1rem !important;
+  line-height:1 !important;
+}
+
+.concierge-notes-scroll{
+  max-height:220px;
+  overflow:auto;
+  padding:12px;
+  margin:12px 0;
+  border:1px solid rgba(109,78,65,.10);
+  border-radius:18px;
+  background:rgba(255,253,249,.58);
+}
+
+.concierge-note-entry{
+  padding:10px 0;
+  border-bottom:1px solid rgba(109,78,65,.08);
+}
+
+.concierge-note-entry:last-child{
+  border-bottom:0;
+}
+
+.concierge-note-entry p{
+  margin:6px 0 0;
+  line-height:1.55;
+}
+
+.concierge-note-entry small{
+  display:block;
+  color:var(--soft-brown);
+  font-size:.72rem;
+  margin-top:3px;
+}
+
+@media(max-width:700px){
+  .wheel-star-marker{
+    font-size:1.08rem !important;
+  }
+  .wheel-number-ring{
+    border-width:3px !important;
+  }
+}

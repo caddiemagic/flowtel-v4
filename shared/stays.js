@@ -216,6 +216,24 @@ export async function getFrontDeskStays(){
   return data||[];
 }
 
+
+function parseStoredConciergeNotes(raw, fallbackBy="", fallbackAt=""){
+  if(!raw) return [];
+  try{
+    const parsed=JSON.parse(raw);
+    if(Array.isArray(parsed)){
+      return parsed.filter(Boolean);
+    }
+  }catch(error){}
+  return [{
+    id:`legacy-${Date.now()}`,
+    note:String(raw),
+    by:fallbackBy || "Your Concierge",
+    at:fallbackAt || new Date().toISOString(),
+  }];
+}
+
+
 export async function witnessStay(stayId,witnessNote=""){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
@@ -233,13 +251,30 @@ export async function witnessStay(stayId,witnessNote=""){
     practitionerLabel="Your Concierge";
   }
 
+  const {data:existing,error:existingError}=await supabase.from("flowtel_stays")
+    .select("witness_note,witness_note_by,witnessed_at,updated_at")
+    .eq("id",stayId)
+    .single();
+  if(existingError) throw existingError;
+
+  const now=new Date().toISOString();
+  const notes=parseStoredConciergeNotes(existing?.witness_note, existing?.witness_note_by, existing?.witnessed_at || existing?.updated_at);
+  if(witnessNote){
+    notes.push({
+      id:`note-${now}`,
+      note:witnessNote,
+      by:practitionerLabel,
+      at:now,
+    });
+  }
+
   const {data,error}=await supabase.from("flowtel_stays").update({
     witnessed_by:user.id,
-    witnessed_at:new Date().toISOString(),
-    witness_note:witnessNote,
+    witnessed_at:now,
+    witness_note:JSON.stringify(notes),
     witness_note_by:practitionerLabel,
     stay_status:"witnessed",
-    updated_at:new Date().toISOString(),
+    updated_at:now,
   }).eq("id",stayId).select().single();
   if(error) throw error;
   return data;

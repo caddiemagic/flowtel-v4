@@ -826,6 +826,184 @@
       }
     }
 
+
+    /* Release 0.7.2 — final public tracker styling tune */
+    body{
+      font-family:Georgia,"Times New Roman",serif !important;
+    }
+
+    .tracker-shell{
+      width:min(100% - 30px,920px) !important;
+    }
+
+    .tracker-hero,
+    .cycle-widget{
+      background:
+        radial-gradient(circle at 12% 12%,rgba(248,231,227,.44),transparent 30%),
+        radial-gradient(circle at 90% 8%,rgba(231,189,105,.13),transparent 24%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.95)) !important;
+    }
+
+    .tracker-hero{
+      border-radius:34px !important;
+      padding:30px 28px 32px !important;
+    }
+
+    .tracker-eyebrow,
+    .result-topline,
+    .stat span,
+    .stat-wide span,
+    .prompt h3,
+    .framework h3,
+    .date-field-label{
+      font-family:Arial,sans-serif !important;
+    }
+
+    #cycleMainHeading{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.35rem,2.7vw,1.92rem) !important;
+      letter-spacing:.065em !important;
+    }
+
+    #cycleSubHeading{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:.88rem !important;
+    }
+
+    .question{
+      padding:30px 32px !important;
+      background:
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.92)) !important;
+      border-color:rgba(216,168,79,.22) !important;
+      box-shadow:0 20px 56px rgba(109,78,65,.075) !important;
+    }
+
+    .question h2{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.02rem,1.85vw,1.22rem) !important;
+      line-height:1.32 !important;
+      letter-spacing:.005em !important;
+      color:var(--brown) !important;
+    }
+
+    .question p,
+    .helper-text,
+    .framework-item,
+    .prompt p,
+    .tracker-cta p,
+    .day-detail{
+      font-family:Georgia,"Times New Roman",serif !important;
+    }
+
+    .button-grid button,
+    .action-row button,
+    .tracker-button,
+    .tracker-cta a{
+      font-family:Arial,sans-serif !important;
+      background:linear-gradient(135deg,rgba(248,231,227,.96),rgba(255,253,249,.92)) !important;
+      box-shadow:0 8px 20px rgba(109,78,65,.055) !important;
+    }
+
+    .button-grid button:hover,
+    .action-row button:hover,
+    .tracker-button:hover,
+    .tracker-cta a:hover{
+      transform:translateY(-1px);
+      box-shadow:0 14px 28px rgba(109,78,65,.10) !important;
+    }
+
+    .result-card{
+      border-color:rgba(216,168,79,.34) !important;
+      background:
+        radial-gradient(circle at 15% 8%,rgba(248,231,227,.34),transparent 28%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(255,249,232,.52)) !important;
+    }
+
+    .result-card h2,
+    #cycleResults #cycleMainHeading{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.2rem,2.6vw,1.72rem) !important;
+      line-height:1.2 !important;
+    }
+
+    .stat strong,
+    .stat-wide strong,
+    .framework-item strong{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-weight:400 !important;
+    }
+
+    .framework{
+      background:linear-gradient(145deg,rgba(255,253,249,.90),rgba(248,231,227,.24)) !important;
+    }
+
+    .framework h3{
+      color:var(--rose) !important;
+    }
+
+    .framework-item{
+      font-size:.92rem !important;
+      line-height:1.55 !important;
+    }
+
+    .day-detail{
+      background:rgba(255,253,249,.76) !important;
+      border-color:rgba(216,168,79,.22) !important;
+      color:var(--soft-brown) !important;
+      font-size:.92rem !important;
+      line-height:1.55 !important;
+    }
+
+    .tracker-cta{
+      display:flex !important;
+      flex-direction:column !important;
+      align-items:center !important;
+      justify-content:center !important;
+      background:
+        radial-gradient(circle at 50% 0%,rgba(231,189,105,.12),transparent 25%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.48)) !important;
+      text-align:center !important;
+    }
+
+    .tracker-cta h3{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.25rem,2.6vw,1.65rem) !important;
+      line-height:1.18 !important;
+    }
+
+    .tracker-cta a{
+      margin:4px auto 0 !important;
+      display:inline-flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      width:auto !important;
+    }
+
+    .mini-wheel::before,
+    .mini-wheel::after{
+      border-color:rgba(216,168,79,.82) !important;
+      border-width:3px !important;
+    }
+
+    .mini-day.active{
+      background:rgba(216,168,79,.16) !important;
+      border-color:rgba(216,168,79,.95) !important;
+      box-shadow:0 0 0 4px rgba(216,168,79,.15) !important;
+    }
+
+    @media(max-width:780px){
+      .question h2{
+        font-size:clamp(1rem,4.8vw,1.18rem) !important;
+      }
+      .result-card h2,
+      #cycleResults #cycleMainHeading{
+        font-size:clamp(1.15rem,6vw,1.45rem) !important;
+      }
+      .question{
+        padding:24px 18px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -846,8 +1024,8 @@
         <h2>Have you had a period in the last 3 months?</h2>
         <p>This helps us choose the best place to begin tracking your cycle.</p>
         <div class="button-grid">
-          <button id="cycleYesButton" type="button">Yes</button>
-          <button id="cycleNoButton" type="button">No</button>
+          <button id="cycleYesButton" type="button" onclick="cycleAnswerPeriod(true)">Yes</button>
+          <button id="cycleNoButton" type="button" onclick="cycleAnswerPeriod(false)">No</button>
         </div>
       </div>
 
@@ -1081,7 +1259,7 @@
         if(!wheel || !detail) return;
         wheel.querySelectorAll("[data-day]").forEach(btn => {
           btn.addEventListener("click", () => {
-            detail.innerHTML = `<strong>Room ${btn.dataset.day}</strong><p>Every day can become part of your living cycle map inside the Flowtel.</p>${inviteHtml()}`;
+            detail.innerHTML = `<strong>Room ${btn.dataset.day}</strong><p>Every day can become part of your living cycle map inside the Flowtel.</p>`;
           });
         });
       }
@@ -1133,7 +1311,7 @@
               <div class="framework-item"><strong>Inner Summer</strong> Days 12–19 — Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
               <div class="framework-item"><strong>Inner Autumn</strong> Days 20–26 — Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
-            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to explore how Flowtel can remember your stays.</div>
+            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
           </div>
         `;
@@ -1173,7 +1351,7 @@
               <div class="framework-item"><strong>Full Moon · Days 12–19</strong> Witness your magic and be seen.</div>
               <div class="framework-item"><strong>Half New Moon · Days 20–26</strong> Audit and revise what you have created, then prepare for the next cycle.</div>
             </div>
-            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to explore how Flowtel can remember your stays.</div>
+            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
           </div>
         `;

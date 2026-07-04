@@ -299,7 +299,7 @@ function normalizedRoom(day){
   return value>=28?28:Math.max(1,Math.min(28,value));
 }
 
-function wheelPosition(day){
+function wheelPositionAtRadius(day, radius){
   const room=normalizedRoom(day);
   const step=360/28;
 
@@ -308,7 +308,6 @@ function wheelPosition(day){
   const startAngle=180 + (step/2);
   const angleDeg=startAngle + ((room-1)*step);
   const angle=angleDeg*Math.PI/180;
-  const radius=WHEEL_DAY_RADIUS;
 
   return {
     x:50 + radius*Math.cos(angle),
@@ -316,10 +315,20 @@ function wheelPosition(day){
   };
 }
 
+function wheelPosition(day){
+  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS);
+}
+
+function wheelStarPosition(day){
+  // The star rides on the outer gold ring instead of floating above the day bubble.
+  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS + 5.4);
+}
+
 function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
   const activeNormalizedRoom=normalizedRoom(activeRoom);
   const activePosition=wheelPosition(activeNormalizedRoom);
+  const starPosition=wheelStarPosition(activeNormalizedRoom);
 
   medicineWheel.style.setProperty("--day-radius", `${WHEEL_DAY_RADIUS}%`);
   medicineWheel.style.setProperty("--ring-base", `${WHEEL_DAY_RADIUS * 2}%`);
@@ -341,6 +350,8 @@ function renderWheel(activeRoom){
     alt=""
     aria-hidden="true"
   />
+
+  <span class="wheel-star-marker" style="--star-x:${starPosition.x}%;--star-y:${starPosition.y}%;" aria-hidden="true">✦</span>
 
   ${rooms.map(room=>{
     const p=wheelPosition(room);
@@ -507,6 +518,34 @@ function hasTurndownRequest(stay){
   return !!(stay?.turndown_requested_at || stay?.turndown_status==="requested" || sessionStorage.getItem(`flowtel:turndown:${stay?.id}`)==="requested");
 }
 
+
+function parseConciergeNotes(stay){
+  const raw=stay?.witness_note;
+  if(!raw) return [];
+  try{
+    const parsed=JSON.parse(raw);
+    if(Array.isArray(parsed)){
+      return parsed.map((item,index)=>({
+        id:item.id || `${stay.id || "stay"}-${index}`,
+        note:item.note || item.text || "",
+        by:item.by || item.practitioner || stay.witness_note_by || "Your Concierge",
+        at:item.at || item.created_at || stay.witnessed_at || stay.updated_at,
+      })).filter(item=>item.note);
+    }
+  }catch(error){}
+  return [{
+    id:`${stay?.id || "stay"}-legacy`,
+    note:raw,
+    by:stay?.witness_note_by || "Your Concierge",
+    at:stay?.witnessed_at || stay?.updated_at,
+  }];
+}
+
+function conciergeNotesSignature(notes){
+  return notes.map(note=>`${note.id}:${note.at || ""}:${note.note}`).join("|");
+}
+
+
 function renderConciergeCare(stay){
   const witnessNote=document.getElementById("witnessNote");
   const witnessText=document.getElementById("witnessText");
@@ -515,16 +554,28 @@ function renderConciergeCare(stay){
   witnessNote.classList.toggle("quiet",!stay?.witness_note && !hasTurndownRequest(stay));
 
   if(stay?.witness_note){
+    const notes=parseConciergeNotes(stay);
+    const latestNote=notes[notes.length-1];
     const readKey=`flowtel:conciergeNoteRead:${stay.id}`;
-    const hasRead=localStorage.getItem(readKey)==="true";
+    const signature=conciergeNotesSignature(notes);
+    const savedSignature=localStorage.getItem(readKey);
+    const hasRead=savedSignature===signature;
     witnessNote.classList.add("concierge-fulfilled");
-    const practitionerLine=stay.witness_note_by ? `<span class="concierge-note-by">From ${escapeHtml(stay.witness_note_by)}</span>` : "";
+    const latestBy=latestNote?.by || stay.witness_note_by || "Your Concierge";
+    const noteList=notes.map((note,index)=>`
+      <article class="concierge-note-entry">
+        <span class="concierge-note-by">From ${escapeHtml(note.by || latestBy)}</span>
+        ${note.at ? `<small>${formatDateTime(note.at)}</small>` : ""}
+        <p>${escapeHtml(note.note)}</p>
+      </article>
+    `).join("");
+
     witnessText.innerHTML=`
-      <strong>${hasRead ? "Concierge note saved." : "Your Concierge stopped by today."}</strong>
-      ${hasRead ? "<span>Your note is saved in this stay.</span>" : "<span>A note has been left in your room.</span>"}
-      ${practitionerLine}
+      <strong>${hasRead ? "Concierge notes saved." : "You have a new note."}</strong>
+      ${hasRead ? "<span>Your notes are saved in this stay.</span>" : `<span>${notes.length>1 ? `${notes.length} notes have been left in your room.` : "A note has been left in your room."}</span>`}
+      <span class="concierge-note-by">Latest note from ${escapeHtml(latestBy)}</span>
       <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="readConciergeNoteButton">Read Note →</button>
-      <p class="concierge-note-text ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${escapeHtml(stay.witness_note)}</p>
+      <div class="concierge-notes-scroll ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${noteList}</div>
       <button type="button" class="secondary read-note-button hidden" id="markConciergeNoteReadButton">Mark as Read</button>
     `;
     const readButton=document.getElementById("readConciergeNoteButton");
@@ -539,7 +590,7 @@ function renderConciergeCare(stay){
     }
     if(markButton){
       markButton.addEventListener("click",()=>{
-        localStorage.setItem(readKey,"true");
+        localStorage.setItem(readKey,signature);
         renderConciergeCare(stay);
       });
     }
@@ -664,7 +715,7 @@ async function renderPractitionerConnection(){
     };
   }catch(error){
     console.warn("Practitioner relationship lookup failed.",error);
-    title.textContent="Your Practitioner";
+    title.textContent="Your Mentor to the Moon";
     text.textContent="Practitioner connections will appear here after the relationship migration is installed.";
     button.disabled=true;
   }
