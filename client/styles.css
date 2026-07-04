@@ -1335,3 +1335,113 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     height:138px;
   }
 }
+
+
+/* Release 0.7.1 — final design refinement before visual freeze */
+
+/* Keep the decorative rose in lobby/lounge, but remove it from the Suite dashboard. */
+.flowtel-shell:has(#suiteScene.active) > .rose-corner{
+  display:none !important;
+}
+
+/* Remove the suite header watermark completely. */
+.suite-scene::before,
+.suite-scene::after{
+  content:none !important;
+  display:none !important;
+}
+
+/* Clean medicine wheel: only two gold rings, no extra compass guide rings/axes. */
+.wheel-compass-ring,
+.wheel-axis,
+.wheel-axis-x,
+.wheel-axis-y,
+.wheel-cardinal,
+.wheel-current-star{
+  display:none !important;
+}
+
+.medicine-wheel{
+  background:radial-gradient(circle at center,rgba(255,253,249,.96) 0 28%,rgba(248,231,227,.30),rgba(255,253,249,.92) 47%,rgba(251,247,241,.90)) !important;
+}
+
+.wheel-number-ring{
+  border-width:2.5px !important;
+  border-color:rgba(216,168,79,.78) !important;
+  box-shadow:none !important;
+}
+
+/* Day bubbles: slightly stronger. */
+.wheel-room{
+  border-width:2px !important;
+  border-color:rgba(216,168,79,.74) !important;
+  font-weight:500 !important;
+  box-shadow:0 7px 16px rgba(109,78,65,.075), inset 0 1px 0 rgba(255,255,255,.94) !important;
+}
+
+/* One star only: the active-day marker. */
+.you-are-here::before{
+  content:none !important;
+  display:none !important;
+}
+
+.wheel-room.active::before{
+  content:none !important;
+  display:none !important;
+}
+
+.wheel-room.active::after{
+  content:"✦" !important;
+  display:block !important;
+  position:absolute !important;
+  left:50% !important;
+  top:-18px !important;
+  transform:translateX(-50%) !important;
+  color:var(--gold) !important;
+  font-size:1.22rem !important;
+  line-height:1 !important;
+  z-index:12 !important;
+  filter:drop-shadow(0 3px 6px rgba(109,78,65,.22)) !important;
+  pointer-events:none !important;
+}
+
+/* Mobile wheel breathing room. */
+@media(max-width:700px){
+  .wheel-panel{
+    padding:68px 18px 84px !important;
+  }
+
+  .medicine-wheel{
+    width:min(100%,330px) !important;
+  }
+
+  .wheel-season{
+    transform:scale(.86) !important;
+  }
+
+  .wheel-season-autumn,
+  .wheel-season-summer{
+    top:-26px !important;
+  }
+
+  .wheel-season-winter,
+  .wheel-season-spring{
+    bottom:-26px !important;
+  }
+
+  .wheel-room{
+    width:28px !important;
+    height:28px !important;
+    font-size:.60rem !important;
+  }
+
+  .rose-compass-center{
+    width:min(52%,170px) !important;
+    height:min(52%,170px) !important;
+  }
+
+  .wheel-room.active::after{
+    top:-16px !important;
+    font-size:1.05rem !important;
+  }
+}

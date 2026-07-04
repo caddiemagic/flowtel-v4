@@ -587,6 +587,245 @@
       .framework-item{grid-template-columns:1fr;gap:4px}
     }
 
+
+    /* Release 0.7.1 — public tracker final luxury pass */
+    body{
+      font-family:"Helvetica Neue",Arial,sans-serif !important;
+      background:
+        radial-gradient(circle at 10% 8%,rgba(248,231,227,.62),transparent 28%),
+        radial-gradient(circle at 90% 10%,rgba(231,189,105,.14),transparent 26%),
+        linear-gradient(180deg,#fff,var(--linen)) !important;
+    }
+
+    .tracker-shell{
+      width:min(100% - 34px,900px) !important;
+      padding:34px 0 80px !important;
+    }
+
+    .tracker-card,
+    .cycle-widget,
+    .question,
+    .result-card,
+    .tracker-cta{
+      border-radius:32px !important;
+      border:1px solid rgba(109,78,65,.12) !important;
+      background:rgba(255,253,249,.93) !important;
+      box-shadow:0 24px 70px rgba(109,78,65,.085) !important;
+    }
+
+    .tracker-hero{
+      width:min(100%,820px) !important;
+      padding:28px 28px 30px !important;
+      margin-bottom:22px !important;
+    }
+
+    .tracker-eyebrow{
+      font-size:.68rem !important;
+      letter-spacing:.22em !important;
+      margin-bottom:10px !important;
+      color:var(--rose) !important;
+    }
+
+    .tracker-hero h1{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(2.6rem,6vw,4.4rem) !important;
+      letter-spacing:.13em !important;
+      line-height:.92 !important;
+      font-weight:400 !important;
+      margin-bottom:12px !important;
+    }
+
+    .tracker-hero .hero-line{
+      max-width:520px !important;
+      font-size:.78rem !important;
+      line-height:1.55 !important;
+      color:rgba(109,78,65,.76) !important;
+    }
+
+    #cycleTrackerApp{
+      width:min(100%,820px) !important;
+    }
+
+    .cycle-widget{
+      padding:34px !important;
+      overflow:hidden !important;
+    }
+
+    .cycle-widget::after{
+      opacity:.055 !important;
+    }
+
+    #cycleMainHeading{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.45rem,3.2vw,2.15rem) !important;
+      letter-spacing:.08em !important;
+      text-transform:uppercase !important;
+      line-height:1.06 !important;
+      color:var(--brown) !important;
+    }
+
+    #cycleSubHeading{
+      max-width:540px !important;
+      font-size:.82rem !important;
+      line-height:1.6 !important;
+      color:rgba(109,78,65,.70) !important;
+      margin-bottom:26px !important;
+    }
+
+    .question{
+      padding:28px !important;
+      text-align:left !important;
+      background:linear-gradient(145deg,rgba(255,253,249,.96),rgba(251,247,241,.90)) !important;
+    }
+
+    .question h2{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.02rem,2vw,1.28rem) !important;
+      line-height:1.25 !important;
+      letter-spacing:.01em !important;
+      font-weight:400 !important;
+      text-transform:none !important;
+      color:var(--brown) !important;
+      margin-bottom:10px !important;
+    }
+
+    .question p,
+    .helper-text{
+      font-size:.86rem !important;
+      line-height:1.62 !important;
+      color:rgba(109,78,65,.72) !important;
+    }
+
+    .button-grid,
+    .action-row{
+      gap:10px !important;
+      margin-top:18px !important;
+    }
+
+    .button-grid button,
+    .action-row button,
+    .tracker-button,
+    .tracker-cta a{
+      min-height:46px !important;
+      padding:12px 18px !important;
+      border-radius:999px !important;
+      font-family:"Helvetica Neue",Arial,sans-serif !important;
+      font-size:.66rem !important;
+      font-weight:700 !important;
+      letter-spacing:.15em !important;
+      text-transform:uppercase !important;
+      background:linear-gradient(135deg,rgba(248,231,227,.88),rgba(255,253,249,.92)) !important;
+      border:1px solid rgba(109,78,65,.14) !important;
+      color:var(--brown) !important;
+      cursor:pointer !important;
+    }
+
+    .button-grid button.secondary-button,
+    .action-row button.secondary-button,
+    .text-button{
+      background:rgba(255,253,249,.94) !important;
+    }
+
+    .date-field-wrap{
+      margin:20px 0 8px !important;
+    }
+
+    .date-field-label{
+      display:block !important;
+      margin:0 0 10px !important;
+      font-family:"Helvetica Neue",Arial,sans-serif !important;
+      font-size:.70rem !important;
+      line-height:1.35 !important;
+      letter-spacing:.10em !important;
+      text-transform:uppercase !important;
+      color:var(--rose) !important;
+    }
+
+    .date-field{
+      width:100% !important;
+      min-height:50px !important;
+      padding:0 18px !important;
+      border-radius:999px !important;
+      border:1px solid rgba(109,78,65,.16) !important;
+      background:rgba(255,253,249,.97) !important;
+      color:var(--brown) !important;
+      font-size:.9rem !important;
+      cursor:pointer !important;
+      -webkit-appearance:none;
+      appearance:none;
+    }
+
+    .date-helper{
+      display:none !important;
+    }
+
+    .result-card h2,
+    #cycleResults #cycleMainHeading{
+      font-family:Georgia,"Times New Roman",serif !important;
+      font-size:clamp(1.18rem,2.8vw,1.75rem) !important;
+      letter-spacing:.02em !important;
+    }
+
+    .stat,
+    .stat-wide,
+    .prompt,
+    .framework,
+    .day-detail{
+      background:rgba(255,253,249,.82) !important;
+      border-color:rgba(109,78,65,.10) !important;
+      border-radius:22px !important;
+    }
+
+    .stat span,
+    .stat-wide span,
+    .prompt h3,
+    .framework h3{
+      font-family:"Helvetica Neue",Arial,sans-serif !important;
+      font-size:.62rem !important;
+      letter-spacing:.13em !important;
+    }
+
+    @media(max-width:780px){
+      .tracker-shell{
+        width:min(100% - 20px,900px) !important;
+        padding-top:20px !important;
+      }
+
+      .tracker-hero{
+        padding:24px 18px !important;
+      }
+
+      .cycle-widget{
+        padding:22px 16px 28px !important;
+      }
+
+      .question{
+        padding:22px 18px !important;
+      }
+
+      .question h2{
+        font-size:clamp(1rem,5.2vw,1.22rem) !important;
+      }
+
+      #cycleMainHeading{
+        font-size:clamp(1.35rem,7.2vw,1.9rem) !important;
+      }
+
+      .tracker-hero .hero-line,
+      #cycleSubHeading,
+      .question p,
+      .helper-text{
+        font-size:.80rem !important;
+      }
+
+      .button-grid button,
+      .action-row button,
+      .tracker-button{
+        font-size:.62rem !important;
+        letter-spacing:.13em !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -607,8 +846,8 @@
         <h2>Have you had a period in the last 3 months?</h2>
         <p>This helps us choose the best place to begin tracking your cycle.</p>
         <div class="button-grid">
-          <button type="button" onclick="cycleAnswerPeriod(true)">Yes</button>
-          <button type="button" onclick="cycleAnswerPeriod(false)">No</button>
+          <button id="cycleYesButton" type="button">Yes</button>
+          <button id="cycleNoButton" type="button">No</button>
         </div>
       </div>
 
@@ -627,8 +866,8 @@
         <h2>Choose the first day of full blood flow</h2>
         <p>It is okay if you are a couple days off. This is simply a starting point for learning your rhythm.</p>
         <div class="date-field-wrap">
-          <label class="date-field-label" for="cyclePeriodDate">Choose the first day of full blood flow</label>
-          <input class="date-field" type="date" id="cyclePeriodDate" aria-label="Last period start date" onchange="cycleUpdateDateLabel()" onclick="cycleOpenDatePicker(this)" onfocus="cycleOpenDatePicker(this)">
+          <label class="date-field-label" for="cyclePeriodDate">Choose the first day of full blood flow.</label>
+          <input class="date-field" type="date" id="cyclePeriodDate" aria-label="Choose the first day of full blood flow" onchange="cycleUpdateDateLabel()" onclick="cycleOpenDatePicker(this)" onfocus="cycleOpenDatePicker(this)">
           <p class="date-helper"></p>
         </div>
         <div class="button-grid">
@@ -953,8 +1192,8 @@
       };
 
       // Robust click binding in addition to inline handlers. Some embeds can strip inline handlers.
-      const yesButton = document.querySelector("#cycleQuestion1 .button-grid button:first-child");
-      const noButton = document.querySelector("#cycleQuestion1 .button-grid button:last-child");
+      const yesButton = $("cycleYesButton") || document.querySelector("#cycleQuestion1 .button-grid button:first-child");
+      const noButton = $("cycleNoButton") || document.querySelector("#cycleQuestion1 .button-grid button:last-child");
       const dateInput = $("cyclePeriodDate");
       if(yesButton) yesButton.addEventListener("click", () => cycleAnswerPeriod(true));
       if(noButton) noButton.addEventListener("click", () => cycleAnswerPeriod(false));

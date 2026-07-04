@@ -441,3 +441,15 @@
     opacity:.10;
   }
 }
+
+
+/* Release 0.7.1 — concierge compass guard */
+.hero::before{
+  content:none !important;
+  display:none !important;
+}
+
+.hero .rose-corner + .rose-corner,
+.rose-corner + .rose-corner{
+  display:none !important;
+}
