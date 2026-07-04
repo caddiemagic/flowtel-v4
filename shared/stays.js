@@ -210,7 +210,7 @@ export async function getPreviousVisits(clientId, roomNumber=null){
 export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,
-    profiles:client_id (first_name,last_name,email,role)
+    profiles:client_id (first_name,last_name,email,role), witness_profile:witnessed_by (first_name,last_name,email,role)
   `).order("checked_in_at",{ascending:false}).limit(100);
   if(error) throw error;
   return data||[];
@@ -219,10 +219,25 @@ export async function getFrontDeskStays(){
 export async function witnessStay(stayId,witnessNote=""){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
+
+  let practitionerLabel="";
+  try{
+    const {data:profile}=await supabase.from("profiles")
+      .select("first_name,last_name,email,role")
+      .eq("id",user.id)
+      .single();
+    const name=[profile?.first_name,profile?.last_name].filter(Boolean).join(" ") || profile?.email || "your Concierge";
+    const level=profile?.role==="practitioner" ? "Practitioner" : "Concierge";
+    practitionerLabel=`${level} ${name}`;
+  }catch(error){
+    practitionerLabel="Your Concierge";
+  }
+
   const {data,error}=await supabase.from("flowtel_stays").update({
     witnessed_by:user.id,
     witnessed_at:new Date().toISOString(),
     witness_note:witnessNote,
+    witness_note_by:practitionerLabel,
     stay_status:"witnessed",
     updated_at:new Date().toISOString(),
   }).eq("id",stayId).select().single();
@@ -241,6 +256,7 @@ export async function prepareRoomAfterCheckout(stayId, practitionerLabel=""){
     witnessed_by:user.id,
     witnessed_at:new Date().toISOString(),
     witness_note:note,
+    witness_note_by:practitionerLabel || "Your Concierge",
     stay_status:"room_prepared",
     updated_at:new Date().toISOString(),
   }).eq("id",stayId).select().single();

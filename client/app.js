@@ -342,8 +342,6 @@ function renderWheel(activeRoom){
     aria-hidden="true"
   />
 
-  <span class="wheel-current-star" style="--x:${activePosition.x}%;--y:${activePosition.y}%" aria-hidden="true">◆</span>
-
   ${rooms.map(room=>{
     const p=wheelPosition(room);
     const isActive=room===activeNormalizedRoom;
@@ -510,19 +508,31 @@ function renderConciergeCare(stay){
   witnessNote.classList.toggle("quiet",!stay?.witness_note && !hasTurndownRequest(stay));
 
   if(stay?.witness_note){
+    const readKey=`flowtel:conciergeNoteRead:${stay.id}`;
+    const hasRead=localStorage.getItem(readKey)==="true";
     witnessNote.classList.add("concierge-fulfilled");
+    const practitionerLine=stay.witness_note_by ? `<span>From ${escapeHtml(stay.witness_note_by)}</span>` : "";
     witnessText.innerHTML=`
-      <strong>🌹 Your Concierge stopped by today.</strong>
-      <span>✨ A note has been left in your room.</span>
-      <button type="button" class="secondary read-note-button" id="readConciergeNoteButton">Read Note →</button>
-      <p class="concierge-note-text hidden" id="conciergeNoteText">${escapeHtml(stay.witness_note)}</p>
+      <strong>${hasRead ? "🌹 Concierge note saved." : "🌹 Your Concierge stopped by today."}</strong>
+      ${hasRead ? "<span>Your note is saved in this stay.</span>" : "<span>✨ A note has been left in your room.</span>"}
+      ${practitionerLine}
+      <button type="button" class="secondary read-note-button" id="readConciergeNoteButton">${hasRead ? "View Note" : "Read Note →"}</button>
+      <p class="concierge-note-text ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${escapeHtml(stay.witness_note)}</p>
+      <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="markConciergeNoteReadButton">Mark as Read</button>
     `;
     const readButton=document.getElementById("readConciergeNoteButton");
+    const markButton=document.getElementById("markConciergeNoteReadButton");
     const noteText=document.getElementById("conciergeNoteText");
     if(readButton&&noteText){
       readButton.addEventListener("click",()=>{
         noteText.classList.remove("hidden");
         readButton.classList.add("hidden");
+      });
+    }
+    if(markButton){
+      markButton.addEventListener("click",()=>{
+        localStorage.setItem(readKey,"true");
+        renderConciergeCare(stay);
       });
     }
     return;

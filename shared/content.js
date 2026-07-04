@@ -4,169 +4,169 @@ export const DAY_CONTENT = {
     "title": "Return to Yourself",
     "prompt": "What part of me is asking to be witnessed today—not fixed, not improved, simply witnessed?",
     "affirmation": "I honor my need to slow down.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Calendar blocked. No to-do list. Just ceremony. Hold a new moon ceremony for yourself."
   },
   "2": {
     "title": "Permission",
     "prompt": "Where in my life am I still waiting for permission that only I can give myself?",
     "affirmation": "My rest is productive.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Calendar blocked. No to-do list. Just ceremony. Hold a new moon ceremony for yourself."
   },
   "3": {
     "title": "Releasing",
     "prompt": "What am I finally ready to stop carrying?",
     "affirmation": "I am reborn.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Calendar blocked. No to-do list. Just ceremony. Hold a new moon ceremony for yourself."
   },
   "4": {
     "title": "Inner Knowing",
     "prompt": "If I completely trusted my intuition, what decision would become obvious?",
     "affirmation": "I trust my wisdom.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Coming back to life. Choose light movement, gentle re-entry, and tentatively block your next ceremony."
   },
   "5": {
     "title": "Vision from Stillness",
     "prompt": "What truth has become impossible for me to ignore?",
     "affirmation": "I welcome new opportunities.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Coming back to life. Choose light movement, gentle re-entry, and tentatively block your next ceremony."
   },
   "6": {
     "title": "New Beginning",
     "prompt": "Who am I becoming this cycle?",
     "affirmation": "Abundance flows to me in various ways.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Coming back to life. Choose light movement, gentle re-entry, and tentatively block your next ceremony."
   },
   "7": {
     "title": "Curiosity",
     "prompt": "What feels exciting simply because it feels alive—not because it is productive?",
     "affirmation": "Everything I touch turns to gold.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Coming back to life. Choose light movement, gentle re-entry, and tentatively block your next ceremony."
   },
   "8": {
     "title": "Desire",
     "prompt": "If fear disappeared for one year, what would I create?",
     "affirmation": "Everything is in perfect order.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Pull on new threads. Begin new projects, follow creative sparks, capture ideas, and spend time with close friends."
   },
   "9": {
     "title": "Expansion",
     "prompt": "What part of myself have I been hiding that is ready to be seen?",
     "affirmation": "I live in flow state.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Pull on new threads. Begin new projects, follow creative sparks, capture ideas, and spend time with close friends."
   },
   "10": {
     "title": "Receiving",
     "prompt": "Where is life already trying to support me that I haven't fully allowed?",
     "affirmation": "I am a magnet for prosperity.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Pull on new threads. Begin new projects, follow creative sparks, capture ideas, and spend time with close friends."
   },
   "11": {
     "title": "Possibility",
     "prompt": "What would my future self encourage me to begin today?",
     "affirmation": "My magic is fully online.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Pull on new threads. Begin new projects, follow creative sparks, capture ideas, and spend time with close friends."
   },
   "12": {
     "title": "Magnetism",
     "prompt": "How do I naturally make people feel?",
     "affirmation": "I am always on time.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "13": {
     "title": "Presence",
     "prompt": "Where am I most powerful when I stop trying to prove myself?",
     "affirmation": "Everything always works out for me.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "14": {
     "title": "Radiance",
     "prompt": "What gifts flow effortlessly through me?",
     "affirmation": "I love being seen.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "15": {
     "title": "Relationships",
     "prompt": "Which relationships nourish my nervous system, and which drain it?",
     "affirmation": "I radiate brilliance.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "16": {
     "title": "Leadership",
     "prompt": "Where am I being invited to lead instead of waiting to be chosen?",
     "affirmation": "I am respected in every room I step into.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "17": {
     "title": "Creation",
     "prompt": "What wants to be born through me this season?",
     "affirmation": "I trust my flow.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "18": {
     "title": "Expression",
     "prompt": "If my voice carried no fear of judgment, what would I say?",
     "affirmation": "I lead with an open heart.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Full capacity. Give energy to projects, take action, socialize, speak, share, and use this golden window wisely."
   },
   "19": {
     "title": "Overflow",
     "prompt": "How can I share from abundance rather than obligation?",
     "affirmation": "My voice is impactful.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Look ahead and adjust. Forecast your cycle 4\u20135 weeks out and adjust your calendar, commitments, and expectations."
   },
   "20": {
     "title": "Discernment",
     "prompt": "What no longer feels aligned, even if it once did?",
     "affirmation": "I honor my boundaries.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "21": {
     "title": "Boundaries",
     "prompt": "Where am I leaking energy by saying yes when my body says no?",
     "affirmation": "I speak my truth clearly.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "22": {
     "title": "Standards",
     "prompt": "What standard am I ready to raise in my life?",
     "affirmation": "I prioritize my peace.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "23": {
     "title": "Self-Trust",
     "prompt": "When was the last time I ignored my inner knowing, and what did it teach me?",
     "affirmation": "My presence holds power.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "24": {
     "title": "Refinement",
     "prompt": "What can I simplify to create more peace?",
     "affirmation": "My womb speaks with authority.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "25": {
     "title": "Forgiveness",
     "prompt": "What version of myself deserves compassion today?",
     "affirmation": "I ground my womb to the iron center of the earth.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "26": {
     "title": "Integration",
     "prompt": "What lesson from this cycle am I finally beginning to embody?",
     "affirmation": "I honor my energetic sensitivity.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Closing tasks and side work. Finish tasks, tie up loose ends, prepare your home and mind, and fill out your flow map."
   },
   "27": {
     "title": "Devotion",
     "prompt": "What daily practice helps me remember who I really am?",
     "affirmation": "I am seen, desired, and celebrated for who I am.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Slow down and sip tea. Reduce stimulation, say no without guilt, reduce workload, and buy roses."
   },
   "28": {
     "title": "Completion",
     "prompt": "Looking back over this cycle, how have I changed—and what intention will I carry into my next beginning?",
     "affirmation": "I trust wisdom that emerges in the stillness.",
-    "queenMove": "Choose one aligned action that supports the woman you are becoming."
+    "queenMove": "Slow down and sip tea. Reduce stimulation, say no without guilt, reduce workload, and buy roses."
   }
 };
 

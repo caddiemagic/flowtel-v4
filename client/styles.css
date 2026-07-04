@@ -1140,3 +1140,16 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   width:calc(var(--ring-base) + var(--ring-offset)) !important;
   height:calc(var(--ring-base) + var(--ring-offset)) !important;
 }
+
+
+/* Release 0.6.8 — final wheel/card cleanup */
+.medicine-wheel{
+  background:
+    radial-gradient(circle at center,rgba(255,253,249,.96) 0 26%,rgba(255,255,255,.68) 27% 31%,transparent 32%),
+    linear-gradient(135deg,rgba(248,231,227,.34),rgba(255,253,249,.92) 46%,rgba(251,247,241,.88)) !important;
+}
+.wheel-current-star{display:none!important}
+@media(max-width:900px){
+  .wheel-season-autumn,.wheel-season-summer{top:-8px!important}
+  .wheel-season-winter,.wheel-season-spring{bottom:-8px!important}
+}
