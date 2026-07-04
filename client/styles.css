@@ -1153,3 +1153,91 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   .wheel-season-autumn,.wheel-season-summer{top:-8px!important}
   .wheel-season-winter,.wheel-season-spring{bottom:-8px!important}
 }
+
+
+/* Release 0.6.9 — final wheel, concierge card, and mobile polish */
+.wheel-number-ring{
+  border-width:3px !important;
+  border-color:rgba(216,168,79,.76) !important;
+}
+
+.wheel-room.active::after{
+  content:"✦";
+  position:absolute;
+  left:50%;
+  top:-17px;
+  transform:translateX(-50%);
+  color:var(--gold);
+  font-size:1rem;
+  line-height:1;
+  filter:drop-shadow(0 3px 6px rgba(109,78,65,.18));
+  pointer-events:none;
+}
+
+.concierge-card-eyebrow{
+  margin:0 0 16px;
+}
+
+.concierge-note h3{
+  display:none;
+}
+
+.concierge-note #witnessText strong{
+  font-size:1.12rem;
+}
+
+.concierge-note #witnessText button.secondary{
+  background:rgba(255,253,249,.8);
+}
+
+.concierge-note-by{
+  color:var(--soft-brown);
+  font-style:italic;
+}
+
+.wakeup-button{
+  margin-top:10px;
+}
+
+@media(max-width:900px){
+  .medicine-wheel{
+    --day-radius:29%;
+    --ring-base:58%;
+    --day-size:24px;
+    --ring-offset:42px;
+    width:min(100%,430px) !important;
+  }
+
+  .wheel-room{
+    font-size:.58rem !important;
+  }
+
+  .wheel-season{
+    min-width:92px !important;
+    padding:10px 8px !important;
+    background:rgba(255,253,249,.82);
+    border:1px solid rgba(216,168,79,.18);
+    border-radius:14px;
+  }
+
+  .wheel-season-autumn,.wheel-season-summer{
+    top:-26px !important;
+  }
+
+  .wheel-season-winter,.wheel-season-spring{
+    bottom:-26px !important;
+  }
+
+  .wheel-season-autumn,.wheel-season-winter{
+    left:-2px !important;
+  }
+
+  .wheel-season-summer,.wheel-season-spring{
+    right:-2px !important;
+  }
+
+  .rose-compass-center{
+    width:min(46%,185px) !important;
+    height:min(46%,185px) !important;
+  }
+}

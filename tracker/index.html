@@ -30,7 +30,7 @@
       font:inherit;
     }
     .tracker-shell{
-      width:min(100% - 32px,980px);
+      width:min(100% - 32px,920px);
       margin:0 auto;
       padding:32px 0 76px;
     }
@@ -57,7 +57,7 @@
     }
     .tracker-hero h1{
       margin:0 0 12px;
-      font-size:clamp(2.65rem,6vw,4.45rem);
+      font-size:clamp(2.35rem,5vw,3.65rem);
       line-height:.9;
       font-weight:400;
       letter-spacing:.13em;
@@ -106,7 +106,7 @@
     }
     #cycleMainHeading{
       margin:0 0 8px;
-      font-size:clamp(1.75rem,4vw,2.6rem);
+      font-size:clamp(1.55rem,3.2vw,2.15rem);
       line-height:1;
       font-weight:400;
       letter-spacing:.10em;
@@ -135,7 +135,7 @@
     .question.active{display:block}
     .question h2{
       margin:0 0 10px;
-      font-size:clamp(1.35rem,3vw,1.85rem);
+      font-size:clamp(1.18rem,2.15vw,1.45rem);
       line-height:1.08;
       font-weight:400;
       letter-spacing:.05em;
@@ -222,6 +222,11 @@
       padding:0 20px;
       cursor:pointer;
     }
+    .date-helper{
+      margin:8px 0 0 4px;
+      font-size:.82rem;
+      color:var(--soft-brown);
+    }
     .result-card{
       padding:28px;
       border:1px solid rgba(216,168,79,.30);
@@ -268,8 +273,8 @@
       transform:translate(-50%,-50%);
       pointer-events:none;
     }
-    .mini-wheel::before{width:58%;height:58%}
-    .mini-wheel::after{width:82%;height:82%}
+    .mini-wheel::before{width:56%;height:56%;border-width:3px}
+    .mini-wheel::after{width:82%;height:82%;border-width:3px}
     .mini-rose{
       position:absolute;
       width:48%;
@@ -387,6 +392,54 @@
       color:var(--soft-brown)!important;
       margin-top:16px!important;
     }
+    /* Release 0.6.9 tracker final */
+
+    .question h2{
+      text-transform:none !important;
+      letter-spacing:.015em !important;
+      font-size:clamp(1.18rem,2.1vw,1.45rem) !important;
+      line-height:1.18 !important;
+    }
+    #cycleMainHeading{
+      font-size:clamp(1.5rem,3vw,2.05rem) !important;
+      letter-spacing:.08em !important;
+    }
+    #cycleSubHeading{
+      font-size:.9rem !important;
+    }
+    #cycleResults #cycleMainHeading,
+    .result-card h2{
+      font-size:clamp(1.45rem,3vw,2.1rem) !important;
+    }
+    .cycle-widget{
+      background:linear-gradient(145deg,rgba(255,253,249,.97),rgba(251,247,241,.96));
+    }
+    .question{
+      background:rgba(255,253,249,.92);
+    }
+    .date-field::-webkit-date-and-time-value{
+      text-align:left;
+    }
+    @media(max-width:780px){
+      .mini-wheel{
+        width:min(100%,285px);
+      }
+      .mini-day{
+        width:24px;
+        height:24px;
+        font-size:.65rem;
+      }
+      .tracker-card.tracker-hero{
+        width:min(100%,880px);
+      }
+      .question h2{
+        font-size:clamp(1.12rem,7vw,1.32rem) !important;
+      }
+      #cycleMainHeading{
+        font-size:clamp(1.35rem,8vw,1.85rem) !important;
+      }
+    }
+
     @media(max-width:780px){
       .tracker-shell{width:min(100% - 22px,980px);padding-top:18px}
       .tracker-hero{padding:24px 18px}
@@ -437,6 +490,7 @@
         <div class="date-field-wrap">
           <label class="date-field-label" for="cyclePeriodDate">Last period start date</label>
           <input class="date-field" type="date" id="cyclePeriodDate" aria-label="Last period start date" onchange="cycleUpdateDateLabel()" onclick="cycleOpenDatePicker(this)" onfocus="cycleOpenDatePicker(this)">
+          <p class="date-helper">Choose the first day of full blood flow.</p>
         </div>
         <div class="button-grid">
           <button type="button" id="cycleRevealBtn" onclick="cycleCalculateWombCycle()" disabled>My Cycle Data</button>
@@ -471,9 +525,12 @@
         }
       };
       window.cycleUpdateDateLabel = function(){
-        const input = $("cyclePeriodDate");        const btn = $("cycleRevealBtn");
-        if(input.value){          if(btn) btn.disabled = false;
-        }else{          if(btn) btn.disabled = true;
+        const input = $("cyclePeriodDate");
+        const btn = $("cycleRevealBtn");
+        if(input && input.value){
+          if(btn) btn.disabled = false;
+        }else{
+          if(btn) btn.disabled = true;
         }
       };
 
@@ -542,6 +599,15 @@
       }
 
       function getWombSeason(day){
+        if(day > 33){
+          return {
+            name:"Receiving Season",
+            wing:"Receiving Wing",
+            emoji:"🌹",
+            prompt:"What practice would help you receive your body exactly as she is today?",
+            theme:"You are in an extended receiving window. Rather than forcing a cycle label, let this be a season of listening, tending, and gathering your energy with devotion."
+          };
+        }
         const normalized = ((day - 1) % 28) + 1;
         if(normalized >= 27 || normalized <= 5){
           return {
@@ -740,16 +806,23 @@
         currentStep = 1;
         screenHistory = ["cycleQuestion1"];
         cycleUpdateHeader("Track Your Cycle","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
-        const input = $("cyclePeriodDate");        const btn = $("cycleRevealBtn");
-        if(input) input.value = "";        if(btn) btn.disabled = true;
+        const input = $("cyclePeriodDate");
+        const btn = $("cycleRevealBtn");
+        if(input) input.value = "";
+        if(btn) btn.disabled = true;
         cycleShowScreen("cycleQuestion1", false);
       };
 
       // Robust click binding in addition to inline handlers. Some embeds can strip inline handlers.
       const yesButton = document.querySelector("#cycleQuestion1 .button-grid button:first-child");
       const noButton = document.querySelector("#cycleQuestion1 .button-grid button:last-child");
+      const dateInput = $("cyclePeriodDate");
       if(yesButton) yesButton.addEventListener("click", () => cycleAnswerPeriod(true));
       if(noButton) noButton.addEventListener("click", () => cycleAnswerPeriod(false));
+      if(dateInput){
+        dateInput.addEventListener("change", cycleUpdateDateLabel);
+        dateInput.addEventListener("input", cycleUpdateDateLabel);
+      }
 
     })();
   </script>

@@ -496,6 +496,13 @@ function renderReflectionMoonMagic(stay){
   `;
 }
 
+
+function requestWakeUpText(stay){
+  const key=`flowtel:wakeup:${stay?.id || "today"}`;
+  localStorage.setItem(key,new Date().toISOString());
+  renderConciergeCare(stay);
+}
+
 function hasTurndownRequest(stay){
   return !!(stay?.turndown_requested_at || stay?.turndown_status==="requested" || sessionStorage.getItem(`flowtel:turndown:${stay?.id}`)==="requested");
 }
@@ -511,22 +518,23 @@ function renderConciergeCare(stay){
     const readKey=`flowtel:conciergeNoteRead:${stay.id}`;
     const hasRead=localStorage.getItem(readKey)==="true";
     witnessNote.classList.add("concierge-fulfilled");
-    const practitionerLine=stay.witness_note_by ? `<span>From ${escapeHtml(stay.witness_note_by)}</span>` : "";
+    const practitionerLine=stay.witness_note_by ? `<span class="concierge-note-by">From ${escapeHtml(stay.witness_note_by)}</span>` : "";
     witnessText.innerHTML=`
-      <strong>${hasRead ? "🌹 Concierge note saved." : "🌹 Your Concierge stopped by today."}</strong>
-      ${hasRead ? "<span>Your note is saved in this stay.</span>" : "<span>✨ A note has been left in your room.</span>"}
+      <strong>${hasRead ? "Concierge note saved." : "Your Concierge stopped by today."}</strong>
+      ${hasRead ? "<span>Your note is saved in this stay.</span>" : "<span>A note has been left in your room.</span>"}
       ${practitionerLine}
-      <button type="button" class="secondary read-note-button" id="readConciergeNoteButton">${hasRead ? "View Note" : "Read Note →"}</button>
+      <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="readConciergeNoteButton">Read Note →</button>
       <p class="concierge-note-text ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${escapeHtml(stay.witness_note)}</p>
-      <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="markConciergeNoteReadButton">Mark as Read</button>
+      <button type="button" class="secondary read-note-button hidden" id="markConciergeNoteReadButton">Mark as Read</button>
     `;
     const readButton=document.getElementById("readConciergeNoteButton");
     const markButton=document.getElementById("markConciergeNoteReadButton");
     const noteText=document.getElementById("conciergeNoteText");
-    if(readButton&&noteText){
+    if(readButton&&noteText&&markButton){
       readButton.addEventListener("click",()=>{
         noteText.classList.remove("hidden");
         readButton.classList.add("hidden");
+        markButton.classList.remove("hidden");
       });
     }
     if(markButton){
@@ -546,16 +554,24 @@ function renderConciergeCare(stay){
     return;
   }
 
+  const wakeupKey=`flowtel:wakeup:${stay?.id || "today"}`;
+  const wakeupRequested=localStorage.getItem(wakeupKey)==="true";
   witnessText.innerHTML=`
     <strong>Your Concierge is available.</strong>
     <span>Need a little extra care today?</span>
-    <button type="button" id="requestTurndownButton">🌙 Request Turndown Service</button>
+    <button type="button" id="requestTurndownButton">Request Turndown Service</button>
     <small>A concierge will be notified that you've requested a little extra love today.</small>
+    <button type="button" class="secondary wakeup-button" id="requestWakeUpTextButton">${wakeupRequested ? "Wake Up Text Requested" : "Request a Wake Up Text"}</button>
+    <small>${wakeupRequested ? "Your next-day reminder has been noted for this beta." : "Beta preview: SMS delivery will connect after the texting platform is integrated."}</small>
   `;
 
   const button=document.getElementById("requestTurndownButton");
   if(button){
     button.addEventListener("click",()=>handleTurndownRequest(stay));
+  }
+  const wakeupButton=document.getElementById("requestWakeUpTextButton");
+  if(wakeupButton&&!wakeupRequested){
+    wakeupButton.addEventListener("click",()=>requestWakeUpText(stay));
   }
 }
 

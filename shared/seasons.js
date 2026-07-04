@@ -9,6 +9,9 @@ export function normalizeCycleDay(day) {
 }
 
 export function getInnerSeason(day) {
+  const raw = Number(day);
+  if (Number.isFinite(raw) && raw > 33) return "Receiving Season";
+
   const normalized = normalizeCycleDay(day);
 
   if (!normalized) return null;
@@ -25,6 +28,7 @@ export function getWing(season) {
     "Inner Spring": "South Wing",
     "Inner Summer": "East Wing",
     "Inner Autumn": "North Wing",
+    "Receiving Season": "Receiving Wing",
   }[season];
 }
 
@@ -34,6 +38,7 @@ export function getCourt(season) {
     "Inner Spring": "Spring Court",
     "Inner Summer": "Summer Court",
     "Inner Autumn": "Autumn Court",
+    "Receiving Season": "Receiving Court",
   }[season];
 }
 
