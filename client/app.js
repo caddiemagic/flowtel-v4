@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -89,6 +89,7 @@ async function completeMemberBridgeEntrance(email){
   });
 
   setMessage("");
+  await prepareDailyStayState();
 
   if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
     sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
@@ -99,6 +100,9 @@ async function completeMemberBridgeEntrance(email){
     return;
   }
 
+  clearCachedSuiteStay();
+  currentStay=null;
+  pendingArrivalStay=null;
   showCheckIn();
 }
 
@@ -231,6 +235,35 @@ refineLobbyCopy();
 updateDoorwayCopy();
 
 function setMessage(text){ message.textContent=text||""; }
+
+function localTodayISO(){
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=String(now.getMonth()+1).padStart(2,"0");
+  const day=String(now.getDate()).padStart(2,"0");
+  return `${year}-${month}-${day}`;
+}
+
+function isStayForLocalToday(stay){
+  return !!stay && stay.checkin_date===localTodayISO();
+}
+
+function clearCachedSuiteStay(){
+  try{
+    sessionStorage.removeItem("flowtel:lastSuiteStay");
+    sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+  }catch(error){}
+}
+
+async function prepareDailyStayState(){
+  if(!currentProfile?.id) return;
+  try{
+    await autoCloseOpenStayIfNeeded(currentProfile.id);
+  }catch(error){
+    console.warn("Daily stay lifecycle check failed.",error);
+  }
+}
+
 
 function setProgress(step){
   document.querySelectorAll(".progress-ribbon span").forEach((item,index)=>item.classList.toggle("active",index<step));
@@ -490,13 +523,15 @@ function renderSuite(stay){
 
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
   document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
+  const dayOne=document.getElementById("suiteDayOne");
+  if(dayOne) dayOne.textContent=stay.cycle_start_date ? `Day 1: ${formatDate(stay.cycle_start_date)}` : "";
 
   document.getElementById("roomTitle").textContent=`${content.title} · Room ${room}`;
   document.getElementById("roomAffirmation").textContent=content.affirmation;
   document.getElementById("roomPrompt").textContent=content.prompt;
   document.getElementById("roomQueenMove").textContent=content.queenMove;
 
-  document.getElementById("reflectionInput").value=stay.reflection||"";
+  document.getElementById("reflectionInput").value="";
 
   renderConciergeCare(stay);
   renderPractitionerConnection();
@@ -570,7 +605,7 @@ function parseConciergeNotes(stay){
       return parsed.map((item,index)=>({
         id:item.id || `${stay.id || "stay"}-${index}`,
         note:item.note || item.text || "",
-        by:item.by || item.practitioner || stay.witness_note_by || "Your Concierge",
+        by:item.by || item.practitioner || stay.witness_note_by || "your mentor",
         at:item.at || item.created_at || stay.witnessed_at || stay.updated_at,
       })).filter(item=>item.note);
     }
@@ -578,7 +613,7 @@ function parseConciergeNotes(stay){
   return [{
     id:`${stay?.id || "stay"}-legacy`,
     note:raw,
-    by:stay?.witness_note_by || "Your Concierge",
+    by:stay?.witness_note_by || "your mentor",
     at:stay?.witnessed_at || stay?.updated_at,
   }];
 }
@@ -603,7 +638,7 @@ function renderConciergeCare(stay){
     const savedSignature=stay.concierge_notes_read_signature || localStorage.getItem(readKey);
     const hasRead=savedSignature===signature;
     witnessNote.classList.add("concierge-fulfilled");
-    const latestBy=latestNote?.by || stay.witness_note_by || "Your Concierge";
+    const latestBy=latestNote?.by || stay.witness_note_by || "your mentor";
     const noteList=notes.map((note,index)=>`
       <article class="concierge-note-entry">
         <span class="concierge-note-by">From ${escapeHtml(note.by || latestBy)}</span>
@@ -879,6 +914,7 @@ async function handleSignIn(){
     });
 
     setMessage("");
+    await prepareDailyStayState();
 
     if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
       sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
@@ -889,6 +925,9 @@ async function handleSignIn(){
       return;
     }
 
+    clearCachedSuiteStay();
+    currentStay=null;
+    pendingArrivalStay=null;
     showCheckIn();
   }catch(error){
     setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
@@ -938,12 +977,16 @@ function shouldOpenSuiteFromConcierge(){
 
 function restoreSuiteFromConcierge(){
   const stay=getCachedSuiteStay();
-  if(!stay) return false;
+  if(!stay || !isStayForLocalToday(stay)){
+    clearCachedSuiteStay();
+    return false;
+  }
 
   currentStay=stay;
   pendingArrivalStay=stay;
   renderSuite(stay);
   showScene("suite");
+  window.scrollTo({top:0,behavior:"smooth"});
   return true;
 }
 
@@ -954,19 +997,26 @@ async function openTodaySuiteIfPresent(){
   if(params.get("forceCheckin")==="1") return false;
 
   const stay=await getTodayStayForClient(currentProfile.id);
-  if(!stay) return false;
+  if(!stay || !isStayForLocalToday(stay)){
+    clearCachedSuiteStay();
+    return false;
+  }
 
   currentStay=stay;
   pendingArrivalStay=stay;
   cacheSuiteStay(stay);
   renderSuite(stay);
   showScene("suite");
+  window.scrollTo({top:0,behavior:"smooth"});
   return true;
 }
 
 async function ensureArrivalStay(){
-  if(currentStay) return currentStay;
-  if(pendingArrivalStay) return pendingArrivalStay;
+  if(currentStay && isStayForLocalToday(currentStay)) return currentStay;
+  if(pendingArrivalStay && isStayForLocalToday(pendingArrivalStay)) return pendingArrivalStay;
+
+  currentStay=null;
+  pendingArrivalStay=null;
 
   const arrival=readArrivalFields();
   if(!arrival) return null;

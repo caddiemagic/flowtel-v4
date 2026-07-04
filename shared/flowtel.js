@@ -3,6 +3,7 @@ export { getCurrentProfile, ensureProfile } from "./profiles.js";
 export {
   createStay,
   getTodayStayForClient,
+  autoCloseOpenStayIfNeeded,
   saveReflection,
   closeStayPersonally,
   clockInPractitioner,

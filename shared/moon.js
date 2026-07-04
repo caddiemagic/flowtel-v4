@@ -1,7 +1,8 @@
 // shared/moon.js
 
 const SYNODIC_MONTH = 29.530588853;
-const KNOWN_NEW_MOON = new Date(Date.UTC(2000, 0, 6, 18, 14));
+// Flowtel framework anchor: July 3, 2026 is Moon Day 20, so Day 1 begins June 14, 2026.
+const KNOWN_NEW_MOON = new Date(Date.UTC(2026, 5, 14, 0, 0));
 
 export function getMoonMagic(date = new Date()) {
   let age = ((date - KNOWN_NEW_MOON) / 86400000) % SYNODIC_MONTH;

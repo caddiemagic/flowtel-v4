@@ -1605,3 +1605,11 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     height:min(45%,160px) !important;
   }
 }
+
+.suite-day-one{
+  margin-top:.65rem;
+  font-size:.95rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:rgba(109,78,65,.72);
+}
