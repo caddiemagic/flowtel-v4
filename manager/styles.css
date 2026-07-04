@@ -396,3 +396,48 @@
   .dashboard-snapshot{grid-template-columns:1fr !important;}
   .stats{grid-template-columns:repeat(2,1fr) !important;}
 }
+
+
+/* Release 0.7.0 — concierge header rose polish */
+.hero{
+  position:relative;
+  overflow:hidden;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  top:18px;
+  right:24px;
+  width:180px;
+  height:180px;
+  background:url("../assets/rose_compass_center.png") center/contain no-repeat;
+  opacity:.14;
+  mix-blend-mode:multiply;
+  pointer-events:none;
+}
+.hero > *{
+  position:relative;
+  z-index:1;
+}
+.concierge-identity-inline{
+  margin-top:18px;
+}
+.concierge-identity-inline h2{
+  margin-bottom:4px;
+}
+.moon-progress{
+  max-width:520px;
+}
+.moon-progress b,
+#initiationMoonMarker{
+  font-size:1.25rem!important;
+  color:var(--brown)!important;
+  filter:drop-shadow(0 2px 3px rgba(109,78,65,.18));
+}
+@media(max-width:760px){
+  .hero::after{
+    width:120px;
+    height:120px;
+    opacity:.10;
+  }
+}

@@ -1241,3 +1241,97 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     height:min(46%,185px) !important;
   }
 }
+
+
+/* Release 0.7.0 — suite wheel and concierge polish */
+.wheel-number-ring{
+  border-width:4px !important;
+  border-color:rgba(216,168,79,.80) !important;
+}
+.wheel-room.active::after{
+  content:"✦" !important;
+  display:block !important;
+  position:absolute;
+  left:50%;
+  top:-18px;
+  transform:translateX(-50%);
+  color:var(--gold);
+  font-size:1.15rem;
+  line-height:1;
+  z-index:9;
+  filter:drop-shadow(0 3px 6px rgba(109,78,65,.22));
+  pointer-events:none;
+}
+.wheel-current-star{display:none!important}
+.suite-scene{
+  position:relative;
+}
+.suite-scene::before{
+  content:"";
+  position:absolute;
+  left:50%;
+  top:34px;
+  width:190px;
+  height:190px;
+  transform:translateX(-50%);
+  background:url("../assets/rose_compass_center.png") center/contain no-repeat;
+  opacity:.16;
+  mix-blend-mode:multiply;
+  pointer-events:none;
+  z-index:0;
+}
+.suite-scene > .eyebrow,
+.suite-scene > h2,
+.suite-scene > .suite-subline{
+  position:relative;
+  z-index:1;
+}
+.concierge-card-eyebrow{
+  font-family:Arial,sans-serif;
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--rose);
+}
+.concierge-note #witnessText strong{
+  font-size:1.08rem;
+}
+.concierge-note #witnessText strong,
+.concierge-note #witnessText span,
+.concierge-note #witnessText small{
+  line-height:1.55;
+}
+.wakeup-button{
+  display:inline-flex;
+  width:auto;
+  margin-top:12px;
+}
+@media(max-width:900px){
+  .medicine-wheel{
+    --day-radius:27.5%;
+    --ring-base:55%;
+    --day-size:22px;
+    --ring-offset:39px;
+    width:min(100%,400px) !important;
+  }
+  .wheel-room{
+    width:var(--day-size) !important;
+    height:var(--day-size) !important;
+    font-size:.54rem !important;
+  }
+  .wheel-season{
+    min-width:86px !important;
+    font-size:.56rem !important;
+  }
+  .wheel-season small{font-size:.39rem!important}
+  .wheel-season-autumn,.wheel-season-summer{top:-38px!important}
+  .wheel-season-winter,.wheel-season-spring{bottom:-38px!important}
+  .wheel-season-autumn,.wheel-season-winter{left:-4px!important}
+  .wheel-season-summer,.wheel-season-spring{right:-4px!important}
+  .suite-scene::before{
+    top:26px;
+    width:138px;
+    height:138px;
+  }
+}

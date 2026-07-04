@@ -499,7 +499,7 @@ function renderReflectionMoonMagic(stay){
 
 function requestWakeUpText(stay){
   const key=`flowtel:wakeup:${stay?.id || "today"}`;
-  localStorage.setItem(key,new Date().toISOString());
+  localStorage.setItem(key,"true");
   renderConciergeCare(stay);
 }
 
@@ -548,7 +548,7 @@ function renderConciergeCare(stay){
 
   if(hasTurndownRequest(stay)){
     witnessText.innerHTML=`
-      <strong>🌙 Turndown Service Requested</strong>
+      <strong>Turndown Service Requested</strong>
       <span>A concierge has been notified.</span>
     `;
     return;

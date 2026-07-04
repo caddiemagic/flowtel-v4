@@ -448,6 +448,145 @@
       .tracker-dashboard{grid-template-columns:1fr}
       .stat-grid{grid-template-columns:1fr}
     }
+
+    /* Release 0.7.0 — Flowtel lobby polish */
+    .tracker-shell{
+      width:min(100% - 28px,960px);
+      padding:28px 0 72px;
+    }
+    .tracker-hero{
+      width:min(100%,860px);
+      padding:24px 24px 26px;
+      margin-bottom:22px;
+      background:
+        radial-gradient(circle at 92% 18%,rgba(231,189,105,.10),transparent 22%),
+        rgba(255,253,249,.95);
+    }
+    .tracker-hero h1{
+      font-size:clamp(2.45rem,6vw,4.8rem) !important;
+      letter-spacing:.16em;
+    }
+    .tracker-hero .hero-line{
+      font-size:.86rem !important;
+      line-height:1.5;
+    }
+    #cycleTrackerApp{
+      width:min(100%,860px);
+    }
+    .cycle-widget{
+      padding:34px 34px 38px;
+      border-radius:34px;
+      background:
+        radial-gradient(circle at 94% 8%,rgba(231,189,105,.10),transparent 21%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.94)) !important;
+    }
+    .progress-wrap{
+      height:6px;
+      margin:0 0 30px;
+      background:rgba(216,168,79,.14);
+    }
+    .progress-bar{
+      background:linear-gradient(90deg,rgba(216,168,79,.78),rgba(216,168,79,.55));
+    }
+    #cycleMainHeading{
+      font-size:clamp(1.85rem,5vw,3.15rem) !important;
+      letter-spacing:.14em !important;
+      line-height:1.02 !important;
+      margin-bottom:12px !important;
+    }
+    #cycleSubHeading{
+      max-width:560px;
+      font-size:.88rem !important;
+      line-height:1.55 !important;
+      margin-bottom:30px !important;
+    }
+    .question{
+      padding:28px 30px !important;
+      border-radius:28px;
+      background:rgba(255,253,249,.82) !important;
+      box-shadow:0 14px 40px rgba(109,78,65,.06);
+    }
+    .question h2{
+      font-size:clamp(1.28rem,3.8vw,2.15rem) !important;
+      letter-spacing:.035em !important;
+      line-height:1.12 !important;
+      text-transform:none !important;
+      margin-bottom:12px !important;
+    }
+    .question p,.helper-text{
+      font-size:.92rem !important;
+      line-height:1.6 !important;
+    }
+    .button-grid,.action-row{
+      gap:12px !important;
+      margin-top:22px !important;
+    }
+    .button-grid button,.action-row button,.tracker-button{
+      min-height:48px !important;
+      font-size:.70rem !important;
+      letter-spacing:.15em !important;
+      background:rgba(248,231,227,.78);
+    }
+    .button-grid button.secondary-button,.action-row button.secondary-button,.text-button{
+      background:rgba(255,253,249,.88);
+    }
+    .date-field-label{
+      font-size:.70rem !important;
+      letter-spacing:.14em;
+      color:var(--rose);
+    }
+    .date-field{
+      min-height:54px;
+      background:rgba(255,253,249,.94);
+      border-color:rgba(109,78,65,.16);
+      font-size:.96rem;
+    }
+    .date-helper{
+      display:none !important;
+    }
+    .result-card{
+      background:
+        radial-gradient(circle at 92% 8%,rgba(216,168,79,.08),transparent 21%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(255,249,232,.46));
+      border-color:rgba(216,168,79,.30);
+    }
+    #cycleResults #cycleMainHeading,
+    .result-card h2{
+      font-size:clamp(1.45rem,3.8vw,2.45rem) !important;
+      line-height:1.14 !important;
+    }
+    .stat,.stat-wide,.prompt,.framework,.day-detail{
+      background:rgba(255,253,249,.70);
+      border-color:rgba(109,78,65,.11);
+      box-shadow:0 8px 22px rgba(109,78,65,.035);
+    }
+    .framework-item{
+      display:grid;
+      grid-template-columns:minmax(120px,.45fr) 1fr;
+      gap:12px;
+      padding:10px 0;
+      border-top:1px solid rgba(109,78,65,.08);
+      color:var(--soft-brown);
+    }
+    .framework-item:first-of-type{border-top:0}
+    .framework-item strong{
+      color:var(--brown);
+      font-weight:400;
+    }
+    .mini-wheel::before,.mini-wheel::after{
+      border-width:3px;
+      border-color:rgba(231,189,105,.78);
+    }
+    @media(max-width:780px){
+      .tracker-shell{width:min(100% - 18px,960px)}
+      .tracker-hero{padding:22px 18px}
+      .cycle-widget{padding:24px 18px 30px}
+      #cycleMainHeading{font-size:clamp(1.65rem,9vw,2.35rem) !important}
+      .question{padding:22px 18px !important}
+      .question h2{font-size:clamp(1.18rem,6.4vw,1.65rem) !important}
+      .framework-item{grid-template-columns:1fr;gap:4px}
+    }
+
   </style>
 </head>
 <body>
@@ -485,12 +624,12 @@
 
       <div id="cycleDateQuestion" class="question">
         <button type="button" class="back-button" onclick="cycleGoBack()">← Back</button>
-        <h2>Select the start date of your last period</h2>
+        <h2>Choose the first day of full blood flow</h2>
         <p>It is okay if you are a couple days off. This is simply a starting point for learning your rhythm.</p>
         <div class="date-field-wrap">
-          <label class="date-field-label" for="cyclePeriodDate">Last period start date</label>
+          <label class="date-field-label" for="cyclePeriodDate">Choose the first day of full blood flow</label>
           <input class="date-field" type="date" id="cyclePeriodDate" aria-label="Last period start date" onchange="cycleUpdateDateLabel()" onclick="cycleOpenDatePicker(this)" onfocus="cycleOpenDatePicker(this)">
-          <p class="date-helper">Choose the first day of full blood flow.</p>
+          <p class="date-helper"></p>
         </div>
         <div class="button-grid">
           <button type="button" id="cycleRevealBtn" onclick="cycleCalculateWombCycle()" disabled>My Cycle Data</button>
@@ -733,7 +872,7 @@
         $("cycleResultsContent").innerHTML = `
           <div class="result-card" id="cycleSnapshotCard">
             <div class="result-topline">Cycle data • ${new Date().toLocaleDateString()}</div>
-            <h2>${wombSeason.emoji} You’re on Day ${cycleDay} of your cycle</h2>
+            <h2>You’re on Day ${cycleDay} of your cycle</h2>
             <p>${bestieLine(wombSeason, moon.moonSeason)}</p>
             <div class="tracker-dashboard">
               ${renderWheel(cycleDay)}
@@ -750,10 +889,10 @@
             <div class="prompt"><h3>Journal Prompt</h3><p>${wombSeason.prompt}</p></div>
             <div class="framework">
               <h3>Womb Magic Inner Seasons</h3>
-              <div class="framework-item"><strong>❄️ Inner Winter:</strong> Days 27–5 — Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
-              <div class="framework-item"><strong>🌱 Inner Spring:</strong> Days 6–11 — Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
-              <div class="framework-item"><strong>☀️ Inner Summer:</strong> Days 12–19 — Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
-              <div class="framework-item"><strong>🍂 Inner Autumn:</strong> Days 20–26 — Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
+              <div class="framework-item"><strong>Inner Winter</strong> Days 27–5 — Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
+              <div class="framework-item"><strong>Inner Spring</strong> Days 6–11 — Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
+              <div class="framework-item"><strong>Inner Summer</strong> Days 12–19 — Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
+              <div class="framework-item"><strong>Inner Autumn</strong> Days 20–26 — Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to explore how Flowtel can remember your stays.</div>
             ${inviteHtml()}
@@ -775,7 +914,7 @@
         $("cycleResultsContent").innerHTML = `
           <div class="result-card" id="cycleSnapshotCard">
             <div class="result-topline">Moon cycle data • ${new Date().toLocaleDateString()}</div>
-            <h2>${moon.moonSeason.emoji} You’re on Day ${moon.moonDay}</h2>
+            <h2>You’re on Day ${moon.moonDay}</h2>
             <p>${reasonText}</p>
             <div class="tracker-dashboard">
               ${renderWheel(moon.moonDay)}
@@ -790,10 +929,10 @@
             <div class="prompt"><h3>Journal Prompt</h3><p>${moon.moonSeason.prompt}</p></div>
             <div class="framework">
               <h3>Moon Magic Framework</h3>
-              <div class="framework-item"><strong>🌑 New Moon — Days 27–5:</strong> Rest and dream your new big vision.</div>
-              <div class="framework-item"><strong>🌓 Half Full Moon — Days 6–11:</strong> Create and scheme.</div>
-              <div class="framework-item"><strong>🌕 Full Moon — Days 12–19:</strong> Witness your magic and be seen.</div>
-              <div class="framework-item"><strong>🌗 Half New Moon — Days 20–26:</strong> Audit and revise what you have created, then prepare for the next cycle.</div>
+              <div class="framework-item"><strong>New Moon · Days 27–5</strong> Rest and dream your new big vision.</div>
+              <div class="framework-item"><strong>Half Full Moon · Days 6–11</strong> Create and scheme.</div>
+              <div class="framework-item"><strong>Full Moon · Days 12–19</strong> Witness your magic and be seen.</div>
+              <div class="framework-item"><strong>Half New Moon · Days 20–26</strong> Audit and revise what you have created, then prepare for the next cycle.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to explore how Flowtel can remember your stays.</div>
             ${inviteHtml()}
