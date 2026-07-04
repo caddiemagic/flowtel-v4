@@ -565,7 +565,7 @@ function renderConciergeCare(stay){
     const noteList=notes.map((note,index)=>`
       <article class="concierge-note-entry">
         <span class="concierge-note-by">From ${escapeHtml(note.by || latestBy)}</span>
-        ${note.at ? `<small>${formatDateTime(note.at)}</small>` : ""}
+        ${note.at ? `<small>${formatDate(note.at)}</small>` : ""}
         <p>${escapeHtml(note.note)}</p>
       </article>
     `).join("");
