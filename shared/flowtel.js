@@ -8,6 +8,7 @@ export {
   clockInPractitioner,
   clockOutPractitioner,
   getPreviousVisits,
+  markConciergeNotesRead,
   getFrontDeskStays,
   witnessStay,
   prepareRoomAfterCheckout,

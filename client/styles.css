@@ -1532,3 +1532,76 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     border-width:3px !important;
   }
 }
+
+
+/* Release 0.7.4 — stay logic and hospitality polish */
+.video-lounge-card{
+  text-align:center !important;
+  padding:28px !important;
+}
+
+.video-lounge-card h3{
+  margin:8px 0 0 !important;
+}
+
+.checkout-card.checked-out textarea,
+.checkout-card.checked-out button{
+  display:none !important;
+}
+
+.checkout-note-saved{
+  margin-top:16px;
+  padding:16px 18px;
+  border:1px solid rgba(109,78,65,.12);
+  border-radius:18px;
+  background:rgba(255,253,249,.72);
+  font-style:italic;
+  color:var(--soft-brown) !important;
+}
+
+.wheel-panel{
+  padding-top:56px !important;
+  padding-bottom:72px !important;
+}
+
+.wheel-number-ring{
+  border-width:2.4px !important;
+}
+
+.wheel-number-ring-inner{
+  width:calc(var(--ring-base) - (var(--ring-offset) * .72)) !important;
+  height:calc(var(--ring-base) - (var(--ring-offset) * .72)) !important;
+}
+
+.wheel-room{
+  border-width:2.35px !important;
+}
+
+.wheel-star-marker{
+  font-size:1.36rem !important;
+}
+
+@media(max-width:700px){
+  .wheel-panel{
+    padding-top:86px !important;
+    padding-bottom:104px !important;
+  }
+
+  .medicine-wheel{
+    --day-radius:34%;
+    --ring-base:68%;
+    --day-size:28px;
+    --ring-offset:48px;
+    width:min(100%,340px) !important;
+  }
+
+  .wheel-number-ring-inner{
+    width:calc(var(--ring-base) - (var(--ring-offset) * .58)) !important;
+    height:calc(var(--ring-base) - (var(--ring-offset) * .58)) !important;
+  }
+
+  .rose-compass-center{
+    width:min(45%,160px) !important;
+    height:min(45%,160px) !important;
+  }
+}

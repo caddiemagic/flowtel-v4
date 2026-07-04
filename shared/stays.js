@@ -4,7 +4,13 @@ import { getCurrentUser } from "./auth.js";
 import { calculateCycleStartDate, getCourt, getInnerSeason, getWing } from "./seasons.js";
 import { getMoonMagic } from "./moon.js";
 
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+function todayISO(){
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=String(now.getMonth()+1).padStart(2,"0");
+  const day=String(now.getDate()).padStart(2,"0");
+  return `${year}-${month}-${day}`;
+}
 
 function daysBetween(startDate,endDate){
   const a=new Date(startDate), b=new Date(endDate);
@@ -48,7 +54,14 @@ export async function autoCloseOpenStayIfNeeded(clientId){
 export async function createStay({cycleDay,feelsLike}){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
+
   await autoCloseOpenStayIfNeeded(user.id);
+
+  // Flowtel allows one stay per local calendar day.
+  // If today's room already exists, return it rather than creating or reopening history.
+  const existingToday=await getTodayStayForClient(user.id);
+  if(existingToday) return existingToday;
+
   const innerSeason=getInnerSeason(cycleDay);
   const moon=getMoonMagic();
   const stay={
@@ -68,7 +81,7 @@ export async function createStay({cycleDay,feelsLike}){
     stay_status:"arrived",
   };
   const {data,error}=await supabase.from("flowtel_stays")
-    .upsert(stay,{onConflict:"client_id,checkin_date"}).select().single();
+    .insert(stay).select().single();
   if(error) throw error;
   return data;
 }
@@ -207,6 +220,19 @@ export async function getPreviousVisits(clientId, roomNumber=null){
   }));
 }
 
+
+export async function markConciergeNotesRead(stayId, signature){
+  const now=new Date().toISOString();
+  const {data,error}=await supabase.from("flowtel_stays").update({
+    concierge_notes_read_signature: signature || "",
+    concierge_notes_read_at: now,
+    updated_at: now,
+  }).eq("id",stayId).select().single();
+
+  if(error) throw error;
+  return data;
+}
+
 export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,
@@ -284,16 +310,33 @@ export async function witnessStay(stayId,witnessNote=""){
 export async function prepareRoomAfterCheckout(stayId, practitionerLabel=""){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
+
+  const now=new Date().toISOString();
   const note=practitionerLabel
-    ? `${practitionerLabel} lovingly prepared your room for your next visit.`
-    : "Your room was lovingly prepared for your next visit.";
+    ? `${practitionerLabel} cleansed your space after your stay.`
+    : "Concierge has cleansed your space.";
+
+  const {data:existing,error:existingError}=await supabase.from("flowtel_stays")
+    .select("witness_note,witness_note_by,witnessed_at,updated_at")
+    .eq("id",stayId)
+    .single();
+  if(existingError) throw existingError;
+
+  const notes=parseStoredConciergeNotes(existing?.witness_note, existing?.witness_note_by, existing?.witnessed_at || existing?.updated_at);
+  notes.push({
+    id:`cleanse-${now}`,
+    note,
+    by:practitionerLabel || "Your Concierge",
+    at:now,
+  });
+
   const {data,error}=await supabase.from("flowtel_stays").update({
     witnessed_by:user.id,
-    witnessed_at:new Date().toISOString(),
-    witness_note:note,
+    witnessed_at:now,
+    witness_note:JSON.stringify(notes),
     witness_note_by:practitionerLabel || "Your Concierge",
-    stay_status:"room_prepared",
-    updated_at:new Date().toISOString(),
+    stay_status:"witnessed",
+    updated_at:now,
   }).eq("id",stayId).select().single();
   if(error) throw error;
   return data;

@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -242,7 +242,7 @@ function showScene(name){
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();ensureLoungeClockInButton();window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();window.scrollTo({top:0,behavior:"smooth"});}
   if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
 }
 
@@ -420,6 +420,48 @@ async function renderLoungeVisits(){
       `).join("");
 }
 
+
+function renderLoungeCheckoutState(){
+  const card=document.getElementById("loungeCheckoutCard");
+  const title=document.getElementById("loungeCheckoutTitle");
+  const copy=document.getElementById("loungeCheckoutCopy");
+  const input=document.getElementById("checkoutInput");
+  const button=document.getElementById("checkoutButton");
+  const message=document.getElementById("checkoutMessage");
+  if(!card||!title||!copy||!input||!button) return;
+
+  const checkedOut=!!currentStay?.checked_out_at || currentStay?.stay_status==="checked_out";
+  card.classList.toggle("checked-out",checkedOut);
+
+  if(checkedOut){
+    title.textContent="Checked Out";
+    copy.textContent=currentStay?.checkout_notes
+      ? "Your checkout note is saved with this stay."
+      : "This stay has been closed with care.";
+    input.classList.add("hidden");
+    button.classList.add("hidden");
+    if(message){
+      message.textContent=currentStay?.checkout_notes ? currentStay.checkout_notes : "";
+      message.classList.toggle("checkout-note-saved",!!currentStay?.checkout_notes);
+    }
+    return;
+  }
+
+  title.textContent="Ready to check out?";
+  copy.textContent="Leave a note for tomorrow’s concierge.";
+  input.classList.remove("hidden");
+  button.classList.remove("hidden");
+  if(message) message.textContent="";
+}
+
+function openCheckoutFromSuite(){
+  showScene("lounge");
+  setTimeout(()=>{
+    const card=document.getElementById("loungeCheckoutCard");
+    if(card) card.scrollIntoView({behavior:"smooth",block:"start"});
+  },80);
+}
+
 function renderKey(stay){
   const name=currentProfile?.first_name||"Guest";
   const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
@@ -558,7 +600,7 @@ function renderConciergeCare(stay){
     const latestNote=notes[notes.length-1];
     const readKey=`flowtel:conciergeNoteRead:${stay.id}`;
     const signature=conciergeNotesSignature(notes);
-    const savedSignature=localStorage.getItem(readKey);
+    const savedSignature=stay.concierge_notes_read_signature || localStorage.getItem(readKey);
     const hasRead=savedSignature===signature;
     witnessNote.classList.add("concierge-fulfilled");
     const latestBy=latestNote?.by || stay.witness_note_by || "Your Concierge";
@@ -571,9 +613,8 @@ function renderConciergeCare(stay){
     `).join("");
 
     witnessText.innerHTML=`
-      <strong>${hasRead ? "Concierge notes saved." : "You have a new note."}</strong>
-      ${hasRead ? "<span>Your notes are saved in this stay.</span>" : `<span>${notes.length>1 ? `${notes.length} notes have been left in your room.` : "A note has been left in your room."}</span>`}
-      <span class="concierge-note-by">Latest note from ${escapeHtml(latestBy)}</span>
+      <strong>${hasRead ? "Concierge has cleansed your space." : "You have a new note."}</strong>
+      ${hasRead ? "<span>Your love notes are saved in this stay.</span>" : `<span>${notes.length>1 ? `${notes.length} love notes have been left in your room.` : "A love note has been left in your room."}</span>`}
       <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="readConciergeNoteButton">Read Note →</button>
       <div class="concierge-notes-scroll ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${noteList}</div>
       <button type="button" class="secondary read-note-button hidden" id="markConciergeNoteReadButton">Mark as Read</button>
@@ -589,9 +630,18 @@ function renderConciergeCare(stay){
       });
     }
     if(markButton){
-      markButton.addEventListener("click",()=>{
+      markButton.addEventListener("click",async()=>{
+        markButton.disabled=true;
+        try{
+          const updatedStay=await markConciergeNotesRead(stay.id,signature);
+          currentStay={...stay,...updatedStay,concierge_notes_read_signature:signature};
+          cacheSuiteStay(currentStay);
+        }catch(error){
+          console.warn("Concierge note read state could not be saved to Supabase; keeping local read state.",error);
+          currentStay={...stay,concierge_notes_read_signature:signature};
+        }
         localStorage.setItem(readKey,signature);
-        renderConciergeCare(stay);
+        renderConciergeCare(currentStay);
       });
     }
     return;
@@ -994,8 +1044,10 @@ async function handleCheckout(){
 
   try{
     currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
+    cacheSuiteStay(currentStay);
     document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
     renderLoungeVisits();
+    renderLoungeCheckoutState();
 
     const closeScene=document.getElementById("checkoutCompleteScene");
     if(closeScene){
@@ -1072,11 +1124,11 @@ document.getElementById("clockInButton").addEventListener("click",handleClockIn)
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
 document.getElementById("checkoutButton").addEventListener("click",handleCheckout);
-document.getElementById("returnLobbyButton").addEventListener("click",()=>showScene("lobby"));
+document.getElementById("returnLobbyButton").addEventListener("click",openCheckoutFromSuite);
 document.getElementById("flowtelLoungeButton").addEventListener("click",()=>showScene("lounge"));
-document.getElementById("backToSuiteButton").addEventListener("click",()=>showScene("suite"));
+document.getElementById("backToSuiteButton").addEventListener("click",()=>{showScene("suite");window.scrollTo({top:0,behavior:"smooth"});});
 const checkoutReturnButton=document.getElementById("checkoutReturnButton");
-if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>showScene("lobby"));
+if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>{showScene("lobby");window.scrollTo({top:0,behavior:"smooth"});});
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));
 
 

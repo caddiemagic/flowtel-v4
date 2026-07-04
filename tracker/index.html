@@ -1004,6 +1004,40 @@
       }
     }
 
+  
+    /* Release 0.7.4 — dashboard polish */
+    #cycleResults .back-button{display:none!important}
+    #cycleResults .result-card,
+    #cycleResultsContent,
+    .cycle-results-screen{
+      width:min(100%,1080px);
+      margin-left:auto;
+      margin-right:auto;
+    }
+    .tracker-shell,
+    #cycleTrackerApp,
+    .tracker-hero{
+      width:min(100% - 28px,1120px);
+    }
+    .cycle-wheel-wrap{
+      padding:72px 18px 90px;
+      background:rgba(255,253,249,.72);
+      border-radius:28px;
+    }
+    @media(max-width:700px){
+      .cycle-wheel-wrap{
+        padding:86px 14px 108px;
+      }
+      .cycle-wheel .wheel-number-ring-inner{
+        width:66%!important;
+        height:66%!important;
+      }
+      .cycle-wheel .wheel-number-ring-outer{
+        width:92%!important;
+        height:92%!important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -1054,8 +1088,7 @@
         </div>
       </div>
 
-      <div id="cycleResults" class="question">
-        <button type="button" class="back-button" onclick="cycleGoBack()">← Back</button>
+      <div id="cycleResults" class="question cycle-results-screen">
         <div id="cycleResultsContent"></div>
         <div class="action-row">
           <a class="tracker-button tracker-link-button" href="https://www.theidyllcollective.com/check-into-the-flowtel">Check Into the Flowtel</a>
