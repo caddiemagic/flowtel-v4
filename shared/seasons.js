@@ -42,10 +42,26 @@ export function getCourt(season) {
   }[season];
 }
 
-export function calculateCycleStartDate(cycleDay, fromDate = new Date()) {
-  const start = new Date(fromDate);
-  start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - (Number(cycleDay) - 1));
+const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
 
-  return start.toISOString().slice(0, 10);
+function flowtelTodayISO(fromDate = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FLOWTEL_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(fromDate).reduce((acc, part) => {
+    if (part.type !== "literal") acc[part.type] = part.value;
+    return acc;
+  }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+export function calculateCycleStartDate(cycleDay, fromDate = new Date()) {
+  const todayISO = flowtelTodayISO(fromDate);
+  const [year, month, day] = todayISO.split("-").map(Number);
+  const startUTC = Date.UTC(year, month - 1, day) - ((Number(cycleDay) - 1) * 86400000);
+
+  return new Date(startUTC).toISOString().slice(0, 10);
 }

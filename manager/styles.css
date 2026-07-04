@@ -453,3 +453,12 @@
 .rose-corner + .rose-corner{
   display:none !important;
 }
+
+/* Release 0.7.6 — Flowtel time fields */
+.concierge-flowtel-clock{
+  margin-top:1rem;
+  font-size:.78rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(109,78,65,.68);
+}

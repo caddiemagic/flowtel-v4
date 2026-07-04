@@ -1613,3 +1613,17 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   text-transform:uppercase;
   color:rgba(109,78,65,.72);
 }
+
+/* Release 0.7.6 — Flowtel time fields */
+.suite-flowtel-date{
+  margin-top:.65rem;
+  font-size:.72rem;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:rgba(109,78,65,.68);
+}
+
+.lounge-flowtel-date{
+  text-align:center;
+  margin:0 auto 1.25rem;
+}

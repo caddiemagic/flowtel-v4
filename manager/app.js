@@ -114,9 +114,50 @@ const FLOWTEL_AFFIRMATIONS=[
   "Making money tastes like honey"
 ];
 
+const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
+
+function flowtelDateISO(date = new Date()){
+  const parts=new Intl.DateTimeFormat("en-CA",{
+    timeZone:FLOWTEL_TIME_ZONE,
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit"
+  }).formatToParts(date).reduce((acc,part)=>{
+    if(part.type!=="literal") acc[part.type]=part.value;
+    return acc;
+  },{});
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function flowtelDateTimeLabel(date = new Date()){
+  return new Intl.DateTimeFormat(undefined,{
+    timeZone:FLOWTEL_TIME_ZONE,
+    month:"short",
+    day:"numeric",
+    year:"numeric",
+    hour:"numeric",
+    minute:"2-digit",
+    timeZoneName:"short"
+  }).format(date);
+}
+
+function updateConciergeClock(){
+  let line=document.getElementById("conciergeFlowtelClock");
+  const hero=document.querySelector(".hero");
+  if(hero&&!line){
+    line=document.createElement("p");
+    line.id="conciergeFlowtelClock";
+    line.className="concierge-flowtel-clock";
+    const note=document.getElementById("conciergeHeaderNote");
+    if(note) note.insertAdjacentElement("afterend",line);
+    else hero.appendChild(line);
+  }
+  if(line) line.textContent=`Flowtel time: ${flowtelDateTimeLabel()}`;
+}
+
 function affirmationForSession(){
   const email=currentManagerProfile?.email || "flowtel";
-  const today=new Date().toISOString().slice(0,10);
+  const today=flowtelDateISO();
   let seed=0;
   `${email}:${today}`.split("").forEach(char=>{seed=(seed+char.charCodeAt(0)*17)%100000;});
   return FLOWTEL_AFFIRMATIONS[seed%FLOWTEL_AFFIRMATIONS.length];
@@ -270,6 +311,7 @@ function updatePractitionerIdentity(){
 }
 
 function updateTodayFlow(){
+  updateConciergeClock();
   const ownWing=clockInContext?.wing;
   const assigned=assignedWingForPractitioner();
 

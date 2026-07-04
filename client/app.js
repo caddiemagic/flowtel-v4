@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -236,16 +236,45 @@ updateDoorwayCopy();
 
 function setMessage(text){ message.textContent=text||""; }
 
+const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
+
+function flowtelDateParts(date = new Date()){
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: FLOWTEL_TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(date).reduce((acc, part) => {
+    if(part.type !== "literal") acc[part.type] = part.value;
+    return acc;
+  }, {});
+  return parts;
+}
+
 function localTodayISO(){
-  const now=new Date();
-  const year=now.getFullYear();
-  const month=String(now.getMonth()+1).padStart(2,"0");
-  const day=String(now.getDate()).padStart(2,"0");
-  return `${year}-${month}-${day}`;
+  const parts = flowtelDateParts();
+  return `${parts.year}-${parts.month}-${parts.day}`;
+}
+
+function flowtelDateTimeLabel(date = new Date()){
+  return new Intl.DateTimeFormat(undefined, {
+    timeZone: FLOWTEL_TIME_ZONE,
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short"
+  }).format(date);
 }
 
 function isStayForLocalToday(stay){
   return !!stay && stay.checkin_date===localTodayISO();
+}
+
+function updateFlowtelTimestamp(){
+  const label = `Flowtel time: ${flowtelDateTimeLabel()}`;
+  document.querySelectorAll("[data-flowtel-clock]").forEach(el => { el.textContent = label; });
 }
 
 function clearCachedSuiteStay(){
@@ -258,7 +287,12 @@ function clearCachedSuiteStay(){
 async function prepareDailyStayState(){
   if(!currentProfile?.id) return;
   try{
-    await autoCloseOpenStayIfNeeded(currentProfile.id);
+    const closed = await autoCloseOpenStayIfNeeded(currentProfile.id);
+    if(closed && !isStayForLocalToday(closed)){
+      clearCachedSuiteStay();
+      currentStay=null;
+      pendingArrivalStay=null;
+    }
   }catch(error){
     console.warn("Daily stay lifecycle check failed.",error);
   }
@@ -270,6 +304,7 @@ function setProgress(step){
 }
 
 function showScene(name){
+  updateFlowtelTimestamp();
   [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene,checkoutCompleteScene].filter(Boolean).forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
@@ -455,6 +490,17 @@ async function renderLoungeVisits(){
 
 
 function renderLoungeCheckoutState(){
+  const loungeSceneEl=document.getElementById("loungeScene");
+  if(loungeSceneEl && !document.getElementById("loungeFlowtelDate")){
+    const dateLine=document.createElement("p");
+    dateLine.id="loungeFlowtelDate";
+    dateLine.className="suite-flowtel-date lounge-flowtel-date";
+    dateLine.setAttribute("data-flowtel-clock","");
+    const subline=loungeSceneEl.querySelector(".suite-subline");
+    if(subline) subline.insertAdjacentElement("afterend",dateLine);
+  }
+  updateFlowtelTimestamp();
+
   const card=document.getElementById("loungeCheckoutCard");
   const title=document.getElementById("loungeCheckoutTitle");
   const copy=document.getElementById("loungeCheckoutCopy");
@@ -518,13 +564,24 @@ function renderSuite(stay){
 
   document.getElementById("loungeCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
 
-  document.getElementById("suiteMoon").textContent=`${stay.moon_phase||"Moon phase"} · Day ${stay.moon_day||""}`;
-  document.getElementById("suiteMoonTheme").textContent=stay.moon_theme||"";
+  const liveMoon = getMoonMagic();
+  document.getElementById("suiteMoon").textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
+  document.getElementById("suiteMoonTheme").textContent=`Last New Moon: ${formatDate(liveMoon.lastNewMoonDate)} · ${liveMoon.theme}`;
 
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
   document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
   const dayOne=document.getElementById("suiteDayOne");
   if(dayOne) dayOne.textContent=stay.cycle_start_date ? `Day 1: ${formatDate(stay.cycle_start_date)}` : "";
+
+  const currentRoomCard=document.querySelector(".wheel-current-room");
+  if(currentRoomCard && !document.getElementById("suiteFlowtelDate")){
+    const dateLine=document.createElement("p");
+    dateLine.id="suiteFlowtelDate";
+    dateLine.className="suite-flowtel-date";
+    dateLine.setAttribute("data-flowtel-clock","");
+    currentRoomCard.appendChild(dateLine);
+  }
+  updateFlowtelTimestamp();
 
   document.getElementById("roomTitle").textContent=`${content.title} · Room ${room}`;
   document.getElementById("roomAffirmation").textContent=content.affirmation;
@@ -573,9 +630,10 @@ function renderReflectionMoonMagic(stay){
     reflectionInput.insertAdjacentElement("beforebegin",moonRow);
   }
 
-  const phase=stay?.moon_phase || "Moon phase";
-  const moonDay=stay?.moon_day ? `Day ${stay.moon_day}` : "Moon day";
-  const theme=stay?.moon_theme || "A quiet reflection field for today's moon.";
+  const liveMoon=getMoonMagic();
+  const phase=liveMoon.phase;
+  const moonDay=`Day ${liveMoon.moonDay}`;
+  const theme=`Last New Moon: ${formatDate(liveMoon.lastNewMoonDate)} · ${liveMoon.theme}`;
 
   moonRow.innerHTML=`
     <span class="reflection-moon-label">Moon Magic</span>
