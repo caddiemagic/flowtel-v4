@@ -773,8 +773,8 @@ function readArrivalFields(){
   const cycleDay=Number(document.getElementById("cycleDay").value);
   const feelsLike=document.getElementById("feelsLike").value;
 
-  if(!(cycleDay>=1&&cycleDay<=40)){
-    setMessage("Enter a cycle day between 1 and 40.");
+  if(!(cycleDay>=1&&cycleDay<=99)){
+    setMessage("Enter a cycle day between 1 and 99.");
     return null;
   }
 

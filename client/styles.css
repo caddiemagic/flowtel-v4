@@ -1105,3 +1105,38 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   background:radial-gradient(circle at 35% 30%,#fff 0 20%,#f3d4cf 45%,#d8a84f 100%);
   border:1px solid rgba(216,168,79,.5);
 }
+
+
+/* Release 0.6.7 — Wheel cleanup */
+.medicine-wheel{
+  background:
+    radial-gradient(circle at center,rgba(255,253,249,.96) 0 34%,rgba(255,255,255,.72) 35% 38%,transparent 39%),
+    linear-gradient(135deg,rgba(248,231,227,.40),rgba(255,253,249,.92) 46%,rgba(251,247,241,.92)) !important;
+}
+.wheel-compass-ring,
+.wheel-axis,
+.wheel-axis-x,
+.wheel-axis-y{
+  display:none !important;
+}
+.wheel-current-star{
+  display:none !important;
+}
+.wheel-number-ring{
+  position:absolute !important;
+  left:50% !important;
+  top:50% !important;
+  border:2px solid rgba(216,168,79,.72) !important;
+  border-radius:50% !important;
+  transform:translate(-50%,-50%) !important;
+  pointer-events:none !important;
+  z-index:2 !important;
+}
+.wheel-number-ring-inner{
+  width:calc(var(--ring-base) - var(--ring-offset)) !important;
+  height:calc(var(--ring-base) - var(--ring-offset)) !important;
+}
+.wheel-number-ring-outer{
+  width:calc(var(--ring-base) + var(--ring-offset)) !important;
+  height:calc(var(--ring-base) + var(--ring-offset)) !important;
+}
