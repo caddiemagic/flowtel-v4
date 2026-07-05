@@ -414,3 +414,15 @@ body.powder-room-mode{
 .powder-room-mode .hero-card .eyebrow{
   letter-spacing:.28em;
 }
+
+
+/* Release 0.9.16 — Cycle Data title scale + Flow Map entry point */
+body:not(.powder-room-mode) .hero-card h1{
+  font-size:clamp(2.25rem,5.8vw,4.65rem);
+  line-height:.96;
+}
+@media(max-width:760px){
+  body:not(.powder-room-mode) .hero-card h1{
+    font-size:clamp(2rem,12vw,3.15rem);
+  }
+}

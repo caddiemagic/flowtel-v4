@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtel Flow Map Practice</title>
+  <link rel="stylesheet" href="./styles.css?v=0.9.16" />
+</head>
+<body>
+  <main class="flow-map-shell">
+    <section class="flow-map-hero">
+      <p class="eyebrow">FLOW MAP PRACTICE</p>
+      <h1>Flow Map</h1>
+      <p id="flowMapIntro">Opening your seasonal spread...</p>
+    </section>
+
+    <section class="control-card">
+      <div>
+        <p class="eyebrow" id="viewEyebrow">CURRENT VIEW</p>
+        <h2 id="viewingName">Loading...</h2>
+      </div>
+      <div class="control-actions">
+        <label class="cycle-selector-label">
+          Cycle
+          <select id="cycleSelector"></select>
+        </label>
+        <a class="return-link" id="openCycleDataLink" href="/cycle-data/">View Data Dashboard</a>
+        <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
+        <a class="return-link" href="/client/?suite=1">Return to Suite</a>
+        <a class="return-link" href="/manager/">Return to Concierge</a>
+      </div>
+    </section>
+
+    <section class="practice-note">
+      <p id="practiceCopy">After one month of daily check-ins, read your notes and notice the themes. The system organizes the data, but the reflection is yours.</p>
+    </section>
+
+    <section class="flow-map-canvas" id="flowMapCanvas" aria-label="Flow Map quadrants">
+      <span class="axis-label axis-n">N</span>
+      <span class="axis-label axis-e">E</span>
+      <span class="axis-label axis-s">S</span>
+      <span class="axis-label axis-w">W</span>
+      <span class="axis-center" aria-hidden="true">↺</span>
+
+      <article class="quadrant quadrant-autumn" data-season="Inner Autumn">
+        <header>
+          <p>Half New Moon Phase</p>
+          <h2>Inner Autumn</h2>
+          <small>Days 20–26</small>
+        </header>
+        <div class="note-field" id="notesAutumn"></div>
+      </article>
+      <article class="quadrant quadrant-summer" data-season="Inner Summer">
+        <header>
+          <p>Full Moon Phase</p>
+          <h2>Inner Summer</h2>
+          <small>Days 12–19</small>
+        </header>
+        <div class="note-field" id="notesSummer"></div>
+      </article>
+      <article class="quadrant quadrant-winter" data-season="Inner Winter">
+        <header>
+          <p>New Moon Phase</p>
+          <h2>Inner Winter</h2>
+          <small>Days 27–5</small>
+        </header>
+        <div class="note-field" id="notesWinter"></div>
+      </article>
+      <article class="quadrant quadrant-spring" data-season="Inner Spring">
+        <header>
+          <p>Half Full Moon Phase</p>
+          <h2>Inner Spring</h2>
+          <small>Days 6–11</small>
+        </header>
+        <div class="note-field" id="notesSpring"></div>
+      </article>
+    </section>
+
+    <p id="flowMapMessage" class="message"></p>
+  </main>
+
+  <script type="module" src="./app.js?v=0.9.16"></script>
+</body>
+</html>

@@ -24,6 +24,7 @@ const entryTitle=document.getElementById("entryTitle");
 const entryCount=document.getElementById("entryCount");
 const entryList=document.getElementById("entryList");
 const message=document.getElementById("dashboardMessage");
+const openFlowMapLink=document.getElementById("openFlowMapLink");
 
 const SEASONS=["Inner Winter","Inner Spring","Inner Summer","Inner Autumn"];
 const SEASON_COPY={
@@ -55,6 +56,11 @@ function params(){ return new URLSearchParams(window.location.search); }
 function requestedClientId(){ return params().get("client"); }
 function requestedScope(){ return params().get("scope"); }
 function requestedSeason(){ return normalizeSeason(params().get("season")); }
+function flowMapHrefFor({targetId="",scope=""}={}){
+  if(targetId) return `/flow-map/?client=${encodeURIComponent(targetId)}`;
+  if(scope==="all") return "/flow-map/?scope=all";
+  return "/flow-map/";
+}
 function isMentorRole(profile){ return ["practitioner","admin","owner"].includes(profile?.role); }
 function isAdminRole(profile){ return ["admin","owner"].includes(profile?.role); }
 function fullName(profile){
@@ -316,6 +322,10 @@ async function init(){
     const season=requestedSeason();
     const scope=requestedScope();
     currentMode=season ? "season" : scope==="all" ? "all" : targetId ? "client" : "self";
+    if(openFlowMapLink){
+      openFlowMapLink.href=flowMapHrefFor({targetId,scope});
+      openFlowMapLink.classList.toggle("hidden",currentMode==="season");
+    }
     renderToggle(currentProfile,clients,targetId,currentMode);
     bindFilters(currentMode);
 

@@ -20,7 +20,7 @@
     },
     {
       "source": "/flow-map",
-      "destination": "/cycle-data/index.html"
+      "destination": "/flow-map/index.html"
     }
   ]
 }

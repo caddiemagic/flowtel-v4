@@ -1,3 +1,18 @@
+
+## v0.9.16 — Flow Map Practice Dashboard
+
+- Added a new `/flow-map/` route for the Flow Map Practice.
+- Separated the reflective Flow Map from the analytical Cycle Data Dashboard.
+- Added a four-quadrant seasonal spread based on the printable Flow Map.
+- Organized one cycle of check-ins by Actual Inner Season into Inner Autumn, Inner Summer, Inner Winter, and Inner Spring quadrants.
+- Added a cycle selector that defaults to the most recently completed cycle when available.
+- Added note pills with reflection text, cycle day, feels-like season, check-in time, and days ahead/behind when relevant.
+- Added client name context for mentor/admin client Flow Map views.
+- Added `Print / Save PDF` for Flow Map practice sessions.
+- Added `Open Flow Map` from the Cycle Data Dashboard.
+- Reduced the Cycle Data Dashboard hero title size slightly.
+- Added Supabase migration 019 to expand consent-aware cycle data entries for Flow Map views.
+
 # Flowtel Changelog
 
 
