@@ -1,5 +1,12 @@
 # Flowtel Changelog
 
+## v0.8.3 — Turndown Completion RPC
+
+- Added database RPC `flowtel_complete_turndown` for reliable Concierge completion.
+- Moved Turndown completion out of fragile browser-side multi-column updates.
+- Preserves and appends Concierge Notes during completion.
+- Adds clearer migration-missing error copy when the RPC is not installed.
+
 ## v0.8.2 — Turndown Completion Hardening
 
 - Added durable Turndown completion columns.

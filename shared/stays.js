@@ -303,87 +303,31 @@ function parseStoredConciergeNotes(raw, fallbackBy="", fallbackAt=""){
 
 
 export async function witnessStay(stayId,witnessNote=""){
-  const user=await getCurrentUser();
-  if(!user) throw new Error("No signed-in user.");
+  const cleanedNote=String(witnessNote||"").trim();
 
-  let practitionerLabel="";
-  try{
-    const {data:profile}=await supabase.from("profiles")
-      .select("first_name,last_name,email,role,practitioner_level")
-      .eq("id",user.id)
-      .single();
-    const name=[profile?.first_name,profile?.last_name].filter(Boolean).join(" ") || profile?.email || "your Concierge";
-    const level=profile?.role==="practitioner" ? "Practitioner" : "Concierge";
-    practitionerLabel=`${level} ${name}`;
-  }catch(error){
-    practitionerLabel="Your Concierge";
+  // Release 0.8.3: use a dedicated Security Definer RPC for Turndown completion.
+  // The previous direct browser update could fail under Supabase RLS or schema drift,
+  // which made the button flash "Completing..." and then return to "Complete Turndown".
+  const rpcResult=await supabase.rpc("flowtel_complete_turndown",{
+    p_stay_id: stayId,
+    p_witness_note: cleanedNote,
+  });
+
+  if(rpcResult.error){
+    const message=String(rpcResult.error.message || "");
+    const missingFunction=message.toLowerCase().includes("function") && message.toLowerCase().includes("flowtel_complete_turndown");
+    if(missingFunction){
+      throw new Error("Turndown completion helper is not installed yet. Run database/migration-013-turndown-completion-rpc.sql in Supabase, then redeploy/refresh Flowtel.");
+    }
+    throw new Error(`Turndown completion could not be saved: ${message || "Supabase rejected the completion update."}`);
   }
 
-  const {data:existing,error:existingError}=await supabase.from("flowtel_stays")
-    .select("witness_note,witness_note_by,witnessed_at,updated_at,turndown_status,turndown_requested_at")
-    .eq("id",stayId)
-    .single();
-  if(existingError) throw existingError;
-
-  const now=new Date().toISOString();
-  const notes=parseStoredConciergeNotes(existing?.witness_note, existing?.witness_note_by, existing?.witnessed_at || existing?.updated_at);
-  if(witnessNote){
-    notes.push({
-      id:`note-${now}`,
-      note:witnessNote,
-      by:practitionerLabel,
-      at:now,
-    });
+  if(!rpcResult.data){
+    throw new Error("Turndown completion saved no stay record. Refresh the Concierge Desk and check Supabase logs.");
   }
 
-  // Turndown completion must be independent from note display.
-  // A missing/empty note should never keep a guest in the active queue.
-  const fullCompletionPayload={
-    turndown_status:"completed",
-    turndown_completed_at:now,
-    turndown_completed_by:user.id,
-    turndown_completed_by_name:practitionerLabel,
-    witnessed_by:user.id,
-    witnessed_at:now,
-    witness_note:JSON.stringify(notes),
-    witness_note_by:practitionerLabel,
-    stay_status:"witnessed",
-    updated_at:now,
-  };
-
-  const fullResult=await supabase.from("flowtel_stays")
-    .update(fullCompletionPayload)
-    .eq("id",stayId)
-    .select()
-    .single();
-
-  if(!fullResult.error) return fullResult.data;
-
-  console.warn("Full Turndown completion update failed; attempting status-only fallback.", fullResult.error);
-
-  // Fallback for older beta databases that have not received the completion columns yet.
-  // This still clears the active alert and lets the daily log render as completed.
-  const fallbackPayload={
-    turndown_status:"completed",
-    witnessed_at:now,
-    stay_status:"witnessed",
-    updated_at:now,
-  };
-
-  const fallbackResult=await supabase.from("flowtel_stays")
-    .update(fallbackPayload)
-    .eq("id",stayId)
-    .select()
-    .single();
-
-  if(fallbackResult.error) throw fullResult.error;
-  return {
-    ...fallbackResult.data,
-    turndown_completed_at:fallbackResult.data?.turndown_completed_at || now,
-    turndown_completed_by_name:fallbackResult.data?.turndown_completed_by_name || practitionerLabel,
-  };
+  return Array.isArray(rpcResult.data) ? rpcResult.data[0] : rpcResult.data;
 }
-
 
 export async function prepareRoomAfterCheckout(stayId, practitionerLabel=""){
   const user=await getCurrentUser();
