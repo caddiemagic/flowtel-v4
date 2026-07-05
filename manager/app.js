@@ -564,6 +564,8 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
   const awaitingItem=isAwaitingTurndown(stay);
   const actionLabel=checkoutItem?"Clean Room":awaitingItem?"Complete Turndown":"Open Room";
   const action=checkoutItem?"clean":"witness";
+  const isRequestCard=mode==="awaiting" || mode==="completed" || turndownItem || completedItem;
+  const feelsLike=stay.feels_like_inner_season || stay.feels_like || stay.feels_like_season || "Not recorded";
   const statusLine=checkoutItem
     ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
     : completedItem
@@ -572,19 +574,28 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
         ? `<p>Turndown request · ${turndownTime(stay)}</p>`
         : `<p>Checked in · ${stay.checked_in_at ? new Date(stay.checked_in_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : stayFlowtelDate(stay)}</p>`;
   const rowClass=checkoutItem ? "checkout-row" : completedItem ? "completed-turndown-row" : turndownItem ? "turndown-row" : "in-house-row";
-  const showAction=mode!=="completed";
+  const showAction=mode!=="completed" && mode!=="in-house";
+  const detailLines=isRequestCard
+    ? `
+        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
+        <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
+        <p>Feels Like: ${feelsLike}</p>
+      `
+    : `
+        <p>Today's Room: ${room}</p>
+        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
+        <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
+        <p>Wing: ${stay.wing||"Not assigned"}</p>
+      `;
 
   return `
     <article class="guest-row ${rowClass}">
       <div>
         <h3>${escapeHtml(guestName(stay))}</h3>
         ${statusLine}
-        <p>Today's Room: ${room}</p>
-        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
-        <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
-        <p>Wing: ${stay.wing||"Not assigned"}</p>
+        ${detailLines}
       </div>
-      ${showAction ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>` : `<span class="completed-pill">Completed</span>`}
+      ${showAction ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>` : (mode==="completed" ? `<span class="completed-pill">Completed</span>` : "")}
     </article>
   `;
 }
@@ -665,6 +676,7 @@ function renderQueue(){
         </section>
       </div>
     `;
+    bindConnectionButtons(queue);
     return;
   }
 
@@ -682,6 +694,36 @@ function renderQueue(){
 function relationshipGuestName(row){
   const client=row?.client || {};
   return [client.first_name, client.last_name].filter(Boolean).join(" ") || client.email || "Guest";
+}
+
+function bindConnectionButtons(scope=document){
+  scope.querySelectorAll("[data-connect-id]").forEach(button=>{
+    if(button.dataset.boundConnect==="true") return;
+    button.dataset.boundConnect="true";
+    button.addEventListener("click",async()=>{
+      const originalText=button.textContent;
+      button.disabled=true;
+      button.textContent="Connecting...";
+      if(managerMessage) managerMessage.textContent="";
+
+      try{
+        await connectWithGuest(button.dataset.connectId);
+        await renderConnectionRequests();
+        await renderMyClients();
+        if(activeFilter==="clients") renderQueue();
+        if(managerMessage) managerMessage.textContent="Mentor connection complete.";
+      }catch(error){
+        console.error("Mentor connection failed.",error);
+        button.disabled=false;
+        button.textContent=originalText;
+        if(managerMessage){
+          managerMessage.textContent=error?.message
+            ? `Mentor connection could not be saved: ${error.message}`
+            : "Mentor connection could not be saved. Please confirm the latest mentor migration is installed.";
+        }
+      }
+    });
+  });
 }
 
 async function renderConnectionRequests(){
@@ -708,14 +750,7 @@ async function renderConnectionRequests(){
       </article>
     `).join("");
 
-    holder.querySelectorAll("[data-connect-id]").forEach(button=>{
-      button.addEventListener("click",async()=>{
-        button.disabled=true;
-        await connectWithGuest(button.dataset.connectId);
-        await renderConnectionRequests();
-        await renderMyClients();
-      });
-    });
+    bindConnectionButtons(holder);
   }catch(error){
     console.warn("Connection requests are not available yet.",error);
     currentConnectionRequestsCount=0;

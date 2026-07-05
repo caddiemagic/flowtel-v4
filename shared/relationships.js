@@ -22,6 +22,20 @@ function isMissingColumnError(error){
   return error?.code==="42703" || message.includes("column") && message.includes("does not exist");
 }
 
+function isMissingFunctionError(error){
+  const message=String(error?.message || "").toLowerCase();
+  return error?.code==="42883" || message.includes("function") && message.includes("does not exist");
+}
+
+async function safeSelectRelationshipById(id){
+  try{
+    return await selectRelationshipById(id);
+  }catch(error){
+    console.warn("Relationship connected, but the enriched relationship row could not be reloaded yet.", error);
+    return { id, status:"connected" };
+  }
+}
+
 async function selectRelationshipById(id){
   if(!id) return null;
 
@@ -113,7 +127,7 @@ export async function chooseMentor(mentorId){
     return selectRelationshipById(rpc.data);
   }
 
-  const missingFunction=rpc.error?.code==="42883" || String(rpc.error?.message || "").toLowerCase().includes("function");
+  const missingFunction=isMissingFunctionError(rpc.error);
   if(!missingFunction) throw rpc.error;
 
   // Fallback for environments before migration-014 is installed.
@@ -195,26 +209,26 @@ export async function connectWithGuest(relationshipId){
   // Preferred path: database-owned Connect action enforces Mentor permissions under RLS.
   const rpc=await supabase.rpc("flowtel_connect_mentor_relationship", { p_relationship_id: relationshipId });
   if(!rpc.error){
-    return selectRelationshipById(rpc.data);
+    return safeSelectRelationshipById(rpc.data || relationshipId);
   }
 
-  const missingFunction=rpc.error?.code==="42883" || String(rpc.error?.message || "").toLowerCase().includes("function");
-  if(!missingFunction) throw rpc.error;
+  if(!isMissingFunctionError(rpc.error)) throw rpc.error;
 
-  // Fallback for environments before migration-014 is installed.
+  // Fallback for environments before the relationship RPC is installed.
+  // RLS still controls whether the signed-in mentor may perform this update.
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("flowtel_practitioner_relationships")
     .update({
       status: "connected",
       connected_at: now,
+      connected_by: user.id,
       updated_at: now,
     })
     .eq("id", relationshipId)
-    .eq("practitioner_id", user.id)
-    .select(FALLBACK_SELECT_RELATIONSHIP)
+    .select("id")
     .single();
 
   if(error) throw error;
-  return data;
+  return safeSelectRelationshipById(data?.id || relationshipId);
 }

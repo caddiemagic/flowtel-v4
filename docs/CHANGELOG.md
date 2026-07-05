@@ -80,3 +80,13 @@ Medicine Wheel Compass
 
 - Rebuilt Medicine Wheel as an integrated application release.
 - Added compass math and current-room highlighting.
+## v0.9.2 — Mentor Connect + Latest Polish
+
+- Fixed visible Concierge Desk **Connect** button for Mentor Requests.
+- Confirmed one active Mentor to the Moon per guest, many guests per mentor.
+- Added defensive mentor Connect RPC migration.
+- Updated Reflection Moon Magic copy to show theme before Next New Moon date.
+- Aligned Return to Suite button with the card above.
+- Polished Cycle Tracker result card structure and medicine wheel styling.
+- Removed Open Room from Guests in House.
+- Updated Concierge request cards to show Feels Like instead of Wing and removed Today's Room from request cards.

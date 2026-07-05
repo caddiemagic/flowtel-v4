@@ -677,7 +677,7 @@ function renderSuite(stay){
 
   const liveMoon = getMoonMagic();
   document.getElementById("suiteMoon").textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
-  document.getElementById("suiteMoonTheme").textContent=`Last New Moon: ${formatDate(liveMoon.lastNewMoonDate)} · ${liveMoon.theme}`;
+  document.getElementById("suiteMoonTheme").textContent=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
 
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
   document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
@@ -782,7 +782,7 @@ function renderReflectionMoonMagic(stay){
   const liveMoon=getMoonMagic();
   const phase=liveMoon.phase;
   const moonDay=`Day ${liveMoon.moonDay}`;
-  const theme=`Last New Moon: ${formatDate(liveMoon.lastNewMoonDate)} · ${liveMoon.theme}`;
+  const theme=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
 
   moonRow.innerHTML=`
     <span class="reflection-moon-label">Moon Magic</span>
