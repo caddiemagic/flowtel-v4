@@ -339,7 +339,46 @@ function updateTodayFlow(){
   }
 }
 
-function guestName(stay){return [stay.profiles?.first_name,stay.profiles?.last_name].filter(Boolean).join(" ")||stay.profiles?.email||"Guest";}
+function titleCaseNamePart(value){
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g," ")
+    .split(" ")
+    .map(part=>part ? part.charAt(0).toUpperCase()+part.slice(1).toLowerCase() : "")
+    .join(" ");
+}
+
+function isLikelyInitials(value){
+  const cleaned=String(value || "").replace(/[^A-Za-z]/g,"");
+  return cleaned.length > 0 && cleaned.length <= 3 && cleaned === cleaned.toUpperCase();
+}
+
+function nameFromEmail(email){
+  const local=String(email || "").split("@")[0];
+  return local
+    .split(/[._-]+/)
+    .filter(Boolean)
+    .map(titleCaseNamePart)
+    .join(" ");
+}
+
+function guestName(stay){
+  const profile=stay.profiles || stay.client || {};
+  let first=titleCaseNamePart(profile.first_name || "");
+  const last=titleCaseNamePart(profile.last_name || "");
+  const emailGuess=nameFromEmail(profile.email || stay.client_email || "");
+  const emailFirst=emailGuess.split(" ")[0];
+
+  if((!first || isLikelyInitials(profile.first_name)) && emailFirst && !isLikelyInitials(emailFirst)){
+    first=emailFirst;
+  }
+
+  return [first,last].filter(Boolean).join(" ") || profile.email || "Guest";
+}
+
+function escapeHtml(value){
+  return String(value||"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
+}
 function utcDateFromISO(iso){
   const [year,month,day]=String(iso||currentFlowtelDate()).slice(0,10).split("-").map(Number);
   return Date.UTC(year,month-1,day);
@@ -355,7 +394,21 @@ function isOpenStay(stay){
 }
 
 function hasTurndownRequest(stay){
-  return stay.turndown_status==="requested" || !!stay.turndown_requested_at;
+  return stay.turndown_status==="requested" || stay.turndown_status==="completed" || stay.turndown_status==="fulfilled" || !!stay.turndown_requested_at;
+}
+
+function isTurndownFulfilled(stay){
+  return !!(stay.turndown_status==="completed" || stay.turndown_status==="fulfilled" || stay.witnessed_at);
+}
+
+function turndownCompletedBy(stay){
+  const witness=[stay.witness_profile?.first_name,stay.witness_profile?.last_name].filter(Boolean).join(" ");
+  return stay.turndown_completed_by_name || stay.witness_note_by || witness || "Your Concierge";
+}
+
+function turndownTime(stay){
+  const value=stay.turndown_requested_at || stay.updated_at || stay.checked_in_at;
+  return value ? new Date(value).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Today";
 }
 
 function isAssignedToPractitioner(stay){
@@ -364,7 +417,11 @@ function isAssignedToPractitioner(stay){
 }
 
 function isAwaitingTurndown(stay){
-  return isOpenStay(stay) && hasTurndownRequest(stay) && !stay.witnessed_at && isAssignedToPractitioner(stay);
+  return isOpenStay(stay) && hasTurndownRequest(stay) && !isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
+}
+
+function isCompletedTurndown(stay){
+  return isOpenStay(stay) && stayFlowtelDate(stay)===currentFlowtelDate() && hasTurndownRequest(stay) && isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
 }
 
 function needsCheckoutConfirmation(stay){
@@ -395,6 +452,10 @@ function todayOpenStays(){
 
 function awaitingTurndownStays(){
   return allStays.filter(isAwaitingTurndown);
+}
+
+function completedTurndownStays(){
+  return allStays.filter(isCompletedTurndown);
 }
 
 function visibleStays(){
@@ -489,8 +550,76 @@ function practitionerCareLabel(){
   return `${initiation.level || "Concierge"} ${name}`;
 }
 
+function renderGuestStayRow(stay,{mode="in-house"}={}){
+  const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
+  const checkoutItem=needsCheckoutConfirmation(stay);
+  const turndownItem=hasTurndownRequest(stay);
+  const completedItem=isCompletedTurndown(stay);
+  const awaitingItem=isAwaitingTurndown(stay);
+  const actionLabel=checkoutItem?"Clean Room":awaitingItem?"Complete Turndown":"Open Room";
+  const action=checkoutItem?"clean":"witness";
+  const statusLine=checkoutItem
+    ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
+    : completedItem
+      ? `<p class="completed-status">${escapeHtml(turndownCompletedBy(stay))} has tended to this guest.</p>`
+      : turndownItem
+        ? `<p>Turndown request · ${turndownTime(stay)}</p>`
+        : `<p>Checked in · ${stay.checked_in_at ? new Date(stay.checked_in_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : stayFlowtelDate(stay)}</p>`;
+  const rowClass=checkoutItem ? "checkout-row" : completedItem ? "completed-turndown-row" : turndownItem ? "turndown-row" : "in-house-row";
+  const showAction=mode!=="completed";
+
+  return `
+    <article class="guest-row ${rowClass}">
+      <div>
+        <h3>${escapeHtml(guestName(stay))}</h3>
+        ${statusLine}
+        <p>Today's Room: ${room}</p>
+        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
+        <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
+        <p>Wing: ${stay.wing||"Not assigned"}</p>
+      </div>
+      ${showAction ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>` : `<span class="completed-pill">Completed</span>`}
+    </article>
+  `;
+}
+
+function renderTurndownServiceQueue(){
+  const awaiting=awaitingTurndownStays();
+  const completed=completedTurndownStays();
+
+  if(!awaiting.length && !completed.length){
+    queue.innerHTML="<p>No guests are awaiting Turndown Service right now.</p>";
+    return;
+  }
+
+  queue.innerHTML=`
+    <section class="queue-section active-requests">
+      <p class="queue-section-label">Open Requests</p>
+      ${awaiting.length ? awaiting.map(stay=>renderGuestStayRow(stay,{mode:"awaiting"})).join("") : "<p>No active turndown requests.</p>"}
+    </section>
+    <section class="queue-section completed-requests">
+      <p class="queue-section-label">Completed Requests</p>
+      ${completed.length ? completed.map(stay=>renderGuestStayRow(stay,{mode:"completed"})).join("") : "<p>No completed requests yet today.</p>"}
+    </section>
+  `;
+
+  bindQueueActions();
+}
+
+function bindQueueActions(){
+  document.querySelectorAll("[data-id][data-action]").forEach(button=>button.addEventListener("click",async()=>{
+    button.disabled=true;
+    if(button.dataset.action==="clean"){
+      await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
+    }else{
+      const note=prompt("Leave a handwritten Concierge Note for this room");
+      await witnessStay(button.dataset.id,note||"");
+    }
+    await loadDesk();
+  }));
+}
+
 function renderQueue(){
-  const stays=visibleStays();
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new connection requests.</p>";
     const clients=document.getElementById("myClientsList")?.innerHTML || "<p>No connected clients yet.</p>";
@@ -508,42 +637,16 @@ function renderQueue(){
     `;
     return;
   }
+
+  if(activeFilter==="queue"){
+    renderTurndownServiceQueue();
+    return;
+  }
+
+  const stays=visibleStays();
   if(!stays.length){queue.innerHTML="<p>No guests in this category right now.</p>";return;}
-  queue.innerHTML=stays.map(stay=>{
-    const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
-    const checkoutItem=needsCheckoutConfirmation(stay);
-    const turndownItem=hasTurndownRequest(stay);
-    const actionLabel=checkoutItem?"Clean Room":"Open Room";
-    const statusLine=checkoutItem
-      ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
-      : turndownItem
-        ? `<p>Turndown request · ${stay.turndown_requested_at ? new Date(stay.turndown_requested_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Today"}</p>`
-        : `<p>Checked in · ${stay.checked_in_at ? new Date(stay.checked_in_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : stayFlowtelDate(stay)}</p>`;
-
-    return `
-      <article class="guest-row ${checkoutItem ? "checkout-row" : turndownItem ? "turndown-row" : "in-house-row"}">
-        <div>
-          <h3>${guestName(stay)}</h3>
-          ${statusLine}
-          <p>Today's Room: ${room}</p>
-          <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
-          <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
-          <p>Wing: ${stay.wing||"Not assigned"}</p>
-        </div>
-        <button data-id="${stay.id}" data-action="${checkoutItem ? "clean" : "witness"}">${actionLabel}</button>
-      </article>
-    `;
-  }).join("");
-
-  document.querySelectorAll("[data-id]").forEach(button=>button.addEventListener("click",async()=>{
-    if(button.dataset.action==="clean"){
-      await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
-    }else{
-      const note=prompt("Leave a handwritten Concierge Note for this room");
-      await witnessStay(button.dataset.id,note||"");
-    }
-    await loadDesk();
-  }));
+  queue.innerHTML=stays.map(stay=>renderGuestStayRow(stay,{mode:activeFilter})).join("");
+  bindQueueActions();
 }
 
 function relationshipGuestName(row){

@@ -46,13 +46,99 @@ function extractSquarespaceEmail(){
   return (candidates.find(Boolean) || "").trim();
 }
 
+function titleCaseNamePart(value){
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g," ")
+    .split(" ")
+    .map(part=>part ? part.charAt(0).toUpperCase()+part.slice(1).toLowerCase() : "")
+    .join(" ");
+}
+
 function firstNameFromEmail(email){
   const local=String(email||"").split("@")[0] || "guest";
   return local
     .split(/[._-]+/)
     .filter(Boolean)
-    .map(part=>part.charAt(0).toUpperCase()+part.slice(1))
+    .map(titleCaseNamePart)
     .join(" ") || "Guest";
+}
+
+function urlNameParam(...names){
+  for(const name of names){
+    const value=urlParam(name);
+    if(value) return decodeURIComponent(value).trim();
+  }
+  return "";
+}
+
+function splitFullName(value){
+  const parts=String(value || "").trim().replace(/\s+/g," ").split(" ").filter(Boolean);
+  if(!parts.length) return {};
+  return { firstName:titleCaseNamePart(parts[0]), lastName:titleCaseNamePart(parts.slice(1).join(" ")) };
+}
+
+function extractSquarespaceNameParts(){
+  const first=urlNameParam("firstName","first_name","memberFirstName","member_first_name");
+  const last=urlNameParam("lastName","last_name","memberLastName","member_last_name");
+  const full=urlNameParam("name","fullName","full_name","memberName","member_name") ||
+    window.FlowtelMember?.name ||
+    window.FlowtelMember?.fullName ||
+    window.Squarespace?.Member?.name ||
+    window.Static?.SQUARESPACE_CONTEXT?.authenticatedAccount?.displayName ||
+    window.Static?.SQUARESPACE_CONTEXT?.member?.name ||
+    "";
+
+  const contextFirst=
+    window.FlowtelMember?.firstName ||
+    window.FlowtelMember?.first_name ||
+    window.Squarespace?.Member?.firstName ||
+    window.Static?.SQUARESPACE_CONTEXT?.authenticatedAccount?.firstName ||
+    window.Static?.SQUARESPACE_CONTEXT?.member?.firstName ||
+    "";
+  const contextLast=
+    window.FlowtelMember?.lastName ||
+    window.FlowtelMember?.last_name ||
+    window.Squarespace?.Member?.lastName ||
+    window.Static?.SQUARESPACE_CONTEXT?.authenticatedAccount?.lastName ||
+    window.Static?.SQUARESPACE_CONTEXT?.member?.lastName ||
+    "";
+
+  if(first || last || contextFirst || contextLast){
+    return {
+      firstName:titleCaseNamePart(first || contextFirst),
+      lastName:titleCaseNamePart(last || contextLast),
+    };
+  }
+
+  return splitFullName(full);
+}
+
+function isLikelyInitials(value){
+  const cleaned=String(value || "").replace(/[^A-Za-z]/g,"");
+  return cleaned.length > 0 && cleaned.length <= 3 && cleaned === cleaned.toUpperCase();
+}
+
+function cleanProfileNameParts(profile={}){
+  let first=titleCaseNamePart(profile.first_name || "");
+  const last=titleCaseNamePart(profile.last_name || "");
+  const emailGuess=firstNameFromEmail(profile.email || extractSquarespaceEmail());
+  const emailFirst=splitFullName(emailGuess).firstName || emailGuess;
+
+  if((!first || isLikelyInitials(profile.first_name)) && emailFirst && !isLikelyInitials(emailFirst)){
+    first=emailFirst;
+  }
+
+  return { firstName:first, lastName:last };
+}
+
+function profileFirstName(profile=currentProfile){
+  return cleanProfileNameParts(profile).firstName || "Guest";
+}
+
+function profileFullName(profile=currentProfile){
+  const parts=cleanProfileNameParts(profile);
+  return [parts.firstName, parts.lastName].filter(Boolean).join(" ") || profile?.email || "Guest";
 }
 
 function updateDoorwayCopy(){
@@ -82,8 +168,10 @@ function memberBridgeEmail(){
 }
 
 async function completeMemberBridgeEntrance(email){
+  const memberName=extractSquarespaceNameParts();
   currentProfile=await ensureProfile({
-    firstName:firstNameFromEmail(email),
+    firstName:memberName.firstName || firstNameFromEmail(email),
+    lastName:memberName.lastName || null,
     membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
     squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
   });
@@ -322,7 +410,7 @@ function showCheckIn(){
   authPanel.classList.add("hidden");
   checkinForm.classList.remove("hidden");
 
-  const name=currentProfile?.first_name||"guest";
+  const name=profileFirstName(currentProfile);
   document.getElementById("welcomeLine").textContent=`Welcome back, ${name}.`;
 
   // Guests enter cycle data first, then choose whether they are checking in or clocking in.
@@ -336,7 +424,30 @@ function showCheckIn(){
 
 function formatDate(dateString){
   if(!dateString) return "Open";
-  return new Date(dateString).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"});
+  const raw=String(dateString);
+  const date=/^\d{4}-\d{2}-\d{2}$/.test(raw) ? new Date(`${raw}T12:00:00`) : new Date(raw);
+  return date.toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric",timeZone:FLOWTEL_TIME_ZONE});
+}
+
+function utcFromISO(iso){
+  const [year,month,day]=String(iso || localTodayISO()).slice(0,10).split("-").map(Number);
+  return Date.UTC(year,month-1,day);
+}
+
+function dayDistance(startISO,endISO){
+  return Math.round((utcFromISO(endISO)-utcFromISO(startISO))/86400000);
+}
+
+function countConsecutiveFlowtelDays(dateValues,today=localTodayISO()){
+  const dates=new Set((dateValues || []).filter(Boolean).map(value=>String(value).slice(0,10)));
+  let streak=0;
+  let cursor=today;
+  while(dates.has(cursor)){
+    streak+=1;
+    const previous=new Date(utcFromISO(cursor)-86400000);
+    cursor=previous.toISOString().slice(0,10);
+  }
+  return streak;
 }
 
 function endTypeLabel(type){
@@ -542,7 +653,7 @@ function openCheckoutFromSuite(){
 }
 
 function renderKey(stay){
-  const name=currentProfile?.first_name||"Guest";
+  const name=profileFirstName(currentProfile);
   const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
 
   document.getElementById("keyGuestName").textContent=`${name}, your key is ready.`;
@@ -553,7 +664,7 @@ function renderKey(stay){
 function renderSuite(stay){
   currentStay=stay;
 
-  const name=currentProfile?.first_name||"guest";
+  const name=profileFirstName(currentProfile);
   const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
   const content=getDayContent(stay.cycle_day_claimed);
 
@@ -571,7 +682,8 @@ function renderSuite(stay){
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
   document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
   const dayOne=document.getElementById("suiteDayOne");
-  if(dayOne) dayOne.textContent=stay.cycle_start_date ? `Day 1: ${formatDate(stay.cycle_start_date)}` : "";
+  if(dayOne) dayOne.textContent="";
+  renderCycleData(stay);
 
   const currentRoomCard=document.querySelector(".wheel-current-room");
   if(currentRoomCard && !document.getElementById("suiteFlowtelDate")){
@@ -596,6 +708,43 @@ function renderSuite(stay){
   renderWheel(stay.cycle_day_claimed);
   refineWheelLegend();
   renderReflectionMoonMagic(stay);
+}
+
+async function renderCycleData(stay){
+  const card=document.getElementById("cycleDataCard");
+  const content=document.getElementById("cycleDataContent");
+  if(!card||!content) return;
+
+  const dayOne=stay?.cycle_start_date ? formatDate(stay.cycle_start_date) : "Not recorded yet";
+  let streakLine="";
+  let welcomeBackLine="";
+
+  try{
+    const visits=currentProfile?.id ? await getPreviousVisits(currentProfile.id) : [];
+    const dates=[stay?.checkin_date, ...(visits || []).map(visit=>visit.checkin_date || String(visit.checked_in_at || "").slice(0,10))]
+      .filter(Boolean)
+      .map(value=>String(value).slice(0,10));
+    const uniqueDates=[...new Set(dates)].sort();
+    const streak=countConsecutiveFlowtelDays(uniqueDates, localTodayISO());
+
+    if(streak>14){
+      streakLine=`<p><strong>Check-in streak:</strong> ${streak} days in flow.</p>`;
+    }
+
+    const today=localTodayISO();
+    const previous=uniqueDates.filter(date=>date<today).sort().pop();
+    if(previous && dayDistance(previous,today)>1){
+      welcomeBackLine=`<p class="cycle-welcome-back">We're glad you took some time away. It's good for you. Welcome back — we have space for you.</p>`;
+    }
+  }catch(error){
+    console.warn("Cycle Data card could not load full stay history yet.",error);
+  }
+
+  content.innerHTML=`
+    <p><strong>Current cycle Day 1:</strong> ${escapeHtml(dayOne)}.</p>
+    ${streakLine}
+    ${welcomeBackLine}
+  `;
 }
 
 function refineWheelLegend(){

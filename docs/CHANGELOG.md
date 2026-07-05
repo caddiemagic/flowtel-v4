@@ -1,5 +1,18 @@
 # Flowtel Changelog
 
+## v0.8.1
+
+Suite + Concierge Polish
+
+- Adds clean profile/member name display for Suite greetings and Concierge queue labels.
+- Adds the new Cycle Data pill above the Concierge Card.
+- Moves current cycle Day 1 out of Current Room.
+- Adds gentle 14+ day check-in streak copy and no-shame welcome-back copy.
+- Restores the nested Lounge video placeholder pill.
+- Separates active Awaiting Turndown requests from Completed Requests.
+- Marks fulfilled Turndown requests as completed so they stop counting as active alerts.
+- Adds Supabase migration 011 for Concierge profile-name visibility.
+
 ## v0.8.0
 
 Stay Logic + Concierge Stabilization
