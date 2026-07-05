@@ -63,38 +63,18 @@
         <button id="goToSuiteButton" type="button">Clock Out</button>
       </section>
 
-      <section class="my-guests-card snapshot-card">
-        <div>
-          <p class="eyebrow">NEW CONNECTIONS</p>
-          <h2>Connection Requests</h2>
-          <div id="connectionRequests">
-            <p>New guest connection requests will appear here.</p>
-          </div>
-        </div>
-      </section>
-
-      <section class="my-guests-card snapshot-card">
-        <div>
-          <p class="eyebrow">YOUR CLIENTS</p>
-          <h2>My Guests</h2>
-          <div id="myClientsList">
-            <p>Connected clients will live here.</p>
-          </div>
-        </div>
-      </section>
-
       </section>
 
       <section class="stats">
-        <button class="stat-card" type="button" data-filter="connections">
-          <span>New Connections</span>
-          <strong id="newConnectionsCount">0</strong>
-          <em>Waiting to connect</em>
+        <button class="stat-card" type="button" data-filter="queue">
+          <span>Awaiting Turndown</span>
+          <strong id="awaitingTurndownCount">0</strong>
+          <em>Waiting for care</em>
         </button>
         <button class="stat-card" type="button" data-filter="clients">
           <span>Your Clients</span>
           <strong id="clientsCount">0</strong>
-          <em>Connected guests</em>
+          <em><b id="clientConnectionCount">0</b> new connection requests</em>
         </button>
         <button class="stat-card" type="button" data-filter="in-house">
           <span>Guests in House</span>
@@ -107,6 +87,12 @@
           <em>14+ days</em>
         </button>
       </section>
+
+
+      <div class="relationship-cache" hidden>
+        <div id="connectionRequests"></div>
+        <div id="myClientsList"></div>
+      </div>
 
       <section class="queue">
         <div class="section-heading">
