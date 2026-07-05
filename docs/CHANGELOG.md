@@ -166,3 +166,12 @@ Medicine Wheel Compass
 - Fixed Medicine Wheel seasonal card links into seasonal Flow Map views.
 - No Supabase migration required.
 
+## v0.9.12 — Powder Rooms + Suite Layout Polish
+
+- Renamed seasonal reflection views into Summer, Autumn, Winter, and Spring Powder Rooms.
+- Redesigned seasonal reflection pages as open floating-note rooms instead of structured dashboards.
+- Hid dashboard filters, data tabs, snapshot panels, and Flow Map grids from Powder Room views.
+- Kept anonymous seasonal reflections filtered by Actual Inner Season in the background.
+- Moved Moon Magic inside the Medicine Wheel container to reduce negative space.
+- Updated the Cycle Data welcome-back message to appear only after 14+ days away.
+- No Supabase migration required.

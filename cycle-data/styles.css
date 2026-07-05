@@ -214,3 +214,138 @@ p{line-height:1.55;color:var(--muted)}
   .filter-grid{grid-template-columns:1fr}
   .metric-grid{grid-template-columns:1fr}
 }
+
+/* Release 0.9.12 — Seasonal Powder Rooms */
+body.powder-room-mode{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(248,227,223,.72),transparent 28%),
+    radial-gradient(circle at 88% 18%,rgba(255,249,237,.95),transparent 30%),
+    radial-gradient(circle at 50% 100%,rgba(246,238,230,.95),transparent 45%),
+    #fbf7ef;
+}
+.powder-room-mode .cycle-dashboard-shell{
+  width:min(1240px,calc(100% - 32px));
+  padding-top:56px;
+}
+.powder-room-mode .hero-card{
+  position:relative;
+  overflow:hidden;
+  border-radius:34px;
+  padding:56px 28px 46px;
+  background:linear-gradient(135deg,rgba(255,253,250,.86),rgba(248,227,223,.44));
+}
+.powder-room-mode .hero-card:before,
+.powder-room-mode .hero-card:after{
+  content:"";
+  position:absolute;
+  border:1px solid rgba(217,173,79,.16);
+  border-radius:50%;
+  pointer-events:none;
+}
+.powder-room-mode .hero-card:before{width:340px;height:340px;right:-110px;top:-180px}
+.powder-room-mode .hero-card:after{width:220px;height:220px;left:-90px;bottom:-140px}
+.powder-room-mode .hero-card h1{
+  max-width:900px;
+  margin-left:auto;
+  margin-right:auto;
+  text-transform:none;
+  letter-spacing:.02em;
+  line-height:.95;
+}
+.powder-room-mode .hero-card p:last-child{
+  width:min(760px,100%);
+  margin:0 auto;
+  font-size:1.18rem;
+}
+.powder-room-mode .dashboard-card{
+  background:transparent;
+  border:none;
+  box-shadow:none;
+  padding:18px 0 0;
+}
+.powder-room-mode .dashboard-header{
+  align-items:center;
+  margin-bottom:8px;
+}
+.powder-room-mode .dashboard-header > div{
+  display:none;
+}
+.powder-room-mode .dashboard-actions{
+  width:100%;
+  justify-content:center;
+}
+.powder-room-mode .viewer-toggle,
+.powder-room-mode .filters-card,
+.powder-room-mode .snapshot-panel,
+.powder-room-mode .flow-map-grid{
+  display:none!important;
+}
+.powder-room-mode .entry-log-card{
+  border:none;
+  background:transparent;
+  box-shadow:none;
+  padding:12px 0 72px;
+}
+.powder-room-mode .section-heading-row{
+  display:block;
+  text-align:center;
+  margin:18px auto 34px;
+}
+.powder-room-mode .section-heading-row h3{
+  font-size:clamp(1.35rem,3vw,2.2rem);
+  color:var(--ink);
+}
+.powder-room-mode .entry-count{
+  margin-top:8px;
+}
+.powder-note-cloud{
+  min-height:60vh;
+  display:flex;
+  flex-wrap:wrap;
+  align-items:flex-start;
+  justify-content:center;
+  gap:22px 26px;
+  padding:8px 0 80px;
+}
+.powder-note{
+  --tilt:0deg;
+  --lift:0px;
+  width:min(100%,330px);
+  border:1px solid rgba(234,223,212,.86);
+  border-radius:28px;
+  padding:24px 25px 19px;
+  background:rgba(255,253,250,.84);
+  box-shadow:0 22px 54px rgba(111,75,64,.08), inset 0 1px 0 rgba(255,255,255,.8);
+  transform:rotate(var(--tilt)) translateY(var(--lift));
+}
+.powder-note-text{
+  margin:0;
+  color:var(--ink);
+  font-size:clamp(1.02rem,1.4vw,1.25rem);
+  line-height:1.55;
+  white-space:pre-wrap;
+}
+.powder-note-meta{
+  margin:16px 0 0;
+  color:rgba(167,127,115,.82);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.66rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.powder-note--1{--tilt:-1.6deg;--lift:10px;width:310px;margin-top:18px}
+.powder-note--2{--tilt:1.2deg;--lift:-8px;width:390px}
+.powder-note--3{--tilt:-.6deg;--lift:22px;width:280px}
+.powder-note--4{--tilt:1.8deg;--lift:2px;width:350px;margin-top:36px}
+.powder-note--5{--tilt:-1.1deg;--lift:-4px;width:420px}
+.powder-note--6{--tilt:.7deg;--lift:28px;width:300px}
+.powder-note--7{--tilt:-2deg;--lift:6px;width:365px}
+.powder-note--8{--tilt:1.4deg;--lift:18px;width:330px}
+.powder-empty{width:min(100%,620px);background:rgba(255,253,250,.72)}
+@media(max-width:760px){
+  .powder-room-mode .cycle-dashboard-shell{width:min(100% - 22px,680px);padding-top:34px}
+  .powder-room-mode .hero-card{padding:40px 20px 34px}
+  .powder-note-cloud{display:grid;grid-template-columns:1fr;gap:16px;padding-bottom:42px}
+  .powder-note{width:100%!important;margin:0!important;transform:none!important}
+}

@@ -1897,3 +1897,19 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .journal-card #reflectionMoonMagic{
   display:none !important;
 }
+
+/* Release 0.9.12 — Moon Magic lives inside the Medicine Wheel card */
+.wheel-panel .suite-moon-magic-pill{
+  width:100%;
+  max-width:none;
+  margin:0 0 24px;
+  align-self:stretch;
+}
+.wheel-panel .medicine-wheel{
+  margin-top:8px;
+}
+@media(max-width:700px){
+  .wheel-panel .suite-moon-magic-pill{
+    margin-bottom:20px;
+  }
+}

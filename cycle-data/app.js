@@ -32,6 +32,20 @@ const SEASON_COPY={
   "Inner Autumn":"Refinement, truth-telling, simplification, and preparation.",
 };
 
+const POWDER_ROOM_NAMES={
+  "Inner Winter":"Winter Powder Room",
+  "Inner Spring":"Spring Powder Room",
+  "Inner Summer":"Summer Powder Room",
+  "Inner Autumn":"Autumn Powder Room",
+};
+
+const POWDER_ROOM_COPY={
+  "Inner Winter":"This is where the body tells the truth. Move slowly. Nothing here needs to be fixed.",
+  "Inner Spring":"This is where the first green shoots appear. Read the beginnings, the sparks, the almost-ready things.",
+  "Inner Summer":"This is where the radiance speaks. Read what other women remembered here. Take only what opens you.",
+  "Inner Autumn":"This is where the truth sharpens. Read what other women released, refined, and finally admitted.",
+};
+
 let allEntries=[];
 let currentMode="self";
 let currentProfile=null;
@@ -82,6 +96,15 @@ function uniqueSorted(rows,key){
 }
 function moonCycleLabel(start){
   return start ? `New Moon ${formatDate(start)}` : "Unknown Moon Cycle";
+}
+function powderRoomName(season){
+  return POWDER_ROOM_NAMES[season] || "Powder Room";
+}
+function powderRoomCopy(season){
+  return POWDER_ROOM_COPY[season] || "Anonymous reflections from guests moving through the Flowtel.";
+}
+function compactMoonPhase(value){
+  return String(value || "Moon Phase Unknown").replace(/\s*Phase$/i, "");
 }
 function dateInRange(date,start,end){
   if(!date) return false;
@@ -135,7 +158,7 @@ function renderToggle(profile,clients,targetId,mode){
     viewerToggle.appendChild(link(label,"/cycle-data/?scope=all",mode==="all"));
   }
 
-  viewerToggle.appendChild(link("Seasonal Reflections",seasonQuery || "/cycle-data/?season=Inner%20Winter",mode==="season"));
+  viewerToggle.appendChild(link("Powder Rooms",seasonQuery || "/cycle-data/?season=Inner%20Winter",mode==="season"));
 }
 async function fetchCycleEntries({subjectId=null,scope="self"}){
   const { data, error } = await supabase.rpc("flowtel_get_cycle_data_entries",{
@@ -203,7 +226,32 @@ function entryMarkup(row,{anonymous=false}={}){
     </article>
   `;
 }
+function renderPowderRoom(rows,season){
+  entryEyebrow.textContent="POWDER ROOM";
+  entryTitle.textContent=`Notes left in the ${powderRoomName(season)}`;
+  entryCount.textContent=`${rows.length} anonymous note${rows.length===1?"":"s"}`;
+  entryList.className="powder-note-cloud";
+  entryList.innerHTML=rows.length
+    ? rows.map((row,index)=>powderNoteMarkup(row,index)).join("")
+    : `<div class="empty-state powder-empty"><p>No one has left a note in this Powder Room yet. The mirror is waiting.</p></div>`;
+}
+
+function powderNoteMarkup(row,index){
+  const reflection=String(row.reflection_text||"").trim();
+  const note=reflection || "A guest passed through this season quietly.";
+  const toneClass=`powder-note--${(index % 8) + 1}`;
+  const moon=compactMoonPhase(row.moon_phase);
+  const feels=row.feels_like_inner_season ? `Felt like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
+  return `
+    <article class="powder-note ${toneClass}">
+      <p class="powder-note-text">${escapeHtml(note)}</p>
+      <p class="powder-note-meta">${escapeHtml(moon)} · ${escapeHtml(feels)}</p>
+    </article>
+  `;
+}
+
 function renderEntries(rows,{anonymous=false,title="Entries",eyebrow="CHECK-IN LOG"}={}){
+  entryList.className="entry-list";
   entryEyebrow.textContent=eyebrow;
   entryTitle.textContent=title;
   entryCount.textContent=`${rows.length} entr${rows.length===1?"y":"ies"}`;
@@ -219,18 +267,18 @@ function rerenderStandard(){
 }
 async function rerenderSeason(){
   try{
-    const season=normalizeSeason(seasonFilter.value || requestedSeason());
+    const season=normalizeSeason(requestedSeason() || seasonFilter.value);
+    seasonFilter.value=season || "";
+    moonPhaseFilter.value="";
+    moonCycleFilter.value="";
+    startDateFilter.value="";
+    endDateFilter.value="";
     const rows=await fetchSeasonReflections(season);
     allEntries=rows;
-    hydrateFilterOptions(rows);
-    const filtered=filteredEntries();
-    renderMetrics(filtered);
-    renderFlowMap(filtered,season);
-    renderEntries(filtered,{anonymous:true,title:`${season || "All Seasons"} Reflections`,eyebrow:"COLLECTIVE SEASONAL NOTES"});
-    entryCount.textContent=`${filtered.length} anonymous reflection${filtered.length===1?"":"s"}`;
+    renderPowderRoom(rows,season);
   }catch(error){
     console.error(error);
-    if(message) message.textContent=error?.message || "Collective seasonal reflections are not available yet.";
+    if(message) message.textContent=error?.message || "This Powder Room is not available yet.";
   }
 }
 function bindFilters(mode){
@@ -267,15 +315,14 @@ async function init(){
     renderToggle(currentProfile,clients,targetId,currentMode);
     bindFilters(currentMode);
 
+    document.body.classList.toggle("powder-room-mode",currentMode==="season");
+
     if(currentMode==="season"){
-      pageTitle.textContent="Seasonal Reflections";
-      viewEyebrow.textContent="ANONYMOUS COLLECTIVE VIEW";
-      viewingName.textContent=season || "All Seasons";
-      intro.textContent="Read what has been remembered in this season across the Flowtel. Names and profile details are not shown.";
-      filtersTitle.textContent="Filter anonymous reflections";
+      pageTitle.textContent=powderRoomName(season);
+      viewEyebrow.textContent="GIRLS' BATHROOM";
+      viewingName.textContent="What happens here stays here.";
+      intro.textContent=powderRoomCopy(season);
       seasonFilter.value=season || "";
-      snapshotTitle.textContent="Collective seasonal memory";
-      snapshotCopy.textContent="This view gathers reflections by actual inner season so women can see what other women move through in the same room of the cycle.";
       await rerenderSeason();
       return;
     }
