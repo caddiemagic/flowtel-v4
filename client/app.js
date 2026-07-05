@@ -940,11 +940,15 @@ async function handleBetaLogin(email){
 
     fillArrivalFields(account);
     setMessage("");
+    await prepareDailyStayState();
 
     if(await openTodaySuiteIfPresent()){
       return;
     }
 
+    clearCachedSuiteStay();
+    currentStay=null;
+    pendingArrivalStay=null;
     showCheckIn();
   }catch(error){
     setMessage("This beta account could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.");

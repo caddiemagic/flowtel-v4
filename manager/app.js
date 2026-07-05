@@ -236,7 +236,7 @@ function betaClockInContext(account){
     feels_like_inner_season:account.innerSeason,
     wing:account.wing,
     court:account.innerSeason?.replace("Inner ","")+" Court",
-    checkin_date:new Date().toISOString().slice(0,10),
+    checkin_date:flowtelDateISO(),
   };
 }
 
@@ -340,12 +340,18 @@ function updateTodayFlow(){
 }
 
 function guestName(stay){return [stay.profiles?.first_name,stay.profiles?.last_name].filter(Boolean).join(" ")||stay.profiles?.email||"Guest";}
-function startOfToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
-function daysOpen(stay){const start=new Date(stay.checkin_date);start.setHours(0,0,0,0);return Math.max(1,Math.round((new Date()-start)/86400000)+1);}
-function checkedOutToday(stay){return stay.checked_out_at && new Date(stay.checked_out_at)>=startOfToday();}
+function utcDateFromISO(iso){
+  const [year,month,day]=String(iso||currentFlowtelDate()).slice(0,10).split("-").map(Number);
+  return Date.UTC(year,month-1,day);
+}
+function daysBetweenISO(startISO,endISO){
+  return Math.max(1,Math.round((utcDateFromISO(endISO)-utcDateFromISO(startISO))/86400000)+1);
+}
+function daysOpen(stay){return daysBetweenISO(stayFlowtelDate(stay),currentFlowtelDate());}
+function checkedOutToday(stay){return flowtelDateFromValue(stay.checked_out_at)===currentFlowtelDate();}
 function isExtended(stay){return !stay.checked_out_at && daysOpen(stay)>=14;}
 function isOpenStay(stay){
-  return stay.stay_status!=="checked_out" && !stay.checked_out_at;
+  return !["checked_out","room_prepared"].includes(stay.stay_status) && !stay.checked_out_at;
 }
 
 function hasTurndownRequest(stay){
@@ -366,12 +372,7 @@ function needsCheckoutConfirmation(stay){
 }
 
 function currentFlowtelDate(){
-  return new Intl.DateTimeFormat("en-CA",{
-    timeZone:"America/Los_Angeles",
-    year:"numeric",
-    month:"2-digit",
-    day:"2-digit"
-  }).format(new Date());
+  return flowtelDateISO();
 }
 
 function flowtelDateFromValue(value){
@@ -380,12 +381,7 @@ function flowtelDateFromValue(value){
   if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
   const date=new Date(raw);
   if(Number.isNaN(date.getTime())) return raw.slice(0,10);
-  return new Intl.DateTimeFormat("en-CA",{
-    timeZone:"America/Los_Angeles",
-    year:"numeric",
-    month:"2-digit",
-    day:"2-digit"
-  }).format(date);
+  return flowtelDateISO(date);
 }
 
 function stayFlowtelDate(stay){
@@ -516,19 +512,23 @@ function renderQueue(){
   queue.innerHTML=stays.map(stay=>{
     const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
     const checkoutItem=needsCheckoutConfirmation(stay);
+    const turndownItem=hasTurndownRequest(stay);
     const actionLabel=checkoutItem?"Clean Room":"Open Room";
     const statusLine=checkoutItem
       ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
-      : `<p>Turndown request · ${stay.turndown_requested_at ? new Date(stay.turndown_requested_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Today"}</p>`;
+      : turndownItem
+        ? `<p>Turndown request · ${stay.turndown_requested_at ? new Date(stay.turndown_requested_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : "Today"}</p>`
+        : `<p>Checked in · ${stay.checked_in_at ? new Date(stay.checked_in_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) : stayFlowtelDate(stay)}</p>`;
 
     return `
-      <article class="guest-row ${checkoutItem ? "checkout-row" : "turndown-row"}">
+      <article class="guest-row ${checkoutItem ? "checkout-row" : turndownItem ? "turndown-row" : "in-house-row"}">
         <div>
           <h3>${guestName(stay)}</h3>
           ${statusLine}
           <p>Today's Room: ${room}</p>
           <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
           <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
+          <p>Wing: ${stay.wing||"Not assigned"}</p>
         </div>
         <button data-id="${stay.id}" data-action="${checkoutItem ? "clean" : "witness"}">${actionLabel}</button>
       </article>

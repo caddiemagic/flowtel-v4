@@ -4,33 +4,59 @@ import { getCurrentUser } from "./auth.js";
 import { calculateCycleStartDate, getCourt, getInnerSeason, getWing } from "./seasons.js";
 import { getMoonMagic } from "./moon.js";
 
-const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
+export const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
 
-function todayISO(){
+export function getFlowtelDateISO(date = new Date()){
   const parts=new Intl.DateTimeFormat("en-CA",{
     timeZone:FLOWTEL_TIME_ZONE,
     year:"numeric",
     month:"2-digit",
     day:"2-digit"
-  }).formatToParts(new Date()).reduce((acc,part)=>{
+  }).formatToParts(date).reduce((acc,part)=>{
     if(part.type!=="literal") acc[part.type]=part.value;
     return acc;
   },{});
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
+function todayISO(){
+  return getFlowtelDateISO();
+}
+
+function utcDateFromISO(iso){
+  const [year,month,day]=String(iso||todayISO()).slice(0,10).split("-").map(Number);
+  return Date.UTC(year,month-1,day);
+}
+
+function flowtelDateFromValue(value){
+  if(!value) return "";
+  const raw=String(value);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const date=new Date(raw);
+  if(Number.isNaN(date.getTime())) return raw.slice(0,10);
+  return getFlowtelDateISO(date);
+}
+
+function stayCheckinDate(stay){
+  return stay?.checkin_date || flowtelDateFromValue(stay?.checked_in_at || stay?.created_at);
+}
+
 function daysBetween(startDate,endDate){
-  const a=new Date(startDate), b=new Date(endDate);
-  a.setHours(0,0,0,0); b.setHours(0,0,0,0);
+  const a=utcDateFromISO(startDate), b=utcDateFromISO(endDate);
   return Math.max(1, Math.round((b-a)/86400000)+1);
 }
 
-export async function getOpenStayForClient(clientId){
+export async function getOpenStaysForClient(clientId){
   const {data,error}=await supabase.from("flowtel_stays").select("*")
     .eq("client_id",clientId).is("checked_out_at",null)
-    .order("checked_in_at",{ascending:false}).limit(1).maybeSingle();
+    .order("checked_in_at",{ascending:false});
   if(error) throw error;
-  return data;
+  return data || [];
+}
+
+export async function getOpenStayForClient(clientId){
+  const stays=await getOpenStaysForClient(clientId);
+  return stays[0] || null;
 }
 
 
@@ -43,19 +69,28 @@ export async function getTodayStayForClient(clientId){
 }
 
 export async function autoCloseOpenStayIfNeeded(clientId){
-  const openStay=await getOpenStayForClient(clientId);
-  if(!openStay) return null;
+  const openStays=await getOpenStaysForClient(clientId);
+  if(!openStays.length) return null;
+
   const today=todayISO();
-  if(openStay.checkin_date===today) return openStay;
-  const {data,error}=await supabase.from("flowtel_stays").update({
-    checked_out_at:new Date().toISOString(),
-    stay_status:"checked_out",
-    stay_end_type:"automatic",
-    stay_length_days:daysBetween(openStay.checkin_date,today),
-    updated_at:new Date().toISOString(),
-  }).eq("id",openStay.id).select().single();
-  if(error) throw error;
-  return data;
+  const todaysOpenStay=openStays.find(stay=>stayCheckinDate(stay)===today);
+  let lastClosed=null;
+
+  const staleOpenStays=openStays.filter(stay=>stayCheckinDate(stay)!==today);
+  for(const openStay of staleOpenStays){
+    const now=new Date().toISOString();
+    const {data,error}=await supabase.from("flowtel_stays").update({
+      checked_out_at:now,
+      stay_status:"checked_out",
+      stay_end_type:"automatic",
+      stay_length_days:daysBetween(stayCheckinDate(openStay),today),
+      updated_at:now,
+    }).eq("id",openStay.id).select().single();
+    if(error) throw error;
+    lastClosed=data;
+  }
+
+  return todaysOpenStay || lastClosed;
 }
 
 export async function createStay({cycleDay,feelsLike}){

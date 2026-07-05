@@ -1,5 +1,16 @@
 # Flowtel Changelog
 
+## v0.8.0
+
+Stay Logic + Concierge Stabilization
+
+- Stabilized Flowtel Date handling across guest and concierge flows.
+- Auto-closes stale open stays before creating today’s stay.
+- Re-anchors Moon Magic to canonical 2026 Pacific Time New Moon dates.
+- Repairs Concierge Desk date filtering and in-house row language.
+- Adds Supabase RLS migration for practitioner concierge visibility and updates.
+
+
 ## v0.4.3
 
 Luxury Suite & Concierge Refinement

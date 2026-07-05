@@ -1104,7 +1104,21 @@
       let screenHistory = ["cycleQuestion1"];
 
       const synodicMonth = 29.530588853;
-      const knownNewMoon = new Date(Date.UTC(2000,0,6,18,14));
+      const canonicalNewMoons = [
+        "2026-01-18",
+        "2026-02-17",
+        "2026-03-18",
+        "2026-04-17",
+        "2026-05-16",
+        "2026-06-14",
+        "2026-07-14",
+        "2026-08-12",
+        "2026-09-10",
+        "2026-10-10",
+        "2026-11-08",
+        "2026-12-08",
+      ];
+      const knownNewMoonISO = "2026-06-14";
 
       function $(id){ return document.getElementById(id); }
 
@@ -1176,15 +1190,61 @@
         cycleShowScreen(previous, false);
       };
 
+      function isoFromDate(date){
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Los_Angeles",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit"
+        }).formatToParts(date).reduce((acc, part) => {
+          if(part.type !== "literal") acc[part.type] = part.value;
+          return acc;
+        }, {});
+        return `${parts.year}-${parts.month}-${parts.day}`;
+      }
+
+      function dateFromISO(iso){
+        const [year, month, day] = iso.split("-").map(Number);
+        return new Date(year, month - 1, day);
+      }
+
+      function daysBetweenISO(startISO, endISO){
+        return Math.round((Date.UTC(...startISO.split("-").map((v,i)=>i===1?Number(v)-1:Number(v))) - Date.UTC(...endISO.split("-").map((v,i)=>i===1?Number(v)-1:Number(v)))) / -86400000);
+      }
+
+      function addDaysISO(iso, days){
+        const [year, month, day] = iso.split("-").map(Number);
+        return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0,10);
+      }
+
+      function getMoonPair(todayISO){
+        let last = null;
+        let next = null;
+        canonicalNewMoons.forEach(date => {
+          if(date <= todayISO) last = date;
+          if(!next && date > todayISO) next = date;
+        });
+        if(last) return {last, next};
+
+        const elapsed = daysBetweenISO(knownNewMoonISO, todayISO);
+        const cycles = Math.floor(elapsed / synodicMonth);
+        last = addDaysISO(knownNewMoonISO, Math.round(cycles * synodicMonth));
+        if(last > todayISO) last = addDaysISO(last, -Math.round(synodicMonth));
+        next = addDaysISO(last, Math.round(synodicMonth));
+        return {last, next};
+      }
+
       function getMoonData(){
-        const now = new Date();
-        let age = ((now - knownNewMoon) / 86400000) % synodicMonth;
-        if(age < 0) age += synodicMonth;
-        const lastNewMoon = new Date(now - (age * 86400000));
-        const nextNewMoon = new Date(lastNewMoon.getTime() + (synodicMonth * 86400000));
-        const moonDay = Math.floor(age) + 1;
+        const todayISO = isoFromDate(new Date());
+        const pair = getMoonPair(todayISO);
+        const moonDay = daysBetweenISO(pair.last, todayISO) + 1;
         const moonSeason = getMoonSeason(moonDay);
-        return {lastNewMoon,nextNewMoon,moonDay,moonSeason};
+        return {
+          lastNewMoon: dateFromISO(pair.last),
+          nextNewMoon: dateFromISO(pair.next || addDaysISO(pair.last, Math.round(synodicMonth))),
+          moonDay,
+          moonSeason
+        };
       }
 
       function getWombSeason(day){
