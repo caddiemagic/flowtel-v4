@@ -1,5 +1,13 @@
 # Flowtel Changelog
 
+
+## v0.9.14 — Powder Room Title Final Polish
+
+- Updated Powder Room hero titles so the full season name and **POWDER ROOM** render in all caps.
+- Reduced Powder Room title scale again so the room title can sit on one line on desktop.
+- Removed the small secondary **POWDER ROOM** label above **Notes left on the mirror**.
+- No Supabase migration required.
+
 ## v0.9.11 — First Check-In Guard
 
 - Fixed a beta browser-session edge case where a newly signed-in test account could restore a cached Suite stay from another account.
@@ -39,6 +47,14 @@
 - No new migration required.
 
 # Flowtel Changelog
+
+
+## v0.9.14 — Powder Room Title Final Polish
+
+- Updated Powder Room hero titles so the full season name and **POWDER ROOM** render in all caps.
+- Reduced Powder Room title scale again so the room title can sit on one line on desktop.
+- Removed the small secondary **POWDER ROOM** label above **Notes left on the mirror**.
+- No Supabase migration required.
 
 ## v0.9.6 — Actual vs Recorded Cycle Day
 

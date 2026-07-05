@@ -101,7 +101,7 @@ function powderRoomName(season){
   return POWDER_ROOM_NAMES[season] || "Powder Room";
 }
 function powderRoomTitle(season){
-  return powderRoomName(season).replace(/ Powder Room$/i," POWDER ROOM");
+  return powderRoomName(season).toUpperCase();
 }
 function powderRoomCopy(season){
   return POWDER_ROOM_COPY[season] || "Anonymous reflections from guests moving through the Flowtel.";
@@ -230,7 +230,7 @@ function entryMarkup(row,{anonymous=false}={}){
   `;
 }
 function renderPowderRoom(rows,season){
-  entryEyebrow.textContent="POWDER ROOM";
+  entryEyebrow.textContent="";
   entryTitle.textContent="Notes left on the mirror";
   entryCount.textContent="";
   entryList.className="powder-note-cloud";

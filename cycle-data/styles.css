@@ -382,3 +382,26 @@ body.powder-room-mode{
   .powder-room-mode .hero-card{padding:34px 18px 28px}
   .powder-room-mode .hero-card h1{font-size:clamp(2.25rem,13vw,3.15rem)}
 }
+
+
+/* Release 0.9.14 — Powder Room title final polish */
+.powder-room-mode .hero-card h1{
+  font-size:clamp(2.35rem,4.55vw,3.75rem);
+  line-height:1;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+}
+.powder-room-mode .section-heading-row .eyebrow{
+  display:none!important;
+}
+@media(min-width:761px){
+  .powder-room-mode .hero-card h1{
+    white-space:nowrap;
+  }
+}
+@media(max-width:760px){
+  .powder-room-mode .hero-card h1{
+    font-size:clamp(2rem,10.5vw,2.65rem);
+    white-space:normal;
+  }
+}
