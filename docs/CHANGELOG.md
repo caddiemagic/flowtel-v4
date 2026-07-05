@@ -1,3 +1,11 @@
+## v0.8.4
+
+Completed Turndown Log Date Fix
+
+- Fixes a Concierge Desk quirk where one of multiple completed Turndown requests could disappear after completion.
+- Completed Requests now uses the Turndown completion date instead of the original check-in date for the daily hospitality log.
+- No Supabase migration required.
+
 # Flowtel Changelog
 
 ## v0.8.3 — Turndown Completion RPC

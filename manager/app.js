@@ -426,8 +426,16 @@ function isAwaitingTurndown(stay){
   return isOpenStay(stay) && hasTurndownRequest(stay) && !isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
 }
 
+function turndownCompletionFlowtelDate(stay){
+  // Completed Requests are a same-day hospitality log based on when the care was
+  // completed, not when the guest originally checked in. This matters when an
+  // older/open stay is tended today: it should move from Open Requests into
+  // Completed Requests instead of disappearing because its check-in date is old.
+  return flowtelDateFromValue(stay.turndown_completed_at || stay.witnessed_at || stay.updated_at || stayFlowtelDate(stay));
+}
+
 function isCompletedTurndown(stay){
-  return isOpenStay(stay) && stayFlowtelDate(stay)===currentFlowtelDate() && hasTurndownRequest(stay) && isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
+  return isOpenStay(stay) && hasTurndownRequest(stay) && isTurndownFulfilled(stay) && isAssignedToPractitioner(stay) && turndownCompletionFlowtelDate(stay)===currentFlowtelDate();
 }
 
 function needsCheckoutConfirmation(stay){
