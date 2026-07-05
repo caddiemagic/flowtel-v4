@@ -111,4 +111,9 @@ Medicine Wheel Compass
 - Added filters for actual season, moon phase, moon cycle, and date range.
 - Added `collective_season_notes_opt_out` privacy groundwork for future opt-out controls.
 - Added database RPCs for consent-aware cycle data access and anonymous seasonal reflections.
+## v0.9.5 — Dashboard Click Repair
+
+- Fixed connected-client **View Data** buttons in the Concierge Desk.
+- Fixed Medicine Wheel seasonal card links into seasonal Flow Map views.
+- No Supabase migration required.
 

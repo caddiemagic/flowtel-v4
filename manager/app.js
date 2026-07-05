@@ -10,6 +10,7 @@ let currentClientsCount=0;
 let clockInContext=null;
 let currentManagerProfile=null;
 const boundConnectionButtons=new WeakSet();
+const boundClientDataButtons=new WeakSet();
 
 const BETA_PASSWORD="FlowtelBeta!2026";
 const BETA_PRACTITIONERS=[
@@ -761,15 +762,16 @@ async function renderConnectionRequests(){
 }
 
 
+function openClientCycleData(clientId){
+  if(!clientId) return;
+  window.location.href=`/cycle-data/?client=${encodeURIComponent(clientId)}`;
+}
+
 function bindClientDataButtons(scope=document){
   scope.querySelectorAll("[data-view-client-data]").forEach(button=>{
-    if(button.dataset.boundViewData==="true") return;
-    button.dataset.boundViewData="true";
-    button.addEventListener("click",()=>{
-      const clientId=button.dataset.viewClientData;
-      if(!clientId) return;
-      window.location.href=`/cycle-data/?client=${encodeURIComponent(clientId)}`;
-    });
+    if(boundClientDataButtons.has(button)) return;
+    boundClientDataButtons.add(button);
+    button.addEventListener("click",()=>openClientCycleData(button.dataset.viewClientData));
   });
 }
 

@@ -1792,6 +1792,20 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   margin:18px auto 0;
 }
 
-/* Release 0.9.4 — season cards now open anonymous seasonal Flow Map views. */
-.wheel-season{text-decoration:none;color:inherit;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
-.wheel-season:hover,.wheel-season:focus-visible{transform:translateY(-2px);border-color:rgba(217,173,79,.62);box-shadow:0 16px 38px rgba(111,75,64,.12);outline:none}
+/* Release 0.9.5 — clickable seasonal cards repair.
+   Earlier medicine-wheel styling intentionally disabled pointer events on seasonal labels.
+   These are now links into anonymous seasonal Flow Map views, so they must receive clicks. */
+.wheel-season{
+  text-decoration:none !important;
+  color:inherit !important;
+  cursor:pointer !important;
+  pointer-events:auto !important;
+  user-select:none;
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+.wheel-season:hover,.wheel-season:focus-visible{
+  transform:translateY(-2px);
+  border-color:rgba(217,173,79,.62) !important;
+  box-shadow:0 16px 38px rgba(111,75,64,.12) !important;
+  outline:none;
+}
