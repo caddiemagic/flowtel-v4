@@ -1875,3 +1875,25 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 @media(max-width:640px){
   .cycle-data-grid{grid-template-columns:1fr;}
 }
+
+/* Release 0.9.10 — final suite alignment */
+.suite-moon-magic-pill{
+  width:100%;
+  max-width:660px;
+  margin:0 auto 16px;
+}
+
+.suite-moon-magic-pill small{
+  margin:0;
+}
+
+.suite-scene > .practitioner-card{
+  width:100% !important;
+  max-width:none !important;
+  margin-left:0 !important;
+  margin-right:0 !important;
+}
+
+.journal-card #reflectionMoonMagic{
+  display:none !important;
+}

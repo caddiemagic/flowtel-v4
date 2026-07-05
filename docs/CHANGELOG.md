@@ -1,3 +1,13 @@
+# Flowtel Changelog
+
+## v0.9.10 — Final Suite Alignment + Test User Guide
+
+- Moved Moon Magic above the Medicine Wheel and removed the Reflection Moon Magic pill.
+- Kept the Moon Magic pill styling intact while changing only its placement.
+- Made the Mentor to the Moon card align to the full Suite card width.
+- Added a beta test user guide for creating confirmed Supabase Auth users and matching profile rows.
+- No Supabase migration required.
+
 ## v0.9.9 — Beta Freeze + QA Polish
 
 - Cache-busted Suite, Concierge Desk, and Cycle Data dashboard CSS/JS assets for cleaner beta deploys.

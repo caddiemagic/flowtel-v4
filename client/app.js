@@ -824,32 +824,20 @@ function refineWheelLegend(){
 
 
 function renderReflectionMoonMagic(stay){
-  const reflectionInput=document.getElementById("reflectionInput");
-  if(!reflectionInput) return;
+  // Moon Magic now lives above the Medicine Wheel, not inside the Reflection card.
+  // Remove any older injected Reflection pill so cached visits do not duplicate the guidance.
+  const oldReflectionMoonRow=document.getElementById("reflectionMoonMagic");
+  if(oldReflectionMoonRow) oldReflectionMoonRow.remove();
 
-  const legacyMoonCard=document.querySelector(".moon-card");
-  if(legacyMoonCard){
-    legacyMoonCard.setAttribute("aria-hidden","true");
-  }
-
-  let moonRow=document.getElementById("reflectionMoonMagic");
-  if(!moonRow){
-    moonRow=document.createElement("div");
-    moonRow.id="reflectionMoonMagic";
-    moonRow.className="reflection-moon-magic";
-    reflectionInput.insertAdjacentElement("beforebegin",moonRow);
-  }
+  const suiteMoon=document.getElementById("suiteMoon");
+  const suiteMoonTheme=document.getElementById("suiteMoonTheme");
+  const suiteMoonPill=document.getElementById("suiteMoonMagicPill");
+  if(!suiteMoon || !suiteMoonTheme) return;
 
   const liveMoon=getMoonMagic();
-  const phase=liveMoon.phase;
-  const moonDay=`Day ${liveMoon.moonDay}`;
-  const theme=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
-
-  moonRow.innerHTML=`
-    <span class="reflection-moon-label">Moon Magic</span>
-    <strong>${escapeHtml(phase)} · ${escapeHtml(moonDay)}</strong>
-    <small>${escapeHtml(theme)}</small>
-  `;
+  suiteMoon.textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
+  suiteMoonTheme.textContent=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
+  if(suiteMoonPill) suiteMoonPill.classList.remove("hidden");
 }
 
 
