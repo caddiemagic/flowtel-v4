@@ -244,7 +244,7 @@ export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,
     profiles:client_id (first_name,last_name,email,role), witness_profile:witnessed_by (first_name,last_name,email,role)
-  `).order("checked_in_at",{ascending:false}).limit(100);
+  `).order("checked_in_at",{ascending:false}).limit(500);
   if(error) throw error;
   return data||[];
 }

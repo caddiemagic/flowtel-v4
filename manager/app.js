@@ -344,19 +344,25 @@ function startOfToday(){const d=new Date();d.setHours(0,0,0,0);return d;}
 function daysOpen(stay){const start=new Date(stay.checkin_date);start.setHours(0,0,0,0);return Math.max(1,Math.round((new Date()-start)/86400000)+1);}
 function checkedOutToday(stay){return stay.checked_out_at && new Date(stay.checked_out_at)>=startOfToday();}
 function isExtended(stay){return !stay.checked_out_at && daysOpen(stay)>=14;}
-function hasTurndownRequest(stay){return !!(stay.turndown_requested_at || stay.turndown_status==="requested");}
-function isQueue(stay){return hasTurndownRequest(stay) && !stay.witnessed_at && stay.stay_status!=="checked_out";}
+function isOpenStay(stay){
+  return stay.stay_status!=="checked_out" && !stay.checked_out_at;
+}
+
+function hasTurndownRequest(stay){
+  return stay.turndown_status==="requested" || !!stay.turndown_requested_at;
+}
+
 function isAssignedToPractitioner(stay){
   const assigned=assignedWingForQueue();
   return !assigned || wingsMatch(stay.wing, assigned);
 }
 
-function needsCheckoutConfirmation(stay){
-  return checkedOutToday(stay) && !stay.witnessed_at;
+function isAwaitingTurndown(stay){
+  return isOpenStay(stay) && hasTurndownRequest(stay) && !stay.witnessed_at && isAssignedToPractitioner(stay);
 }
 
-function isServiceQueueItem(stay){
-  return isAssignedToPractitioner(stay) && (isQueue(stay) || needsCheckoutConfirmation(stay));
+function needsCheckoutConfirmation(stay){
+  return checkedOutToday(stay) && !stay.witnessed_at;
 }
 
 function currentFlowtelDate(){
@@ -368,14 +374,36 @@ function currentFlowtelDate(){
   }).format(new Date());
 }
 
+function flowtelDateFromValue(value){
+  if(!value) return "";
+  const raw=String(value);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const date=new Date(raw);
+  if(Number.isNaN(date.getTime())) return raw.slice(0,10);
+  return new Intl.DateTimeFormat("en-CA",{
+    timeZone:"America/Los_Angeles",
+    year:"numeric",
+    month:"2-digit",
+    day:"2-digit"
+  }).format(date);
+}
+
+function stayFlowtelDate(stay){
+  return stay.checkin_date || flowtelDateFromValue(stay.checked_in_at || stay.created_at);
+}
+
 function todayOpenStays(){
   const today=currentFlowtelDate();
-  return allStays.filter(stay=>stay.checkin_date===today && stay.stay_status!=="checked_out");
+  return allStays.filter(stay=>isOpenStay(stay) && stayFlowtelDate(stay)===today);
+}
+
+function awaitingTurndownStays(){
+  return allStays.filter(isAwaitingTurndown);
 }
 
 function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
-  if(activeFilter==="queue") return allStays.filter(isServiceQueueItem);
+  if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
   if(activeFilter==="clients") return [];
   return allStays;
@@ -383,30 +411,35 @@ function visibleStays(){
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
 
 function updateStats(){
-  const serviceItems=allStays.filter(isServiceQueueItem).length;
+  const awaitingCount=awaitingTurndownStays().length;
   const inHouse=todayOpenStays().length;
+  const extendedCount=allStays.filter(isExtended).length;
 
-  setText("awaitingTurndownCount",serviceItems);
+  setText("awaitingTurndownCount",awaitingCount);
   setText("guestsInHouse",inHouse);
-  setText("extendedStay",allStays.filter(isExtended).length);
+  setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
   setText("clientConnectionCount",currentConnectionRequestsCount);
 
   const queueCard=document.querySelector(".queue");
-  if(queueCard) queueCard.classList.toggle("has-requests",serviceItems>0);
+  if(queueCard) queueCard.classList.toggle("has-requests",activeFilter==="queue" && awaitingCount>0);
 
   const turndownCard=document.querySelector('[data-filter="queue"]');
-  if(turndownCard) turndownCard.classList.toggle("has-alert",serviceItems>0);
+  if(turndownCard) turndownCard.classList.toggle("has-alert",awaitingCount>0);
 
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
 
   const inHouseCard=document.querySelector('[data-filter="in-house"]');
-  if(inHouseCard) inHouseCard.classList.toggle("has-alert",inHouse>0);
+  if(inHouseCard) inHouseCard.classList.remove("has-alert");
+
+  const extendedCard=document.querySelector('[data-filter="extended"]');
+  if(extendedCard) extendedCard.classList.remove("has-alert");
 }
 function setFilter(filter){
   activeFilter=filter;
   document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
+  updateStats();
   const titles={
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service","These guests are in your assigned wing and have requested extra care."],
     "clients":["YOUR CLIENTS","Your Clients + New Connections","Connected guests and new connection requests live here."],
