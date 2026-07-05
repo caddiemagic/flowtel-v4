@@ -176,6 +176,8 @@ async function completeMemberBridgeEntrance(email){
     squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
   });
 
+  clearCachedSuiteStayIfItBelongsToAnotherGuest();
+
   setMessage("");
   await prepareDailyStayState();
 
@@ -206,6 +208,7 @@ function isInvalidCredentialsError(error){
 
 async function enterWithBridgePassword(email){
   await signOut();
+  clearCachedSuiteStay();
   await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
   await completeMemberBridgeEntrance(email);
 }
@@ -223,6 +226,7 @@ async function createNewMemberBridge(){
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
 
     await signOut();
+    clearCachedSuiteStay();
     await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
     await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
     await completeMemberBridgeEntrance(email);
@@ -370,6 +374,23 @@ function clearCachedSuiteStay(){
     sessionStorage.removeItem("flowtel:lastSuiteStay");
     sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
   }catch(error){}
+}
+
+function stayBelongsToCurrentProfile(stay){
+  return !!stay && !!currentProfile?.id && stay.client_id===currentProfile.id;
+}
+
+function clearCachedSuiteStayIfItBelongsToAnotherGuest(){
+  try{
+    const cached=sessionStorage.getItem("flowtel:lastSuiteStay");
+    if(!cached) return;
+    const stay=JSON.parse(cached);
+    if(stay?.client_id && currentProfile?.id && stay.client_id!==currentProfile.id){
+      clearCachedSuiteStay();
+    }
+  }catch(error){
+    clearCachedSuiteStay();
+  }
 }
 
 async function prepareDailyStayState(){
@@ -1186,6 +1207,7 @@ async function handleBetaLogin(email){
   try{
     setMessage(`Opening beta account for ${account.firstName}...`);
     await signOut();
+    clearCachedSuiteStay();
 
     try{
       await signInWithEmail(account.email,BETA_PASSWORD);
@@ -1200,6 +1222,8 @@ async function handleBetaLogin(email){
       role:account.role,
       forceBetaRole:true,
     });
+
+    clearCachedSuiteStayIfItBelongsToAnotherGuest();
 
     fillArrivalFields(account);
     setMessage("");
@@ -1237,6 +1261,8 @@ async function handleSignIn(){
       membershipType:SQUARESPACE_MEMBERSHIP || undefined,
       squarespaceSource:SQUARESPACE_MEMBERSHIP || undefined,
     });
+
+    clearCachedSuiteStayIfItBelongsToAnotherGuest();
 
     setMessage("");
     await prepareDailyStayState();
@@ -1279,6 +1305,10 @@ function readArrivalFields(){
 
 function cacheSuiteStay(stay){
   try{
+    if(stay?.client_id && currentProfile?.id && stay.client_id!==currentProfile.id){
+      clearCachedSuiteStay();
+      return;
+    }
     sessionStorage.setItem("flowtel:lastSuiteStay",JSON.stringify(stay));
   }catch(error){
     console.warn("Suite stay could not be cached for Concierge handoff.",error);
@@ -1302,7 +1332,7 @@ function shouldOpenSuiteFromConcierge(){
 
 function restoreSuiteFromConcierge(){
   const stay=getCachedSuiteStay();
-  if(!stay || !isStayForLocalToday(stay)){
+  if(!stay || !isStayForLocalToday(stay) || !stayBelongsToCurrentProfile(stay)){
     clearCachedSuiteStay();
     return false;
   }
@@ -1322,7 +1352,7 @@ async function openTodaySuiteIfPresent(){
   if(params.get("forceCheckin")==="1") return false;
 
   const stay=await getTodayStayForClient(currentProfile.id);
-  if(!stay || !isStayForLocalToday(stay)){
+  if(!stay || !isStayForLocalToday(stay) || !stayBelongsToCurrentProfile(stay)){
     clearCachedSuiteStay();
     return false;
   }
@@ -1337,8 +1367,8 @@ async function openTodaySuiteIfPresent(){
 }
 
 async function ensureArrivalStay(){
-  if(currentStay && isStayForLocalToday(currentStay)) return currentStay;
-  if(pendingArrivalStay && isStayForLocalToday(pendingArrivalStay)) return pendingArrivalStay;
+  if(currentStay && isStayForLocalToday(currentStay) && stayBelongsToCurrentProfile(currentStay)) return currentStay;
+  if(pendingArrivalStay && isStayForLocalToday(pendingArrivalStay) && stayBelongsToCurrentProfile(pendingArrivalStay)) return pendingArrivalStay;
 
   currentStay=null;
   pendingArrivalStay=null;

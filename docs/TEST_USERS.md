@@ -83,3 +83,14 @@ For repeat testing:
 - Practitioner A: multiple connected clients
 - Practitioner B: no connected clients yet
 - Admin/Owner: global dashboard access
+
+## Browser cache note for first-arrival tests
+
+When testing several accounts in the same browser, Flowtel stores a small same-day Suite handoff in session storage so a practitioner can return from the Concierge Desk to her own Suite.
+
+As of v0.9.11, that cached Suite can only reopen when it belongs to the same signed-in profile. If a new test user lands directly in the Suite, check whether that user already has a `flowtel_stays` row for today's Flowtel Date. If they do, Flowtel is correctly treating them as already checked in for the day.
+
+For a clean first-arrival test, use either:
+
+- a fresh confirmed auth user with no `flowtel_stays` row for today, or
+- delete that test user's stay rows for the current Flowtel Date before testing again.

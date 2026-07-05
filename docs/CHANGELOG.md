@@ -1,5 +1,13 @@
 # Flowtel Changelog
 
+## v0.9.11 — First Check-In Guard
+
+- Fixed a beta browser-session edge case where a newly signed-in test account could restore a cached Suite stay from another account.
+- Cached Suite restores now require the stay to belong to the currently signed-in profile.
+- Cleared stale Suite cache during beta account switching, member bridge login/signup, and normal email sign-in when needed.
+- Updated Suite app cache-busting to `0.9.11`.
+- No Supabase migration required.
+
 ## v0.9.10 — Final Suite Alignment + Test User Guide
 
 - Moved Moon Magic above the Medicine Wheel and removed the Reflection Moon Magic pill.
