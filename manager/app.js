@@ -393,12 +393,18 @@ function isOpenStay(stay){
   return !["checked_out","room_prepared"].includes(stay.stay_status) && !stay.checked_out_at;
 }
 
+function turndownStatus(stay){
+  return String(stay?.turndown_status || "").trim().toLowerCase();
+}
+
 function hasTurndownRequest(stay){
-  return stay.turndown_status==="requested" || stay.turndown_status==="completed" || stay.turndown_status==="fulfilled" || !!stay.turndown_requested_at;
+  const status=turndownStatus(stay);
+  return status==="requested" || status==="completed" || status==="fulfilled" || !!stay.turndown_requested_at || !!stay.turndown_completed_at;
 }
 
 function isTurndownFulfilled(stay){
-  return !!(stay.turndown_status==="completed" || stay.turndown_status==="fulfilled" || stay.witnessed_at);
+  const status=turndownStatus(stay);
+  return status==="completed" || status==="fulfilled" || !!stay.turndown_completed_at;
 }
 
 function turndownCompletedBy(stay){
@@ -609,13 +615,37 @@ function renderTurndownServiceQueue(){
 function bindQueueActions(){
   document.querySelectorAll("[data-id][data-action]").forEach(button=>button.addEventListener("click",async()=>{
     button.disabled=true;
-    if(button.dataset.action==="clean"){
-      await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
-    }else{
-      const note=prompt("Leave a handwritten Concierge Note for this room");
-      await witnessStay(button.dataset.id,note||"");
+    const originalText=button.textContent;
+    button.textContent=button.dataset.action==="clean" ? "Preparing..." : "Completing...";
+    if(managerMessage) managerMessage.textContent="";
+
+    try{
+      let updatedStay=null;
+      if(button.dataset.action==="clean"){
+        updatedStay=await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
+      }else{
+        const note=prompt("Leave a handwritten Concierge Note for this room");
+        updatedStay=await witnessStay(button.dataset.id,note||"");
+      }
+
+      if(updatedStay?.id){
+        allStays=allStays.map(stay=>stay.id===updatedStay.id ? {...stay,...updatedStay} : stay);
+        updateStats();
+        renderQueue();
+      }
+
+      await loadDesk();
+      if(managerMessage) managerMessage.textContent="Turndown service has been completed.";
+    }catch(error){
+      console.error("Concierge action failed.",error);
+      button.disabled=false;
+      button.textContent=originalText;
+      if(managerMessage){
+        managerMessage.textContent=error?.message
+          ? `Concierge action could not be saved: ${error.message}`
+          : "Concierge action could not be saved. Please check the Supabase migration and try again.";
+      }
     }
-    await loadDesk();
   }));
 }
 

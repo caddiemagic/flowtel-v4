@@ -1,5 +1,13 @@
 # Flowtel Changelog
 
+## v0.8.2 — Turndown Completion Hardening
+
+- Added durable Turndown completion columns.
+- Made completion state independent from Concierge Note display.
+- Fixed active Awaiting Turndown count so completed requests no longer remain active.
+- Added visible Concierge action error handling.
+
+
 ## v0.8.1
 
 Suite + Concierge Polish

@@ -309,7 +309,7 @@ export async function witnessStay(stayId,witnessNote=""){
   let practitionerLabel="";
   try{
     const {data:profile}=await supabase.from("profiles")
-      .select("first_name,last_name,email,role")
+      .select("first_name,last_name,email,role,practitioner_level")
       .eq("id",user.id)
       .single();
     const name=[profile?.first_name,profile?.last_name].filter(Boolean).join(" ") || profile?.email || "your Concierge";
@@ -336,8 +336,13 @@ export async function witnessStay(stayId,witnessNote=""){
     });
   }
 
-  const hadTurndownRequest=!!(existing?.turndown_requested_at || existing?.turndown_status==="requested");
-  const updatePayload={
+  // Turndown completion must be independent from note display.
+  // A missing/empty note should never keep a guest in the active queue.
+  const fullCompletionPayload={
+    turndown_status:"completed",
+    turndown_completed_at:now,
+    turndown_completed_by:user.id,
+    turndown_completed_by_name:practitionerLabel,
     witnessed_by:user.id,
     witnessed_at:now,
     witness_note:JSON.stringify(notes),
@@ -346,13 +351,37 @@ export async function witnessStay(stayId,witnessNote=""){
     updated_at:now,
   };
 
-  if(hadTurndownRequest){
-    updatePayload.turndown_status="completed";
-  }
+  const fullResult=await supabase.from("flowtel_stays")
+    .update(fullCompletionPayload)
+    .eq("id",stayId)
+    .select()
+    .single();
 
-  const {data,error}=await supabase.from("flowtel_stays").update(updatePayload).eq("id",stayId).select().single();
-  if(error) throw error;
-  return data;
+  if(!fullResult.error) return fullResult.data;
+
+  console.warn("Full Turndown completion update failed; attempting status-only fallback.", fullResult.error);
+
+  // Fallback for older beta databases that have not received the completion columns yet.
+  // This still clears the active alert and lets the daily log render as completed.
+  const fallbackPayload={
+    turndown_status:"completed",
+    witnessed_at:now,
+    stay_status:"witnessed",
+    updated_at:now,
+  };
+
+  const fallbackResult=await supabase.from("flowtel_stays")
+    .update(fallbackPayload)
+    .eq("id",stayId)
+    .select()
+    .single();
+
+  if(fallbackResult.error) throw fullResult.error;
+  return {
+    ...fallbackResult.data,
+    turndown_completed_at:fallbackResult.data?.turndown_completed_at || now,
+    turndown_completed_by_name:fallbackResult.data?.turndown_completed_by_name || practitionerLabel,
+  };
 }
 
 
