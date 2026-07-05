@@ -1,3 +1,11 @@
+## v0.9.8 — Cycle Data Pill Final Polish
+
+- Removed the visible match-status badge from the Suite Cycle Data pill.
+- Removed the visible current cycle Day 1 line from the Suite Cycle Data pill.
+- Preserved Actual Cycle Day, Recorded Cycle Day, and compassionate feedback.
+- Updated Suite app cache-busting to `0.9.8`.
+- No Supabase migration required.
+
 
 ## v0.9.7 — Cycle Data Pill Rendering Repair
 

@@ -752,7 +752,6 @@ function cycleDataMarkup(stay,{previousCycleLine="",streakLine="",welcomeBackLin
   const actual=stayActualDay(stay);
   const recorded=stayRecordedDay(stay);
   const difference=Number(stay?.cycle_day_difference ?? (recorded-actual));
-  const dayOne=stay?.cycle_start_date ? formatDate(stay.cycle_start_date) : "Not recorded yet";
   const accuracyMessage=stay?.cycle_accuracy_message || (difference===0 ? `You nailed it. You are on Day ${actual}.` : "Your cycle data has been updated.");
 
   return `
@@ -760,9 +759,7 @@ function cycleDataMarkup(stay,{previousCycleLine="",streakLine="",welcomeBackLin
       <p><span>Actual Cycle Day</span><strong>${escapeHtml(actual)}</strong></p>
       <p><span>Recorded Cycle Day</span><strong>${escapeHtml(recorded)}</strong></p>
     </div>
-    <p class="cycle-data-difference"><span class="cycle-data-status">${escapeHtml(cycleDifferenceLabel(difference))}</span></p>
     <p class="cycle-accuracy-message">${escapeHtml(accuracyMessage)}</p>
-    <p><strong>Current cycle Day 1:</strong> ${escapeHtml(dayOne)}.</p>
     ${previousCycleLine}
     ${streakLine}
     ${welcomeBackLine}
