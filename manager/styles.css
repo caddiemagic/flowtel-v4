@@ -539,3 +539,8 @@
   text-transform:uppercase;
   color:var(--soft-brown);
 }
+
+/* Release 0.9.0 — Mentor relationship language */
+.connection-row p{
+  color:rgba(109,78,65,.74);
+}

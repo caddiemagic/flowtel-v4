@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, listPractitioners, getMyPractitionerRelationship, requestPractitionerConnection } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -919,8 +919,54 @@ function renderConciergeCare(stay){
 }
 
 
-function practitionerDisplayName(profile){
-  return [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || "Practitioner";
+
+function mentorDisplayName(profile){
+  return [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || "Your Mentor";
+}
+
+function mentorFirstName(profile){
+  return profile?.first_name || mentorDisplayName(profile).split(" ")[0] || "Mentor";
+}
+
+function mentorTitle(profile){
+  const initiation=getFlowFmInitiationStatus(profile || {});
+  return profile?.mentor_title || initiation?.level || profile?.practitioner_level || "Flowtel Mentor";
+}
+
+function mentorMetaLine(profile){
+  const initiation=getFlowFmInitiationStatus(profile || {});
+  const pieces=[];
+  if(initiation?.moon?.name) pieces.push(initiation.moon.name);
+  if(profile?.serving_wing || initiation?.moon?.wing) pieces.push(profile.serving_wing || initiation.moon.wing);
+  return pieces.join(" · ") || "Flow FM";
+}
+
+function mentorSpecialties(profile){
+  const raw=profile?.mentor_specialties;
+  if(Array.isArray(raw)) return raw.filter(Boolean).slice(0,3);
+  if(typeof raw==="string") return raw.split(",").map(item=>item.trim()).filter(Boolean).slice(0,3);
+  return [];
+}
+
+function mentorCardMarkup(mentor){
+  const name=mentorDisplayName(mentor);
+  const first=mentorFirstName(mentor);
+  const bio=mentor?.mentor_bio || "Available to witness your Flowtel stays, tend your room, and remember your cyclical patterns with care.";
+  const specialties=mentorSpecialties(mentor);
+  const initials=[mentor?.first_name?.[0], mentor?.last_name?.[0]].filter(Boolean).join("") || "☾";
+  return `
+    <article class="mentor-option-card">
+      <div class="mentor-avatar" aria-hidden="true">${mentor?.mentor_photo_url ? `<img src="${escapeHtml(mentor.mentor_photo_url)}" alt="" />` : `<span>${escapeHtml(initials)}</span>`}</div>
+      <div class="mentor-option-body">
+        <p class="mentor-label">${escapeHtml(mentorTitle(mentor))}</p>
+        <h4>${escapeHtml(name)}</h4>
+        <p>${escapeHtml(bio)}</p>
+        <small>${escapeHtml(mentorMetaLine(mentor))}</small>
+        ${specialties.length ? `<div class="mentor-tags">${specialties.map(tag=>`<span>${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
+      </div>
+      <button type="button" class="mentor-choice-button" data-practitioner-id="${mentor.id}">Choose ${escapeHtml(first)}</button>
+    </article>
+  `;
 }
 
 async function renderPractitionerConnection(){
@@ -941,37 +987,39 @@ async function renderPractitionerConnection(){
     const relationship=await getMyPractitionerRelationship();
 
     if(relationship?.status==="connected"){
-      const name=practitionerDisplayName(relationship.practitioner);
+      const mentor=relationship.practitioner;
+      const name=mentorDisplayName(mentor);
       title.textContent=name;
-      text.textContent="You are connected. Your practitioner can view the Flowtel stays you have chosen to share.";
-      button.textContent="Connected";
+      text.textContent=`${name} is your Mentor to the Moon. This connection will stay with you across future stays until you intentionally change it.`;
+      button.textContent="Mentor Connected";
       button.disabled=true;
       return;
     }
 
     if(relationship?.status==="requested"){
-      const name=practitionerDisplayName(relationship.practitioner);
-      title.textContent=`Connection requested with ${name}.`;
-      text.textContent="Your practitioner will see your request at the Concierge Desk and can choose Connect.";
-      button.textContent="Request Sent";
+      const mentor=relationship.practitioner;
+      const name=mentorDisplayName(mentor);
+      title.textContent=`Invitation sent to ${name}.`;
+      text.textContent="Your mentor request is waiting at the Concierge Desk. When she connects, your stays can be tended with continuity.";
+      button.textContent="Invitation Sent";
       button.disabled=true;
       return;
     }
 
-    title.textContent="No practitioner connected.";
-    text.textContent="Choose a practitioner when you are ready to share your Flowtel stays.";
-    button.textContent="Choose Practitioner";
+    title.textContent="No mentor chosen yet.";
+    text.textContent="Choose the mentor you would like to tend your stays. This creates a relationship that can remember you across future visits.";
+    button.textContent="Choose Your Mentor";
     button.disabled=false;
 
     button.onclick=async()=>{
       try{
         button.disabled=true;
-        if(note) note.textContent="Opening practitioner directory...";
-        const practitioners=await listPractitioners();
+        if(note) note.textContent="Opening the mentor directory...";
+        const mentors=await listMentors();
 
-        if(!practitioners.length){
+        if(!mentors.length){
           directory.classList.remove("hidden");
-          directory.innerHTML="<p>No practitioners are available yet.</p>";
+          directory.innerHTML="<p>No mentors are available yet.</p>";
           if(note) note.textContent="";
           button.disabled=false;
           return;
@@ -979,20 +1027,19 @@ async function renderPractitionerConnection(){
 
         directory.classList.remove("hidden");
         directory.innerHTML=`
-          <p class="microcopy">By connecting, you choose to share check-ins, reflections, concierge notes, and previous stays. You can disconnect later.</p>
-          ${practitioners.map(practitioner=>`
-            <button type="button" class="practitioner-option" data-practitioner-id="${practitioner.id}">
-              Connect with ${escapeHtml(practitionerDisplayName(practitioner))}
-            </button>
-          `).join("")}
+          <p class="microcopy mentor-consent-copy">By choosing a mentor, you allow her to witness the Flowtel stays, reflections, concierge notes, and previous stays you share inside this beta.</p>
+          <div class="mentor-directory-grid">
+            ${mentors.map(mentor=>mentorCardMarkup(mentor)).join("")}
+          </div>
         `;
 
         directory.querySelectorAll("[data-practitioner-id]").forEach(option=>{
           option.addEventListener("click",async()=>{
             option.disabled=true;
-            if(note) note.textContent="Sending connection request...";
-            await requestPractitionerConnection(option.dataset.practitionerId);
-            if(note) note.textContent="Connection request sent.";
+            option.textContent="Sending invitation...";
+            if(note) note.textContent="Sending your mentor invitation...";
+            await chooseMentor(option.dataset.practitionerId);
+            if(note) note.textContent="Mentor invitation sent.";
             await renderPractitionerConnection();
           });
         });
@@ -1001,14 +1048,15 @@ async function renderPractitionerConnection(){
         button.disabled=false;
       }catch(error){
         console.error(error);
-        if(note) note.textContent="Practitioner connection is not available yet. Run the 0.6.1 relationship migration.";
+        if(note) note.textContent=error?.message || "The mentor directory is not available yet. Run the latest relationship migration.";
         button.disabled=false;
       }
     };
   }catch(error){
-    console.warn("Practitioner relationship lookup failed.",error);
+    console.warn("Mentor relationship lookup failed.",error);
     title.textContent="Your Mentor to the Moon";
-    text.textContent="Practitioner connections will appear here after the relationship migration is installed.";
+    text.textContent="Mentor connections will appear here after the relationship migration is installed.";
+    button.textContent="Choose Your Mentor";
     button.disabled=true;
   }
 }

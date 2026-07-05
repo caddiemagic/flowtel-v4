@@ -426,16 +426,8 @@ function isAwaitingTurndown(stay){
   return isOpenStay(stay) && hasTurndownRequest(stay) && !isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
 }
 
-function turndownCompletionFlowtelDate(stay){
-  // Completed Requests are a same-day hospitality log based on when the care was
-  // completed, not when the guest originally checked in. This matters when an
-  // older/open stay is tended today: it should move from Open Requests into
-  // Completed Requests instead of disappearing because its check-in date is old.
-  return flowtelDateFromValue(stay.turndown_completed_at || stay.witnessed_at || stay.updated_at || stayFlowtelDate(stay));
-}
-
 function isCompletedTurndown(stay){
-  return isOpenStay(stay) && hasTurndownRequest(stay) && isTurndownFulfilled(stay) && isAssignedToPractitioner(stay) && turndownCompletionFlowtelDate(stay)===currentFlowtelDate();
+  return isOpenStay(stay) && stayFlowtelDate(stay)===currentFlowtelDate() && hasTurndownRequest(stay) && isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
 }
 
 function needsCheckoutConfirmation(stay){
@@ -513,7 +505,7 @@ function setFilter(filter){
   updateStats();
   const titles={
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service","These guests are in your assigned wing and have requested extra care."],
-    "clients":["YOUR CLIENTS","Your Clients + New Connections","Connected guests and new connection requests live here."],
+    "clients":["MENTOR RELATIONSHIPS","Your Guests + Mentor Requests","Connected guests and new mentor requests live here."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -659,16 +651,16 @@ function bindQueueActions(){
 
 function renderQueue(){
   if(activeFilter==="clients"){
-    const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new connection requests.</p>";
-    const clients=document.getElementById("myClientsList")?.innerHTML || "<p>No connected clients yet.</p>";
+    const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
+    const clients=document.getElementById("myClientsList")?.innerHTML || "<p>No connected guests yet.</p>";
     queue.innerHTML=`
       <div class="relationship-queue">
         <section>
-          <p class="eyebrow">NEW CONNECTIONS</p>
+          <p class="eyebrow">MENTOR REQUESTS</p>
           ${requests}
         </section>
         <section>
-          <p class="eyebrow">YOUR CLIENTS</p>
+          <p class="eyebrow">YOUR GUESTS</p>
           ${clients}
         </section>
       </div>
@@ -702,7 +694,7 @@ async function renderConnectionRequests(){
     setText("clientConnectionCount",requests.length);
     updateStats();
     if(!requests.length){
-      holder.innerHTML="<p>No new connection requests.</p>";
+      holder.innerHTML="<p>No new mentor requests.</p>";
       return;
     }
 
@@ -710,7 +702,7 @@ async function renderConnectionRequests(){
       <article class="guest-row connection-row">
         <div>
           <h3>${relationshipGuestName(row)}</h3>
-          <p>Would like to connect and share Flowtel stays.</p>
+          <p>Would like you to be her Mentor to the Moon.</p>
         </div>
         <button type="button" data-connect-id="${row.id}">Connect</button>
       </article>
@@ -729,7 +721,7 @@ async function renderConnectionRequests(){
     currentConnectionRequestsCount=0;
     setText("clientConnectionCount","0");
     updateStats();
-    holder.innerHTML="<p>Connection requests will appear after the relationship migration is installed.</p>";
+    holder.innerHTML="<p>Mentor requests will appear after the relationship migration is installed.</p>";
   }
 }
 
@@ -743,7 +735,7 @@ async function renderMyClients(){
     setText("clientsCount",clients.length);
     updateStats();
     if(!clients.length){
-      holder.innerHTML="<p>No connected clients yet.</p>";
+      holder.innerHTML="<p>No connected guests yet.</p>";
       return;
     }
 
@@ -751,7 +743,7 @@ async function renderMyClients(){
       <article class="guest-row connection-row">
         <div>
           <h3>${relationshipGuestName(row)}</h3>
-          <p>Connected client</p>
+          <p>Mentor connection active.</p>
         </div>
       </article>
     `).join("");
@@ -760,7 +752,7 @@ async function renderMyClients(){
     currentClientsCount=0;
     setText("clientsCount","0");
     updateStats();
-    holder.innerHTML="<p>Connected clients will appear after the relationship migration is installed.</p>";
+    holder.innerHTML="<p>Connected guests will appear after the relationship migration is installed.</p>";
   }
 }
 

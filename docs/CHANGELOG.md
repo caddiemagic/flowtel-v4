@@ -1,12 +1,15 @@
-## v0.8.4
-
-Completed Turndown Log Date Fix
-
-- Fixes a Concierge Desk quirk where one of multiple completed Turndown requests could disappear after completion.
-- Completed Requests now uses the Turndown completion date instead of the original check-in date for the daily hospitality log.
-- No Supabase migration required.
-
 # Flowtel Changelog
+
+
+## v0.9.0 — Choose Your Mentor
+
+- Adds guest-facing Mentor to the Moon selection logic.
+- Replaces plain practitioner directory buttons with mentor cards.
+- Adds mentor profile metadata fields for title, bio, photo URL, specialties, accepting-client status, sort order, and serving wing.
+- Adds RPCs for choosing a mentor and connecting with a guest from the Concierge Desk.
+- Enforces one active Mentor to the Moon relationship per guest.
+- Preserves relationship history by disconnecting superseded pending requests instead of deleting them.
+- Softens Concierge Desk relationship language from clients/connections into mentor requests and guests.
 
 ## v0.8.3 — Turndown Completion RPC
 
