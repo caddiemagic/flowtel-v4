@@ -1,3 +1,10 @@
+## v0.9.9 — Beta Freeze + QA Polish
+
+- Cache-busted Suite, Concierge Desk, and Cycle Data dashboard CSS/JS assets for cleaner beta deploys.
+- Added the canonical v0.9.9 beta QA checklist.
+- Updated active release notes for beta freeze posture.
+- No Supabase migration required.
+
 ## v0.9.8 — Cycle Data Pill Final Polish
 
 - Removed the visible match-status badge from the Suite Cycle Data pill.
