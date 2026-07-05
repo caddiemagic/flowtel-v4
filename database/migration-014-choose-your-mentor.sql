@@ -31,6 +31,29 @@ comment on column public.profiles.mentor_accepting_clients is
 comment on column public.profiles.serving_wing is
   'Optional default wing identity for mentor directory display; operational turndown routing still follows clock-in assignment.';
 
+
+-- Safety bootstrap: some beta databases have not run migration-007 yet.
+-- The Choose Your Mentor layer depends on this relationship table, so create it
+-- defensively before altering it. Safe to rerun.
+create table if not exists public.flowtel_practitioner_relationships (
+  id uuid primary key default gen_random_uuid(),
+  client_id uuid not null references public.profiles(id) on delete cascade,
+  practitioner_id uuid not null references public.profiles(id) on delete cascade,
+  status text not null default 'requested',
+  consent_granted boolean not null default true,
+  requested_at timestamptz not null default now(),
+  connected_at timestamptz,
+  disconnected_at timestamptz,
+  updated_at timestamptz not null default now(),
+  unique(client_id, practitioner_id)
+);
+
+create index if not exists flowtel_relationships_client_idx
+  on public.flowtel_practitioner_relationships (client_id, status);
+
+create index if not exists flowtel_relationships_practitioner_idx
+  on public.flowtel_practitioner_relationships (practitioner_id, status);
+
 -- Relationship audit/persistence fields.
 alter table public.flowtel_practitioner_relationships
   add column if not exists choice_note text,
