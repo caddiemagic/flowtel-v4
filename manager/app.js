@@ -234,6 +234,8 @@ function betaClockInContext(account){
     client_id:null,
     cycle_day_claimed:account.cycleDay,
     cycle_day_calculated:account.cycleDay,
+    cycle_day_recorded:account.cycleDay,
+    cycle_day_actual:account.cycleDay,
     inner_season:account.innerSeason,
     feels_like_inner_season:account.innerSeason,
     wing:account.wing,
@@ -332,7 +334,7 @@ function updateTodayFlow(){
   updatePractitionerIdentity();
 
   if(ownWing&&assigned){
-    const day=clockInContext?.cycle_day_claimed || clockInContext?.cycle_day_calculated || "—";
+    const day=clockInContext?.cycle_day_actual || clockInContext?.cycle_day_calculated || clockInContext?.cycle_day_claimed || "—";
     setText("deskAssignmentTitle",`You’re on day ${day} and clocked into the ${ownWing}.`);
     setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
   }else{
@@ -453,6 +455,32 @@ function stayFlowtelDate(stay){
   return stay.checkin_date || flowtelDateFromValue(stay.checked_in_at || stay.created_at);
 }
 
+function stayActualDay(stay){
+  const value=Number(stay?.cycle_day_actual ?? stay?.cycle_day_calculated ?? stay?.cycle_day_claimed);
+  return Number.isFinite(value) ? value : null;
+}
+
+function stayRecordedDay(stay){
+  const value=Number(stay?.cycle_day_recorded ?? stay?.cycle_day_claimed ?? stayActualDay(stay));
+  return Number.isFinite(value) ? value : null;
+}
+
+function roomLabelForDay(day){
+  const value=Number(day);
+  if(!Number.isFinite(value)) return "—";
+  return value>=28 ? "28+" : String(value);
+}
+
+function cycleDayDetail(stay){
+  const actual=stayActualDay(stay);
+  const recorded=stayRecordedDay(stay);
+  if(actual===null && recorded===null) return "Cycle Day: Not recorded";
+  if(recorded!==null && actual!==null && recorded!==actual){
+    return `Actual Cycle Day: ${actual} · Recorded: ${recorded}`;
+  }
+  return `Cycle Day: ${actual ?? recorded}`;
+}
+
 function todayOpenStays(){
   const today=currentFlowtelDate();
   return allStays.filter(stay=>isOpenStay(stay) && stayFlowtelDate(stay)===today);
@@ -530,7 +558,7 @@ function getCachedSuiteStay(){
 function updateSuiteReturn(){
   const stay=getCachedSuiteStay();
   if(!suiteReturnCard||!stay) return;
-  const room=Number(stay.cycle_day_claimed)>=28?"28+":stay.cycle_day_claimed;
+  const room=roomLabelForDay(stayActualDay(stay));
   suiteReturnCard.classList.remove("hidden");
   if(suiteReturnNote){
     suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
@@ -559,7 +587,7 @@ function practitionerCareLabel(){
 }
 
 function renderGuestStayRow(stay,{mode="in-house"}={}){
-  const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
+  const room=roomLabelForDay(stayActualDay(stay));
   const checkoutItem=needsCheckoutConfirmation(stay);
   const turndownItem=hasTurndownRequest(stay);
   const completedItem=isCompletedTurndown(stay);
@@ -579,13 +607,13 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
   const showAction=mode!=="completed" && mode!=="in-house";
   const detailLines=isRequestCard
     ? `
-        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
+        <p>${cycleDayDetail(stay)}</p>
         <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
         <p>Feels Like: ${feelsLike}</p>
       `
     : `
         <p>Today's Room: ${room}</p>
-        <p>Cycle Day: ${stay.cycle_day_claimed||"Not recorded"}</p>
+        <p>${cycleDayDetail(stay)}</p>
         <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
         <p>Wing: ${stay.wing||"Not assigned"}</p>
       `;

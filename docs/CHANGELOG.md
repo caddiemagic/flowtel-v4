@@ -1,5 +1,14 @@
 # Flowtel Changelog
 
+## v0.9.6 — Actual vs Recorded Cycle Day
+
+- Added explicit actual vs recorded cycle day storage.
+- Uses Flowtel-calculated actual day as the Suite source of truth.
+- Added compassionate accuracy messages.
+- Added Day 1 and late-reset handling for cycle starts and previous cycle length.
+- Updated Cycle Data pill, Medicine Wheel, room labels, and Concierge/Lounge labels to respect actual day.
+
+
 
 ## v0.9.0 — Choose Your Mentor
 

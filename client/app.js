@@ -456,6 +456,29 @@ function endTypeLabel(type){
   return "Stay still open";
 }
 
+function stayActualDay(stay){
+  const value=Number(stay?.cycle_day_actual ?? stay?.cycle_day_calculated ?? stay?.cycle_day_claimed);
+  return Number.isFinite(value) ? value : 1;
+}
+
+function stayRecordedDay(stay){
+  const value=Number(stay?.cycle_day_recorded ?? stay?.cycle_day_claimed ?? stayActualDay(stay));
+  return Number.isFinite(value) ? value : stayActualDay(stay);
+}
+
+function roomLabelForDay(day){
+  const value=Number(day);
+  return value>=28 ? "28+" : String(value || 1);
+}
+
+function cycleDifferenceLabel(difference){
+  const value=Number(difference);
+  if(!Number.isFinite(value) || value===0) return "Matched";
+  const distance=Math.abs(value);
+  const unit=distance===1 ? "day" : "days";
+  return value>0 ? `${distance} ${unit} ahead` : `${distance} ${unit} behind`;
+}
+
 /*
   Medicine Wheel Compass integrity:
   Day 1 sits directly below WEST.
@@ -601,7 +624,7 @@ async function renderLoungeVisits(){
     ? "<p>No previous visits yet.</p>"
     : visits.slice(0,10).map(visit=>`
         <article class="visit-card">
-          <strong>Room ${visit.cycle_day_claimed>=28?"28+":visit.cycle_day_claimed}</strong>
+          <strong>Room ${roomLabelForDay(stayActualDay(visit))}</strong>
           <p>${formatDate(visit.checkin_date)} → ${formatDate(visit.checked_out_at)}</p>
           <p>${visit.stay_length_days||1} day stay · ${endTypeLabel(visit.stay_end_type)}</p>
         </article>
@@ -663,24 +686,30 @@ function openCheckoutFromSuite(){
 
 function renderKey(stay){
   const name=profileFirstName(currentProfile);
-  const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
+  const actualDay=stayActualDay(stay);
+  const room=roomLabelForDay(actualDay);
 
   document.getElementById("keyGuestName").textContent=`${name}, your key is ready.`;
   document.getElementById("keyRoomLine").textContent=`Room ${room}`;
   document.getElementById("keyCourtLine").textContent=stay.court||"Season Court";
+  const feedback=document.getElementById("keyCycleFeedback");
+  if(feedback) feedback.textContent=stay.cycle_accuracy_message || `You are on Day ${actualDay}.`;
 }
 
 function renderSuite(stay){
   currentStay=stay;
 
   const name=profileFirstName(currentProfile);
-  const room=stay.cycle_day_claimed>=28?"28+":stay.cycle_day_claimed;
-  const content=getDayContent(stay.cycle_day_claimed);
+  const actualDay=stayActualDay(stay);
+  const recordedDay=stayRecordedDay(stay);
+  const room=roomLabelForDay(actualDay);
+  const content=getDayContent(actualDay);
 
   document.getElementById("suiteWelcome").textContent=`Welcome home, ${name}.`;
 
   const connector=stay.inner_season===stay.feels_like_inner_season?"and":"but";
-  document.getElementById("suiteSubline").textContent=`You're on Day ${stay.cycle_day_claimed} ${connector} today feels like ${stay.feels_like_inner_season}.`;
+  const recordedAside=recordedDay!==actualDay ? ` You recorded Day ${recordedDay}.` : "";
+  document.getElementById("suiteSubline").textContent=`You're on Day ${actualDay} ${connector} today feels like ${stay.feels_like_inner_season}.${recordedAside}`;
 
   document.getElementById("loungeCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
 
@@ -714,7 +743,7 @@ function renderSuite(stay){
   renderConciergeCare(stay);
   renderPractitionerConnection();
 
-  renderWheel(stay.cycle_day_claimed);
+  renderWheel(actualDay);
   refineWheelLegend();
   renderReflectionMoonMagic(stay);
 }
@@ -724,9 +753,18 @@ async function renderCycleData(stay){
   const content=document.getElementById("cycleDataContent");
   if(!card||!content) return;
 
+  const actual=stayActualDay(stay);
+  const recorded=stayRecordedDay(stay);
+  const difference=Number(stay?.cycle_day_difference ?? (recorded-actual));
   const dayOne=stay?.cycle_start_date ? formatDate(stay.cycle_start_date) : "Not recorded yet";
+  const accuracyMessage=stay?.cycle_accuracy_message || (difference===0 ? `You nailed it. You are on Day ${actual}.` : "Your cycle data has been updated.");
   let streakLine="";
   let welcomeBackLine="";
+  let previousCycleLine="";
+
+  if(stay?.previous_cycle_length_days){
+    previousCycleLine=`<p><strong>Previous cycle:</strong> ${escapeHtml(stay.previous_cycle_length_days)} days.</p>`;
+  }
 
   try{
     const visits=currentProfile?.id ? await getPreviousVisits(currentProfile.id) : [];
@@ -750,11 +788,16 @@ async function renderCycleData(stay){
   }
 
   content.innerHTML=`
+    <p><strong>Actual Cycle Day:</strong> ${escapeHtml(actual)}</p>
+    <p><strong>Recorded Cycle Day:</strong> ${escapeHtml(recorded)} <span class="cycle-data-status">${escapeHtml(cycleDifferenceLabel(difference))}</span></p>
+    <p class="cycle-accuracy-message">${escapeHtml(accuracyMessage)}</p>
     <p><strong>Current cycle Day 1:</strong> ${escapeHtml(dayOne)}.</p>
+    ${previousCycleLine}
     ${streakLine}
     ${welcomeBackLine}
   `;
 }
+
 
 function refineWheelLegend(){
   const label=document.querySelector(".you-are-here");
@@ -1363,7 +1406,7 @@ async function handleSaveReflection(){
     // Refresh open previous-visit drawer if the current room is being viewed.
     const drawer=document.getElementById("visitsDrawer");
     if(drawer && !drawer.classList.contains("hidden")){
-      await openVisitsForRoom(currentStay.cycle_day_claimed);
+      await openVisitsForRoom(stayActualDay(currentStay));
     }
   }catch(error){
     console.error(error);

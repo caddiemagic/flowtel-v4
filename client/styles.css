@@ -1809,3 +1809,32 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   box-shadow:0 16px 38px rgba(111,75,64,.12) !important;
   outline:none;
 }
+
+/* Release 0.9.6 — Actual vs Recorded Cycle Day */
+.cycle-key-feedback{
+  max-width:360px;
+  margin:12px auto 0;
+  color:var(--muted);
+  font-size:.96rem;
+  line-height:1.55;
+}
+.cycle-data-status{
+  display:inline-block;
+  margin-left:6px;
+  padding:3px 9px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:rgba(255,248,242,.78);
+  color:var(--rose);
+  font-size:.72rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.cycle-accuracy-message{
+  margin-top:8px;
+  padding:10px 12px;
+  border:1px solid rgba(209,178,112,.35);
+  border-radius:16px;
+  background:rgba(255,250,238,.72);
+  color:var(--brown);
+}
