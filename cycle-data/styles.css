@@ -349,3 +349,36 @@ body.powder-room-mode{
   .powder-note-cloud{display:grid;grid-template-columns:1fr;gap:16px;padding-bottom:42px}
   .powder-note{width:100%!important;margin:0!important;transform:none!important}
 }
+
+/* Release 0.9.13 — Powder Room mirror polish */
+.powder-room-mode .hero-card{
+  padding:38px 24px 32px;
+  margin-bottom:18px;
+}
+.powder-room-mode .hero-card h1{
+  font-size:clamp(2.8rem,5.4vw,4.35rem);
+  line-height:.98;
+  letter-spacing:.035em;
+  margin-bottom:14px;
+}
+.powder-room-mode .hero-card p:last-child{
+  font-size:1.05rem;
+  line-height:1.42;
+}
+.powder-room-mode .entry-log-card{
+  padding-top:0;
+}
+.powder-room-mode .section-heading-row{
+  margin:6px auto 28px;
+}
+.powder-room-mode .section-heading-row h3{
+  font-size:clamp(1.45rem,3vw,2.35rem);
+  line-height:1.05;
+}
+.powder-room-mode .entry-count{
+  display:none!important;
+}
+@media(max-width:760px){
+  .powder-room-mode .hero-card{padding:34px 18px 28px}
+  .powder-room-mode .hero-card h1{font-size:clamp(2.25rem,13vw,3.15rem)}
+}

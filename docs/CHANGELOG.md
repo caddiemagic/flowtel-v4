@@ -175,3 +175,12 @@ Medicine Wheel Compass
 - Moved Moon Magic inside the Medicine Wheel container to reduce negative space.
 - Updated the Cycle Data welcome-back message to appear only after 14+ days away.
 - No Supabase migration required.
+
+## v0.9.13 — Powder Room Mirror Polish
+
+- Reduced Powder Room hero banner scale so the mirror/notes area has more visual presence.
+- Updated Powder Room titles to use **POWDER ROOM** in caps.
+- Changed the Powder Room note heading to **Notes left on the mirror**.
+- Removed the anonymous note count from Powder Rooms.
+- Moved the Next New Moon date to its own line under the Moon Magic phase theme.
+- No Supabase migration required.

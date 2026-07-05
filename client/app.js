@@ -717,6 +717,15 @@ function renderKey(stay){
   if(feedback) feedback.textContent=stay.cycle_accuracy_message || `You are on Day ${actualDay}.`;
 }
 
+
+function setSuiteMoonMagic(liveMoon){
+  const suiteMoon=document.getElementById("suiteMoon");
+  const suiteMoonTheme=document.getElementById("suiteMoonTheme");
+  if(!suiteMoon || !suiteMoonTheme) return;
+  suiteMoon.textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
+  suiteMoonTheme.innerHTML=`<span class="moon-theme-line">${escapeHtml(liveMoon.theme)}</span><span class="moon-next-new-moon">Next New Moon: ${escapeHtml(formatDate(liveMoon.nextNewMoonDate))}</span>`;
+}
+
 function renderSuite(stay){
   currentStay=stay;
 
@@ -735,8 +744,7 @@ function renderSuite(stay){
   document.getElementById("loungeCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
 
   const liveMoon = getMoonMagic();
-  document.getElementById("suiteMoon").textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
-  document.getElementById("suiteMoonTheme").textContent=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
+  setSuiteMoonMagic(liveMoon);
 
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
   document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
@@ -850,14 +858,9 @@ function renderReflectionMoonMagic(stay){
   const oldReflectionMoonRow=document.getElementById("reflectionMoonMagic");
   if(oldReflectionMoonRow) oldReflectionMoonRow.remove();
 
-  const suiteMoon=document.getElementById("suiteMoon");
-  const suiteMoonTheme=document.getElementById("suiteMoonTheme");
   const suiteMoonPill=document.getElementById("suiteMoonMagicPill");
-  if(!suiteMoon || !suiteMoonTheme) return;
-
   const liveMoon=getMoonMagic();
-  suiteMoon.textContent=`${liveMoon.phase} · Day ${liveMoon.moonDay}`;
-  suiteMoonTheme.textContent=`${liveMoon.theme} · Next New Moon: ${formatDate(liveMoon.nextNewMoonDate)}`;
+  setSuiteMoonMagic(liveMoon);
   if(suiteMoonPill) suiteMoonPill.classList.remove("hidden");
 }
 

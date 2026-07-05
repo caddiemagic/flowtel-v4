@@ -1913,3 +1913,12 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     margin-bottom:20px;
   }
 }
+
+/* Release 0.9.13 — Moon Magic line break polish */
+.suite-moon-magic-pill .moon-theme-line,
+.suite-moon-magic-pill .moon-next-new-moon{
+  display:block;
+}
+.suite-moon-magic-pill .moon-next-new-moon{
+  margin-top:2px;
+}

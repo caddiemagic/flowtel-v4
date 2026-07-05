@@ -100,6 +100,9 @@ function moonCycleLabel(start){
 function powderRoomName(season){
   return POWDER_ROOM_NAMES[season] || "Powder Room";
 }
+function powderRoomTitle(season){
+  return powderRoomName(season).replace(/ Powder Room$/i," POWDER ROOM");
+}
 function powderRoomCopy(season){
   return POWDER_ROOM_COPY[season] || "Anonymous reflections from guests moving through the Flowtel.";
 }
@@ -228,8 +231,8 @@ function entryMarkup(row,{anonymous=false}={}){
 }
 function renderPowderRoom(rows,season){
   entryEyebrow.textContent="POWDER ROOM";
-  entryTitle.textContent=`Notes left in the ${powderRoomName(season)}`;
-  entryCount.textContent=`${rows.length} anonymous note${rows.length===1?"":"s"}`;
+  entryTitle.textContent="Notes left on the mirror";
+  entryCount.textContent="";
   entryList.className="powder-note-cloud";
   entryList.innerHTML=rows.length
     ? rows.map((row,index)=>powderNoteMarkup(row,index)).join("")
@@ -318,7 +321,7 @@ async function init(){
     document.body.classList.toggle("powder-room-mode",currentMode==="season");
 
     if(currentMode==="season"){
-      pageTitle.textContent=powderRoomName(season);
+      pageTitle.textContent=powderRoomTitle(season);
       viewEyebrow.textContent="GIRLS' BATHROOM";
       viewingName.textContent="What happens here stays here.";
       intro.textContent=powderRoomCopy(season);
