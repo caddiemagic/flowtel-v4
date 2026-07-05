@@ -2,6 +2,7 @@ import { getCurrentProfile } from "../shared/profiles.js";
 import { listMyClients } from "../shared/flowtel.js";
 import { supabase } from "../shared/supabase.js";
 
+const pageEyebrow=document.getElementById("pageEyebrow");
 const pageTitle=document.getElementById("pageTitle");
 const intro=document.getElementById("dashboardIntro");
 const viewEyebrow=document.getElementById("viewEyebrow");
@@ -321,6 +322,7 @@ async function init(){
     document.body.classList.toggle("powder-room-mode",currentMode==="season");
 
     if(currentMode==="season"){
+      if(pageEyebrow) pageEyebrow.textContent="ANONYMOUS REFLECTIONS";
       pageTitle.textContent=powderRoomTitle(season);
       viewEyebrow.textContent="GIRLS' BATHROOM";
       viewingName.textContent="What happens here stays here.";
@@ -329,6 +331,8 @@ async function init(){
       await rerenderSeason();
       return;
     }
+
+    if(pageEyebrow) pageEyebrow.textContent="FLOW MAP";
 
     if(currentMode==="all"){
       pageTitle.textContent="Collective Flow Map";

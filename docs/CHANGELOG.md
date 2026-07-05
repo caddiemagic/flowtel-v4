@@ -200,3 +200,11 @@ Medicine Wheel Compass
 - Removed the anonymous note count from Powder Rooms.
 - Moved the Next New Moon date to its own line under the Moon Magic phase theme.
 - No Supabase migration required.
+
+
+## v0.9.15 — Powder Room Label + Mirror Spacing Polish
+
+- Changed the Powder Room hero eyebrow from **FLOW MAP** to **ANONYMOUS REFLECTIONS**.
+- Added a little more vertical space between Powder Room navigation buttons and **Notes left on the mirror**.
+- Updated `/cycle-data/` cache-busting to `v=0.9.15`.
+- No Supabase migration required.

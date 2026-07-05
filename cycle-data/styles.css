@@ -405,3 +405,12 @@ body.powder-room-mode{
     white-space:normal;
   }
 }
+
+
+/* Release 0.9.15 — Powder Room label + mirror spacing polish */
+.powder-room-mode .section-heading-row{
+  margin:24px auto 28px;
+}
+.powder-room-mode .hero-card .eyebrow{
+  letter-spacing:.28em;
+}
