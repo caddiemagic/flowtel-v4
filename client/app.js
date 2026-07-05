@@ -748,16 +748,36 @@ function renderSuite(stay){
   renderReflectionMoonMagic(stay);
 }
 
-async function renderCycleData(stay){
-  const card=document.getElementById("cycleDataCard");
-  const content=document.getElementById("cycleDataContent");
-  if(!card||!content) return;
-
+function cycleDataMarkup(stay,{previousCycleLine="",streakLine="",welcomeBackLine=""}={}){
   const actual=stayActualDay(stay);
   const recorded=stayRecordedDay(stay);
   const difference=Number(stay?.cycle_day_difference ?? (recorded-actual));
   const dayOne=stay?.cycle_start_date ? formatDate(stay.cycle_start_date) : "Not recorded yet";
   const accuracyMessage=stay?.cycle_accuracy_message || (difference===0 ? `You nailed it. You are on Day ${actual}.` : "Your cycle data has been updated.");
+
+  return `
+    <div class="cycle-data-grid">
+      <p><span>Actual Cycle Day</span><strong>${escapeHtml(actual)}</strong></p>
+      <p><span>Recorded Cycle Day</span><strong>${escapeHtml(recorded)}</strong></p>
+    </div>
+    <p class="cycle-data-difference"><span class="cycle-data-status">${escapeHtml(cycleDifferenceLabel(difference))}</span></p>
+    <p class="cycle-accuracy-message">${escapeHtml(accuracyMessage)}</p>
+    <p><strong>Current cycle Day 1:</strong> ${escapeHtml(dayOne)}.</p>
+    ${previousCycleLine}
+    ${streakLine}
+    ${welcomeBackLine}
+  `;
+}
+
+async function renderCycleData(stay){
+  const card=document.getElementById("cycleDataCard");
+  const content=document.getElementById("cycleDataContent");
+  if(!card||!content) return;
+
+  // Render the core Actual vs Recorded data immediately.
+  // Stay history is helpful, but it should never block the visible Cycle Data pill from updating.
+  content.innerHTML=cycleDataMarkup(stay);
+
   let streakLine="";
   let welcomeBackLine="";
   let previousCycleLine="";
@@ -783,19 +803,11 @@ async function renderCycleData(stay){
     if(previous && dayDistance(previous,today)>1){
       welcomeBackLine=`<p class="cycle-welcome-back">We're glad you took some time away. It's good for you. Welcome back — we have space for you.</p>`;
     }
+
+    content.innerHTML=cycleDataMarkup(stay,{previousCycleLine,streakLine,welcomeBackLine});
   }catch(error){
     console.warn("Cycle Data card could not load full stay history yet.",error);
   }
-
-  content.innerHTML=`
-    <p><strong>Actual Cycle Day:</strong> ${escapeHtml(actual)}</p>
-    <p><strong>Recorded Cycle Day:</strong> ${escapeHtml(recorded)} <span class="cycle-data-status">${escapeHtml(cycleDifferenceLabel(difference))}</span></p>
-    <p class="cycle-accuracy-message">${escapeHtml(accuracyMessage)}</p>
-    <p><strong>Current cycle Day 1:</strong> ${escapeHtml(dayOne)}.</p>
-    ${previousCycleLine}
-    ${streakLine}
-    ${welcomeBackLine}
-  `;
 }
 
 

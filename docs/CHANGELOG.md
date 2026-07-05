@@ -1,3 +1,10 @@
+
+## v0.9.7 — Cycle Data Pill Rendering Repair
+
+- Fixed Cycle Data pill rendering so Actual Cycle Day and Recorded Cycle Day display immediately.
+- Added a cache-busted Suite app script reference to avoid stale app.js in deployment.
+- No new migration required.
+
 # Flowtel Changelog
 
 ## v0.9.6 — Actual vs Recorded Cycle Day
