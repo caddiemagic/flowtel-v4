@@ -80,6 +80,16 @@ Medicine Wheel Compass
 
 - Rebuilt Medicine Wheel as an integrated application release.
 - Added compass math and current-room highlighting.
+## v0.9.3 — Mentor Connection Repair + Consent Foundation
+
+- Fixed the dead visible **Connect** button by removing copied DOM binding state from the hidden relationship cache.
+- Added explicit mentor data-sharing consent language.
+- Added consent-aware mentor invitation and pending request cancellation RPC support.
+- Changed pending mentor copy from “she” to “they.”
+- Renamed practitioner relationship language from Your Guests to **Your Clients**.
+- Added **View Data** buttons for connected clients only.
+- Added the first `/cycle-data` / `/flow-map` dashboard shell for future Flow Map work.
+
 ## v0.9.2 — Mentor Connect + Latest Polish
 
 - Fixed visible Concierge Desk **Connect** button for Mentor Requests.

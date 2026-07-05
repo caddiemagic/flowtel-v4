@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtel Cycle Data</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main class="cycle-dashboard-shell">
+    <section class="hero-card">
+      <p class="eyebrow">FLOW MAP</p>
+      <h1>Cycle Data Dashboard</h1>
+      <p id="dashboardIntro">Opening the dashboard...</p>
+    </section>
+
+    <section class="dashboard-card">
+      <div class="dashboard-header">
+        <div>
+          <p class="eyebrow">CURRENT VIEW</p>
+          <h2 id="viewingName">Loading...</h2>
+        </div>
+        <a class="return-link" href="/concierge/">Return to Concierge</a>
+      </div>
+
+      <div class="viewer-toggle" id="viewerToggle"></div>
+
+      <section class="snapshot-panel">
+        <p class="eyebrow">DATA SNAPSHOT</p>
+        <h3 id="snapshotTitle">Flow Map foundation</h3>
+        <p id="snapshotCopy">This page is the consent-aware home for mentor and client cycle data. Full Flow Map analytics will arrive in the next dashboard release.</p>
+      </section>
+
+      <section class="future-grid">
+        <article>
+          <p class="eyebrow">SELF</p>
+          <h3>Practitioner as guest first</h3>
+          <p>Mentors will be able to view their own stays and cycle patterns here.</p>
+        </article>
+        <article>
+          <p class="eyebrow">CLIENT</p>
+          <h3>One woman at a time</h3>
+          <p>Connected clients will appear as individual Flow Map views.</p>
+        </article>
+        <article>
+          <p class="eyebrow">COLLECTIVE</p>
+          <h3>Coming soon</h3>
+          <p>Mentors will see their connected client patterns. Admins will be able to view global Flowtel trends.</p>
+        </article>
+      </section>
+
+      <p id="dashboardMessage" class="message"></p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

@@ -13,6 +13,14 @@
     {
       "source": "/concierge",
       "destination": "/manager/index.html"
+    },
+    {
+      "source": "/cycle-data",
+      "destination": "/cycle-data/index.html"
+    },
+    {
+      "source": "/flow-map",
+      "destination": "/cycle-data/index.html"
     }
   ]
 }

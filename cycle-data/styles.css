@@ -1,0 +1,105 @@
+:root{
+  --cream:#fbf7ef;
+  --paper:#fffdfa;
+  --ink:#6f4b40;
+  --muted:#a77f73;
+  --rose:#c97974;
+  --blush:#f8e3df;
+  --gold:#d9ad4f;
+  --line:#eadfd4;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100vh;
+  background:radial-gradient(circle at top,#fffdf8 0,#fbf7ef 48%,#f6eee6 100%);
+  color:var(--ink);
+  font-family:Georgia,"Times New Roman",serif;
+}
+button,a{font:inherit}
+.cycle-dashboard-shell{
+  width:min(1180px,calc(100% - 32px));
+  margin:0 auto;
+  padding:48px 0 72px;
+}
+.hero-card,.dashboard-card{
+  background:rgba(255,253,250,.82);
+  border:1px solid var(--line);
+  border-radius:28px;
+  box-shadow:0 24px 70px rgba(111,75,64,.08);
+}
+.hero-card{
+  text-align:center;
+  padding:42px 24px 34px;
+  margin-bottom:22px;
+}
+.eyebrow{
+  margin:0 0 12px;
+  color:var(--rose);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.72rem;
+  letter-spacing:.26em;
+  text-transform:uppercase;
+  font-weight:700;
+}
+h1,h2,h3,p{margin-top:0}
+h1{
+  font-size:clamp(2.6rem,7vw,5.4rem);
+  line-height:.92;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  margin-bottom:18px;
+}
+h2{font-size:clamp(1.7rem,3vw,2.6rem);font-weight:400}
+h3{font-size:1.35rem;font-weight:400}
+p{line-height:1.55;color:var(--muted)}
+.dashboard-card{padding:30px}
+.dashboard-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:24px;
+  margin-bottom:24px;
+}
+.return-link,.viewer-toggle a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:11px 20px;
+  border:1px solid #e6c9c4;
+  border-radius:999px;
+  background:var(--blush);
+  color:var(--ink);
+  text-decoration:none;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.viewer-toggle{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:8px 0 24px;
+}
+.viewer-toggle a.active{border-color:var(--gold);background:#fff9ed}
+.snapshot-panel,.future-grid article{
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:rgba(255,255,255,.68);
+}
+.snapshot-panel{padding:28px;margin-bottom:18px}
+.future-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+.future-grid article{padding:24px;min-height:190px}
+.message{margin-top:18px;color:var(--rose)}
+@media(max-width:800px){
+  .dashboard-header{display:block}
+  .return-link{margin-top:14px}
+  .future-grid{grid-template-columns:1fr}
+}

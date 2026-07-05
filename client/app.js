@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor } from "../shared/flowtel.js";
+import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -1000,9 +1000,26 @@ async function renderPractitionerConnection(){
       const mentor=relationship.practitioner;
       const name=mentorDisplayName(mentor);
       title.textContent=`Invitation sent to ${name}.`;
-      text.textContent="Your mentor request is waiting at the Concierge Desk. When she connects, your stays can be tended with continuity.";
-      button.textContent="Invitation Sent";
-      button.disabled=true;
+      text.textContent="Your mentor request is waiting at the Concierge Desk. When they connect, your stays can be tended with continuity.";
+      button.textContent="Cancel / Change Request";
+      button.disabled=false;
+      button.onclick=async()=>{
+        const confirmed=window.confirm("Cancel this mentor request and choose someone else?");
+        if(!confirmed) return;
+        try{
+          button.disabled=true;
+          button.textContent="Cancelling...";
+          if(note) note.textContent="Cancelling your mentor request...";
+          await cancelMentorRequest(relationship.id);
+          if(note) note.textContent="Mentor request cancelled. You can choose another mentor now.";
+          await renderPractitionerConnection();
+        }catch(error){
+          console.error(error);
+          button.disabled=false;
+          button.textContent="Cancel / Change Request";
+          if(note) note.textContent=error?.message || "This mentor request could not be cancelled yet.";
+        }
+      };
       return;
     }
 
@@ -1027,7 +1044,7 @@ async function renderPractitionerConnection(){
 
         directory.classList.remove("hidden");
         directory.innerHTML=`
-          <p class="microcopy mentor-consent-copy">By choosing a mentor, you allow her to witness the Flowtel stays, reflections, concierge notes, and previous stays you share inside this beta.</p>
+          <p class="microcopy mentor-consent-copy">${escapeHtml(MENTOR_DATA_CONSENT_LANGUAGE)}</p>
           <div class="mentor-directory-grid">
             ${mentors.map(mentor=>mentorCardMarkup(mentor)).join("")}
           </div>

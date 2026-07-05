@@ -4,6 +4,7 @@ import { getCurrentUser } from "./auth.js";
 
 const BASE_MENTOR_SELECT = "id, first_name, last_name, email, role, membership_type, practitioner_level, flowfm_started_at, is_initiated";
 const EXTENDED_MENTOR_SELECT = `${BASE_MENTOR_SELECT}, mentor_title, mentor_bio, mentor_photo_url, mentor_specialties, mentor_accepting_clients, mentor_sort_order, serving_wing`;
+export const MENTOR_DATA_CONSENT_LANGUAGE = "By inviting this mentor, you consent to share your Flowtel cycle data, check-ins, reflections, and stay history with them while you are connected.";
 
 const SELECT_RELATIONSHIP = `
   *,
@@ -121,8 +122,17 @@ export async function chooseMentor(mentorId){
   if(!user) throw new Error("No signed-in user.");
   if(!mentorId) throw new Error("Choose a mentor to connect with.");
 
-  // Preferred path: database-owned choice logic keeps one active Mentor to the Moon per guest.
-  const rpc=await supabase.rpc("flowtel_choose_mentor", { p_mentor_id: mentorId });
+  // Preferred path: database-owned choice logic keeps one active Mentor to the Moon per guest
+  // and records the consent language shown at the time of invitation.
+  let rpc=await supabase.rpc("flowtel_choose_mentor_with_consent", {
+    p_mentor_id: mentorId,
+    p_consent_language: MENTOR_DATA_CONSENT_LANGUAGE,
+  });
+
+  if(rpc.error && isMissingFunctionError(rpc.error)){
+    rpc=await supabase.rpc("flowtel_choose_mentor", { p_mentor_id: mentorId });
+  }
+
   if(!rpc.error){
     return selectRelationshipById(rpc.data);
   }
@@ -231,4 +241,34 @@ export async function connectWithGuest(relationshipId){
 
   if(error) throw error;
   return safeSelectRelationshipById(data?.id || relationshipId);
+}
+
+
+export async function cancelMentorRequest(relationshipId){
+  const user = await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+  if(!relationshipId) throw new Error("No mentor request selected.");
+
+  const rpc=await supabase.rpc("flowtel_cancel_mentor_request", { p_relationship_id: relationshipId });
+  if(!rpc.error){
+    return true;
+  }
+
+  if(!isMissingFunctionError(rpc.error)) throw rpc.error;
+
+  const now = new Date().toISOString();
+  const { error } = await supabase
+    .from("flowtel_practitioner_relationships")
+    .update({
+      status: "cancelled",
+      disconnected_at: now,
+      disconnected_reason: "guest cancelled pending mentor request",
+      updated_at: now,
+    })
+    .eq("id", relationshipId)
+    .eq("client_id", user.id)
+    .eq("status", "requested");
+
+  if(error) throw error;
+  return true;
 }

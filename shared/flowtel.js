@@ -22,4 +22,4 @@ export { getFlowFmInitiationStatus, FLOW_FM_MOONS } from "./initiation.js";
 
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
 
-export { listMentors, listPractitioners, getMyPractitionerRelationship, chooseMentor, requestPractitionerConnection, listConnectionRequestsForPractitioner, listMyClients, connectWithGuest } from "./relationships.js";
+export { listMentors, listPractitioners, getMyPractitionerRelationship, chooseMentor, requestPractitionerConnection, listConnectionRequestsForPractitioner, listMyClients, connectWithGuest, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "./relationships.js";

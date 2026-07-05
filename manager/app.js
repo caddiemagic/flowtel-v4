@@ -9,6 +9,7 @@ let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
 let currentManagerProfile=null;
+const boundConnectionButtons=new WeakSet();
 
 const BETA_PASSWORD="FlowtelBeta!2026";
 const BETA_PRACTITIONERS=[
@@ -505,7 +506,7 @@ function setFilter(filter){
   updateStats();
   const titles={
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service","These guests are in your assigned wing and have requested extra care."],
-    "clients":["MENTOR RELATIONSHIPS","Your Guests + Mentor Requests","Connected guests and new mentor requests live here."],
+    "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -663,7 +664,7 @@ function bindQueueActions(){
 function renderQueue(){
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
-    const clients=document.getElementById("myClientsList")?.innerHTML || "<p>No connected guests yet.</p>";
+    const clients=document.getElementById("myClientsList")?.innerHTML || "<p>No connected clients yet.</p>";
     queue.innerHTML=`
       <div class="relationship-queue">
         <section>
@@ -671,12 +672,13 @@ function renderQueue(){
           ${requests}
         </section>
         <section>
-          <p class="eyebrow">YOUR GUESTS</p>
+          <p class="eyebrow">YOUR CLIENTS</p>
           ${clients}
         </section>
       </div>
     `;
     bindConnectionButtons(queue);
+    bindClientDataButtons(queue);
     return;
   }
 
@@ -698,8 +700,8 @@ function relationshipGuestName(row){
 
 function bindConnectionButtons(scope=document){
   scope.querySelectorAll("[data-connect-id]").forEach(button=>{
-    if(button.dataset.boundConnect==="true") return;
-    button.dataset.boundConnect="true";
+    if(boundConnectionButtons.has(button)) return;
+    boundConnectionButtons.add(button);
     button.addEventListener("click",async()=>{
       const originalText=button.textContent;
       button.disabled=true;
@@ -744,13 +746,11 @@ async function renderConnectionRequests(){
       <article class="guest-row connection-row">
         <div>
           <h3>${relationshipGuestName(row)}</h3>
-          <p>Would like you to be her Mentor to the Moon.</p>
+          <p>Would like you to be their Mentor to the Moon.</p>
         </div>
         <button type="button" data-connect-id="${row.id}">Connect</button>
       </article>
     `).join("");
-
-    bindConnectionButtons(holder);
   }catch(error){
     console.warn("Connection requests are not available yet.",error);
     currentConnectionRequestsCount=0;
@@ -758,6 +758,19 @@ async function renderConnectionRequests(){
     updateStats();
     holder.innerHTML="<p>Mentor requests will appear after the relationship migration is installed.</p>";
   }
+}
+
+
+function bindClientDataButtons(scope=document){
+  scope.querySelectorAll("[data-view-client-data]").forEach(button=>{
+    if(button.dataset.boundViewData==="true") return;
+    button.dataset.boundViewData="true";
+    button.addEventListener("click",()=>{
+      const clientId=button.dataset.viewClientData;
+      if(!clientId) return;
+      window.location.href=`/cycle-data/?client=${encodeURIComponent(clientId)}`;
+    });
+  });
 }
 
 async function renderMyClients(){
@@ -770,7 +783,7 @@ async function renderMyClients(){
     setText("clientsCount",clients.length);
     updateStats();
     if(!clients.length){
-      holder.innerHTML="<p>No connected guests yet.</p>";
+      holder.innerHTML="<p>No connected clients yet.</p>";
       return;
     }
 
@@ -780,8 +793,11 @@ async function renderMyClients(){
           <h3>${relationshipGuestName(row)}</h3>
           <p>Mentor connection active.</p>
         </div>
+        <button type="button" data-view-client-data="${row.client_id}">View Data</button>
       </article>
     `).join("");
+
+    bindClientDataButtons(holder);
   }catch(error){
     console.warn("Client list is not available yet.",error);
     currentClientsCount=0;
