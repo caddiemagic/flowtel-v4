@@ -515,10 +515,10 @@ function renderWheel(activeRoom){
   medicineWheel.style.setProperty("--ring-offset", `${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px`);
 
   medicineWheel.innerHTML = `
-  <span class="wheel-season wheel-season-autumn"><em>🍁</em>Inner Autumn<small>Days 20–26</small></span>
-  <span class="wheel-season wheel-season-summer"><em>☀</em>Inner Summer<small>Days 12–19</small></span>
-  <span class="wheel-season wheel-season-spring"><em>🌸</em>Inner Spring<small>Days 6–11</small></span>
-  <span class="wheel-season wheel-season-winter"><em>❄</em>Inner Winter<small>Days 27–5</small></span>
+  <a class="wheel-season wheel-season-autumn" href="../cycle-data/?season=Inner%20Autumn" aria-label="Open Inner Autumn collective reflections"><em>🍁</em>Inner Autumn<small>Days 20–26</small></a>
+  <a class="wheel-season wheel-season-summer" href="../cycle-data/?season=Inner%20Summer" aria-label="Open Inner Summer collective reflections"><em>☀</em>Inner Summer<small>Days 12–19</small></a>
+  <a class="wheel-season wheel-season-spring" href="../cycle-data/?season=Inner%20Spring" aria-label="Open Inner Spring collective reflections"><em>🌸</em>Inner Spring<small>Days 6–11</small></a>
+  <a class="wheel-season wheel-season-winter" href="../cycle-data/?season=Inner%20Winter" aria-label="Open Inner Winter collective reflections"><em>❄</em>Inner Winter<small>Days 27–5</small></a>
 
   <div class="wheel-number-ring wheel-number-ring-inner" aria-hidden="true"></div>
   <div class="wheel-number-ring wheel-number-ring-outer" aria-hidden="true"></div>

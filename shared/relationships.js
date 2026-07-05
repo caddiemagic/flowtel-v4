@@ -59,6 +59,8 @@ async function selectRelationshipById(id){
 }
 
 export async function listMentors(){
+  const currentUser=await getCurrentUser().catch(()=>null);
+
   let query=supabase
     .from("profiles")
     .select(EXTENDED_MENTOR_SELECT)
@@ -80,7 +82,13 @@ export async function listMentors(){
 
   if(error) throw error;
 
-  return (data || []).filter(profile=>profile.mentor_accepting_clients !== false);
+  return (data || []).filter(profile=>{
+    if(profile.mentor_accepting_clients === false) return false;
+    // A practitioner is still a guest first, but no guest should be able to
+    // invite themselves as their own Mentor to the Moon.
+    if(currentUser?.id && profile.id === currentUser.id) return false;
+    return true;
+  });
 }
 
 export async function listPractitioners(){

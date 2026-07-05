@@ -10,43 +10,84 @@
   <main class="cycle-dashboard-shell">
     <section class="hero-card">
       <p class="eyebrow">FLOW MAP</p>
-      <h1>Cycle Data Dashboard</h1>
+      <h1 id="pageTitle">Cycle Data Dashboard</h1>
       <p id="dashboardIntro">Opening the dashboard...</p>
     </section>
 
     <section class="dashboard-card">
       <div class="dashboard-header">
         <div>
-          <p class="eyebrow">CURRENT VIEW</p>
+          <p class="eyebrow" id="viewEyebrow">CURRENT VIEW</p>
           <h2 id="viewingName">Loading...</h2>
         </div>
-        <a class="return-link" href="/concierge/">Return to Concierge</a>
+        <nav class="dashboard-actions" aria-label="Dashboard navigation">
+          <a class="return-link" href="/client/?suite=1">Return to Suite</a>
+          <a class="return-link" href="/manager/">Return to Concierge</a>
+        </nav>
       </div>
 
       <div class="viewer-toggle" id="viewerToggle"></div>
 
-      <section class="snapshot-panel">
-        <p class="eyebrow">DATA SNAPSHOT</p>
-        <h3 id="snapshotTitle">Flow Map foundation</h3>
-        <p id="snapshotCopy">This page is the consent-aware home for mentor and client cycle data. Full Flow Map analytics will arrive in the next dashboard release.</p>
+      <section class="filters-card" id="filtersCard">
+        <div>
+          <p class="eyebrow">FILTERS</p>
+          <h3 id="filtersTitle">Refine the view</h3>
+        </div>
+        <div class="filter-grid">
+          <label>
+            Season
+            <select id="seasonFilter">
+              <option value="">All Seasons</option>
+              <option>Inner Winter</option>
+              <option>Inner Spring</option>
+              <option>Inner Summer</option>
+              <option>Inner Autumn</option>
+            </select>
+          </label>
+          <label>
+            Moon Phase
+            <select id="moonPhaseFilter">
+              <option value="">All Moon Phases</option>
+            </select>
+          </label>
+          <label>
+            Moon Cycle
+            <select id="moonCycleFilter">
+              <option value="">All Moon Cycles</option>
+            </select>
+          </label>
+          <label>
+            From
+            <input id="startDateFilter" type="date" />
+          </label>
+          <label>
+            To
+            <input id="endDateFilter" type="date" />
+          </label>
+          <button type="button" id="clearFiltersButton">Clear Filters</button>
+        </div>
       </section>
 
-      <section class="future-grid">
-        <article>
-          <p class="eyebrow">SELF</p>
-          <h3>Practitioner as guest first</h3>
-          <p>Mentors will be able to view their own stays and cycle patterns here.</p>
-        </article>
-        <article>
-          <p class="eyebrow">CLIENT</p>
-          <h3>One woman at a time</h3>
-          <p>Connected clients will appear as individual Flow Map views.</p>
-        </article>
-        <article>
-          <p class="eyebrow">COLLECTIVE</p>
-          <h3>Coming soon</h3>
-          <p>Mentors will see their connected client patterns. Admins will be able to view global Flowtel trends.</p>
-        </article>
+      <section class="snapshot-panel">
+        <div>
+          <p class="eyebrow">DATA SNAPSHOT</p>
+          <h3 id="snapshotTitle">Flow Map foundation</h3>
+          <p id="snapshotCopy">This page is the consent-aware home for mentor and client cycle data.</p>
+        </div>
+        <div class="metric-grid" id="metricGrid"></div>
+      </section>
+
+      <section class="flow-map-grid" id="flowMapGrid" aria-label="Seasonal Flow Map"></section>
+
+      <section class="entry-log-card">
+        <div class="section-heading-row">
+          <div>
+            <p class="eyebrow" id="entryEyebrow">CHECK-IN LOG</p>
+            <h3 id="entryTitle">Entries</h3>
+          </div>
+          <p id="entryCount" class="entry-count"></p>
+        </div>
+        <div id="entryList" class="entry-list"></div>
       </section>
 
       <p id="dashboardMessage" class="message"></p>

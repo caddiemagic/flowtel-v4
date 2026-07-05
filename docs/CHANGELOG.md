@@ -100,3 +100,15 @@ Medicine Wheel Compass
 - Polished Cycle Tracker result card structure and medicine wheel styling.
 - Removed Open Room from Guests in House.
 - Updated Concierge request cards to show Feels Like instead of Wing and removed Today's Room from request cards.
+
+## v0.9.4 — Cycle Data Dashboard MVP + Seasonal Reflection Foundation
+
+- Hid the signed-in user from the Choose Your Mentor directory so no guest can invite herself.
+- Upgraded `/cycle-data/` from a placeholder shell into a live Cycle Data Dashboard MVP.
+- Added self, connected-client, mentor collective, and admin global data views.
+- Added Flow Map seasonal counts, snapshot metrics, and entry logs.
+- Added anonymous seasonal reflection views from medicine wheel season cards.
+- Added filters for actual season, moon phase, moon cycle, and date range.
+- Added `collective_season_notes_opt_out` privacy groundwork for future opt-out controls.
+- Added database RPCs for consent-aware cycle data access and anonymous seasonal reflections.
+

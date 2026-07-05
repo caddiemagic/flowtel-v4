@@ -1791,3 +1791,7 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
   max-width:760px;
   margin:18px auto 0;
 }
+
+/* Release 0.9.4 — season cards now open anonymous seasonal Flow Map views. */
+.wheel-season{text-decoration:none;color:inherit;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.wheel-season:hover,.wheel-season:focus-visible{transform:translateY(-2px);border-color:rgba(217,173,79,.62);box-shadow:0 16px 38px rgba(111,75,64,.12);outline:none}
