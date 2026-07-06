@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Initiation Hall</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.23" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
 </head>
 <body>
   <main class="initiation-shell">
@@ -21,11 +21,20 @@
         <p id="currentMoonMeta"></p>
       </div>
       <article class="assignment-feature">
-        <p class="eyebrow">BUSINESS ASSIGNMENT</p>
+        <p class="eyebrow">CURRENT BUSINESS ASSIGNMENT</p>
         <h3 id="currentAssignmentTitle">Loading assignment...</h3>
         <p id="currentAssignmentCopy"></p>
-        <a class="pill-link" id="assignmentAction" href="#assignments">View Assignment Path</a>
+        <a class="pill-link" id="assignmentAction" href="#assignments">Tend Assignment Path</a>
       </article>
+    </section>
+
+    <section class="progress-card" id="assignmentProgressCard">
+      <div>
+        <p class="eyebrow">ASSIGNMENT TRACKER</p>
+        <h2 id="progressTitle">Preparing your Flow Factory...</h2>
+        <p id="progressCopy">Each assignment is a room of practice. Save a draft, send it to be witnessed, and let your mentor tend the next step.</p>
+      </div>
+      <div class="progress-pills" id="progressPills"></div>
     </section>
 
     <section class="quick-actions" aria-label="Flow FM next steps">
@@ -36,10 +45,18 @@
       <a href="/client/?suite=1" class="pill-link muted">Return to Suite</a>
     </section>
 
+    <section class="review-queue-card hidden" id="reviewQueueCard">
+      <div class="section-heading compact">
+        <p class="eyebrow">MENTOR REVIEW QUEUE</p>
+        <h2>Assignments waiting to be witnessed</h2>
+        <p>Connected mentors and Flowtel admins can tend submitted work here. This honors consent and keeps the business path inside the hotel.</p>
+      </div>
+      <div id="reviewQueue" class="review-queue"></div>
+    </section>
+
     <section class="arc-grid" id="modules">
-      <div class="section-heading">
+      <div class="section-heading section-heading--no-title">
         <p class="eyebrow">13 MOONS PATH</p>
-        <h2>The curriculum lives here.</h2>
         <p>Each moon carries a teaching, a practice, and a business assignment. Video modules can be linked from Squarespace here when they are ready.</p>
       </div>
       <div id="arcCards" class="arc-cards"></div>
@@ -73,6 +90,6 @@
 
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="./app.js?v=0.9.23"></script>
+  <script type="module" src="./app.js?v=0.10.0"></script>
 </body>
 </html>

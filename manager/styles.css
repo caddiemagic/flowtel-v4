@@ -544,3 +544,44 @@
 .connection-row p{
   color:rgba(109,78,65,.74);
 }
+
+/* Release 0.10.0 — Initiation Hall access from Concierge Desk */
+.initiation-desk-card{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:18px;
+  align-items:center;
+}
+.initiation-desk-card h2{
+  margin:0 0 8px;
+  font-weight:400;
+}
+.desk-link-button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:46px;
+  padding:12px 20px;
+  border:1px solid rgba(109,78,65,.16);
+  border-radius:999px;
+  background:var(--blush);
+  color:var(--brown);
+  font-family:Arial,sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 10px 26px rgba(109,78,65,.06);
+}
+.desk-link-button.is-clocked-in::before{
+  content:"•";
+  margin-right:8px;
+  color:var(--gold);
+  font-size:1.15rem;
+  line-height:1;
+}
+@media(max-width:760px){
+  .initiation-desk-card{grid-template-columns:1fr}
+  .desk-link-button{width:100%}
+}

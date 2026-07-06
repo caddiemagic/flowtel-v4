@@ -4,6 +4,7 @@ import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPract
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
+const initiationHallButton=document.getElementById("initiationHallButton"), initiationHallNote=document.getElementById("initiationHallNote");
 let allStays=[], activeFilter="queue";
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
@@ -326,12 +327,31 @@ function updatePractitionerIdentity(){
   }
 }
 
+function markInitiationHallClockIn(){
+  sessionStorage.setItem("flowtel:courseworkClockedIn","true");
+  sessionStorage.setItem("flowtel:courseworkClockedInAt",new Date().toISOString());
+  if(clockInContext?.id){
+    sessionStorage.setItem("flowtel:courseworkClockInStayId",clockInContext.id);
+  }
+}
+
+function updateInitiationHallAccess(){
+  if(!initiationHallButton) return;
+  initiationHallButton.classList.toggle("is-clocked-in",!!clockInContext);
+  if(initiationHallNote){
+    initiationHallNote.textContent=clockInContext
+      ? "You are clocked in. Initiation Hall coursework is part of your practitioner duty."
+      : "Open the Hall from the Desk. Coursework counts as being on duty inside the Flowtel.";
+  }
+}
+
 function updateTodayFlow(){
   updateConciergeClock();
   const ownWing=clockInContext?.wing;
   const assigned=assignedWingForPractitioner();
 
   updatePractitionerIdentity();
+  updateInitiationHallAccess();
 
   if(ownWing&&assigned){
     const day=clockInContext?.cycle_day_actual || clockInContext?.cycle_day_calculated || clockInContext?.cycle_day_claimed || "—";
@@ -889,3 +909,4 @@ document.getElementById("managerSignInButton").addEventListener("click",openDesk
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
 
 if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);
+if(initiationHallButton) initiationHallButton.addEventListener("click",markInitiationHallClockIn);

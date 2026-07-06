@@ -1,6 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
-import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -751,12 +751,31 @@ function setSuiteMoonMagic(liveMoon){
   suiteMoonTheme.innerHTML=`<span class="moon-theme-line">${escapeHtml(liveMoon.theme)}</span><span class="moon-next-new-moon">Next New Moon: ${escapeHtml(formatDate(liveMoon.nextNewMoonDate))}</span>`;
 }
 
+function isPowderRoomSharingEnabled(){
+  return !currentProfile?.collective_season_notes_opt_out;
+}
+
+function setPowderRoomPanelOpen(open){
+  const panel=document.getElementById("powderRoomSharingPanel");
+  if(panel) panel.classList.toggle("hidden",!open);
+}
+
 function renderPowderRoomSharingSetting(){
   const toggle=document.getElementById("powderRoomSharingToggle");
   const status=document.getElementById("powderRoomSharingStatus");
+  const inline=document.getElementById("powderRoomSharingInline");
+  const expand=document.getElementById("powderRoomSharingExpandButton");
   if(!toggle) return;
-  const sharingEnabled=!currentProfile?.collective_season_notes_opt_out;
+  const sharingEnabled=isPowderRoomSharingEnabled();
   toggle.checked=sharingEnabled;
+  if(inline){
+    inline.firstChild.textContent=sharingEnabled
+      ? "Your reflections will be shared anonymously in the Powder Rooms. "
+      : "Powder Room sharing is off. Your reflections stay out of the anonymous rooms. ";
+  }
+  if(expand){
+    expand.textContent=sharingEnabled ? "Click here to opt out." : "Click here to adjust.";
+  }
   if(status){
     status.textContent=sharingEnabled
       ? ""
@@ -1363,6 +1382,48 @@ async function handleSignIn(){
   }
 }
 
+function dayWord(count){
+  return Number(count)===1 ? "day" : "days";
+}
+
+function showCycleResetConfirmation(context){
+  const panel=document.getElementById("cycleResetConfirmation");
+  const copy=document.getElementById("cycleResetConfirmationCopy");
+  const yes=document.getElementById("cycleResetYesButton");
+  const no=document.getElementById("cycleResetNoButton");
+  if(!panel || !yes || !no) return Promise.resolve(false);
+
+  const distance=Math.abs(Number(context.recordedDay)-Number(context.actualDay));
+  if(copy){
+    copy.textContent=`Flowtel has you on Day ${context.actualDay}, but you recorded Day ${context.recordedDay}. Did a new cycle begin, or is your mind ${distance} ${dayWord(distance)} behind your body?`;
+  }
+
+  panel.classList.remove("hidden");
+  panel.scrollIntoView({behavior:"smooth",block:"center"});
+
+  return new Promise(resolve=>{
+    const finish=value=>{
+      yes.removeEventListener("click",handleYes);
+      no.removeEventListener("click",handleNo);
+      panel.classList.add("hidden");
+      resolve(value);
+    };
+    const handleYes=()=>finish(true);
+    const handleNo=()=>{
+      if(context.behindMessage) setMessage(context.behindMessage);
+      finish(false);
+    };
+    yes.addEventListener("click",handleYes,{once:true});
+    no.addEventListener("click",handleNo,{once:true});
+  });
+}
+
+async function maybeConfirmCycleReset(recordedDay){
+  const context=await getCycleDayConfirmationContext(recordedDay);
+  if(!context?.needsConfirmation) return false;
+  return showCycleResetConfirmation(context);
+}
+
 function readArrivalFields(){
   const cycleDay=Number(document.getElementById("cycleDay").value);
   const feelsLike=document.getElementById("feelsLike").value;
@@ -1453,7 +1514,8 @@ async function ensureArrivalStay(){
   const arrival=readArrivalFields();
   if(!arrival) return null;
 
-  pendingArrivalStay=await createStay(arrival);
+  const newCycleConfirmed=await maybeConfirmCycleReset(arrival.cycleDay);
+  pendingArrivalStay=await createStay({...arrival,newCycleConfirmed});
   currentStay=pendingArrivalStay;
   cacheSuiteStay(currentStay);
   return currentStay;
@@ -1462,13 +1524,14 @@ async function ensureArrivalStay(){
 async function handleCheckIn(){
   try{
     setMessage("");
-    showScene("preparing");
 
     const stay=await ensureArrivalStay();
     if(!stay){
       showScene("lobby");
       return;
     }
+
+    showScene("preparing");
 
     setTimeout(()=>{
       renderKey(stay);
@@ -1502,7 +1565,7 @@ async function handleSaveReflection(){
     const saveButton=document.getElementById("saveReflectionButton");
     if(saveButton) saveButton.disabled=true;
 
-    currentStay=await saveReflection(currentStay.id,value,{shareInPowderRooms:true});
+    currentStay=await saveReflection(currentStay.id,value,{shareInPowderRooms:isPowderRoomSharingEnabled()});
     cacheSuiteStay(currentStay);
     input.value="";
     if(message) message.textContent="Reflection saved. Your stay has remembered this note.";
@@ -1525,7 +1588,7 @@ async function handleCheckout(){
   if(!currentStay) return;
 
   try{
-    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value,{shareInPowderRooms:true});
+    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value,{shareInPowderRooms:isPowderRoomSharingEnabled()});
     cacheSuiteStay(currentStay);
     document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
     renderLoungeVisits();
@@ -1621,6 +1684,11 @@ window.addEventListener("resize",()=>{
   clearTimeout(wheelResizeTimer);
   wheelResizeTimer=setTimeout(()=>renderWheel(stayActualDay(currentStay)),120);
 });
+
+const powderRoomSharingExpandButton=document.getElementById("powderRoomSharingExpandButton");
+if(powderRoomSharingExpandButton){
+  powderRoomSharingExpandButton.addEventListener("click",()=>setPowderRoomPanelOpen(true));
+}
 
 const powderRoomSharingToggle=document.getElementById("powderRoomSharingToggle");
 if(powderRoomSharingToggle){

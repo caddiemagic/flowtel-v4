@@ -60,6 +60,10 @@ function cycleAccuracyMessage({actualDay, recordedDay, difference, resetType}){
     return "Permission to play hooky today.";
   }
 
+  if(resetType==="confirmed_new_cycle"){
+    return `Welcome back. Your new cycle has been confirmed. You are on Day ${actualDay}.`;
+  }
+
   if(resetType==="inferred_new_cycle"){
     return `Welcome back. It looks like a new cycle began while you were away. You are on Day ${actualDay}.`;
   }
@@ -78,6 +82,7 @@ function cycleAccuracyMessage({actualDay, recordedDay, difference, resetType}){
 
 function cycleMatchStatus(difference,resetType){
   if(resetType==="day_one") return "new_cycle_day_one";
+  if(resetType==="confirmed_new_cycle") return "confirmed_new_cycle";
   if(resetType==="inferred_new_cycle") return "inferred_new_cycle";
   if(difference===0) return "matched";
   return difference>0 ? "recorded_ahead" : "recorded_behind";
@@ -98,33 +103,29 @@ async function getPreviousCycleContext(clientId){
   return (data||[])[0] || null;
 }
 
-async function resolveCycleIntelligence(clientId, recordedDay){
+async function resolveCycleIntelligence(clientId, recordedDay, options={}){
   const recorded=Number(recordedDay);
   const today=todayISO();
   const inferredStartFromRecorded=calculateCycleStartDate(recorded);
   const previous=await getPreviousCycleContext(clientId);
   const previousStart=previous?.cycle_start_date || null;
+  const systemActualDay=previousStart ? daysBetween(previousStart,today) : recorded;
+  const newCycleConfirmed=options?.newCycleConfirmed === true;
 
   let cycleStartDate=previousStart || inferredStartFromRecorded;
-  let actualDay=previousStart ? daysBetween(previousStart,today) : recorded;
+  let actualDay=systemActualDay;
   let resetType=previousStart ? "continuing" : "first_checkin";
   let previousCycleLengthDays=null;
 
-  if(recorded===1){
+  if(!previousStart && recorded===1){
     cycleStartDate=today;
     actualDay=1;
     resetType="day_one";
-    if(previousStart && previousStart<today){
-      previousCycleLengthDays=Math.max(1, calendarDaysBetween(previousStart,today));
-    }
-  }else if(previousStart && actualDay>=15 && recorded<=10 && recorded<actualDay){
-    // Late reset: a guest returns with an early-cycle day after the prior cycle
-    // had already moved into a later room. Infer the new Day 1 rather than
-    // treating her as simply “behind.”
+  }else if(previousStart && recorded<systemActualDay && newCycleConfirmed){
     cycleStartDate=inferredStartFromRecorded;
     actualDay=recorded;
-    resetType="inferred_new_cycle";
-    if(previousStart && cycleStartDate>previousStart){
+    resetType=recorded===1 ? "day_one" : "confirmed_new_cycle";
+    if(cycleStartDate>previousStart){
       previousCycleLengthDays=Math.max(1, calendarDaysBetween(previousStart,cycleStartDate));
     }
   }
@@ -141,6 +142,31 @@ async function resolveCycleIntelligence(clientId, recordedDay){
     cycleStartDate,
     previousCycleLengthDays,
     resetType,
+  };
+}
+
+export async function getCycleDayConfirmationContext(recordedDay){
+  const user=await getCurrentUser();
+  if(!user) throw new Error("No signed-in user.");
+
+  const recorded=Number(recordedDay);
+  if(!Number.isFinite(recorded)) return {needsConfirmation:false};
+
+  const previous=await getPreviousCycleContext(user.id);
+  const previousStart=previous?.cycle_start_date || null;
+  if(!previousStart) return {needsConfirmation:false,recordedDay:recorded};
+
+  const actualDay=daysBetween(previousStart,todayISO());
+  const needsConfirmation=recorded<actualDay;
+  const distance=Math.abs(recorded-actualDay);
+
+  return {
+    needsConfirmation,
+    recordedDay:recorded,
+    actualDay,
+    previousCycleStartDate:previousStart,
+    inferredCycleStartDate:calculateCycleStartDate(recorded),
+    behindMessage:`Ah, your mind is ${distance} ${singularizeDay(distance)} behind your body. You are actually on Day ${actualDay}. We have got you.`,
   };
 }
 
@@ -191,7 +217,7 @@ export async function autoCloseOpenStayIfNeeded(clientId){
   return todaysOpenStay || lastClosed;
 }
 
-export async function createStay({cycleDay,feelsLike}){
+export async function createStay({cycleDay,feelsLike,newCycleConfirmed=false}){
   const user=await getCurrentUser();
   if(!user) throw new Error("No signed-in user.");
 
@@ -202,7 +228,7 @@ export async function createStay({cycleDay,feelsLike}){
   const existingToday=await getTodayStayForClient(user.id);
   if(existingToday) return existingToday;
 
-  const cycle=await resolveCycleIntelligence(user.id, Number(cycleDay));
+  const cycle=await resolveCycleIntelligence(user.id, Number(cycleDay), { newCycleConfirmed });
   const innerSeason=getInnerSeason(cycle.actualDay);
   const moon=getMoonMagic();
   const stay={

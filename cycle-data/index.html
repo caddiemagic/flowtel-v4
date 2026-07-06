@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Cycle Data</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.21" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
 </head>
 <body>
   <main class="cycle-dashboard-shell">
@@ -21,19 +21,27 @@
           <h2 id="viewingName">Loading...</h2>
         </div>
         <nav class="dashboard-actions" aria-label="Dashboard navigation">
-          <a class="return-link" id="openFlowMapLink" href="/flow-map/">Open Flow Map</a>
-          <a class="return-link" href="/client/?suite=1">Return to Suite</a>
-          <a class="return-link" href="/manager/">Return to Concierge</a>
+          <a class="return-link primary-action" id="openFlowMapLink" href="/flow-map/">Open Flow Map</a>
+          <details class="dashboard-utility-menu">
+            <summary>More</summary>
+            <div>
+              <a class="return-link" href="/client/?suite=1">Return to Suite</a>
+              <a class="return-link" href="/manager/">Return to Concierge</a>
+            </div>
+          </details>
         </nav>
       </div>
 
-      <div class="viewer-toggle" id="viewerToggle"></div>
+      <details class="viewer-toggle-card">
+        <summary>Switch view</summary>
+        <div class="viewer-toggle" id="viewerToggle"></div>
+      </details>
 
-      <section class="filters-card" id="filtersCard">
-        <div>
-          <p class="eyebrow">FILTERS</p>
-          <h3 id="filtersTitle">Refine the view</h3>
-        </div>
+      <details class="filters-card" id="filtersCard">
+        <summary>
+          <span class="eyebrow">FILTERS</span>
+          <strong id="filtersTitle">Refine the view</strong>
+        </summary>
         <div class="filter-grid">
           <label>
             Season
@@ -67,7 +75,7 @@
           </label>
           <button type="button" id="clearFiltersButton">Clear Filters</button>
         </div>
-      </section>
+      </details>
 
       <section class="snapshot-panel">
         <div>
@@ -95,6 +103,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=0.9.21"></script>
+  <script type="module" src="./app.js?v=0.10.0"></script>
 </body>
 </html>

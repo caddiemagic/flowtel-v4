@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Flow Map Practice</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.22" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
 </head>
 <body>
   <main class="flow-map-shell">
@@ -20,17 +20,25 @@
         <h2 id="viewingName">Loading...</h2>
       </div>
       <div class="flow-map-controls">
-        <div class="scope-toggle" id="scopeToggle" aria-label="Flow Map view options"></div>
+        <details class="control-disclosure view-disclosure">
+          <summary>Switch view</summary>
+          <div class="scope-toggle" id="scopeToggle" aria-label="Flow Map view options"></div>
+        </details>
         <div class="control-actions">
           <label class="cycle-selector-label">
             Cycle
             <select id="cycleSelector"></select>
           </label>
-          <a class="return-link" id="openCycleDataLink" href="/cycle-data/">View Data Dashboard</a>
-          <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
-          <a class="return-link" id="printableFlowMapLink" href="/flow-map/printable/" target="_blank" rel="noopener">Printable Flow Map</a>
-          <a class="return-link" href="/client/?suite=1">Return to Suite</a>
-          <a class="return-link" href="/manager/">Return to Concierge</a>
+          <a class="return-link primary-action" id="openCycleDataLink" href="/cycle-data/">View Data Dashboard</a>
+          <details class="control-disclosure utility-disclosure">
+            <summary>More</summary>
+            <div class="utility-actions">
+              <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
+              <a class="return-link" id="printableFlowMapLink" href="/flow-map/printable/" target="_blank" rel="noopener">Printable Flow Map</a>
+              <a class="return-link" href="/client/?suite=1">Return to Suite</a>
+              <a class="return-link" href="/manager/">Return to Concierge</a>
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -83,6 +91,6 @@
     <p id="flowMapMessage" class="message"></p>
   </main>
 
-  <script type="module" src="./app.js?v=0.9.22"></script>
+  <script type="module" src="./app.js?v=0.10.0"></script>
 </body>
 </html>

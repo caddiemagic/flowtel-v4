@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.23" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -69,6 +69,16 @@
               <option value="Inner Summer">Summer</option>
               <option value="Inner Autumn">Fall</option>
             </select>
+
+            <div id="cycleResetConfirmation" class="cycle-reset-confirmation hidden" aria-live="polite">
+              <p class="eyebrow">CYCLE CONFIRMATION</p>
+              <h3>Did you start a new cycle?</h3>
+              <p id="cycleResetConfirmationCopy">Flowtel noticed today’s recorded day is lower than your actual cycle day.</p>
+              <div class="cycle-reset-actions">
+                <button id="cycleResetYesButton" type="button">Yes, today is part of a new cycle</button>
+                <button id="cycleResetNoButton" type="button" class="secondary">No, I am still in the same cycle</button>
+              </div>
+            </div>
 
             <button id="checkInButton" type="button">Check Into the Flowtel</button>
             <button id="clockInButton" type="button" class="secondary hidden">
@@ -152,14 +162,18 @@
         <section class="journal-card">
           <p class="eyebrow">REFLECTION</p>
           <textarea id="reflectionInput" placeholder="Write what you want the Flowtel to remember from today..."></textarea>
-          <article class="powder-master-setting">
+          <p class="powder-share-inline" id="powderRoomSharingInline">
+            Your reflections will be shared anonymously in the Powder Rooms.
+            <button id="powderRoomSharingExpandButton" type="button">Click here to opt out.</button>
+          </p>
+          <article class="powder-master-setting powder-master-setting--collapsed hidden" id="powderRoomSharingPanel">
             <div>
               <p class="eyebrow">POWDER ROOM SHARING</p>
-              <p>Your reflections and checkout notes will be shared anonymously with other Flowtel guests in the Powder Rooms.</p>
+              <p>Your daily reflection can be witnessed anonymously in the Powder Room for your actual inner season.</p>
             </div>
             <label class="powder-share-control powder-master-toggle">
               <input id="powderRoomSharingToggle" type="checkbox" checked />
-              <span>Share anonymously</span>
+              <span>I want my daily reflections to be witnessed in the Powder Room.</span>
             </label>
             <p id="powderRoomSharingStatus" class="powder-share-status"></p>
           </article>
@@ -189,7 +203,6 @@
 
         <div class="suite-actions">
           <button id="flowtelLoungeButton" type="button">Go to Flowtel Lounge</button>
-          <a id="flowFmInitiationLink" class="suite-button-link" href="/flow-fm/">Flow FM Initiation</a>
           <button id="returnLobbyButton" type="button" class="secondary">Check Out</button>
         </div>
       </section>
@@ -233,6 +246,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.9.23"></script>
+  <script type="module" src="./app.js?v=0.10.0"></script>
 </body>
 </html>

@@ -1,3 +1,14 @@
+## v0.10.0 — Flow FM Construction
+
+- Added the Flow FM Business Assignment Tracker with migration 022, `flow_fm_assignment_submissions`, assignment draft/submission RPCs, mentor/admin review RPCs, review queue, progress cards, and status pills.
+- Added `shared/assignments.js` and exported Flow FM assignment helpers through `shared/flowtel.js`.
+- Added confirmation logic when a returning guest records a cycle day lower than Flowtel’s calculated actual day, so lower numbers no longer automatically create a new cycle.
+- Hid the full Powder Room Sharing pill by default behind soft inline opt-out copy and updated reflection/checkout saves to honor the master Powder Room sharing setting.
+- Moved Initiation Hall access into the Concierge Desk panel with the button label `INITIATION HALL` and removed the old Suite-level initiation button.
+- Simplified Flow Map and Cycle Data controls by grouping view switching, filters, utility actions, print/save, and return actions into quieter disclosures.
+- Reduced the Initiation Hall hero header scale and removed the placeholder headline `THE CURRICULUM LIVES HERE.` from the 13 Moons Path section.
+- Preserved core stay logic, Flowtel Time, append-only history, Powder Room anonymity, Flow Map orientation, Concierge/Turndown, and no-gamification language.
+
 
 ## v0.9.23 — Flow FM Initiation Hall
 - Added `/flow-fm/` as the first Flow FM curriculum home inside Flowtel.
