@@ -94,25 +94,42 @@ async function handleProfileReviewAction(row, status){
     setMessage(message, error.message || 'This Priestess Profile could not be reviewed yet.');
   }
 }
+function errorMessage(error){
+  return error?.message || error?.hint || error?.details || 'Unknown queue error.';
+}
+
 async function refresh(){
   if(!isMentorRole(currentProfile)){
     renderReviewQueue([]);
     renderProfileReviewQueue([]);
+    setMessage(message, 'The Review Desk opens for practitioner, admin, and owner roles.');
     return;
   }
-  try{
-    const [assignmentRows, profileRows] = await Promise.all([
-      listFlowFmAssignmentReviewQueue(),
-      listPriestessProfileReviewQueue(),
-    ]);
-    renderReviewQueue(assignmentRows || []);
-    renderProfileReviewQueue(profileRows || []);
-  }catch(error){
-    console.error(error);
+
+  const [assignmentResult, profileResult] = await Promise.allSettled([
+    listFlowFmAssignmentReviewQueue(),
+    listPriestessProfileReviewQueue(),
+  ]);
+
+  let notices = [];
+
+  if(assignmentResult.status === 'fulfilled'){
+    renderReviewQueue(assignmentResult.value || []);
+  }else{
+    console.error('Assignment review queue failed.', assignmentResult.reason);
     renderReviewQueue([]);
-    renderProfileReviewQueue([]);
-    setMessage(message, 'The Review Desk opened, but queue records could not be loaded.');
+    notices.push(`Assignment queue could not be loaded: ${errorMessage(assignmentResult.reason)}`);
   }
+
+  if(profileResult.status === 'fulfilled'){
+    renderProfileReviewQueue(profileResult.value || []);
+  }else{
+    console.error('Profile review queue failed.', profileResult.reason);
+    renderProfileReviewQueue([]);
+    notices.push(`Profile queue could not be loaded: ${errorMessage(profileResult.reason)}`);
+  }
+
+  setMessage(message, notices.join(' '));
 }
 async function init(){
   topNav.innerHTML = renderTopNav('review');

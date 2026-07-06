@@ -85,6 +85,7 @@ function link(label,href,active=false){
   const a=document.createElement("a");
   a.href=href;
   a.textContent=label;
+  a.classList.add("return-link");
   if(active) a.classList.add("active");
   return a;
 }
@@ -94,6 +95,7 @@ function powderRoomHref(season){
 function renderPowderRoomSeasonNav(activeSeason){
   if(!dashboardActions) return;
   dashboardActions.classList.add("powder-room-season-actions");
+  dashboardActions.setAttribute("aria-label","Powder Room season navigation");
   dashboardActions.innerHTML="";
   SEASONS.filter(season=>season!==activeSeason).forEach(season=>{
     const label=powderRoomName(season).replace(/ Powder Room$/i," Room");

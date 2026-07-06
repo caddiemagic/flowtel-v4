@@ -585,3 +585,28 @@
   .initiation-desk-card{grid-template-columns:1fr}
   .desk-link-button{width:100%}
 }
+
+
+/* Release 0.10.6 — Initiation Hall pill in Concierge hero */
+.hero{position:relative;padding-right:min(340px,32vw)}
+.concierge-hero-action{
+  position:absolute;
+  right:34px;
+  top:50%;
+  transform:translateY(-50%);
+  width:min(280px,30vw);
+  display:grid;
+  justify-items:center;
+  gap:10px;
+  text-align:center;
+  z-index:2;
+}
+.concierge-hero-action p{
+  margin:0;
+  color:rgba(109,78,65,.62);
+  font-size:.82rem;
+  line-height:1.35;
+}
+.concierge-hero-action .desk-link-button{width:100%;max-width:230px}
+.dashboard-snapshot{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media(max-width:900px){.hero{padding-right:28px}.concierge-hero-action{position:static;transform:none;width:100%;justify-items:start;text-align:left;margin-top:16px}.concierge-hero-action .desk-link-button{max-width:none}}

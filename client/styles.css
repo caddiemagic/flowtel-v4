@@ -2336,3 +2336,75 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 @media(max-width:640px){
   .cycle-reset-actions{grid-template-columns:1fr}
 }
+
+
+/* Release 0.10.6 — Practitioner, Reflection, Mentor Panel polish */
+.powder-master-setting{
+  grid-template-columns:minmax(0,1fr);
+  align-items:stretch;
+  overflow:hidden;
+  max-width:100%;
+}
+.powder-master-toggle,
+.powder-share-control{
+  width:100%;
+  min-width:0;
+  white-space:normal!important;
+  flex-wrap:nowrap;
+  align-items:flex-start;
+}
+.powder-master-toggle span,
+.powder-share-control span{
+  display:block;
+  min-width:0;
+  max-width:100%!important;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:1.35;
+}
+.powder-share-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  margin-top:8px;
+}
+.powder-share-actions button{
+  width:auto;
+  min-width:110px;
+  padding:9px 16px;
+}
+.suite-actions{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:center;
+  margin-top:22px!important;
+}
+.suite-actions .suite-button-link{margin-top:0!important}
+.suite-scene > .practitioner-card{
+  padding:18px 22px!important;
+  margin-top:18px!important;
+  margin-bottom:18px!important;
+}
+.suite-scene > .practitioner-card h3{
+  margin:.1rem 0 .35rem!important;
+}
+.suite-scene > .practitioner-card p{
+  line-height:1.42;
+}
+.mentor-card-actions{margin-top:10px}
+.mentor-panel{
+  width:100%;
+  margin:18px 0;
+  padding:22px 24px;
+  text-align:left;
+  border:1px solid var(--line);
+  border-radius:24px;
+  background:linear-gradient(135deg,rgba(255,253,249,.95),rgba(248,231,227,.34));
+  box-shadow:0 16px 42px rgba(109,78,65,.08);
+}
+.mentor-panel h3{margin:.15rem 0 .5rem;font-weight:400;color:var(--brown)}
+.mentor-panel > p:not(.eyebrow){color:var(--soft-brown);line-height:1.45}
+.mentor-panel-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}
+.mentor-panel-grid article{border:1px solid rgba(109,78,65,.12);border-radius:18px;background:rgba(255,255,255,.56);padding:15px}
+.mentor-panel-grid span{display:block;margin-bottom:8px;font-family:Arial,sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--rose)}
+.mentor-panel-grid p{margin:0;color:var(--soft-brown);line-height:1.4}
+@media(max-width:900px){.suite-actions,.mentor-panel-grid{grid-template-columns:1fr!important}.powder-share-actions{justify-content:stretch}.powder-share-actions button{width:100%}}

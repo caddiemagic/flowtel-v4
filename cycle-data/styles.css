@@ -525,3 +525,42 @@ body:not(.powder-room-mode) .hero-card h1{
   .dashboard-actions{justify-content:flex-start}
   .dashboard-utility-menu,.dashboard-utility-menu summary,.return-link.primary-action{width:100%}
 }
+
+
+/* Release 0.10.6 — Powder Room button/pill styling */
+.powder-room-season-actions,
+.powder-room-bottom-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:center;
+  margin:14px auto 18px;
+}
+.powder-room-season-actions .return-link,
+.powder-room-bottom-actions .return-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  padding:10px 18px;
+  border:1px solid rgba(109,78,65,.16);
+  border-radius:999px;
+  background:rgba(255,253,249,.82);
+  color:var(--ink,#6d4e41);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:0 10px 24px rgba(109,78,65,.06);
+}
+.powder-room-season-actions .return-link:hover,
+.powder-room-bottom-actions .return-link:hover,
+.powder-room-season-actions .return-link.active{
+  background:var(--blush,#f8e7e3);
+  border-color:rgba(217,173,79,.46);
+}
+.powder-room-bottom-actions{padding-top:10px;border-top:1px solid rgba(109,78,65,.08)}
+@media(max-width:720px){.powder-room-season-actions,.powder-room-bottom-actions{display:grid}.powder-room-season-actions .return-link,.powder-room-bottom-actions .return-link{width:100%}}

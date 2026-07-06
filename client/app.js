@@ -17,6 +17,7 @@ const message=document.getElementById("message");
 const medicineWheel=document.getElementById("medicineWheel");
 
 let currentProfile=null;
+let currentMentorRelationship=null;
 let currentStay=null;
 
 const SQUARESPACE_MEMBERSHIP = membershipFromUrl();
@@ -757,7 +758,12 @@ function isPowderRoomSharingEnabled(){
 
 function setPowderRoomPanelOpen(open){
   const panel=document.getElementById("powderRoomSharingPanel");
-  if(panel) panel.classList.toggle("hidden",!open);
+  const expand=document.getElementById("powderRoomSharingExpandButton");
+  if(panel){
+    panel.classList.toggle("hidden",!open);
+    panel.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+  if(expand) expand.setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 function renderPowderRoomSharingSetting(){
@@ -1124,6 +1130,33 @@ function mentorCardMarkup(mentor){
   `;
 }
 
+function openMentorPanel(relationship=currentMentorRelationship){
+  const panel=document.getElementById("mentorPanel");
+  const title=document.getElementById("mentorPanelTitle");
+  const copy=document.getElementById("mentorPanelCopy");
+  const calls=document.getElementById("mentorPanelCalls");
+  const notes=document.getElementById("mentorPanelNotes");
+  const support=document.getElementById("mentorPanelSupport");
+  if(!panel) return;
+  const mentor=relationship?.practitioner || null;
+  const name=mentorDisplayName(mentor);
+  if(title) title.textContent=name ? `${name} · Mentor Panel` : "Your Mentor to the Moon";
+  if(copy) copy.textContent=name
+    ? `${name} is connected to your Flowtel stays. This panel will become the home for calls, notes exchanged, and between-call reflections.`
+    : "Choose a mentor to open the Mentor Panel.";
+  if(calls) calls.textContent=mentor?.mentor_scheduling_url || mentor?.scheduling_url || mentor?.booking_url
+    ? "Use the Schedule Call button above while call syncing is being prepared."
+    : "No upcoming calls have been added yet.";
+  if(notes) notes.textContent="Notes exchanged and mentor reflections will appear here in a future mentorship release.";
+  if(support) support.textContent="Your mentor will eventually be able to review your Flowtel data and leave reflections for you to read between calls.";
+  panel.classList.remove("hidden");
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function closeMentorPanel(){
+  document.getElementById("mentorPanel")?.classList.add("hidden");
+}
+
 async function renderPractitionerConnection(){
   const card=document.getElementById("practitionerCard");
   const title=document.getElementById("practitionerCardTitle");
@@ -1145,14 +1178,16 @@ async function renderPractitionerConnection(){
 
   try{
     const relationship=await getMyPractitionerRelationship();
+    currentMentorRelationship=relationship || null;
 
     if(relationship?.status==="connected"){
       const mentor=relationship.practitioner;
       const name=mentorDisplayName(mentor);
       title.textContent=name;
       text.textContent=`${name} is your Mentor to the Moon. This connection will stay with you across future stays until you intentionally change it.`;
-      button.textContent="Mentor Connected";
-      button.disabled=true;
+      button.textContent="Open Mentor Panel";
+      button.disabled=false;
+      button.onclick=()=>openMentorPanel(relationship);
       if(scheduleButton){
         const schedulingUrl=mentor?.mentor_scheduling_url || mentor?.scheduling_url || mentor?.booking_url || "#";
         scheduleButton.href=schedulingUrl;
@@ -1189,6 +1224,7 @@ async function renderPractitionerConnection(){
       return;
     }
 
+    currentMentorRelationship=null;
     title.textContent="No mentor chosen yet.";
     text.textContent="Choose the mentor you would like to tend your stays. This creates a relationship that can remember you across future visits.";
     button.textContent="Choose Your Mentor";
@@ -1688,6 +1724,14 @@ window.addEventListener("resize",()=>{
 const powderRoomSharingExpandButton=document.getElementById("powderRoomSharingExpandButton");
 if(powderRoomSharingExpandButton){
   powderRoomSharingExpandButton.addEventListener("click",()=>setPowderRoomPanelOpen(true));
+}
+const powderRoomSharingCollapseButton=document.getElementById("powderRoomSharingCollapseButton");
+if(powderRoomSharingCollapseButton){
+  powderRoomSharingCollapseButton.addEventListener("click",()=>setPowderRoomPanelOpen(false));
+}
+const closeMentorPanelButton=document.getElementById("closeMentorPanelButton");
+if(closeMentorPanelButton){
+  closeMentorPanelButton.addEventListener("click",closeMentorPanel);
 }
 
 const powderRoomSharingToggle=document.getElementById("powderRoomSharingToggle");

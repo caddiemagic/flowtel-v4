@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.6" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -175,6 +175,9 @@
               <input id="powderRoomSharingToggle" type="checkbox" checked />
               <span>I want my daily reflections to be witnessed in the Powder Room.</span>
             </label>
+            <div class="powder-share-actions">
+              <button id="powderRoomSharingCollapseButton" type="button" class="secondary">Done</button>
+            </div>
             <p id="powderRoomSharingStatus" class="powder-share-status"></p>
           </article>
           <button id="saveReflectionButton" type="button">Save Reflection</button>
@@ -192,6 +195,27 @@
               </div>
               <p id="practitionerMessage" class="microcopy"></p>
             </article>
+
+        <section class="mentor-panel hidden" id="mentorPanel" aria-live="polite">
+          <button id="closeMentorPanelButton" type="button" class="drawer-close">Close</button>
+          <p class="eyebrow">MENTOR PANEL</p>
+          <h3 id="mentorPanelTitle">Your Mentor to the Moon</h3>
+          <p id="mentorPanelCopy">Your mentor connection details will appear here.</p>
+          <div class="mentor-panel-grid">
+            <article>
+              <span>Upcoming Calls</span>
+              <p id="mentorPanelCalls">No upcoming calls have been added yet.</p>
+            </article>
+            <article>
+              <span>Notes Exchanged</span>
+              <p id="mentorPanelNotes">Mentor notes and reflections will live here as this relationship grows.</p>
+            </article>
+            <article>
+              <span>In-between-call Support</span>
+              <p id="mentorPanelSupport">This panel is the future home for mentor reflections between live calls.</p>
+            </article>
+          </div>
+        </section>
 
         <section class="visits-drawer hidden" id="visitsDrawer">
           <button id="closeVisitsButton" type="button" class="drawer-close">Close</button>
@@ -246,6 +270,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.0"></script>
+  <script type="module" src="./app.js?v=0.10.6"></script>
 </body>
 </html>

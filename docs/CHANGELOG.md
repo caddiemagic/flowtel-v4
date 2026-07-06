@@ -1,3 +1,15 @@
+## v0.10.6 — Womb Work Room + Practitioner Polish
+
+- Expanded the Womb Work Modules room with an interactive module detail panel, practice prompts, reflection prompts, assignment pairings, and future Squarespace lesson placeholders.
+- Stabilized the Review Desk so assignment and Priestess Profile queues load independently and show more specific queue errors instead of one generic failure message.
+- Added migration 025 to broaden review queue role recognition and return empty queues for non-review users while preserving mentor consent boundaries.
+- Moved the INITIATION HALL pill into the right side of the Concierge Desk hero panel.
+- Fixed the expanded Powder Room Sharing pill so text wraps inside the Reflection card and added a Done collapse action.
+- Returned bottom Suite buttons to a two-button aligned layout.
+- Reduced Mentor to the Moon card vertical spacing and changed connected mentor state into an Open Mentor Panel action.
+- Added a front-end Mentor Panel foundation for upcoming calls, notes exchanged, and future between-call mentor reflections.
+- Restyled Powder Room season-switching and return links as Flowtel button/pills with proper spacing.
+
 ## v0.10.5 — Profile Studio Loader Repair
 
 - Fixed the invalid Flow FM UI regular expression that prevented subpage modules from loading and left Profile Studio stuck on loading placeholders.
