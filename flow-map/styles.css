@@ -612,3 +612,29 @@ p{line-height:1.55;color:var(--muted)}
   .control-actions{grid-template-columns:1fr!important}
   .utility-disclosure[open] .utility-actions{position:static;margin-top:8px}
 }
+
+
+/* Release 0.10.7 — Living Flow Map expansion */
+.flow-map-canvas{
+  --top-row-height:680px;
+  --bottom-row-height:680px;
+  grid-template-rows:var(--top-row-height) var(--bottom-row-height);
+}
+.quadrant-autumn,.quadrant-summer{padding-bottom:110px;}
+.quadrant-winter,.quadrant-spring{padding-top:110px;}
+.quadrant header{position:relative;z-index:4;}
+.quadrant .note-field{position:relative;z-index:3;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,max-content));justify-content:center;align-content:flex-start;align-items:start;gap:18px;max-width:100%;}
+.note-field[data-density="dense"],.note-field[data-density="very-dense"]{grid-template-columns:repeat(auto-fit,minmax(190px,max-content));}
+.note-field[data-density="dense"] .map-note,.note-field[data-density="very-dense"] .map-note{transform:none!important;margin:0!important;}
+.note-field[data-count="0"]{align-content:center;}
+.map-note{max-width:100%;}
+.flow-map-canvas[data-room-state="expanded"] .quadrant{background:radial-gradient(circle at center,rgba(255,253,250,.36),transparent 62%)}
+@media(max-width:940px){
+  .flow-map-canvas{display:block!important;}
+  .quadrant{min-height:auto!important;padding:34px 20px!important;}
+  .quadrant .note-field{display:grid;grid-template-columns:1fr;gap:14px;padding:8px 0 24px;}
+  .map-note{width:100%!important;}
+}
+@media print{
+  .quadrant-autumn,.quadrant-summer,.quadrant-winter,.quadrant-spring{padding:26px 28px!important;}
+}

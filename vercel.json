@@ -31,6 +31,10 @@
       "destination": "/flow-fm/index.html"
     },
     {
+      "source": "/flow-fm/portal",
+      "destination": "/flow-fm/portal/index.html"
+    },
+    {
       "source": "/flow-fm/moons",
       "destination": "/flow-fm/moons/index.html"
     },

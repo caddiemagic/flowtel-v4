@@ -139,6 +139,48 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
   };
 }
 
+
+export function getPersonalizedMoonPath(profile = {}, nowDate = new Date()) {
+  const status = getFlowFmInitiationStatus(profile, nowDate);
+  const anchorIndex = Math.min(12, Math.max(1, Number(status.anchorIndex) || 1));
+  const firstTwelve = Array.from({ length: 12 }, (_, offset) => {
+    const canonicalIndex = ((anchorIndex - 1 + offset) % 12) + 1;
+    const moon = FLOW_FM_MOONS.find(item => item.index === canonicalIndex) || FLOW_FM_MOONS[0];
+    const portalIndex = offset + 1;
+    return {
+      ...moon,
+      portalIndex,
+      canonicalIndex,
+      isOuroboros: false,
+      returnMoon: null,
+      wombWorkModule: getWombWorkModule(portalIndex),
+      businessAssignment: FLOW_FM_ASSIGNMENTS.find(item => item.index === portalIndex) || null,
+      isCurrent: Number(status.progressMonth || 1) === portalIndex,
+      status,
+    };
+  });
+  const returnMoon = FLOW_FM_MOONS.find(item => item.index === anchorIndex) || FLOW_FM_MOONS[0];
+  const ouroboros = {
+    ...FLOW_FM_MOONS[12],
+    portalIndex: 13,
+    canonicalIndex: 13,
+    isOuroboros: true,
+    returnMoon,
+    wombWorkModule: getWombWorkModule(13),
+    businessAssignment: FLOW_FM_ASSIGNMENTS.find(item => item.index === 13) || null,
+    isCurrent: Number(status.progressMonth || 1) >= 13,
+    status,
+  };
+  return [...firstTwelve, ouroboros];
+}
+
+export function getPersonalizedMoonPortal(profile = {}, portalIndex = null, nowDate = new Date()) {
+  const status = getFlowFmInitiationStatus(profile, nowDate);
+  const requested = Number(portalIndex || status.progressMonth || 1);
+  const safeIndex = Math.min(13, Math.max(1, Number.isFinite(requested) ? requested : 1));
+  return getPersonalizedMoonPath(profile, nowDate).find(item => item.portalIndex === safeIndex) || getPersonalizedMoonPath(profile, nowDate)[0];
+}
+
 export function monthNameToMoon(monthNameOrIndex) {
   if (typeof monthNameOrIndex === 'number') {
     const month = monthNameOrIndex;

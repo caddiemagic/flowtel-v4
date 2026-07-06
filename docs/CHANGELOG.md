@@ -1,3 +1,15 @@
+
+## v0.10.7 — Moon Portal Experience + Hall Facelift
+
+- Added `/flow-fm/portal/` as the primary Moon Portal experience where each moon contains the initiation teaching, Womb Work module, Business Assignment, practice prompt, reflection prompt, and submission pathway.
+- Updated `/flow-fm/` with a more Flowtel-branded Hallway facelift, “You Are Here” panel, current Womb Work, current Business Assignment, and direct Current Moon Portal action.
+- Rotated the visible 13 Moons Path and portal library around each user’s unique initiation entry moon instead of always beginning with November / Temple Moon.
+- Kept Womb Work Modules and Business Assignments as library/tracker rooms while making the Moon Portal the main practitioner flow.
+- Clarified Assignment 1 logic: Priestess Profile Studio is the true workroom for the Profile Foundation assignment, so members should not need to submit the same profile twice.
+- Updated Flow Map rendering so quadrant density is calculated before notes render, rows expand after notes reach a minimum readable size, and the horizontal axis moves with the available top/bottom room.
+- Improved desktop Flow Map note fields and mobile seasonal stacking so the map behaves more like living inner space than a fixed dashboard grid.
+- No Supabase migration required.
+
 ## v0.10.6 — Womb Work Room + Practitioner Polish
 
 - Expanded the Womb Work Modules room with an interactive module detail panel, practice prompts, reflection prompts, assignment pairings, and future Squarespace lesson placeholders.

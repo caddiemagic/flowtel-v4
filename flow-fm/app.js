@@ -1,64 +1,76 @@
-import { getCurrentProfile, getFlowFmInitiationStatus } from '/shared/flowtel.js';
-import { renderTopNav, renderAccessCard, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
+import {
+  getCurrentProfile,
+  getFlowFmInitiationStatus,
+  getPersonalizedMoonPath,
+  getWombWorkModule,
+  getFlowFmAssignmentForMoon,
+} from '/shared/flowtel.js';
+import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
 
-const topNav = document.getElementById('topNav');
-const heroCopy = document.getElementById('heroCopy');
-const currentMoonTitle = document.getElementById('currentMoonTitle');
-const currentMoonMeta = document.getElementById('currentMoonMeta');
-const thresholdTitle = document.getElementById('thresholdTitle');
-const thresholdCopy = document.getElementById('thresholdCopy');
-const accessState = document.getElementById('accessState');
-const doorGrid = document.getElementById('doorGrid');
-const message = document.getElementById('message');
+const topNav=document.getElementById('topNav');
+const heroCopy=document.getElementById('heroCopy');
+const currentMoonTitle=document.getElementById('currentMoonTitle');
+const currentMoonMeta=document.getElementById('currentMoonMeta');
+const nextDoorTitle=document.getElementById('nextDoorTitle');
+const nextDoorCopy=document.getElementById('nextDoorCopy');
+const currentPortalLink=document.getElementById('currentPortalLink');
+const currentModuleTitle=document.getElementById('currentModuleTitle');
+const currentModuleCopy=document.getElementById('currentModuleCopy');
+const currentAssignmentTitle=document.getElementById('currentAssignmentTitle');
+const currentAssignmentCopy=document.getElementById('currentAssignmentCopy');
+const portalDoorGrid=document.getElementById('portalDoorGrid');
+const doorGrid=document.getElementById('doorGrid');
+const message=document.getElementById('message');
 
-const DOORS = [
-  { href: '/flow-fm/moons/', eyebrow: '13 MOONS PATH', title: 'See the initiation map', copy: 'Follow the named moon path, arcs, and threshold logic that determines where a practitioner enters the spiral.' },
-  { href: '/flow-fm/womb-work/', eyebrow: 'WOMB WORK MODULES', title: 'Open the inner curriculum', copy: 'The 13 inner teachings live here and will hold future Squarespace-hosted video lessons.' },
-  { href: '/flow-fm/assignments/', eyebrow: 'BUSINESS ASSIGNMENTS', title: 'Tend the outer build track', copy: 'Save drafts, submit work to be witnessed, and build the practical bones of the Flow Factory.' },
-  { href: '/flow-fm/profile-studio/', eyebrow: 'PROFILE STUDIO', title: 'Shape Assignment 1', copy: 'Create the Priestess Profile, preview it, and send it into the review flow.' },
-  { href: '/flow-fm/planning-room/', eyebrow: 'PLANNING ROOM', title: 'Use the moon calendars', copy: 'Print the current moon calendar, learn the phase key, and plan business in a way that steadies the nervous system.' },
-  { href: '/flow-fm/review/', eyebrow: 'REVIEW DESK', title: 'Witness submitted work', copy: 'Mentors and admins can keep review queues out of the student hallway and tend assignments in one room.' },
+const SUPPORT_DOORS=[
+  { href:'/flow-fm/moons/', eyebrow:'13 MOONS PATH', title:'See the full spiral', copy:'A mythic map of your wings, seasons, and moon initiation order.' },
+  { href:'/flow-fm/womb-work/', eyebrow:'WOMB WORK LIBRARY', title:'Browse the inner curriculum', copy:'All 13 inner modules live here as a library and future Squarespace lesson archive.' },
+  { href:'/flow-fm/assignments/', eyebrow:'ASSIGNMENT TRACKER', title:'View the build track', copy:'Track drafts, submissions, witness notes, and completion states across all 13 assignments.' },
+  { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Build your public doorway', copy:'Assignment 1 has its own studio for the Priestess Profile intake and preview.' },
+  { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.' },
+  { href:'/flow-fm/review/', eyebrow:'REVIEW DESK', title:'Witness submitted work', copy:'Mentors and admins tend submissions in a separate room so the student hallway stays calm.' },
 ];
 
-function renderDoors(){
-  doorGrid.innerHTML = DOORS.map(item => `
-    <a class="door-card" href="${item.href}">
-      <p class="eyebrow">${escapeHtml(item.eyebrow)}</p>
-      <h3>${escapeHtml(item.title)}</h3>
-      <p>${escapeHtml(item.copy)}</p>
-      <span class="door-link">Open door</span>
-    </a>
-  `).join('');
+function renderSupportDoors(){
+  doorGrid.innerHTML=SUPPORT_DOORS.map(item=>`<a class="door-card" href="${item.href}"><p class="eyebrow">${escapeHtml(item.eyebrow)}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.copy)}</p><span class="door-link">Open room</span></a>`).join('');
 }
-
+function renderPortalDoors(path){
+  portalDoorGrid.innerHTML=path.map(portal=>`<a class="portal-door ${portal.isCurrent ? 'current' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}"><span class="portal-number">${escapeHtml(portal.portalIndex)}</span><div><p class="eyebrow">${portal.isCurrent ? 'CURRENT MOON' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN TO EXPLORE')}</p><h3>${escapeHtml(portal.name)}</h3><p>${portal.isOuroboros ? `Returning through ${escapeHtml(portal.returnMoon?.name || 'entry moon')}` : `${escapeHtml(portal.wombWorkModule?.title || 'Womb Work')} · ${escapeHtml(portal.businessAssignment?.title || 'Assignment')}`}</p></div></a>`).join('');
+}
 function renderStatus(profile){
-  const status = getFlowFmInitiationStatus(profile || {});
-  currentMoonTitle.textContent = status.hasStartDate ? status.moon.name : 'Temple Moon preview';
-  currentMoonMeta.textContent = status.monthLine;
-  thresholdTitle.textContent = status.anchorMoon ? `Entered through ${status.anchorMoon.name}` : 'Moon timing matters.';
-  thresholdCopy.textContent = status.hasStartDate
-    ? `${status.anchorExplanation} The working threshold day is ${status.thresholdDay}.`
-    : 'When a practitioner joins before the full moon threshold, she begins with the current named moon. After the threshold, Flow FM prepares her for the next named moon.';
+  const status=getFlowFmInitiationStatus(profile || {});
+  const path=getPersonalizedMoonPath(profile || {});
+  const currentPortal=path.find(item=>item.isCurrent) || path[0];
+  const currentModule=getWombWorkModule(status.progressMonth || 1) || currentPortal.wombWorkModule;
+  const currentAssignment=getFlowFmAssignmentForMoon(status.progressMonth || 1) || currentPortal.businessAssignment;
+  currentMoonTitle.textContent=status.hasStartDate ? `${currentPortal.name} · Month ${currentPortal.portalIndex} of 13` : 'Temple Moon preview';
+  currentMoonMeta.textContent=status.hasStartDate
+    ? `${status.monthLine}. ${status.anchorExplanation}`
+    : 'Previewing Temple Moon until Flow FM start date is set.';
+  currentPortalLink.href=`/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}`;
+  nextDoorTitle.textContent=`Open ${currentPortal.name} Portal`;
+  nextDoorCopy.textContent='Your moon portal gathers the training, womb work practice, business assignment, and next doorway in one place.';
+  currentModuleTitle.textContent=currentModule?.title || 'Womb Work Module';
+  currentModuleCopy.textContent=currentModule?.description || 'Your inner curriculum lives inside the current moon portal.';
+  currentAssignmentTitle.textContent=currentAssignment?.title || 'Business Assignment';
+  currentAssignmentCopy.textContent=currentAssignment?.description || 'Your outer build task lives inside the current moon portal.';
+  renderPortalDoors(path);
 }
-
 async function init(){
-  topNav.innerHTML = renderTopNav('hallway');
-  renderDoors();
+  topNav.innerHTML=renderTopNav('hallway');
+  renderSupportDoors();
   try{
-    const profile = await getCurrentProfile();
+    const profile=await getCurrentProfile();
     renderStatus(profile);
-    accessState.innerHTML = renderAccessCard(profile);
-    const state = renderAccessState(profile);
-    heroCopy.textContent = profile
-      ? 'A calmer hallway of doors for the 13 Moons path, womb work curriculum, business assignments, planning tools, and review spaces.'
-      : 'Preview the Flow FM hallway, then sign in to open your assignments, profile studio, and initiation timeline.';
-    setMessage(message, state.mode === 'readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
+    const state=renderAccessState(profile);
+    heroCopy.textContent=profile
+      ? 'Welcome back. Follow your current moon portal, or explore any open room when your body says yes.'
+      : 'Preview the Flow FM hallway, then sign in to open your personalized moon portal.';
+    setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
   }catch(error){
     console.error(error);
     renderStatus(null);
-    accessState.innerHTML = renderAccessCard(null);
-    setMessage(message, 'The hallway is visible, but your profile could not be loaded just now.');
+    setMessage(message,'The hallway is visible, but your profile could not be loaded just now.');
   }
 }
-
 init();

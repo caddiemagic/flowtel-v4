@@ -189,13 +189,14 @@ function noteCardMarkup(entry,index,densityMode="open"){
 }
 
 function densityModeForCount(count){
-  if(count>=13) return "very-dense";
-  if(count>=8) return "dense";
+  if(count>=8) return "very-dense";
+  if(count>=3) return "dense";
   return "open";
 }
 function rowHeightForCount(count){
-  const base=560;
-  const extra=Math.max(0,count-3)*92;
+  const base=680;
+  const threshold=2;
+  const extra=Math.max(0,count-threshold)*165;
   return base + extra;
 }
 function updateCanvasRoom(counts){
@@ -228,6 +229,7 @@ function renderQuadrants(entries){
     const noteEntries=seasonNotes[season] || [];
     const densityMode=densityModeForCount(noteEntries.length);
     holder.dataset.density=densityMode;
+    holder.dataset.count=String(noteEntries.length);
     holder.innerHTML=noteEntries.length
       ? noteEntries.map((entry,index)=>noteCardMarkup(entry,index,densityMode)).join("")
       : `<div class="map-empty">10/10 no notes.</div>`;

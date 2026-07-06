@@ -75,6 +75,7 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Hallway' },
+  { key: 'portal', href: '/flow-fm/portal/', label: 'Moon Portal' },
   { key: 'moons', href: '/flow-fm/moons/', label: '13 Moons Path' },
   { key: 'womb-work', href: '/flow-fm/womb-work/', label: 'Womb Work Modules' },
   { key: 'assignments', href: '/flow-fm/assignments/', label: 'Business Assignments' },
@@ -98,7 +99,7 @@ export function renderAccessState(profile){
   if(canTendOwnAssignments(profile)){
     return {
       title: 'Member mode',
-      copy: 'Your Flow FM rooms are open. You should be able to save drafts and send work to be witnessed from the assignment and profile rooms.',
+      copy: 'Your Flow FM rooms are open. The Moon Portal is the main path, and the library rooms remain open for exploration.',
       mode: 'live',
     };
   }
