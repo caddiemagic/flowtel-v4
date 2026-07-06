@@ -16,6 +16,14 @@ import {
   labelForAssignmentStatus,
   toneForAssignmentStatus,
   assignmentStatusCopy,
+  getPriestessProfile,
+  savePriestessProfileDraft,
+  submitPriestessProfile,
+  listPriestessProfileReviewQueue,
+  reviewPriestessProfile,
+  labelForPriestessProfileStatus,
+  toneForPriestessProfileStatus,
+  priestessProfileStatusCopy,
 } from "../shared/flowtel.js";
 
 const heroCopy=document.getElementById("heroCopy");
@@ -26,6 +34,11 @@ const currentAssignmentCopy=document.getElementById("currentAssignmentCopy");
 const progressTitle=document.getElementById("progressTitle");
 const progressCopy=document.getElementById("progressCopy");
 const progressPills=document.getElementById("progressPills");
+const profileStudioIntro=document.getElementById("profileStudioIntro");
+const profileStudioForm=document.getElementById("profileStudioForm");
+const profileStudioPreview=document.getElementById("profileStudioPreview");
+const profileReviewQueueCard=document.getElementById("profileReviewQueueCard");
+const profileReviewQueue=document.getElementById("profileReviewQueue");
 const reviewQueueCard=document.getElementById("reviewQueueCard");
 const reviewQueue=document.getElementById("reviewQueue");
 const arcCards=document.getElementById("arcCards");
@@ -36,6 +49,8 @@ const message=document.getElementById("message");
 let currentProfile=null;
 let currentRecords=[];
 let currentReviewRows=[];
+let currentPriestessProfile=null;
+let currentProfileReviewRows=[];
 
 function params(){ return new URLSearchParams(window.location.search); }
 function requestedMemberId(){ return params().get("member") || params().get("client") || null; }
@@ -84,6 +99,21 @@ function setMessage(text=""){
 }
 function statusPill(status){
   return `<span class="status-pill tone-${escapeHtml(toneForAssignmentStatus(status))}">${escapeHtml(labelForAssignmentStatus(status))}</span>`;
+}
+function profileStatusPill(status){
+  return `<span class="status-pill tone-${escapeHtml(toneForPriestessProfileStatus(status))}">${escapeHtml(labelForPriestessProfileStatus(status))}</span>`;
+}
+function boolAttr(value){
+  return value ? "checked" : "";
+}
+function csvToPills(value){
+  return String(value || "")
+    .split(/[,\n]/)
+    .map(item=>item.trim())
+    .filter(Boolean)
+    .slice(0,12)
+    .map(item=>`<span>${escapeHtml(item)}</span>`)
+    .join("");
 }
 function recordForIndex(records,index){
   return (records || []).find(row=>Number(row.assignment_index)===Number(index)) || null;
@@ -163,6 +193,274 @@ function witnessNotes(record){
     ${admin ? `<p class="admin-note">Admin note: ${escapeHtml(admin)}</p>` : ""}
   </div>`;
 }
+function profileReviewNotes(profile){
+  const mentor=String(profile?.mentor_note || "").trim();
+  const admin=String(profile?.admin_note || "").trim();
+  const reviewer=profile?.reviewer_name ? ` · ${profile.reviewer_name}` : "";
+  if(!mentor && !admin) return "";
+  return `<div class="witness-note profile-note">
+    <p class="eyebrow">PROFILE NOTE${escapeHtml(reviewer)}</p>
+    ${mentor ? `<p>${escapeHtml(mentor)}</p>` : ""}
+    ${admin ? `<p class="admin-note">Admin note: ${escapeHtml(admin)}</p>` : ""}
+  </div>`;
+}
+function profileLinkRows(profile){
+  const links=[
+    ["Book a Session", safeHref(profile?.scheduling_url)],
+    ["Website", safeHref(profile?.website_url)],
+    ["Instagram", safeHref(profile?.instagram_url)],
+    ["TikTok", safeHref(profile?.tiktok_url)],
+    ["Podcast", safeHref(profile?.podcast_url)],
+  ].filter(([,href])=>href);
+  return links.length ? `<div class="profile-links">${links.map(([label,href])=>`<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`).join("")}</div>` : "";
+}
+function renderDisplayProfile(profile={}){
+  const photo=safeHref(profile.profile_photo_url);
+  const name=profile.priestess_name || profile.member_name || "Priestess Profile";
+  const queendom=profile.queendom_name || "Queendom doorway coming soon";
+  const modalities=csvToPills(profile.modalities);
+  const sessions=csvToPills(profile.session_types);
+  return `<article class="display-profile-card">
+    <div class="display-profile-hero">
+      <div class="profile-photo ${photo ? "has-photo" : ""}">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(name)}" />` : `<span>🌹</span>`}</div>
+      <div>
+        <p class="eyebrow">${escapeHtml(queendom)}</p>
+        <h3>${escapeHtml(name)}</h3>
+        <p>${escapeHtml(profile.location || profile.timezone || "Location + timezone to be added")}</p>
+        ${profileStatusPill(profile.status)}
+      </div>
+    </div>
+    ${profile.bio ? `<div class="profile-section"><p>${escapeHtml(profile.bio)}</p></div>` : `<div class="profile-section empty-note"><p>Your About Me will appear here as the public-facing profile preview.</p></div>`}
+    ${profile.who_she_serves ? `<div class="profile-section"><p class="eyebrow">WHO SHE SERVES</p><p>${escapeHtml(profile.who_she_serves)}</p></div>` : ""}
+    ${profile.offerings ? `<div class="profile-section"><p class="eyebrow">OFFERINGS</p><p>${escapeHtml(profile.offerings)}</p></div>` : ""}
+    ${modalities ? `<div class="profile-section"><p class="eyebrow">MODALITIES</p><div class="profile-tags">${modalities}</div></div>` : ""}
+    ${sessions ? `<div class="profile-section"><p class="eyebrow">SESSION TYPES</p><div class="profile-tags">${sessions}</div></div>` : ""}
+    ${profile.framework_language ? `<div class="profile-section"><p class="eyebrow">FRAMEWORK LANGUAGE</p><p>${escapeHtml(profile.framework_language)}</p></div>` : ""}
+    ${profileLinkRows(profile)}
+    ${profileReviewNotes(profile)}
+  </article>`;
+}
+function profilePayloadFromForm(form){
+  const data=new FormData(form);
+  return {
+    priestessName:String(data.get("priestess_name") || ""),
+    legalName:String(data.get("legal_name") || ""),
+    profileEmail:String(data.get("profile_email") || ""),
+    profilePhotoUrl:String(data.get("profile_photo_url") || ""),
+    bio:String(data.get("bio") || ""),
+    modalities:String(data.get("modalities") || ""),
+    whoSheServes:String(data.get("who_she_serves") || ""),
+    sessionTypes:String(data.get("session_types") || ""),
+    schedulingUrl:String(data.get("scheduling_url") || ""),
+    websiteUrl:String(data.get("website_url") || ""),
+    instagramUrl:String(data.get("instagram_url") || ""),
+    tiktokUrl:String(data.get("tiktok_url") || ""),
+    podcastUrl:String(data.get("podcast_url") || ""),
+    queendomName:String(data.get("queendom_name") || ""),
+    offerings:String(data.get("offerings") || ""),
+    location:String(data.get("location") || ""),
+    timezone:String(data.get("timezone") || ""),
+    frameworkLanguage:String(data.get("framework_language") || ""),
+    networkOptIn:!!data.get("network_opt_in"),
+    revenueShareOptIn:!!data.get("revenue_share_opt_in"),
+  };
+}
+function renderProfileStudio(profile={}, { readOnly=false } = {}){
+  const record=profile || {};
+  if(profileStudioIntro){
+    profileStudioIntro.textContent=readOnly
+      ? "Viewing this Priestess Profile through the mentor consent layer."
+      : "Draft the profile your future clients will meet first. Save the language, preview the public-facing card, and send it to be witnessed when it feels alive.";
+  }
+  if(profileStudioPreview){
+    profileStudioPreview.innerHTML=renderDisplayProfile(record);
+  }
+  if(!profileStudioForm) return;
+  if(readOnly){
+    profileStudioForm.innerHTML=`<div class="profile-readonly-panel">
+      <p class="eyebrow">DISPLAY PROFILE</p>
+      <h3>${escapeHtml(record.priestess_name || record.member_name || "Priestess Profile")}</h3>
+      <p>${escapeHtml(priestessProfileStatusCopy(record.status))}</p>
+      ${profileReviewNotes(record)}
+    </div>`;
+    return;
+  }
+  profileStudioForm.innerHTML=`<form class="profile-form" id="priestessProfileForm">
+    <div class="profile-form-heading">
+      <div>
+        <p class="eyebrow">PROFILE INTAKE</p>
+        <h3>Your public-facing doorway</h3>
+        <p>${escapeHtml(priestessProfileStatusCopy(record.status))}</p>
+      </div>
+      ${profileStatusPill(record.status)}
+    </div>
+    <div class="form-grid">
+      <label><span>Priestess name</span><input name="priestess_name" value="${escapeHtml(record.priestess_name || "")}" placeholder="Megan Michele" /></label>
+      <label><span>Legal/profile name if different</span><input name="legal_name" value="${escapeHtml(record.legal_name || "")}" placeholder="Optional" /></label>
+    </div>
+    <div class="form-grid">
+      <label><span>Profile email</span><input name="profile_email" type="email" value="${escapeHtml(record.profile_email || currentProfile?.email || "")}" placeholder="hello@example.com" /></label>
+      <label><span>Photo URL</span><input name="profile_photo_url" type="url" value="${escapeHtml(record.profile_photo_url || "")}" placeholder="https://..." /></label>
+    </div>
+    <label><span>About Me / Bio</span><textarea name="bio" rows="5" placeholder="Tell her who you are, what you hold, and what she can exhale into here.">${escapeHtml(record.bio || "")}</textarea></label>
+    <label><span>Modalities</span><textarea name="modalities" rows="3" placeholder="Cycle tracking, womb work, breathwork, astrology, ceremony...">${escapeHtml(record.modalities || "")}</textarea></label>
+    <label><span>Who she serves</span><textarea name="who_she_serves" rows="3" placeholder="Women who are ready to...">${escapeHtml(record.who_she_serves || "")}</textarea></label>
+    <label><span>Session types</span><textarea name="session_types" rows="3" placeholder="1:1 mentorship, cycle mapping session, ceremony, voice note support...">${escapeHtml(record.session_types || "")}</textarea></label>
+    <label><span>Offerings</span><textarea name="offerings" rows="4" placeholder="Name your current or upcoming offers. Pricing can stay private for now.">${escapeHtml(record.offerings || "")}</textarea></label>
+    <div class="form-grid">
+      <label><span>Queendom name</span><input name="queendom_name" value="${escapeHtml(record.queendom_name || "")}" placeholder="The Rose Queendom" /></label>
+      <label><span>Location</span><input name="location" value="${escapeHtml(record.location || "")}" placeholder="Pacific Grove, CA / Online" /></label>
+    </div>
+    <div class="form-grid">
+      <label><span>Timezone</span><input name="timezone" value="${escapeHtml(record.timezone || "")}" placeholder="America/Los_Angeles" /></label>
+      <label><span>Scheduling link</span><input name="scheduling_url" type="url" value="${escapeHtml(record.scheduling_url || "")}" placeholder="https://..." /></label>
+    </div>
+    <div class="form-grid">
+      <label><span>Website</span><input name="website_url" type="url" value="${escapeHtml(record.website_url || "")}" placeholder="https://..." /></label>
+      <label><span>Instagram</span><input name="instagram_url" type="url" value="${escapeHtml(record.instagram_url || "")}" placeholder="https://..." /></label>
+    </div>
+    <div class="form-grid">
+      <label><span>TikTok</span><input name="tiktok_url" type="url" value="${escapeHtml(record.tiktok_url || "")}" placeholder="https://..." /></label>
+      <label><span>Podcast</span><input name="podcast_url" type="url" value="${escapeHtml(record.podcast_url || "")}" placeholder="https://..." /></label>
+    </div>
+    <label><span>Womb / magic / framework language</span><textarea name="framework_language" rows="4" placeholder="What words, lineages, frameworks, and edges should your profile honor?">${escapeHtml(record.framework_language || "")}</textarea></label>
+    <div class="profile-consent-grid">
+      <label class="checkbox-row"><input type="checkbox" name="network_opt_in" ${boolAttr(record.network_opt_in)} /><span>I am interested in the Flowtel practitioner network doorway.</span></label>
+      <label class="checkbox-row"><input type="checkbox" name="revenue_share_opt_in" ${boolAttr(record.revenue_share_opt_in)} /><span>I understand future Queendom booking/revenue-share details will be confirmed later.</span></label>
+    </div>
+    ${profileReviewNotes(record)}
+    <div class="assignment-actions profile-actions">
+      <button type="button" data-profile-action="preview">Refresh Preview</button>
+      <button type="button" data-profile-action="draft">Save Profile Draft</button>
+      <button type="button" data-profile-action="submit">Send Profile to be Witnessed</button>
+    </div>
+  </form>`;
+  bindProfileForm();
+}
+function bindProfileForm(){
+  const form=document.getElementById("priestessProfileForm");
+  if(!form) return;
+  form.querySelectorAll("[data-profile-action]").forEach(button=>{
+    button.addEventListener("click",()=>handleProfileAction(form,button.dataset.profileAction));
+  });
+}
+async function handleProfileAction(form,action){
+  const payload=profilePayloadFromForm(form);
+  try{
+    if(action === "preview"){
+      currentPriestessProfile={...(currentPriestessProfile || {}), ...{
+        priestess_name:payload.priestessName,
+        legal_name:payload.legalName,
+        profile_email:payload.profileEmail,
+        profile_photo_url:payload.profilePhotoUrl,
+        bio:payload.bio,
+        modalities:payload.modalities,
+        who_she_serves:payload.whoSheServes,
+        session_types:payload.sessionTypes,
+        scheduling_url:payload.schedulingUrl,
+        website_url:payload.websiteUrl,
+        instagram_url:payload.instagramUrl,
+        tiktok_url:payload.tiktokUrl,
+        podcast_url:payload.podcastUrl,
+        queendom_name:payload.queendomName,
+        offerings:payload.offerings,
+        location:payload.location,
+        timezone:payload.timezone,
+        framework_language:payload.frameworkLanguage,
+        network_opt_in:payload.networkOptIn,
+        revenue_share_opt_in:payload.revenueShareOptIn,
+      }};
+      renderProfileStudio(currentPriestessProfile,{readOnly:false});
+      setMessage("Profile preview refreshed.");
+      return;
+    }
+    setMessage(action === "submit" ? "Sending your Priestess Profile to be witnessed..." : "Saving your Priestess Profile draft...");
+    if(action === "submit") await submitPriestessProfile(payload);
+    else await savePriestessProfileDraft(payload);
+    await refreshPriestessProfile();
+    setMessage(action === "submit" ? "Priestess Profile sent to be witnessed." : "Priestess Profile draft saved.");
+  }catch(error){
+    console.error(error);
+    setMessage(error.message || "This Priestess Profile could not be tended yet.");
+  }
+}
+function renderProfileReviewQueue(rows=[]){
+  if(!isMentorRole(currentProfile)){
+    profileReviewQueueCard?.classList.add("hidden");
+    return;
+  }
+  profileReviewQueueCard?.classList.remove("hidden");
+  if(!profileReviewQueue) return;
+  if(!rows.length){
+    profileReviewQueue.innerHTML=`<article class="review-row empty"><p>No Priestess Profiles are waiting in the queue.</p></article>`;
+    return;
+  }
+  profileReviewQueue.innerHTML=rows.map(row=>`<article class="review-row" data-profile-review-id="${escapeHtml(row.id)}">
+    <div class="review-heading">
+      <div>
+        <p class="eyebrow">${escapeHtml(row.member_name)} · PROFILE REVIEW</p>
+        <h3>${escapeHtml(row.priestess_name || "Priestess Profile")}</h3>
+        <p>${escapeHtml(row.bio || "No About Me has been included yet.")}</p>
+        <div class="assignment-links"><a href="/flow-fm/?member=${encodeURIComponent(row.member_id)}#profile-studio">Open profile studio</a></div>
+      </div>
+      ${profileStatusPill(row.status)}
+    </div>
+    <div class="review-form">
+      <label><span>Mentor note</span><textarea rows="3" data-profile-review-note placeholder="Leave the note she should receive after this profile is witnessed.">${escapeHtml(row.mentor_note || "")}</textarea></label>
+      ${isAdminRole(currentProfile) ? `<label><span>Admin note</span><textarea rows="3" data-profile-admin-note placeholder="Internal Flowtel note.">${escapeHtml(row.admin_note || "")}</textarea></label>` : ""}
+      <div class="assignment-actions review-actions">
+        <button type="button" data-profile-review-status="approved">Approve Profile</button>
+        <button type="button" data-profile-review-status="needs_revision">Request Refinement</button>
+      </div>
+    </div>
+  </article>`).join("");
+  bindProfileReviewButtons();
+}
+function bindProfileReviewButtons(){
+  profileReviewQueue?.querySelectorAll("[data-profile-review-status]").forEach(button=>{
+    button.addEventListener("click",()=>handleProfileReviewAction(button.closest("[data-profile-review-id]"),button.dataset.profileReviewStatus));
+  });
+}
+async function handleProfileReviewAction(row,status){
+  if(!row) return;
+  const profileId=row.dataset.profileReviewId;
+  const mentorNote=row.querySelector("[data-profile-review-note]")?.value || "";
+  const adminNote=row.querySelector("[data-profile-admin-note]")?.value || "";
+  try{
+    setMessage("Tending this Priestess Profile...");
+    await reviewPriestessProfile({profileId,status,mentorNote,adminNote});
+    await refreshPriestessProfile();
+    await refreshProfileReviewQueue();
+    setMessage(status === "approved" ? "Priestess Profile approved." : "Profile refinement note sent.");
+  }catch(error){
+    console.error(error);
+    setMessage(error.message || "This Priestess Profile could not be reviewed yet.");
+  }
+}
+function profileStudioLink(index){
+  return Number(index) === 1
+    ? `<div class="assignment-links profile-assignment-link"><a href="#profile-studio">Open Priestess Profile Studio</a></div>`
+    : "";
+}
+async function refreshPriestessProfile(){
+  if(!currentProfile){
+    currentPriestessProfile=null;
+    renderProfileStudio({status:"draft"},{readOnly:true});
+    return;
+  }
+  const memberId=requestedMemberId();
+  currentPriestessProfile=await getPriestessProfile(memberId);
+  const readOnly=isViewingAnotherMember(currentProfile) || !canTendOwnAssignments(currentProfile);
+  renderProfileStudio(currentPriestessProfile,{readOnly});
+}
+async function refreshProfileReviewQueue(){
+  if(!isMentorRole(currentProfile)){
+    renderProfileReviewQueue([]);
+    return;
+  }
+  currentProfileReviewRows=await listPriestessProfileReviewQueue();
+  renderProfileReviewQueue(currentProfileReviewRows);
+}
 function renderAssignmentForm(item,record,{readOnly=false}={}){
   if(readOnly){
     return `<div class="assignment-readonly">
@@ -223,6 +521,7 @@ function renderAssignments(profile,records=[]){
         <p>${escapeHtml(item.description)}</p>
         <p class="assignment-status-copy">${escapeHtml(assignmentStatusCopy(record.status))}</p>
         ${renderAssignmentForm(item,record,{readOnly})}
+        ${profileStudioLink(item.index)}
       </div>
     </article>`;
   }).join("");
@@ -318,6 +617,8 @@ async function handleReviewAction(row,status){
     setMessage("Tending this assignment review...");
     await reviewFlowFmAssignment({submissionId,status,mentorNote,adminNote});
     await refreshAssignments();
+    await refreshPriestessProfile();
+    await refreshProfileReviewQueue();
     await refreshReviewQueue();
     setMessage("Assignment review saved.");
   }catch(error){
@@ -353,6 +654,8 @@ function renderPreview(){
   renderArcs();
   renderMoonPath(null);
   renderAssignments(null,[]);
+  renderProfileStudio({status:"draft"},{readOnly:true});
+  renderProfileReviewQueue([]);
   renderReviewQueue([]);
 }
 async function init(){
@@ -367,9 +670,11 @@ async function init(){
       return;
     }
     if(isViewingAnotherMember(currentProfile)){
-      heroCopy.textContent="Viewing a connected member’s Flow FM assignment path through the mentor consent layer.";
+      heroCopy.textContent="Viewing a connected member’s Flow FM assignment path and Priestess Profile through the mentor consent layer.";
     }
     await refreshAssignments();
+    await refreshPriestessProfile();
+    await refreshProfileReviewQueue();
     await refreshReviewQueue();
     if(!canTendOwnAssignments(currentProfile)){
       setMessage("Flow FM assignment tracking opens for Flow FM members.");
@@ -380,7 +685,7 @@ async function init(){
     console.error(error);
     renderPreview();
     setMessage(error.message?.includes("function") || error.message?.includes("schema")
-      ? "The v0.10.0 assignment migration must be applied in Supabase before tracking can save."
+      ? "The v0.10.1 Priestess Profile migration must be applied in Supabase before the Studio can save."
       : "The Initiation Hall is open in preview mode.");
   }
 }

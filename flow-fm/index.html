@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Initiation Hall</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.1" />
 </head>
 <body>
   <main class="initiation-shell">
@@ -41,8 +41,30 @@
       <a href="#" class="pill-link muted" id="telegramLink">Join Telegram</a>
       <a href="#" class="pill-link muted" id="onboardingCallLink">Book Onboarding Call</a>
       <a href="#modules" class="pill-link muted">Start Course</a>
+      <a href="#profile-studio" class="pill-link muted">Profile Studio</a>
       <a href="/flow-map/" class="pill-link muted">Open Flow Map</a>
       <a href="/client/?suite=1" class="pill-link muted">Return to Suite</a>
+    </section>
+
+    <section class="profile-studio-card" id="profile-studio">
+      <div class="section-heading compact">
+        <p class="eyebrow">PRIESTESS PROFILE STUDIO</p>
+        <h2>Assignment 1 becomes your doorway.</h2>
+        <p id="profileStudioIntro">Draft the profile your future clients will meet first. Save the language, preview the public-facing card, and send it to be witnessed when it feels alive.</p>
+      </div>
+      <div class="profile-studio-layout">
+        <div id="profileStudioForm" class="profile-studio-form"></div>
+        <div id="profileStudioPreview" class="profile-studio-preview"></div>
+      </div>
+    </section>
+
+    <section class="review-queue-card hidden" id="profileReviewQueueCard">
+      <div class="section-heading compact">
+        <p class="eyebrow">PROFILE REVIEW QUEUE</p>
+        <h2>Priestess Profiles waiting to be witnessed</h2>
+        <p>Connected mentors and Flowtel admins can approve profiles or request refinements before the Queendom doorway opens.</p>
+      </div>
+      <div id="profileReviewQueue" class="review-queue"></div>
     </section>
 
     <section class="review-queue-card hidden" id="reviewQueueCard">
@@ -79,17 +101,9 @@
       <div id="assignmentList" class="assignment-list"></div>
     </section>
 
-    <section class="profile-studio-card">
-      <div>
-        <p class="eyebrow">COMING NEXT</p>
-        <h2>Priestess Profile Studio</h2>
-        <p>The first assignment will become a guided intake form for your Priestess Profile: bio, photo, modalities, offerings, schedule link, Queendom name, and the language needed to open your client doorway.</p>
-      </div>
-      <a class="pill-link" href="#assignments">Prepare Profile Assignment</a>
-    </section>
 
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="./app.js?v=0.10.0"></script>
+  <script type="module" src="./app.js?v=0.10.1"></script>
 </body>
 </html>

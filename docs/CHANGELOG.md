@@ -1,3 +1,14 @@
+## v0.10.1 — Priestess Profile Studio
+
+- Added the Priestess Profile Studio inside `/flow-fm/` for Flow FM Assignment 1.
+- Added guided profile intake fields for Priestess name, bio, modalities, who she serves, session types, scheduling/social links, Queendom name, offerings, location/timezone, framework language, and practitioner network interest signals.
+- Added a display-only profile preview card with photo URL support, profile sections, links, tags, and review notes.
+- Added Supabase migration 023 with `flow_fm_priestess_profiles`, profile statuses, draft/save/submit RPCs, consent-aware read access, and mentor/admin review RPCs.
+- Added a Profile Review Queue for mentors/admins to approve submitted profiles or request refinement.
+- Added `shared/priestess-profiles.js` and exported profile helpers through `shared/flowtel.js`.
+- Preserved Flow FM assignment tracking, mentor consent, luxury language, and no-gamification rules.
+
+
 ## v0.10.0 — Flow FM Construction
 
 - Added the Flow FM Business Assignment Tracker with migration 022, `flow_fm_assignment_submissions`, assignment draft/submission RPCs, mentor/admin review RPCs, review queue, progress cards, and status pills.
