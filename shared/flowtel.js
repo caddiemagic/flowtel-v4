@@ -18,7 +18,7 @@ export { getMoonMagic } from "./moon.js";
 export { getDayContent } from "./content.js";
 export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./seasons.js";
 
-export { getFlowFmInitiationStatus, FLOW_FM_MOONS } from "./initiation.js";
+export { getFlowFmInitiationStatus, FLOW_FM_MOONS, FLOW_FM_ASSIGNMENTS, FLOW_FM_ARCS, getFlowFmAssignmentForMoon, getFlowFmArcForMoon } from "./initiation.js";
 
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
 

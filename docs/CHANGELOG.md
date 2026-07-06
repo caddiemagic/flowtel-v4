@@ -1,4 +1,11 @@
 
+## v0.9.23 — Flow FM Initiation Hall
+- Added `/flow-fm/` as the first Flow FM curriculum home inside Flowtel.
+- Added current moon, curriculum arcs, 13 moon path, and business assignment list.
+- Added Suite link into Flow FM Initiation.
+- No Supabase migration required.
+
+
 ## v0.9.22 — Flow Map Room Expansion + Printable Map
 
 - Added a Printable Flow Map button on the Flow Map Practice screen.

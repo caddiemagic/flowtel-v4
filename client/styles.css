@@ -2263,3 +2263,9 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
   .journal-card{padding:20px 18px 22px !important;}
   .suite-scene > .practitioner-card{padding:20px 18px 22px !important;}
 }
+
+
+/* Release 0.9.23 — Flow FM Initiation Hall entry */
+.suite-button-link{display:flex;align-items:center;justify-content:center;width:100%;margin-top:18px;border:1px solid rgba(109,78,65,.14);border-radius:999px;padding:14px 20px;background:rgba(255,253,249,.78);color:var(--brown);font-family:Arial,sans-serif;font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;box-shadow:0 10px 24px rgba(109,78,65,.06);text-decoration:none}
+.suite-actions .suite-button-link{margin-top:18px}
+@media(min-width:901px){.suite-actions{grid-template-columns:1fr 1fr 1fr}.suite-actions .suite-button-link{margin-top:18px}}

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flow FM Initiation Hall</title>
+  <link rel="stylesheet" href="./styles.css?v=0.9.23" />
+</head>
+<body>
+  <main class="initiation-shell">
+    <section class="hero-card">
+      <p class="eyebrow">FLOW FM INITIATION</p>
+      <h1>Initiation Hall</h1>
+      <p id="heroCopy">Your 13-moon path through cycle data, womb work, business creation, and the opening of your Queendom.</p>
+    </section>
+
+    <section class="status-card" id="statusCard">
+      <div class="status-main">
+        <p class="eyebrow">CURRENT MOON</p>
+        <h2 id="currentMoonTitle">Opening your timeline...</h2>
+        <p id="currentMoonMeta"></p>
+      </div>
+      <article class="assignment-feature">
+        <p class="eyebrow">BUSINESS ASSIGNMENT</p>
+        <h3 id="currentAssignmentTitle">Loading assignment...</h3>
+        <p id="currentAssignmentCopy"></p>
+        <a class="pill-link" id="assignmentAction" href="#assignments">View Assignment Path</a>
+      </article>
+    </section>
+
+    <section class="quick-actions" aria-label="Flow FM next steps">
+      <a href="#" class="pill-link muted" id="telegramLink">Join Telegram</a>
+      <a href="#" class="pill-link muted" id="onboardingCallLink">Book Onboarding Call</a>
+      <a href="#modules" class="pill-link muted">Start Course</a>
+      <a href="/flow-map/" class="pill-link muted">Open Flow Map</a>
+      <a href="/client/?suite=1" class="pill-link muted">Return to Suite</a>
+    </section>
+
+    <section class="arc-grid" id="modules">
+      <div class="section-heading">
+        <p class="eyebrow">13 MOONS PATH</p>
+        <h2>The curriculum lives here.</h2>
+        <p>Each moon carries a teaching, a practice, and a business assignment. Video modules can be linked from Squarespace here when they are ready.</p>
+      </div>
+      <div id="arcCards" class="arc-cards"></div>
+    </section>
+
+    <section class="moon-path-card">
+      <div class="section-heading compact">
+        <p class="eyebrow">MOON BY MOON</p>
+        <h2>Your rooms of initiation</h2>
+      </div>
+      <div class="moon-path" id="moonPath"></div>
+    </section>
+
+    <section class="assignment-card" id="assignments">
+      <div class="section-heading compact">
+        <p class="eyebrow">13 MOON ASSIGNMENTS</p>
+        <h2>Build your Flow Factory.</h2>
+        <p>By your 13th moon inside Flow FM, these tasks become the bones of your medicine business.</p>
+      </div>
+      <div id="assignmentList" class="assignment-list"></div>
+    </section>
+
+    <section class="profile-studio-card">
+      <div>
+        <p class="eyebrow">COMING NEXT</p>
+        <h2>Priestess Profile Studio</h2>
+        <p>The first assignment will become a guided intake form for your Priestess Profile: bio, photo, modalities, offerings, schedule link, Queendom name, and the language needed to open your client doorway.</p>
+      </div>
+      <a class="pill-link" href="#assignments">Prepare Profile Assignment</a>
+    </section>
+
+    <p id="message" class="message"></p>
+  </main>
+  <script type="module" src="./app.js?v=0.9.23"></script>
+</body>
+</html>

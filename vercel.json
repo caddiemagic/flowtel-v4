@@ -21,6 +21,14 @@
     {
       "source": "/flow-map",
       "destination": "/flow-map/index.html"
+    },
+    {
+      "source": "/flow-map/printable",
+      "destination": "/flow-map/printable/index.html"
+    },
+    {
+      "source": "/flow-fm",
+      "destination": "/flow-fm/index.html"
     }
   ]
 }

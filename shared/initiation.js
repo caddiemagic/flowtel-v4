@@ -18,6 +18,39 @@ export const FLOW_FM_MOONS = [
   { index: 13, month: "13TH", name: "Ouroboros Moon", wing: "13th Wing", season: "Final Initiation", theme: "The ending and the beginning, integration, evolution, and higher-self embodiment." },
 ];
 
+
+export const FLOW_FM_ASSIGNMENTS = [
+  { index: 1, title: "Create your Priestess Profile + About Me", type: "Profile Foundation", description: "Gather the words, photo, modalities, and offering language that will become your public Priestess Profile." },
+  { index: 2, title: "Record Womb Wealth Affirmation Audio", type: "Audio Medicine", description: "Create a short audio transmission your future clients can return to for womb wealth, receptivity, and overflow." },
+  { index: 3, title: "Create Your Offerings", type: "Offer Architecture", description: "Name and shape the first offerings that your Queendom can actually book, buy, or receive." },
+  { index: 4, title: "Design Business Cards + Flyers", type: "Visibility Asset", description: "Create simple, beautiful print assets that make your medicine easy to share in the physical world." },
+  { index: 5, title: "Record How to Track Your Cycle Video", type: "Teaching Asset", description: "Teach the first doorway into the Flowtel: how to begin tracking your cycle with softness and accuracy." },
+  { index: 6, title: "Record a Podcast", type: "Voice + Transmission", description: "Practice using your voice as a portal by recording a podcast episode that expresses your medicine." },
+  { index: 7, title: "Meet 1:1 with 4 New Clients", type: "Client Practice", description: "Begin holding real women through the work while practicing clear boundaries and client care." },
+  { index: 8, title: "Record Weekly Moon Phase Empowerments", type: "Moon Content", description: "Create recurring moon-phase support your Queendom can receive inside the rhythm of the month." },
+  { index: 9, title: "Meet 1:1 with a Client for 4 Weeks", type: "Continuity Practice", description: "Practice holding one client through a longer arc so you can see pattern, rhythm, and transformation over time." },
+  { index: 10, title: "Hold Ceremony in Person", type: "Embodied Leadership", description: "Host a simple in-person ceremony and practice tending the room from your body, not your performance." },
+  { index: 11, title: "Hold Ceremony Online", type: "Digital Temple", description: "Translate your room-holding skills into an online experience women can safely enter from anywhere." },
+  { index: 12, title: "Record 4 Inner Seasons Video", type: "Framework Teaching", description: "Create a teaching for Winter, Spring, Summer, and Autumn so clients can orient inside the Flowtel framework." },
+  { index: 13, title: "Host a Live Masterclass + Launch", type: "Queendom Launch", description: "Open the Golden Gates: invite women into your Queendom and begin your next cycle of leadership." },
+];
+
+export const FLOW_FM_ARCS = [
+  { label: "Big Vision", range: "Months 1–3", moons: [1,2,3], copy: "Collect cycle data, study your inner seasons, and cultivate the vision that will become your medicine business." },
+  { label: "Practice", range: "Months 4–6", moons: [4,5,6], copy: "Plan with your cycle, set energetic boundaries, and meet the unseen support that helps you hold others." },
+  { label: "Get Visible", range: "Months 7–9", moons: [7,8,9], copy: "Expand your presence, embody your priestess identity, and magnetize the resources your work requires." },
+  { label: "Launch", range: "Months 10–12", moons: [10,11,12], copy: "Unlock your creative genius, create your offerings, and launch the vision into the world." },
+  { label: "Celebrate", range: "Month 13", moons: [13], copy: "Open the Golden Gates to your Queendom and step into the next spiral of leadership." },
+];
+
+export function getFlowFmAssignmentForMoon(moonIndex){
+  return FLOW_FM_ASSIGNMENTS.find(item => Number(item.index) === Number(moonIndex)) || null;
+}
+
+export function getFlowFmArcForMoon(moonIndex){
+  return FLOW_FM_ARCS.find(arc => arc.moons.includes(Number(moonIndex))) || FLOW_FM_ARCS[0];
+}
+
 function monthDiff(start, now) {
   return (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
 }
