@@ -168,8 +168,7 @@ function noteTextEntriesForRow(row){
 function noteCardMarkup(entry,index){
   const row=entry.row;
   const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? "—";
-  const feels=row.feels_like_inner_season ? `Feels like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
-  const time=formatTime(entry.at || row.checked_in_at || row.reflection_created_at);
+  const feels=row.feels_like_inner_season ? `Felt like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
   const off=offCycleLabel(row);
   const clientName=row.client_name || targetClient?.name || "";
   const showClientName=currentMode!=="self" && clientName;
@@ -181,7 +180,6 @@ function noteCardMarkup(entry,index){
         <span>${escapeHtml(entry.source)}</span>
         <span>Day ${escapeHtml(actual)}</span>
         <span>${escapeHtml(feels)}</span>
-        <span>${escapeHtml(time)}</span>
         ${off ? `<span>${escapeHtml(off)}</span>` : ""}
       </p>
     </article>

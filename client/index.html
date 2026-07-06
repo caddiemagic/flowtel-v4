@@ -119,8 +119,8 @@
                 <strong id="suiteRoom"></strong>
                 <p id="suiteSeason"></p>
                 <p id="suiteDayOne" class="suite-day-one"></p>
-                <a class="cycle-data-link suite-flow-map-link" id="suiteCurrentRoomFlowMapLink" href="/flow-map/">View Flow Map</a>
               </article>
+              <a class="cycle-data-link suite-flow-map-link suite-flow-map-link--below-room" id="suiteCurrentRoomFlowMapLink" href="/flow-map/">View Flow Map</a>
             </div>
 
           </section>
@@ -164,11 +164,18 @@
         <section class="journal-card">
           <p class="eyebrow">REFLECTION</p>
           <textarea id="reflectionInput" placeholder="Write what you want the Flowtel to remember from today..."></textarea>
-          <label class="powder-share-control">
-            <input id="shareReflectionInPowderRooms" type="checkbox" checked />
-            <span>Share this reflection anonymously in the Powder Rooms.</span>
-          </label>
-          <p class="powder-share-note">Your name, email, mentor, and profile will never appear. Other Flowtel guests may read this reflection anonymously by inner season.</p>
+          <article class="powder-master-setting">
+            <div>
+              <p class="eyebrow">POWDER ROOM SHARING</p>
+              <p>Your reflections and checkout notes may be shared anonymously with other Flowtel guests in the Powder Rooms.</p>
+              <p class="powder-share-note">Your name, email, mentor, and profile will never appear. You can turn this off any time.</p>
+            </div>
+            <label class="powder-share-control powder-master-toggle">
+              <input id="powderRoomSharingToggle" type="checkbox" checked />
+              <span>Share anonymously</span>
+            </label>
+            <p id="powderRoomSharingStatus" class="powder-share-status"></p>
+          </article>
           <button id="saveReflectionButton" type="button">Save Reflection</button>
           <p id="reflectionMessage"></p>
         </section>
@@ -204,10 +211,7 @@
           <h3 id="loungeCheckoutTitle">Ready to check out?</h3>
           <p id="loungeCheckoutCopy">Leave a note for tomorrow’s concierge.</p>
           <textarea id="checkoutInput" placeholder="What did you notice by the end of your stay?"></textarea>
-          <label class="powder-share-control checkout-share-control">
-            <input id="shareCheckoutInPowderRooms" type="checkbox" checked />
-            <span>Share this checkout note anonymously in the Powder Rooms.</span>
-          </label>
+          <p class="powder-share-note checkout-share-note">Powder Room sharing follows your master setting in the Reflection card.</p>
           <button id="checkoutButton" type="button">Personally Check Out</button>
           <p id="checkoutMessage"></p>
         </section>

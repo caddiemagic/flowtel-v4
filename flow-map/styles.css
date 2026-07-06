@@ -369,3 +369,102 @@ p{line-height:1.55;color:var(--muted)}
   .map-note-meta span{font-size:.43rem!important;padding:3px 5px!important}
   .map-empty{font-size:.72rem!important;margin-top:28px!important;padding:12px!important}
 }
+
+
+/* Release 0.9.18 — Flow Map control layout hardening */
+.control-card{
+  display:grid;
+  grid-template-columns:minmax(180px,260px) minmax(0,1fr);
+  align-items:start;
+}
+.control-heading{
+  min-width:0;
+}
+.control-heading h2{
+  overflow-wrap:anywhere;
+}
+.flow-map-controls{
+  min-width:0;
+  width:100%;
+}
+.control-actions{
+  width:100%;
+  display:grid;
+  grid-template-columns:minmax(240px,1fr) repeat(4,minmax(150px,auto));
+  justify-content:stretch;
+}
+.control-actions .return-link{
+  white-space:nowrap;
+}
+.scope-toggle{
+  justify-content:flex-end;
+}
+@media(min-width:941px) and (max-width:1180px){
+  .control-actions{
+    grid-template-columns:minmax(240px,1fr) repeat(2,minmax(150px,auto));
+  }
+}
+@media(max-width:940px){
+  .control-card{display:block}
+  .control-actions{display:grid;grid-template-columns:1fr 1fr}
+  .cycle-selector-label{grid-column:1/-1}
+}
+@media(max-width:640px){
+  .control-actions{grid-template-columns:1fr}
+}
+
+/* Release 0.9.19 — Flow Map controls, scalable canvas, and note copy polish */
+.flow-map-canvas{
+  grid-template-rows:minmax(520px,auto) minmax(520px,auto);
+  align-items:stretch;
+  overflow:visible;
+}
+.quadrant{
+  min-height:520px;
+}
+.note-field{
+  align-content:flex-start;
+}
+.control-card{
+  grid-template-columns:minmax(160px,220px) minmax(0,1fr);
+  gap:22px 26px;
+}
+.control-heading h2{
+  font-size:clamp(1.65rem,3vw,2.35rem);
+  line-height:1.08;
+}
+.flow-map-controls{
+  gap:12px;
+}
+.scope-toggle a,
+.control-actions .return-link{
+  font-size:.58rem;
+  letter-spacing:.12em;
+}
+.control-actions{
+  grid-template-columns:minmax(220px,1.2fr) repeat(4,minmax(130px,auto));
+  gap:10px;
+}
+.map-note-meta span:first-child{
+  color:rgba(167,127,115,.9);
+}
+@media(min-width:941px) and (max-width:1280px){
+  .control-card{
+    grid-template-columns:1fr;
+  }
+  .flow-map-controls{
+    justify-items:stretch;
+  }
+  .scope-toggle{justify-content:flex-start;}
+  .control-actions{
+    grid-template-columns:minmax(240px,1fr) repeat(2,minmax(150px,auto));
+  }
+}
+@media(max-width:940px){
+  .quadrant{min-height:420px;}
+}
+@media print{
+  .flow-map-canvas{
+    overflow:hidden !important;
+  }
+}

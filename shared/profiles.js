@@ -87,3 +87,22 @@ export async function ensureProfile(profile = {}) {
 
   return data;
 }
+
+export async function updatePowderRoomSharing(enabled = true) {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("No authenticated user.");
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ collective_season_notes_opt_out: !enabled })
+    .eq("id", user.id)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return data;
+}

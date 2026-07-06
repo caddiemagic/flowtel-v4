@@ -1,3 +1,23 @@
+# Changelog
+
+## v0.9.18 — Master Powder Room Consent + Flow Map Practice Polish
+
+- Replaced per-reflection Powder Room toggles with one master guest-level Powder Room Sharing setting.
+- Added database migration 021 to store profile-level Powder Room opt-out and normalize reflection sharing flags.
+- Strengthened Flow Map control layout so names no longer force buttons to wrap awkwardly.
+- Removed timestamps from Flow Map notes and changed note metadata to “Felt like …”.
+- Moved View Flow Map under the Current Room pill.
+- Tightened mobile Medicine Wheel ring spacing and expanded the wheel panel so season cards fit inside the container.
+
+
+## v0.9.18 — Master Powder Room Consent + Flow Map Control Polish
+
+- Replaced reflection-level Powder Room sharing with one master guest setting.
+- Added Suite UI for account-level anonymous Powder Room sharing.
+- Updated Powder Room RPC to use profile-level opt-out as the single source of truth.
+- Normalized legacy per-reflection share flags back to true.
+- Polished Flow Map control layout so names do not push controls out of alignment.
+
 
 ## v0.9.16 — Flow Map Practice Dashboard
 

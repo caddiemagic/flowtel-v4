@@ -1977,3 +1977,92 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
 .suite-flow-map-link{
   margin-top:14px;
 }
+
+/* Release 0.9.18 — master Powder Room sharing setting */
+.powder-master-setting{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px 18px;
+  align-items:center;
+  margin:14px 0 16px;
+  padding:18px 20px;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:rgba(255,253,250,.72);
+}
+.powder-master-setting p{
+  margin:0;
+}
+.powder-master-setting .eyebrow{
+  margin:0 0 7px;
+}
+.powder-master-toggle{
+  margin:0;
+  white-space:nowrap;
+}
+.powder-share-status{
+  grid-column:1/-1;
+  margin:0;
+  color:var(--muted);
+  font-size:.92rem;
+  font-style:italic;
+}
+.checkout-share-note{
+  margin:10px 0 14px;
+}
+@media(max-width:720px){
+  .powder-master-setting{grid-template-columns:1fr}
+  .powder-master-toggle{justify-content:flex-start}
+}
+
+/* Release 0.9.19 — Suite Flow Map button + mobile wheel containment polish */
+.suite-flow-map-link--below-room{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:min(100%,320px);
+  margin:18px auto 0;
+}
+.wheel-current-room .suite-flow-map-link{
+  display:none !important;
+}
+@media(max-width:700px){
+  .wheel-panel{
+    width:min(100%,390px) !important;
+    max-width:390px !important;
+    padding:92px 14px 108px !important;
+    overflow:visible !important;
+  }
+  .medicine-wheel{
+    width:min(100%,342px) !important;
+    margin-top:4px !important;
+  }
+  .wheel-room{
+    width:32px !important;
+    height:32px !important;
+    font-size:.72rem !important;
+  }
+  .wheel-star-marker{
+    font-size:1.18rem !important;
+    transform:translate(-50%,-50%) !important;
+  }
+  .wheel-season{
+    width:100px !important;
+    min-width:100px !important;
+    padding:7px 7px !important;
+    font-size:.55rem !important;
+    line-height:1.05 !important;
+  }
+  .wheel-season small{font-size:.39rem !important;letter-spacing:.07em !important;}
+  .wheel-season-autumn{left:0 !important;top:-52px !important;}
+  .wheel-season-summer{right:0 !important;top:-52px !important;}
+  .wheel-season-winter{left:0 !important;bottom:-54px !important;}
+  .wheel-season-spring{right:0 !important;bottom:-54px !important;}
+  .you-are-here{
+    margin-top:58px !important;
+  }
+  .suite-flow-map-link--below-room{
+    width:100%;
+    max-width:300px;
+  }
+}

@@ -1,5 +1,5 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
 import { createStay, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
@@ -514,7 +514,7 @@ function cycleDifferenceLabel(difference){
   EAST = 360° / 0°
   NORTH = 90°
 */
-const WHEEL_DAY_RADIUS = 31;
+const WHEEL_DAY_RADIUS = 33;
 const WHEEL_DAY_SIZE = 34;
 const WHEEL_RING_GAP = 12;
 
@@ -546,7 +546,7 @@ function wheelPosition(day){
 
 function wheelStarPosition(day){
   // The star rides on the outer gold ring instead of floating above the day bubble.
-  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS + 5.4);
+  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS + 3.2);
 }
 
 function renderWheel(activeRoom){
@@ -730,6 +730,37 @@ function setSuiteMoonMagic(liveMoon){
   suiteMoonTheme.innerHTML=`<span class="moon-theme-line">${escapeHtml(liveMoon.theme)}</span><span class="moon-next-new-moon">Next New Moon: ${escapeHtml(formatDate(liveMoon.nextNewMoonDate))}</span>`;
 }
 
+function renderPowderRoomSharingSetting(){
+  const toggle=document.getElementById("powderRoomSharingToggle");
+  const status=document.getElementById("powderRoomSharingStatus");
+  if(!toggle) return;
+  const sharingEnabled=!currentProfile?.collective_season_notes_opt_out;
+  toggle.checked=sharingEnabled;
+  if(status){
+    status.textContent=sharingEnabled
+      ? "Anonymous Powder Room sharing is on for your reflections and checkout notes."
+      : "Powder Room sharing is off. Your reflections stay out of the anonymous rooms.";
+  }
+}
+
+async function handlePowderRoomSharingChange(event){
+  const toggle=event.currentTarget;
+  const status=document.getElementById("powderRoomSharingStatus");
+  const enabled=!!toggle.checked;
+  try{
+    toggle.disabled=true;
+    if(status) status.textContent=enabled ? "Turning Powder Room sharing on..." : "Turning Powder Room sharing off...";
+    currentProfile=await updatePowderRoomSharing(enabled);
+    renderPowderRoomSharingSetting();
+  }catch(error){
+    console.error(error);
+    toggle.checked=!enabled;
+    if(status) status.textContent="This setting could not be saved. Please try again.";
+  }finally{
+    toggle.disabled=false;
+  }
+}
+
 function renderSuite(stay){
   currentStay=stay;
 
@@ -774,10 +805,7 @@ function renderSuite(stay){
   document.getElementById("roomQueenMove").textContent=content.queenMove;
 
   document.getElementById("reflectionInput").value="";
-  const shareReflectionBox=document.getElementById("shareReflectionInPowderRooms");
-  if(shareReflectionBox) shareReflectionBox.checked=true;
-  const shareCheckoutBox=document.getElementById("shareCheckoutInPowderRooms");
-  if(shareCheckoutBox) shareCheckoutBox.checked=true;
+  renderPowderRoomSharingSetting();
 
   renderConciergeCare(stay);
   renderPractitionerConnection();
@@ -1449,9 +1477,7 @@ async function handleSaveReflection(){
     const saveButton=document.getElementById("saveReflectionButton");
     if(saveButton) saveButton.disabled=true;
 
-    const shareCheckbox=document.getElementById("shareReflectionInPowderRooms");
-    const shareInPowderRooms=shareCheckbox ? shareCheckbox.checked : true;
-    currentStay=await saveReflection(currentStay.id,value,{shareInPowderRooms});
+    currentStay=await saveReflection(currentStay.id,value,{shareInPowderRooms:true});
     cacheSuiteStay(currentStay);
     input.value="";
     if(message) message.textContent="Reflection saved. Your stay has remembered this note.";
@@ -1474,9 +1500,7 @@ async function handleCheckout(){
   if(!currentStay) return;
 
   try{
-    const shareCheckoutBox=document.getElementById("shareCheckoutInPowderRooms");
-    const shareCheckoutInPowderRooms=shareCheckoutBox ? shareCheckoutBox.checked : true;
-    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value,{shareInPowderRooms:shareCheckoutInPowderRooms});
+    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value,{shareInPowderRooms:true});
     cacheSuiteStay(currentStay);
     document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
     renderLoungeVisits();
@@ -1564,6 +1588,11 @@ const checkoutReturnButton=document.getElementById("checkoutReturnButton");
 if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>{showScene("lobby");window.scrollTo({top:0,behavior:"smooth"});});
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));
 
+
+const powderRoomSharingToggle=document.getElementById("powderRoomSharingToggle");
+if(powderRoomSharingToggle){
+  powderRoomSharingToggle.addEventListener("change",handlePowderRoomSharingChange);
+}
 
 // Auto-enter is opt-in for later Squarespace code injection.
 // Example: /client/?membership=flowfm&email=member@example.com&auto=1
