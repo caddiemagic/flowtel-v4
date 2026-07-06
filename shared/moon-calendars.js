@@ -16,7 +16,7 @@ export const MOON_CALENDARS = [
     portalOpens: 'Apr 4, 2026',
     portalCloses: 'Apr 14, 2026',
     summary: 'A lunar-month planning sheet that moves from New Moon through Full Moon and back to New Moon, with portal markers and planetary weekdays.',
-    assetPath: '../assets/planning/month-view-calendar-mar-jun-2026.pdf',
+    assetPath: '/flow-fm/assets/planning/month-view-calendar-mar-jun-2026.pdf',
     featured: true,
   },
   {
@@ -26,7 +26,7 @@ export const MOON_CALENDARS = [
     portalOpens: 'May 5, 2026',
     portalCloses: 'May 15, 2026',
     summary: 'A printable planning month for tending the descent, reflection, and preparation between visible pushes.',
-    assetPath: '../assets/planning/month-view-calendar-mar-jun-2026.pdf',
+    assetPath: '/flow-fm/assets/planning/month-view-calendar-mar-jun-2026.pdf',
     featured: false,
   },
   {
@@ -36,7 +36,7 @@ export const MOON_CALENDARS = [
     portalOpens: 'Jun 6, 2026',
     portalCloses: 'Jun 15, 2026',
     summary: 'A simple moon-to-moon business planner with phase shifts, portal windows, and daily space to stay in flow.',
-    assetPath: '../assets/planning/month-view-calendar-may-jun-2026.pdf',
+    assetPath: '/flow-fm/assets/planning/month-view-calendar-may-jun-2026.pdf',
     featured: false,
   },
 ];

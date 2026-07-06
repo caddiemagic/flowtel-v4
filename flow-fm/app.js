@@ -1,5 +1,5 @@
-import { getCurrentProfile, getFlowFmInitiationStatus } from '../shared/flowtel.js';
-import { renderTopNav, renderAccessCard, renderAccessState, escapeHtml, setMessage } from './ui.js';
+import { getCurrentProfile, getFlowFmInitiationStatus } from '/shared/flowtel.js';
+import { renderTopNav, renderAccessCard, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const heroCopy = document.getElementById('heroCopy');

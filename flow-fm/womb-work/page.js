@@ -1,5 +1,5 @@
-import { WOMB_WORK_MODULES, getFlowFmAssignmentForMoon } from '../../shared/flowtel.js';
-import { renderTopNav, escapeHtml } from '../ui.js';
+import { WOMB_WORK_MODULES, getFlowFmAssignmentForMoon } from '/shared/flowtel.js';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const moduleGrid = document.getElementById('moduleGrid');

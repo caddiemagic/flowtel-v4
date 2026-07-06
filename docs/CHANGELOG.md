@@ -1,3 +1,12 @@
+
+## v0.10.4 — Profile Studio Render Repair
+
+- Fixed Flow FM subpage asset loading by switching subpage CSS, script, and module imports to absolute paths.
+- Repaired the blank Priestess Profile Studio shell issue where the page card loaded but the functional form did not render.
+- Added loading fallback copy inside the profile form/preview containers and assignment list so delayed JavaScript no longer looks like empty form pills.
+- Updated Planning Room PDF paths to absolute Flow FM asset URLs.
+- No Supabase migration required.
+
 ## v0.10.3 — Flow FM Access Gate Repair
 
 - Fixed the Flow FM access gate so authenticated users with a profile row can see their own Business Assignment and Priestess Profile forms.

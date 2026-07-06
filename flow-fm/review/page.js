@@ -5,7 +5,7 @@ import {
   reviewFlowFmAssignment,
   listPriestessProfileReviewQueue,
   reviewPriestessProfile,
-} from '../../shared/flowtel.js';
+} from '/shared/flowtel.js';
 import {
   renderTopNav,
   renderAccessCard,
@@ -16,7 +16,7 @@ import {
   profileStatusPill,
   isMentorRole,
   isAdminRole,
-} from '../ui.js';
+} from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const accessState = document.getElementById('accessState');

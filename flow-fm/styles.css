@@ -100,3 +100,5 @@ input,textarea,button{font:inherit;color:inherit}
 .phase-list{display:grid;gap:12px}.phase-row{border-top:1px solid rgba(109,78,65,.1);padding-top:12px;margin-top:12px}.phase-row strong{display:block;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:.7rem;color:var(--rose);margin-bottom:8px;font-weight:700}.prompt-list{margin:0;padding-left:18px;display:grid;gap:10px}.prompt-list li{color:var(--soft-brown);line-height:1.5}
 @media(max-width:980px){.door-grid,.calendar-grid,.module-grid,.two-up-grid{grid-template-columns:1fr}.access-diagnostics-grid,.calendar-meta,.module-meta{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.top-nav{justify-content:stretch}.nav-pill{width:100%}.door-grid-card,.note-card,.access-card{padding:20px}.access-diagnostics-grid,.calendar-meta,.module-meta{grid-template-columns:1fr}}
+
+.form-loading-note{font-style:italic;color:var(--soft-brown);text-align:center;margin:18px 0;}

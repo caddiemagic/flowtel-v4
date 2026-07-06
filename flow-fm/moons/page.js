@@ -4,8 +4,8 @@ import {
   FLOW_FM_ARCS,
   getFlowFmInitiationStatus,
   getFlowFmAssignmentForMoon,
-} from '../../shared/flowtel.js';
-import { renderTopNav, escapeHtml, seasonClass, setMessage } from '../ui.js';
+} from '/shared/flowtel.js';
+import { renderTopNav, escapeHtml, seasonClass, setMessage } from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const currentMoonTitle = document.getElementById('currentMoonTitle');

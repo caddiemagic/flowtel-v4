@@ -9,7 +9,7 @@ import {
   mergeAssignmentRecords,
   assignmentProgress,
   assignmentStatusCopy,
-} from '../../shared/flowtel.js';
+} from '/shared/flowtel.js';
 import {
   renderTopNav,
   renderAccessCard,
@@ -20,7 +20,7 @@ import {
   safeHref,
   statusPill,
   setMessage,
-} from '../ui.js';
+} from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const accessState = document.getElementById('accessState');

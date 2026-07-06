@@ -1,5 +1,5 @@
-import { MOON_CALENDARS, MOON_PHASE_KEY, WEEKLY_PLANNING_PROMPTS } from '../../shared/flowtel.js';
-import { renderTopNav, escapeHtml } from '../ui.js';
+import { MOON_CALENDARS, MOON_PHASE_KEY, WEEKLY_PLANNING_PROMPTS } from '/shared/flowtel.js';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
 const calendarGrid = document.getElementById('calendarGrid');
