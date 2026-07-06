@@ -29,6 +29,30 @@
     {
       "source": "/flow-fm",
       "destination": "/flow-fm/index.html"
+    },
+    {
+      "source": "/flow-fm/moons",
+      "destination": "/flow-fm/moons/index.html"
+    },
+    {
+      "source": "/flow-fm/womb-work",
+      "destination": "/flow-fm/womb-work/index.html"
+    },
+    {
+      "source": "/flow-fm/assignments",
+      "destination": "/flow-fm/assignments/index.html"
+    },
+    {
+      "source": "/flow-fm/profile-studio",
+      "destination": "/flow-fm/profile-studio/index.html"
+    },
+    {
+      "source": "/flow-fm/planning-room",
+      "destination": "/flow-fm/planning-room/index.html"
+    },
+    {
+      "source": "/flow-fm/review",
+      "destination": "/flow-fm/review/index.html"
     }
   ]
 }

@@ -1,3 +1,16 @@
+
+## v0.10.2 — Flow FM Hallway + Planning Room
+
+- Reorganized `/flow-fm/` into a cleaner Initiation Hallway with separate doors instead of one dense page.
+- Added dedicated routes for the 13 Moons Path, Womb Work Modules, Business Assignments, Priestess Profile Studio, Planning Room, and Review Desk.
+- Moved assignment and Priestess Profile review queues into `/flow-fm/review/` so the student hallway stays calmer.
+- Added the Planning Room with current moon-calendar example PDFs, a moon phase key, portal open/close explanation, and weekly business planning prompts.
+- Added `shared/womb-work.js` for the 13 inner curriculum modules and `shared/moon-calendars.js` for planning-room content.
+- Added a first-pass initiation anchor helper so Flow FM can reflect the “before full moon = current moon / after full moon = next moon” rule in the hallway experience.
+- Hardened Flow FM page loading so failed assignment/profile RPC calls no longer collapse the entire experience back into one generic preview state.
+- Added access diagnostics to help identify when a signed-in practitioner profile is not being recognized as Flow FM-enabled.
+- No Supabase migration required.
+
 ## v0.10.1 — Priestess Profile Studio
 
 - Added the Priestess Profile Studio inside `/flow-fm/` for Flow FM Assignment 1.

@@ -27,3 +27,6 @@ export { PRIESTESS_PROFILE_STATUSES, normalizePriestessProfileStatus, labelForPr
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
 
 export { listMentors, listPractitioners, getMyPractitionerRelationship, chooseMentor, requestPractitionerConnection, listConnectionRequestsForPractitioner, listMyClients, connectWithGuest, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "./relationships.js";
+
+export { WOMB_WORK_MODULES, getWombWorkModule } from './womb-work.js';
+export { MOON_PHASE_KEY, MOON_CALENDARS, WEEKLY_PLANNING_PROMPTS } from './moon-calendars.js';

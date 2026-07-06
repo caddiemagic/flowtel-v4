@@ -73,3 +73,30 @@ input,textarea,button{font:inherit;color:inherit}
 @media(max-width:980px){.profile-studio-layout{grid-template-columns:1fr}.profile-form-heading{grid-template-columns:1fr}.display-profile-hero{align-items:start}}
 @media(max-width:640px){.profile-studio-card{padding:20px}.profile-studio-form,.profile-studio-preview,.profile-readonly-panel{padding:16px}.display-profile-hero{grid-template-columns:1fr}.profile-photo{width:76px;height:76px}.profile-actions{display:grid}.profile-actions button{width:100%}}
 @media print{.profile-studio-form,#profileReviewQueueCard{display:none!important}.profile-studio-layout{grid-template-columns:1fr}.profile-studio-card{box-shadow:none}}
+
+
+/* Release 0.10.2 — Hallway doors + planning room */
+.top-nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+.nav-pill{display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(109,78,65,.16);border-radius:999px;padding:11px 18px;background:rgba(255,253,249,.76);font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;font-weight:700;color:var(--brown)}
+.nav-pill.active{background:var(--blush);border-color:rgba(199,116,109,.3)}
+.hero-card--hallway h1{font-size:clamp(2.4rem,8vw,5rem)}
+.door-grid-card,.note-card,.access-card{border:1px solid var(--line);border-radius:28px;background:rgba(255,253,249,.76);box-shadow:0 22px 60px rgba(109,78,65,.07)}
+.door-grid-card{padding:32px}
+.door-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.door-card{display:grid;gap:10px;border:1px solid rgba(109,78,65,.13);border-radius:24px;background:rgba(255,255,255,.6);padding:22px;transition:transform .15s ease, border-color .15s ease, box-shadow .15s ease}
+.door-card:hover{transform:translateY(-2px);border-color:rgba(216,168,79,.42);box-shadow:0 16px 28px rgba(109,78,65,.06)}
+.door-card h3,.note-card h3,.access-card h3,.calendar-card h3,.module-card h3{font-size:1.7rem;line-height:1.04;margin:0;font-weight:400}
+.door-card p,.note-card p,.access-card p,.calendar-card p,.module-card p,.phase-row p{font-size:1rem;line-height:1.5;color:var(--soft-brown)}
+.door-link{font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:.68rem;font-weight:700;color:var(--rose);margin-top:6px}
+.two-up-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.note-card,.access-card{padding:26px}
+.access-card.access-preview,.access-card.access-readonly{background:linear-gradient(180deg,rgba(255,253,249,.92),rgba(248,231,227,.34))}
+.access-card.access-live{background:linear-gradient(180deg,rgba(255,253,249,.92),rgba(216,168,79,.12))}
+.access-diagnostics-grid,.calendar-meta,.module-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}
+.access-diagnostics-grid article,.calendar-meta span,.module-meta span{border:1px solid rgba(109,78,65,.12);border-radius:18px;background:rgba(255,255,255,.54);padding:12px}
+.access-diagnostics-grid small{display:block;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:.62rem;color:var(--rose);margin-bottom:5px}.access-diagnostics-grid strong{font-size:1rem;font-weight:400;color:var(--brown)}
+.calendar-grid,.module-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.calendar-card,.module-card{border:1px solid rgba(109,78,65,.13);border-radius:24px;background:rgba(255,255,255,.6);padding:22px}
+.phase-list{display:grid;gap:12px}.phase-row{border-top:1px solid rgba(109,78,65,.1);padding-top:12px;margin-top:12px}.phase-row strong{display:block;font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:.7rem;color:var(--rose);margin-bottom:8px;font-weight:700}.prompt-list{margin:0;padding-left:18px;display:grid;gap:10px}.prompt-list li{color:var(--soft-brown);line-height:1.5}
+@media(max-width:980px){.door-grid,.calendar-grid,.module-grid,.two-up-grid{grid-template-columns:1fr}.access-diagnostics-grid,.calendar-meta,.module-meta{grid-template-columns:1fr 1fr}}
+@media(max-width:640px){.top-nav{justify-content:stretch}.nav-pill{width:100%}.door-grid-card,.note-card,.access-card{padding:20px}.access-diagnostics-grid,.calendar-meta,.module-meta{grid-template-columns:1fr}}
