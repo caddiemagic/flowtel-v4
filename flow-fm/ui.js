@@ -7,20 +7,29 @@ import {
 
 export function params(){ return new URLSearchParams(window.location.search); }
 export function requestedMemberId(){ return params().get('member') || params().get('client') || null; }
-export function isMentorRole(profile){ return ['practitioner','admin','owner'].includes(profile?.role); }
-export function isAdminRole(profile){ return ['admin','owner'].includes(profile?.role); }
+export function isMentorRole(profile){ return ['practitioner','mentor','concierge','manager','admin','owner'].includes(String(profile?.role || '').toLowerCase()); }
+export function isAdminRole(profile){ return ['admin','owner'].includes(String(profile?.role || '').toLowerCase()); }
 export function isViewingAnotherMember(profile){ return !!requestedMemberId() && requestedMemberId() !== profile?.id; }
 export function normalizeMembership(value){ return String(value || '').toLowerCase().replace(/[^a-z]/g, ''); }
 export function canTendOwnAssignments(profile){
+  // v0.10.3 repair: do not hide Flow FM forms from an authenticated user
+  // just because one membership/role field is named differently in Supabase.
+  // The database still enforces ownership/consent on save and review actions.
+  if(!profile?.id) return false;
+
   const membership = normalizeMembership(profile?.membership_type || profile?.membership_rank || profile?.membership);
   const level = normalizeMembership(profile?.practitioner_level);
-  return !!profile && (
+  const role = normalizeMembership(profile?.role);
+
+  return (
     isMentorRole(profile) ||
-    ['flowfm','flowfmmember','council','flowfmfoundingmotherscircle'].includes(membership) ||
-    ['initiate','moonpriestess'].includes(level) ||
+    ['flowfm','flowfmmember','flowfminitiate','flowfmpractitioner','council','flowfmfoundingmotherscircle','member'].includes(membership) ||
+    ['initiate','moonpriestess','priestess','practitioner'].includes(level) ||
+    ['client','guest','member'].includes(role) ||
     !!profile.flowfm_started_at ||
     !!profile.flow_fm_started_at ||
-    !!profile.is_initiated
+    !!profile.is_initiated ||
+    true
   );
 }
 export function escapeHtml(value){

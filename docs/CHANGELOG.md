@@ -1,3 +1,10 @@
+## v0.10.3 — Flow FM Access Gate Repair
+
+- Fixed the Flow FM access gate so authenticated users with a profile row can see their own Business Assignment and Priestess Profile forms.
+- Added additional role aliases for Flow FM UI recognition, including `mentor`, `manager`, and `concierge`.
+- Added migration 024 to broaden the Supabase self-service gate used by assignment/profile save RPCs.
+- Preserved consent-aware read access, mentor/admin Review Desk boundaries, and read-only mode when viewing another member.
+
 
 ## v0.10.2 — Flow FM Hallway + Planning Room
 
