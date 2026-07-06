@@ -14,7 +14,6 @@ import {
   setMessage,
   statusPill,
   profileStatusPill,
-  isMentorRole,
   isAdminRole,
 } from '/flow-fm/ui.js';
 
@@ -32,8 +31,8 @@ function reviewLink(row){
   return `<a href="/flow-fm/assignments/?member=${encodeURIComponent(row.member_id)}">Open member assignment path</a>`;
 }
 function renderReviewQueue(rows=[]){
-  if(!isMentorRole(currentProfile)){
-    reviewQueue.innerHTML = `<article class="review-row empty"><p>The Review Desk opens for practitioner, admin, and owner roles.</p></article>`;
+  if(!isAdminRole(currentProfile)){
+    reviewQueue.innerHTML = `<article class="review-row empty"><p>The Review Desk opens for Flowtel admin and owner accounts.</p></article>`;
     return;
   }
   if(!rows.length){
@@ -66,8 +65,8 @@ async function handleReviewAction(row, status){
   }
 }
 function renderProfileReviewQueue(rows=[]){
-  if(!isMentorRole(currentProfile)){
-    profileReviewQueue.innerHTML = `<article class="review-row empty"><p>The profile review queue opens for practitioner, admin, and owner roles.</p></article>`;
+  if(!isAdminRole(currentProfile)){
+    profileReviewQueue.innerHTML = `<article class="review-row empty"><p>The profile review queue opens for Flowtel admin and owner accounts.</p></article>`;
     return;
   }
   if(!rows.length){
@@ -99,10 +98,10 @@ function errorMessage(error){
 }
 
 async function refresh(){
-  if(!isMentorRole(currentProfile)){
+  if(!isAdminRole(currentProfile)){
     renderReviewQueue([]);
     renderProfileReviewQueue([]);
-    setMessage(message, 'The Review Desk opens for practitioner, admin, and owner roles.');
+    setMessage(message, 'The Review Desk opens for Flowtel admin and owner accounts.');
     return;
   }
 
@@ -132,7 +131,7 @@ async function refresh(){
   setMessage(message, notices.join(' '));
 }
 async function init(){
-  topNav.innerHTML = renderTopNav('review');
+  topNav.innerHTML = renderTopNav('hallway');
   try{
     currentProfile = await getCurrentProfile();
     accessState.innerHTML = renderAccessCard(currentProfile);

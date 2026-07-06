@@ -1,3 +1,15 @@
+## v0.10.8 — Initiation Hall Simplification
+
+- Simplified `/flow-fm/` into the primary student home and reduced the duplicate Initiation Hall / Moon Portal feeling.
+- Added a Concierge-style 13-moon progress tracker to the Flow FM home page.
+- Added three clear next-step cards for Current Womb Work, Current Business Assignment, and Upcoming Initiations.
+- Reduced oversized Flow FM headers and softened page hierarchy so the hall is easier to scan.
+- Removed redundant top navigation buttons for 13 Moons Path, Womb Work Modules, and Business Assignments.
+- Simplified the 13 Moons page into a quiet moon-door exploration view and removed the Current Initiation / Start Rule panels.
+- Kept all moon doors open for exploration while keeping the current moon visually clear.
+- Restricted the Flow FM Review Desk to admin/owner accounts in the front end.
+- Added migration 026 to restrict review queue access and review actions to admin/owner accounts at the database/RPC layer.
+
 
 ## v0.10.7 — Moon Portal Experience + Hall Facelift
 

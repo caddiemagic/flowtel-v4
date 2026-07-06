@@ -3,45 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flow FM 13 Moons Path</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.7" />
+  <title>Flow FM Moon Doors</title>
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.8" />
 </head>
 <body>
-  <main class="initiation-shell">
-    <nav class="top-nav" id="topNav"></nav>
-    <section class="hero-card hero-card--hallway">
-      <p class="eyebrow">13 MOONS PATH</p>
-      <h1>Moon by Moon</h1>
-      <p id="heroCopy">The initiation spiral begins with the moon cycle a practitioner enters through, not always with Temple Moon.</p>
-    </section>
-    <section class="status-card">
-      <div class="status-main">
-        <p class="eyebrow">CURRENT INITIATION</p>
-        <h2 id="currentMoonTitle">Opening your timeline...</h2>
-        <p id="currentMoonMeta"></p>
+  <main class="initiation-shell initiation-shell--simple">
+    <nav class="top-nav top-nav--quiet" id="topNav"></nav>
+
+    <section class="hall-hero-card hall-hero-card--compact">
+      <div class="hall-hero-copy">
+        <p class="eyebrow">EXPLORE</p>
+        <h1>Moon Doors</h1>
+        <p id="heroCopy">A quiet view of the initiations ahead, arranged around your entry moon.</p>
       </div>
-      <article class="assignment-feature">
-        <p class="eyebrow">START RULE</p>
-        <h3 id="anchorTitle">Joined through the moon you entered.</h3>
-        <p id="anchorCopy">If she joins before the full moon threshold, she begins with the current named moon. If she joins after the threshold, she begins with the next named moon.</p>
-      </article>
     </section>
-    <section class="arc-grid">
-      <div class="section-heading section-heading--no-title">
-        <p class="eyebrow">THE ARCS</p>
-        <p>The 13 moons move through Big Vision, Practice, Get Visible, Launch, and Celebrate.</p>
+
+    <section class="moon-strip-card">
+      <div class="section-heading compact section-heading--simple">
+        <p class="eyebrow">YOUR PATH</p>
+        <h2>All doors are open.</h2>
+        <p>Flowtel keeps your current moon clear without locking the rooms ahead.</p>
       </div>
-      <div class="arc-cards" id="arcCards"></div>
+      <div class="moon-door-list" id="moonDoorList"></div>
     </section>
-    <section class="moon-path-card">
-      <div class="section-heading compact">
-        <p class="eyebrow">THE NAMED MOONS</p>
-        <h2>Your rooms of initiation</h2>
-      </div>
-      <div class="moon-path" id="moonPath"></div>
-    </section>
+
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/moons/page.js?v=0.10.7"></script>
+  <script type="module" src="/flow-fm/moons/page.js?v=0.10.8"></script>
 </body>
 </html>
