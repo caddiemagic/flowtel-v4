@@ -4,6 +4,14 @@ import {
   savePriestessProfileDraft,
   submitPriestessProfile,
   priestessProfileStatusCopy,
+  PRIESTESS_TITLE_OPTIONS,
+  PRIESTESS_BIO_TEMPLATES,
+  PRIESTESS_OFFERING_OPTIONS,
+  FLOWTEL_TIMEZONE_OPTIONS,
+  labelForPriestessTitle,
+  bioTemplatesForTitle,
+  findBioTemplate,
+  offeringLabelsFromValues,
 } from '/shared/flowtel.js';
 import {
   renderTopNav,
@@ -15,8 +23,6 @@ import {
   safeHref,
   setMessage,
   profileStatusPill,
-  csvToPills,
-  boolAttr,
 } from '/flow-fm/ui.js';
 
 const topNav = document.getElementById('topNav');
@@ -29,29 +35,73 @@ const message = document.getElementById('message');
 let currentProfile = null;
 let currentPriestessProfile = null;
 
-function profilePayloadFromForm(form){
+function selectedTitleValue(record = {}){
+  const existing = String(record.priestess_title || record.modalities || '').trim();
+  return PRIESTESS_TITLE_OPTIONS.find(item => item.value === existing || item.label === existing)?.value || 'rose-priestess';
+}
+function selectedBioValue(record = {}){
+  const existingKey = String(record.bio_template_key || '').trim();
+  if(existingKey && PRIESTESS_BIO_TEMPLATES.some(item => item.value === existingKey)) return existingKey;
+  return findBioTemplate(record.bio || '').value;
+}
+function selectedOfferingValues(record = {}){
+  const existing = String(record.offering_template_keys || record.offerings || '').split(/[
+,]/).map(item => item.trim()).filter(Boolean);
+  return existing.map(value => PRIESTESS_OFFERING_OPTIONS.find(item => item.value === value || item.label === value)?.value || value).filter(Boolean);
+}
+function displayLocation(record = {}){
+  if(typeof record.display_location === 'boolean') return record.display_location;
+  return !!String(record.location || '').trim();
+}
+function valuesFromForm(form){
   const data = new FormData(form);
+  const titleValue = String(data.get('title_value') || 'rose-priestess');
+  const bioValue = String(data.get('bio_template') || bioTemplatesForTitle(titleValue)[0]?.value || PRIESTESS_BIO_TEMPLATES[0].value);
+  const bio = PRIESTESS_BIO_TEMPLATES.find(item => item.value === bioValue)?.copy || '';
+  const title = labelForPriestessTitle(titleValue);
+  const offeringValues = data.getAll('offerings').map(value => String(value));
+  const offerings = offeringLabelsFromValues(offeringValues).join(', ');
+  const location = String(data.get('location') || '').trim();
+  const shouldDisplayLocation = !!data.get('display_location');
+  const timezone = String(data.get('timezone') || 'America/Los_Angeles');
   return {
-    priestessName: String(data.get('priestess_name') || ''),
-    legalName: String(data.get('legal_name') || ''),
-    profileEmail: String(data.get('profile_email') || ''),
-    profilePhotoUrl: String(data.get('profile_photo_url') || ''),
-    bio: String(data.get('bio') || ''),
-    modalities: String(data.get('modalities') || ''),
-    whoSheServes: String(data.get('who_she_serves') || ''),
-    sessionTypes: String(data.get('session_types') || ''),
-    schedulingUrl: String(data.get('scheduling_url') || ''),
-    websiteUrl: String(data.get('website_url') || ''),
-    instagramUrl: String(data.get('instagram_url') || ''),
-    tiktokUrl: String(data.get('tiktok_url') || ''),
-    podcastUrl: String(data.get('podcast_url') || ''),
-    queendomName: String(data.get('queendom_name') || ''),
-    offerings: String(data.get('offerings') || ''),
-    location: String(data.get('location') || ''),
-    timezone: String(data.get('timezone') || ''),
-    frameworkLanguage: String(data.get('framework_language') || ''),
-    networkOptIn: !!data.get('network_opt_in'),
-    revenueShareOptIn: !!data.get('revenue_share_opt_in'),
+    titleValue,
+    title,
+    bioValue,
+    bio,
+    offeringValues,
+    offerings,
+    priestessName: String(data.get('priestess_name') || '').trim(),
+    legalName: String(data.get('legal_name') || '').trim(),
+    websiteUrl: String(data.get('website_url') || '').trim(),
+    location,
+    displayLocation: shouldDisplayLocation,
+    timezone,
+  };
+}
+function profilePayloadFromForm(form){
+  const values = valuesFromForm(form);
+  return {
+    priestessName: values.priestessName,
+    legalName: values.legalName,
+    profileEmail: currentProfile?.email || currentPriestessProfile?.profile_email || '',
+    profilePhotoUrl: currentPriestessProfile?.profile_photo_url || '',
+    bio: values.bio,
+    modalities: values.title,
+    whoSheServes: '',
+    sessionTypes: '',
+    schedulingUrl: currentPriestessProfile?.scheduling_url || '',
+    websiteUrl: values.websiteUrl,
+    instagramUrl: currentPriestessProfile?.instagram_url || '',
+    tiktokUrl: currentPriestessProfile?.tiktok_url || '',
+    podcastUrl: currentPriestessProfile?.podcast_url || '',
+    queendomName: values.priestessName ? `${values.priestessName}'s Queendom` : 'Your Queendom',
+    offerings: values.offerings,
+    location: values.displayLocation ? values.location : '',
+    timezone: values.timezone,
+    frameworkLanguage: `Profile Studio selections: title=${values.titleValue}; bio=${values.bioValue}; offerings=${values.offeringValues.join('|')}; display_location=${values.displayLocation}; private_location=${values.location}`,
+    networkOptIn: !!currentPriestessProfile?.network_opt_in,
+    revenueShareOptIn: !!currentPriestessProfile?.revenue_share_opt_in,
   };
 }
 function profileReviewNotes(profile){
@@ -62,96 +112,132 @@ function profileReviewNotes(profile){
   return `<div class="witness-note profile-note"><p class="eyebrow">PROFILE NOTE${escapeHtml(reviewer)}</p>${mentor ? `<p>${escapeHtml(mentor)}</p>` : ''}${admin ? `<p class="admin-note">Admin note: ${escapeHtml(admin)}</p>` : ''}</div>`;
 }
 function profileLinkRows(profile){
-  const links = [
-    ['Book a Session', safeHref(profile?.scheduling_url)],
-    ['Website', safeHref(profile?.website_url)],
-    ['Instagram', safeHref(profile?.instagram_url)],
-    ['TikTok', safeHref(profile?.tiktok_url)],
-    ['Podcast', safeHref(profile?.podcast_url)],
-  ].filter(([,href]) => href);
-  return links.length ? `<div class="profile-links">${links.map(([label,href]) => `<a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">${escapeHtml(label)}</a>`).join('')}</div>` : '';
+  const website = safeHref(profile?.website_url);
+  return website ? `<div class="profile-links"><a href="${escapeHtml(website)}" target="_blank" rel="noreferrer">Visit Website</a></div>` : '';
 }
 function renderDisplayProfile(profile={}){
-  const photo = safeHref(profile.profile_photo_url);
   const name = profile.priestess_name || profile.member_name || 'Priestess Profile';
-  const queendom = profile.queendom_name || 'Queendom doorway coming soon';
-  const modalities = csvToPills(profile.modalities);
-  const sessionTypes = csvToPills(profile.session_types);
-  const offerings = csvToPills(profile.offerings);
-  return `<article class="display-profile-card">
-    <div class="display-profile-hero"><div class="profile-photo">${photo ? `<img src="${escapeHtml(photo)}" alt="${escapeHtml(name)}" />` : '🌹'}</div><div><p class="eyebrow">${escapeHtml(queendom)}</p><h3>${escapeHtml(name)}</h3><p>${escapeHtml(profile.location || 'Location + timezone to be added')}</p>${profileStatusPill(profile.status)}</div></div>
-    <div class="profile-section"><p class="eyebrow">ABOUT ME</p><p>${escapeHtml(profile.bio || 'Your About Me will appear here as the public-facing profile preview.')}</p></div>
-    ${modalities ? `<div class="profile-section"><p class="eyebrow">MODALITIES</p><div class="profile-tags">${modalities}</div></div>` : ''}
-    ${sessionTypes ? `<div class="profile-section"><p class="eyebrow">SESSION TYPES</p><div class="profile-tags">${sessionTypes}</div></div>` : ''}
+  const title = labelForPriestessTitle(profile.priestess_title || profile.modalities || 'Priestess');
+  const locationLine = String(profile.location || '').trim();
+  const timezoneLine = String(profile.timezone || '').trim();
+  const offerings = offeringLabelsFromValues(profile.offering_template_keys || profile.offerings).map(item => `<span>${escapeHtml(item)}</span>`).join('');
+  return `<article class="display-profile-card display-profile-card--simple">
+    <div class="display-profile-hero">
+      <div class="profile-photo">🌹</div>
+      <div>
+        <p class="eyebrow">${escapeHtml(title)}</p>
+        <h3>${escapeHtml(name)}</h3>
+        ${locationLine ? `<p>${escapeHtml(locationLine)}</p>` : ''}
+        ${timezoneLine ? `<p class="timezone-line">${escapeHtml(timezoneLine)}</p>` : ''}
+        ${profileStatusPill(profile.status)}
+      </div>
+    </div>
+    <div class="profile-section"><p class="eyebrow">ABOUT ME</p><p>${escapeHtml(profile.bio || 'Choose a prepared bio to begin. Your profile can evolve as your medicine becomes clearer.')}</p></div>
     ${offerings ? `<div class="profile-section"><p class="eyebrow">OFFERINGS</p><div class="profile-tags">${offerings}</div></div>` : ''}
     ${profileLinkRows(profile)}
     ${profileReviewNotes(profile)}
   </article>`;
 }
+function renderTitleOptions(selected){
+  return PRIESTESS_TITLE_OPTIONS.map(item => `<option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+}
+function renderBioOptions(titleValue, selected){
+  const options = bioTemplatesForTitle(titleValue);
+  return options.map(item => `<option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+}
+function renderOfferingOptions(selectedValues=[]){
+  return PRIESTESS_OFFERING_OPTIONS.map(item => `<label class="selection-chip"><input type="checkbox" name="offerings" value="${escapeHtml(item.value)}" ${selectedValues.includes(item.value) ? 'checked' : ''} /><span>${escapeHtml(item.label)}</span></label>`).join('');
+}
+function renderTimezoneOptions(selected){
+  return FLOWTEL_TIMEZONE_OPTIONS.map(item => `<option value="${escapeHtml(item.value)}" ${item.value === selected ? 'selected' : ''}>${escapeHtml(item.label)}</option>`).join('');
+}
+function formProfilePreviewFromRecord(record={}){
+  return {
+    ...record,
+    priestess_name: record.priestess_name || '',
+    modalities: labelForPriestessTitle(record.priestess_title || record.modalities || 'rose-priestess'),
+    bio: record.bio || findBioTemplate('').copy,
+    offerings: record.offerings || '',
+    location: displayLocation(record) ? (record.location || '') : '',
+    timezone: record.timezone || 'America/Los_Angeles',
+  };
+}
 function renderProfileStudio(profile={}, { readOnly=false } = {}){
   const record = profile || {};
   profileStudioIntro.textContent = readOnly
-    ? 'Viewing this Priestess Profile through the mentor consent layer or in read-only mode.'
-    : 'The form lives on the left and your display profile preview lives on the right.';
-  profileStudioPreview.innerHTML = renderDisplayProfile(record);
+    ? 'Viewing this Priestess Profile through the consent layer or in read-only mode.'
+    : 'Choose a prepared title, bio, and offering doorway. This profile can be refined later.';
+  profileStudioPreview.innerHTML = renderDisplayProfile(formProfilePreviewFromRecord(record));
   if(readOnly){
     profileStudioForm.innerHTML = `<div class="profile-readonly-panel"><p class="eyebrow">DISPLAY PROFILE</p><h3>${escapeHtml(record.priestess_name || record.member_name || 'Priestess Profile')}</h3><p>${escapeHtml(priestessProfileStatusCopy(record.status))}</p>${profileReviewNotes(record)}</div>`;
     return;
   }
-  profileStudioForm.innerHTML = `<form class="profile-form" id="priestessProfileForm">
-    <div class="profile-form-heading"><div><p class="eyebrow">PROFILE INTAKE</p><h3>Your public-facing doorway</h3><p>${escapeHtml(priestessProfileStatusCopy(record.status))}</p></div>${profileStatusPill(record.status)}</div>
-    <div class="form-grid"><label><span>Priestess name</span><input name="priestess_name" value="${escapeHtml(record.priestess_name || '')}" placeholder="Megan Michele" /></label><label><span>Legal/profile name if different</span><input name="legal_name" value="${escapeHtml(record.legal_name || '')}" placeholder="Optional" /></label></div>
-    <div class="form-grid"><label><span>Profile email</span><input name="profile_email" type="email" value="${escapeHtml(record.profile_email || currentProfile?.email || '')}" placeholder="hello@example.com" /></label><label><span>Photo URL</span><input name="profile_photo_url" type="url" value="${escapeHtml(record.profile_photo_url || '')}" placeholder="https://..." /></label></div>
-    <label><span>About Me / Bio</span><textarea name="bio" rows="5">${escapeHtml(record.bio || '')}</textarea></label>
-    <label><span>Modalities</span><textarea name="modalities" rows="3">${escapeHtml(record.modalities || '')}</textarea></label>
-    <label><span>Who she serves</span><textarea name="who_she_serves" rows="3">${escapeHtml(record.who_she_serves || '')}</textarea></label>
-    <label><span>Session types</span><textarea name="session_types" rows="3">${escapeHtml(record.session_types || '')}</textarea></label>
-    <label><span>Offerings</span><textarea name="offerings" rows="4">${escapeHtml(record.offerings || '')}</textarea></label>
-    <div class="form-grid"><label><span>Queendom name</span><input name="queendom_name" value="${escapeHtml(record.queendom_name || '')}" /></label><label><span>Location</span><input name="location" value="${escapeHtml(record.location || '')}" /></label></div>
-    <div class="form-grid"><label><span>Timezone</span><input name="timezone" value="${escapeHtml(record.timezone || '')}" placeholder="America/Los_Angeles" /></label><label><span>Scheduling link</span><input name="scheduling_url" type="url" value="${escapeHtml(record.scheduling_url || '')}" placeholder="https://..." /></label></div>
-    <div class="form-grid"><label><span>Website</span><input name="website_url" type="url" value="${escapeHtml(record.website_url || '')}" placeholder="https://..." /></label><label><span>Instagram</span><input name="instagram_url" type="url" value="${escapeHtml(record.instagram_url || '')}" placeholder="https://..." /></label></div>
-    <div class="form-grid"><label><span>TikTok</span><input name="tiktok_url" type="url" value="${escapeHtml(record.tiktok_url || '')}" placeholder="https://..." /></label><label><span>Podcast</span><input name="podcast_url" type="url" value="${escapeHtml(record.podcast_url || '')}" placeholder="https://..." /></label></div>
-    <label><span>Womb / magic / framework language</span><textarea name="framework_language" rows="4">${escapeHtml(record.framework_language || '')}</textarea></label>
-    <div class="profile-consent-grid"><label class="checkbox-row"><input type="checkbox" name="network_opt_in" ${boolAttr(record.network_opt_in)} /><span>I am interested in the Flowtel practitioner network doorway.</span></label><label class="checkbox-row"><input type="checkbox" name="revenue_share_opt_in" ${boolAttr(record.revenue_share_opt_in)} /><span>I understand future Queendom booking/revenue-share details will be confirmed later.</span></label></div>
+  const titleValue = selectedTitleValue(record);
+  const bioValue = selectedBioValue(record);
+  const offeringValues = selectedOfferingValues(record);
+  const timezone = record.timezone || 'America/Los_Angeles';
+  profileStudioForm.innerHTML = `<form class="profile-form profile-form--simple" id="priestessProfileForm">
+    <div class="profile-form-heading">
+      <div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p>${escapeHtml(priestessProfileStatusCopy(record.status))}</p></div>
+      ${profileStatusPill(record.status)}
+    </div>
+    <div class="form-grid"><label><span>Profile Name</span><input name="priestess_name" value="${escapeHtml(record.priestess_name || '')}" placeholder="First name or priestess name" /></label><label><span>Legal Name — private</span><input name="legal_name" value="${escapeHtml(record.legal_name || '')}" placeholder="For future network documents" /></label></div>
+    <label><span>Title</span><select name="title_value">${renderTitleOptions(titleValue)}</select></label>
+    <label><span>Bio Template</span><select name="bio_template">${renderBioOptions(titleValue, bioValue)}</select></label>
+    <div class="selected-bio-preview" data-selected-bio-preview></div>
+    <fieldset class="offering-fieldset"><legend>Offerings</legend><div class="selection-chip-grid">${renderOfferingOptions(offeringValues)}</div></fieldset>
+    <div class="form-grid"><label><span>Location — optional</span><input name="location" value="${escapeHtml(record.location || '')}" placeholder="Pacific Grove, CA / Online" /></label><label><span>Your Timezone</span><select name="timezone">${renderTimezoneOptions(timezone)}</select></label></div>
+    <label class="checkbox-row checkbox-row--simple"><input type="checkbox" name="display_location" ${displayLocation(record) ? 'checked' : ''} /><span>Display my location on my Priestess Profile.</span></label>
+    <label><span>External Website URL — optional</span><input name="website_url" type="url" value="${escapeHtml(record.website_url || '')}" placeholder="https://..." /></label>
+    <div class="photo-upload-note"><p class="eyebrow">PROFILE PHOTO</p><p>Photo upload can stay inside the Squarespace form/content storage for now. Flowtel will hold this place for the public profile preview.</p></div>
     ${profileReviewNotes(record)}
     <div class="assignment-actions profile-actions"><button type="button" data-profile-action="preview">Refresh Preview</button><button type="button" data-profile-action="draft">Save Profile Draft</button><button type="button" data-profile-action="submit">Send Profile to be Witnessed</button></div>
   </form>`;
   bindProfileForm();
+  refreshSelectedBioPreview();
+}
+function refreshSelectedBioPreview(){
+  const form = document.getElementById('priestessProfileForm');
+  const node = form?.querySelector('[data-selected-bio-preview]');
+  if(!form || !node) return;
+  const bioValue = form.querySelector('[name="bio_template"]')?.value;
+  const bio = PRIESTESS_BIO_TEMPLATES.find(item => item.value === bioValue);
+  node.innerHTML = `<p>${escapeHtml(bio?.copy || '')}</p>`;
 }
 function bindProfileForm(){
   const form = document.getElementById('priestessProfileForm');
   if(!form) return;
-  form.querySelectorAll('[data-profile-action]').forEach(button => {
-    button.addEventListener('click', () => handleProfileAction(form, button.dataset.profileAction));
+  const titleSelect = form.querySelector('[name="title_value"]');
+  const bioSelect = form.querySelector('[name="bio_template"]');
+  titleSelect?.addEventListener('change', () => {
+    const options = bioTemplatesForTitle(titleSelect.value);
+    bioSelect.innerHTML = options.map(item => `<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+    refreshSelectedBioPreview();
+    refreshPreviewFromForm(form);
   });
+  bioSelect?.addEventListener('change', () => { refreshSelectedBioPreview(); refreshPreviewFromForm(form); });
+  form.querySelectorAll('input, select').forEach(input => input.addEventListener('input', () => refreshPreviewFromForm(form)));
+  form.querySelectorAll('[data-profile-action]').forEach(button => button.addEventListener('click', () => handleProfileAction(form, button.dataset.profileAction)));
+}
+function refreshPreviewFromForm(form){
+  const payload = profilePayloadFromForm(form);
+  currentPriestessProfile = { ...(currentPriestessProfile || {}),
+    priestess_name: payload.priestessName,
+    legal_name: payload.legalName,
+    bio: payload.bio,
+    modalities: payload.modalities,
+    website_url: payload.websiteUrl,
+    offerings: payload.offerings,
+    location: payload.location,
+    timezone: payload.timezone,
+  };
+  profileStudioPreview.innerHTML = renderDisplayProfile(currentPriestessProfile);
 }
 async function handleProfileAction(form, action){
   const payload = profilePayloadFromForm(form);
   try{
     if(action === 'preview'){
-      currentPriestessProfile = { ...(currentPriestessProfile || {}), ...{
-        priestess_name: payload.priestessName,
-        legal_name: payload.legalName,
-        profile_email: payload.profileEmail,
-        profile_photo_url: payload.profilePhotoUrl,
-        bio: payload.bio,
-        modalities: payload.modalities,
-        who_she_serves: payload.whoSheServes,
-        session_types: payload.sessionTypes,
-        scheduling_url: payload.schedulingUrl,
-        website_url: payload.websiteUrl,
-        instagram_url: payload.instagramUrl,
-        tiktok_url: payload.tiktokUrl,
-        podcast_url: payload.podcastUrl,
-        queendom_name: payload.queendomName,
-        offerings: payload.offerings,
-        location: payload.location,
-        timezone: payload.timezone,
-        framework_language: payload.frameworkLanguage,
-        network_opt_in: payload.networkOptIn,
-        revenue_share_opt_in: payload.revenueShareOptIn,
-      }};
-      renderProfileStudio(currentPriestessProfile, { readOnly:false });
+      refreshPreviewFromForm(form);
       setMessage(message, 'Profile preview refreshed.');
       return;
     }
@@ -171,10 +257,8 @@ async function refreshPriestessProfile(){
     currentPriestessProfile = await getPriestessProfile(requestedMemberId());
   }catch(error){
     console.error(error);
-    currentPriestessProfile = { status: 'draft' };
-    if(!readOnly){
-      setMessage(message, 'The Studio opened, but the saved profile could not be loaded. You can still begin drafting here.');
-    }
+    currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
+    if(!readOnly) setMessage(message, 'The Studio opened, but the saved profile could not be loaded. You can still begin drafting here.');
   }
   renderProfileStudio(currentPriestessProfile, { readOnly });
 }
@@ -187,7 +271,8 @@ async function init(){
   }catch(error){
     console.error(error);
     accessState.innerHTML = renderAccessCard(null);
-    renderProfileStudio({ status: 'draft' }, { readOnly: true });
+    currentProfile = null;
+    renderProfileStudio({ status: 'draft', timezone: 'America/Los_Angeles' }, { readOnly: true });
     setMessage(message, 'The Priestess Profile Studio is visible in preview mode.');
   }
 }

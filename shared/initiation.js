@@ -21,7 +21,7 @@ export const FLOW_FM_MOONS = [
 ];
 
 export const FLOW_FM_ASSIGNMENTS = [
-  { index: 1, title: 'Create your Priestess Profile + About Me', type: 'Profile Foundation', description: 'Gather the words, photo, modalities, and offering language that will become your public Priestess Profile.' },
+  { index: 1, title: 'Your Queendom', type: 'Profile Foundation', description: 'Choose the first public doorway for your Priestess Profile so your Queendom can begin taking shape without overthinking the bio.' },
   { index: 2, title: 'Record Womb Wealth Affirmation Audio', type: 'Audio Medicine', description: 'Create a short audio transmission your future clients can return to for womb wealth, receptivity, and overflow.' },
   { index: 3, title: 'Create Your Offerings', type: 'Offer Architecture', description: 'Name and shape the first offerings that your Queendom can actually book, buy, or receive.' },
   { index: 4, title: 'Design Business Cards + Flyers', type: 'Visibility Asset', description: 'Create simple, beautiful print assets that make your medicine easy to share in the physical world.' },
@@ -46,6 +46,75 @@ export const FLOW_FM_ARCS = [
 
 const GREGORIAN_MONTH_TO_CANONICAL = { 0: 3, 1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 1, 11: 2 };
 const DEFAULT_FULL_MOON_THRESHOLD_DAY = 15;
+
+const SYNODIC_MONTH_DAYS = 29.530588853;
+const KNOWN_2026_NEW_MOONS = {
+  0: '2026-01-18',
+  1: '2026-02-17',
+  2: '2026-03-18',
+  3: '2026-04-17',
+  4: '2026-05-16',
+  5: '2026-06-14',
+  6: '2026-07-14',
+  7: '2026-08-12',
+  8: '2026-09-10',
+  9: '2026-10-10',
+  10: '2026-11-08',
+  11: '2026-12-08',
+};
+
+function isoFromUTC(year, monthIndex, day){
+  return new Date(Date.UTC(year, monthIndex, day)).toISOString().slice(0,10);
+}
+
+function utcDateFromISO(iso){
+  const [year, month, day] = String(iso).slice(0,10).split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function addDaysISO(iso, days){
+  return new Date(utcDateFromISO(iso) + days * 86400000).toISOString().slice(0,10);
+}
+
+function approximateNewMoonForMonth(year, monthIndex){
+  if(Number(year) === 2026 && KNOWN_2026_NEW_MOONS[monthIndex]) return KNOWN_2026_NEW_MOONS[monthIndex];
+  const monthCenter = Date.UTC(year, monthIndex, 15);
+  const anchor = utcDateFromISO('2026-06-14');
+  const cycles = Math.round((monthCenter - anchor) / (SYNODIC_MONTH_DAYS * 86400000));
+  return new Date(anchor + cycles * SYNODIC_MONTH_DAYS * 86400000).toISOString().slice(0,10);
+}
+
+function displayMoonDate(iso){
+  const date = new Date(`${iso}T00:00:00Z`);
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date);
+}
+
+function monthIndexForMoon(portal){
+  if(portal?.isOuroboros && portal?.returnMoon) return monthIndexForMoon(portal.returnMoon);
+  const value = String(portal?.month || '').slice(0,3).toUpperCase();
+  const labels = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  return Math.max(0, labels.indexOf(value));
+}
+
+export function getMoonDatesForPortal(portal = {}, nowDate = new Date()){
+  const status = portal.status || {};
+  const startedAt = status.startedAt instanceof Date ? status.startedAt : (status.startedAt ? new Date(status.startedAt) : nowDate);
+  const offset = Math.max(0, Number(portal.portalIndex || 1) - 1);
+  const workingDate = new Date(startedAt.getFullYear(), startedAt.getMonth() + offset, 1);
+  const monthIndex = monthIndexForMoon(portal);
+  const year = portal.isOuroboros
+    ? workingDate.getFullYear()
+    : (Number.isFinite(monthIndex) ? workingDate.getFullYear() : nowDate.getFullYear());
+  const newMoonISO = approximateNewMoonForMonth(year, monthIndex);
+  const fullMoonISO = addDaysISO(newMoonISO, 14);
+  return {
+    newMoonISO,
+    fullMoonISO,
+    newMoonLabel: displayMoonDate(newMoonISO),
+    fullMoonLabel: displayMoonDate(fullMoonISO),
+  };
+}
+
 
 export function getFlowFmAssignmentForMoon(moonIndex){
   return FLOW_FM_ASSIGNMENTS.find(item => Number(item.index) === Number(moonIndex)) || null;

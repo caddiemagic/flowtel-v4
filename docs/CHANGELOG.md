@@ -1,14 +1,17 @@
-## v0.10.8 — Initiation Hall Simplification
 
-- Simplified `/flow-fm/` into the primary student home and reduced the duplicate Initiation Hall / Moon Portal feeling.
-- Added a Concierge-style 13-moon progress tracker to the Flow FM home page.
-- Added three clear next-step cards for Current Womb Work, Current Business Assignment, and Upcoming Initiations.
-- Reduced oversized Flow FM headers and softened page hierarchy so the hall is easier to scan.
-- Removed redundant top navigation buttons for 13 Moons Path, Womb Work Modules, and Business Assignments.
-- Simplified the 13 Moons page into a quiet moon-door exploration view and removed the Current Initiation / Start Rule panels.
-- Kept all moon doors open for exploration while keeping the current moon visually clear.
-- Restricted the Flow FM Review Desk to admin/owner accounts in the front end.
-- Added migration 026 to restrict review queue access and review actions to admin/owner accounts at the database/RPC layer.
+## v0.10.9 — Profile Studio Simplification + Initiation Hall Polish
+
+- Simplified Priestess Profile Studio into a low-overwhelm selection flow with Profile Name, Legal Name, Title, Bio Template, Offerings, optional Location, Preferred Timezone, and External Website URL.
+- Added prepared Priestess title, bio, offering, and timezone options in `shared/priestess-profile-options.js`.
+- Changed the Profile Studio hero to `Your Queendom` and updated Assignment 1 language to match.
+- Hid Access State from normal users while keeping admin/debug access available with `?debug=1`.
+- Simplified Flow FM top navigation to Initiation Hall, Planning Room, Profile Studio, and Return to Suite.
+- Added `Track Your Cycle` to Womb Work Module 1.
+- Added New Moon and Full Moon date lines to 13 Moons / Explore the Spiral cards.
+- Began restyling moon portals as gold-trimmed temple-door cards.
+- Updated coursework navigation to include Return to Concierge.
+- Tightened Review Desk front-end access to admin/owner roles.
+- No Supabase migration required.
 
 
 ## v0.10.7 — Moon Portal Experience + Hall Facelift

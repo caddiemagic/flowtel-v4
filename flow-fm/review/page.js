@@ -32,7 +32,7 @@ function reviewLink(row){
 }
 function renderReviewQueue(rows=[]){
   if(!isAdminRole(currentProfile)){
-    reviewQueue.innerHTML = `<article class="review-row empty"><p>The Review Desk opens for Flowtel admin and owner accounts.</p></article>`;
+    reviewQueue.innerHTML = `<article class="review-row empty"><p>The Review Desk opens for Flowtel admin and owner accounts only.</p></article>`;
     return;
   }
   if(!rows.length){
@@ -66,7 +66,7 @@ async function handleReviewAction(row, status){
 }
 function renderProfileReviewQueue(rows=[]){
   if(!isAdminRole(currentProfile)){
-    profileReviewQueue.innerHTML = `<article class="review-row empty"><p>The profile review queue opens for Flowtel admin and owner accounts.</p></article>`;
+    profileReviewQueue.innerHTML = `<article class="review-row empty"><p>The profile review queue opens for Flowtel admin and owner accounts only.</p></article>`;
     return;
   }
   if(!rows.length){
@@ -101,7 +101,7 @@ async function refresh(){
   if(!isAdminRole(currentProfile)){
     renderReviewQueue([]);
     renderProfileReviewQueue([]);
-    setMessage(message, 'The Review Desk opens for Flowtel admin and owner accounts.');
+    setMessage(message, 'The Review Desk opens for Flowtel admin and owner accounts only.');
     return;
   }
 
@@ -131,7 +131,7 @@ async function refresh(){
   setMessage(message, notices.join(' '));
 }
 async function init(){
-  topNav.innerHTML = renderTopNav('hallway');
+  topNav.innerHTML = renderTopNav('review');
   try{
     currentProfile = await getCurrentProfile();
     accessState.innerHTML = renderAccessCard(currentProfile);

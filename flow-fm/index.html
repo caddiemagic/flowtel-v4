@@ -4,79 +4,73 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Initiation Hall</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.8" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.9" />
 </head>
 <body>
-  <main class="initiation-shell initiation-shell--simple">
-    <nav class="top-nav top-nav--quiet" id="topNav"></nav>
+  <main class="initiation-shell initiation-shell--facelift">
+    <nav class="top-nav" id="topNav"></nav>
 
-    <section class="hall-hero-card hall-hero-card--compact">
+    <section class="hall-hero-card">
       <div class="hall-hero-copy">
-        <p class="eyebrow">FLOW FM</p>
+        <p class="eyebrow">FLOW FM INITIATION</p>
         <h1>Initiation Hall</h1>
-        <p id="heroCopy">Your current moon, next teaching, and next business doorway.</p>
+        <p id="heroCopy">A quiet hallway of moon portals, practical teachings, and witnessed business creation.</p>
       </div>
+      <div class="hall-hero-seal" aria-hidden="true">☽</div>
     </section>
 
-    <section class="flowfm-focus-card">
-      <div class="flowfm-focus-copy">
+    <section class="you-are-here-card you-are-here-card--main">
+      <div>
         <p class="eyebrow">YOU ARE HERE</p>
-        <h2 id="currentMoonTitle">Opening your current moon...</h2>
-        <p id="currentMoonMeta">Flowtel is finding your place in the 13-moon path.</p>
-        <div class="initiation-progress moon-progress flowfm-progress" aria-hidden="true">
-          <span id="initiationProgressBar"></span>
-          <b id="initiationMoonMarker">☾</b>
-        </div>
+        <h2 id="currentMoonTitle">Opening your moon portal...</h2>
+        <p id="currentMoonMeta"></p>
       </div>
-      <div class="flowfm-current-summary">
-        <article>
-          <span>Womb Work</span>
-          <strong id="currentModuleTitle">Loading module...</strong>
-        </article>
-        <article>
-          <span>Business Assignment</span>
-          <strong id="currentAssignmentTitle">Loading assignment...</strong>
-        </article>
+      <div class="next-room-card">
+        <p class="eyebrow">NEXT DOORWAY</p>
+        <h3 id="nextDoorTitle">Finding your next step...</h3>
+        <p id="nextDoorCopy"></p>
+        <a class="pill-link" id="currentPortalLink" href="/flow-fm/portal/">Open Current Moon Portal</a>
       </div>
     </section>
 
-    <section class="next-step-grid" aria-label="Flow FM next steps">
-      <article class="next-step-card next-step-card--primary">
-        <p class="eyebrow">CURRENT TRAINING</p>
-        <h3 id="currentModuleActionTitle">Open your Womb Work.</h3>
-        <p id="currentModuleCopy">The inner curriculum for this moon lives here.</p>
-        <a class="pill-link" id="currentModuleLink" href="/flow-fm/portal/#training">Open Current Womb Work</a>
+    <section class="curriculum-current-grid">
+      <article class="current-piece-card">
+        <p class="eyebrow">CURRENT WOMB WORK</p>
+        <h3 id="currentModuleTitle">Loading module...</h3>
+        <p id="currentModuleCopy"></p>
       </article>
-      <article class="next-step-card">
-        <p class="eyebrow">CURRENT BUILD</p>
-        <h3 id="currentAssignmentActionTitle">Open your assignment.</h3>
-        <p id="currentAssignmentCopy">The outer build track for this moon lives here.</p>
-        <a class="pill-link muted" id="currentAssignmentLink" href="/flow-fm/portal/#assignment">Open Current Business Assignment</a>
+      <article class="current-piece-card">
+        <p class="eyebrow">CURRENT BUSINESS ASSIGNMENT</p>
+        <h3 id="currentAssignmentTitle">Loading assignment...</h3>
+        <p id="currentAssignmentCopy"></p>
       </article>
-      <article class="next-step-card">
-        <p class="eyebrow">EXPLORE</p>
-        <h3>Upcoming initiations</h3>
-        <p>All moon doors are open. Your current moon stays clear, but you can explore ahead when your body says yes.</p>
-        <a class="pill-link muted" href="/flow-fm/moons/">Explore Upcoming Initiations</a>
+      <article class="current-piece-card">
+        <p class="eyebrow">PLANNING SUPPORT</p>
+        <h3>Moon Calendar Practice</h3>
+        <p>Use the Planning Room to print the moon calendar, choose the right kind of work, and stay steady while you build.</p>
       </article>
     </section>
 
-    <section class="moon-strip-card">
-      <div class="section-heading compact section-heading--simple">
-        <p class="eyebrow">YOUR 13-MOON PATH</p>
-        <h2>The doors ahead.</h2>
+    <section class="moon-portal-library-card">
+      <div class="section-heading compact">
+        <p class="eyebrow">MOON PORTAL LIBRARY</p>
+        <h2>Your personal 13-moon path</h2>
+        <p id="pathCopy">The doors below rotate around the moon you entered through. You may explore ahead without losing your current place.</p>
       </div>
-      <div class="portal-door-strip portal-door-strip--calm" id="portalDoorStrip"></div>
+      <div class="portal-door-grid" id="portalDoorGrid"></div>
     </section>
 
-    <section class="support-link-row" aria-label="Support rooms">
-      <a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a>
-      <a class="pill-link muted" href="/flow-fm/profile-studio/">Profile Studio</a>
-      <a class="pill-link muted" href="/client/?suite=1">Return to Suite</a>
+    <section class="door-grid-card door-grid-card--quiet">
+      <div class="section-heading compact">
+        <p class="eyebrow">SUPPORT ROOMS</p>
+        <h2>Everything has a room.</h2>
+        <p>The Moon Portal is the primary path. These rooms remain open as libraries, tools, and support desks.</p>
+      </div>
+      <div class="door-grid" id="doorGrid"></div>
     </section>
 
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/app.js?v=0.10.8"></script>
+  <script type="module" src="/flow-fm/app.js?v=0.10.9"></script>
 </body>
 </html>

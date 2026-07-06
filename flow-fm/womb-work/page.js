@@ -48,7 +48,7 @@ function renderModuleDetail(){
       <article><span>Reflection Prompt</span><p>${escapeHtml(module.prompt || 'A prompt will be added here.')}</p></article>
       <article><span>Business Assignment Pairing</span><p>${escapeHtml(assignment?.title || 'Integration')}</p></article>
       <article><span>Course Content</span><p>${moduleLessonLink(module)}</p></article>
-    </div>`;
+    </div>${Number(module.index)===1 ? '<div class="module-cta-row"><a class="pill-link" href="/tracker/">Track Your Cycle</a></div>' : ''}`;
 }
 
 renderModules();

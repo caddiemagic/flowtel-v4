@@ -6,6 +6,7 @@ import {
   saveFlowFmAssignmentDraft,
   submitFlowFmAssignment,
   assignmentStatusCopy,
+  getMoonDatesForPortal,
 } from '/shared/flowtel.js';
 import {
   renderTopNav,
@@ -102,23 +103,27 @@ function renderPortal(portal){
   const assignment=portal.businessAssignment || {};
   const record=recordForIndex(currentRecords, assignment.index);
   const readOnly=!currentProfile || isViewingAnotherMember(currentProfile) || !canTendOwnAssignments(currentProfile);
-  portalEyebrow.textContent=`MONTH ${portal.portalIndex}`;
+  portalEyebrow.textContent=`MONTH ${portal.portalIndex} · MOON PORTAL`;
   portalTitle.textContent=portal.isOuroboros ? 'Ouroboros Moon' : portal.name;
   portalIntro.textContent=portal.isOuroboros
     ? `Your 13th moon returns you through ${portal.returnMoon?.name || 'your entry moon'} for integration, celebration, and the next spiral.`
-    : `Your current teaching and business doorway for this initiation.`;
+    : `This portal gathers ${portal.name}, ${module.title || 'womb work'}, and ${assignment.title || 'business practice'} in one place.`;
   hereTitle.textContent=portal.isCurrent ? `You are walking ${portal.name}.` : `You are exploring ${portal.name}.`;
   hereCopy.textContent=portal.isCurrent
     ? 'This is the moon Flowtel is currently orienting you through. You may still explore any portal when your body says yes.'
     : 'This room is open for exploration. Your current moon remains marked in the portal library.';
-  portalActions.innerHTML=`<a class="pill-link" href="/flow-fm/">Back to Hall</a><a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a><a class="pill-link muted" href="/flow-fm/moons/">Explore Doors</a>`;
-  moonPanel.innerHTML=`<p class="eyebrow">MOON INITIATION</p><h3>${escapeHtml(portal.name)}</h3><p>${escapeHtml(portal.theme || '')}</p><div class="portal-meta"><span>${escapeHtml(portal.wing || '')}</span><span>${escapeHtml(portal.season || '')}</span><span>${portal.isOuroboros ? `Returns through ${escapeHtml(portal.returnMoon?.name || 'entry moon')}` : `Canonical ${escapeHtml(portal.month || '')}`}</span></div>`;
-  trainingPanel.innerHTML=`<p class="eyebrow">WOMB WORK MODULE ${escapeHtml(module.index || portal.portalIndex)}</p><h3>${escapeHtml(module.title || 'Integration')}</h3><p>${escapeHtml(module.description || 'Integration practices live here.')}</p><div class="module-detail-grid"><article><span>Practice</span><p>${escapeHtml(module.practice || 'Practice will be added here.')}</p></article><article><span>Reflection Prompt</span><p>${escapeHtml(module.prompt || 'Prompt will be added here.')}</p></article><article><span>Course Content</span><p><span class="lesson-placeholder">Squarespace lesson placeholder</span></p></article></div>`;
+  portalActions.innerHTML=`<a class="pill-link" href="/flow-fm/portal/?portal=${portal.portalIndex}">Current Portal</a><a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a><a class="pill-link muted" href="/concierge/">Return to Concierge</a>`;
+  const moonDates=getMoonDatesForPortal(portal);
+  moonPanel.innerHTML=`<p class="eyebrow">MOON INITIATION</p><h3>${escapeHtml(portal.name)}</h3><p>${escapeHtml(portal.theme || '')}</p><div class="portal-meta"><span>${escapeHtml(portal.wing || '')}</span><span>${escapeHtml(portal.season || '')}</span><span>New Moon: ${escapeHtml(moonDates.newMoonLabel)}</span><span>Full Moon: ${escapeHtml(moonDates.fullMoonLabel)}</span><span>${portal.isOuroboros ? `Returns through ${escapeHtml(portal.returnMoon?.name || 'entry moon')}` : `Canonical ${escapeHtml(portal.month || '')}`}</span></div>`;
+  trainingPanel.innerHTML=`<p class="eyebrow">WOMB WORK MODULE ${escapeHtml(module.index || portal.portalIndex)}</p><h3>${escapeHtml(module.title || 'Integration')}</h3><p>${escapeHtml(module.description || 'Integration practices live here.')}</p><div class="module-detail-grid"><article><span>Practice</span><p>${escapeHtml(module.practice || 'Practice will be added here.')}</p></article><article><span>Reflection Prompt</span><p>${escapeHtml(module.prompt || 'Prompt will be added here.')}</p></article><article><span>Course Content</span><p><span class="lesson-placeholder">Squarespace lesson placeholder</span></p></article></div>${Number(module.index || portal.portalIndex)===1 ? '<div class="module-cta-row"><a class="pill-link" href="/tracker/">Track Your Cycle</a></div>' : ''}`;
   assignmentPanel.innerHTML=`<p class="eyebrow">BUSINESS ASSIGNMENT ${escapeHtml(assignment.index || portal.portalIndex)}</p><div class="assignment-row-heading"><div><h3>${escapeHtml(assignment.title || 'Integration Assignment')}</h3><p>${escapeHtml(assignment.description || 'This portal completes the spiral.')}</p></div>${statusPill(record?.status || 'not_started')}</div><p class="assignment-status-copy">${escapeHtml(assignmentStatusCopy(record?.status || 'not_started'))}</p>${renderAssignmentForm(portal, record, readOnly)}`;
   bindAssignmentForm();
 }
 function renderPortalDoors(path){
-  portalDoorStrip.innerHTML=path.map(portal=>`<a class="portal-mini-door ${portal.isCurrent ? 'current' : ''} ${activePortal?.portalIndex===portal.portalIndex ? 'active' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}"><span>${escapeHtml(portal.portalIndex)}</span><strong>${escapeHtml(portal.name)}</strong><small>${portal.isOuroboros ? `Return: ${escapeHtml(portal.returnMoon?.name || '')}` : escapeHtml(portal.month)}</small></a>`).join('');
+  portalDoorStrip.innerHTML=path.map(portal=>{
+    const moonDates=getMoonDatesForPortal(portal);
+    return `<a class="portal-mini-door ${portal.isCurrent ? 'current' : ''} ${activePortal?.portalIndex===portal.portalIndex ? 'active' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}"><span>${escapeHtml(portal.portalIndex)}</span><strong>${escapeHtml(portal.name)}</strong><small>${portal.isOuroboros ? `Return: ${escapeHtml(portal.returnMoon?.name || '')}` : escapeHtml(portal.month)}</small><small class="moon-date-line"><span>New: ${escapeHtml(moonDates.newMoonLabel)}</span><span>Full: ${escapeHtml(moonDates.fullMoonLabel)}</span></small></a>`;
+  }).join('');
 }
 async function loadRecords(){
   if(!currentProfile){ currentRecords=[]; return; }
@@ -126,7 +131,7 @@ async function loadRecords(){
   catch(error){ console.error(error); currentRecords=[]; setMessage(message,'The portal opened, but assignment records could not be loaded.'); }
 }
 async function init(){
-  topNav.innerHTML=renderTopNav('hallway');
+  topNav.innerHTML=renderTopNav('portal');
   try{
     currentProfile=await getCurrentProfile();
     await loadRecords();

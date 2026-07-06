@@ -76,6 +76,7 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Initiation Hall' },
   { key: 'planning-room', href: '/flow-fm/planning-room/', label: 'Planning Room' },
+  { key: 'profile-studio', href: '/flow-fm/profile-studio/', label: 'Profile Studio' },
   { key: 'suite', href: '/client/?suite=1', label: 'Return to Suite' },
 ];
 
@@ -94,7 +95,7 @@ export function renderAccessState(profile){
   if(canTendOwnAssignments(profile)){
     return {
       title: 'Member mode',
-      copy: 'Your Flow FM hall is open. Follow the next doorway, or explore any moon when your body says yes.',
+      copy: 'Your Flow FM rooms are open. The Moon Portal is the main path, and the library rooms remain open for exploration.',
       mode: 'live',
     };
   }
@@ -106,6 +107,8 @@ export function renderAccessState(profile){
 }
 
 export function renderAccessCard(profile){
+  const debugMode = params().get('debug') === '1' || params().get('debug') === 'true';
+  if(!debugMode || !isAdminRole(profile)) return '';
   const state = renderAccessState(profile);
   const diagnostics = profile ? `
     <div class="access-diagnostics-grid">
