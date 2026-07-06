@@ -1,3 +1,21 @@
+
+## v0.9.20 — Mobile Medicine Wheel Breathing Room
+
+- Spreads the mobile day-number ring outward and slightly tightens bubble size.
+- Increases the mobile Medicine Wheel card space so season cards stay inside the pill.
+- Adds clearance between Moon Magic and the top season cards.
+- Adds responsive wheel re-rendering on resize.
+- No Supabase migration required.
+
+
+## v0.9.19 — Powder Room Navigation + Reflection Sharing Copy Polish
+
+- Added Powder Room season-to-season navigation.
+- Moved Powder Room return actions to the bottom of the page.
+- Simplified Powder Room Sharing consent copy in the Reflection card.
+- Tightened common pill and card spacing.
+- No Supabase migration required.
+
 # Changelog
 
 ## v0.9.18 — Master Powder Room Consent + Flow Map Practice Polish

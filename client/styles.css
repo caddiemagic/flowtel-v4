@@ -2066,3 +2066,103 @@ button.secondary,.drawer-close{background:transparent;box-shadow:none}
     max-width:300px;
   }
 }
+
+
+/* Release 0.9.19 — reflection sharing copy + compact pill polish */
+.powder-master-setting{
+  max-width:980px;
+  margin:12px auto 14px;
+  padding:14px 18px;
+  border-radius:20px;
+}
+.powder-master-setting .eyebrow{
+  margin-bottom:5px;
+}
+.powder-master-setting p:not(.eyebrow):not(.powder-share-status){
+  font-size:.98rem;
+  line-height:1.35;
+}
+.powder-share-status:empty{
+  display:none;
+}
+button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
+  min-height:38px;
+  padding-top:9px;
+  padding-bottom:9px;
+}
+.cycle-data-pill .cycle-data-box,
+.cycle-data-card .cycle-data-box,
+.room-stack article,
+.concierge-note,
+.room-card,
+.practitioner-card{
+  padding-top:18px;
+  padding-bottom:18px;
+}
+@media(max-width:720px){
+  .powder-master-setting{
+    padding:13px 15px;
+  }
+  .powder-master-setting p:not(.eyebrow):not(.powder-share-status){
+    font-size:.94rem;
+  }
+}
+
+
+/* Release 0.9.20 — Mobile Medicine Wheel breathing room */
+@media(max-width:700px){
+  .wheel-panel{
+    width:min(100%,390px) !important;
+    max-width:390px !important;
+    padding:112px 14px 126px !important;
+    overflow:visible !important;
+  }
+  .wheel-panel .suite-moon-magic-pill{
+    margin-bottom:72px !important;
+  }
+  .wheel-panel .medicine-wheel{
+    width:min(100%,350px) !important;
+    margin-top:0 !important;
+    margin-bottom:10px !important;
+  }
+  .medicine-wheel{
+    --day-size:30px;
+  }
+  .wheel-room{
+    width:30px !important;
+    height:30px !important;
+    font-size:.70rem !important;
+  }
+  .wheel-number-ring{
+    border-width:3px !important;
+  }
+  .wheel-season{
+    width:96px !important;
+    min-width:96px !important;
+    padding:7px 7px !important;
+    font-size:.54rem !important;
+    line-height:1.05 !important;
+  }
+  .wheel-season em{
+    font-size:1rem !important;
+    margin-bottom:1px !important;
+  }
+  .wheel-season small{
+    font-size:.38rem !important;
+    letter-spacing:.065em !important;
+  }
+  .wheel-season-autumn{left:4px !important;top:-54px !important;}
+  .wheel-season-summer{right:4px !important;top:-54px !important;}
+  .wheel-season-winter{left:4px !important;bottom:-62px !important;}
+  .wheel-season-spring{right:4px !important;bottom:-62px !important;}
+  .rose-compass-center{
+    width:min(42%,150px) !important;
+    height:min(42%,150px) !important;
+  }
+  .wheel-star-marker{
+    font-size:1.08rem !important;
+  }
+  .you-are-here{
+    margin-top:66px !important;
+  }
+}

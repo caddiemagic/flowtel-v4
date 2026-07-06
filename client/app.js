@@ -515,8 +515,18 @@ function cycleDifferenceLabel(difference){
   NORTH = 90°
 */
 const WHEEL_DAY_RADIUS = 33;
+const WHEEL_DAY_RADIUS_MOBILE = 38.5;
 const WHEEL_DAY_SIZE = 34;
+const WHEEL_DAY_SIZE_MOBILE = 30;
 const WHEEL_RING_GAP = 12;
+
+function currentWheelMetrics(){
+  const isMobile = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(max-width: 700px)").matches;
+  return {
+    radius: isMobile ? WHEEL_DAY_RADIUS_MOBILE : WHEEL_DAY_RADIUS,
+    daySize: isMobile ? WHEEL_DAY_SIZE_MOBILE : WHEEL_DAY_SIZE,
+  };
+}
 
 function normalizedRoom(day){
   const value=Number(day);
@@ -541,12 +551,12 @@ function wheelPositionAtRadius(day, radius){
 }
 
 function wheelPosition(day){
-  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS);
+  return wheelPositionAtRadius(day, currentWheelMetrics().radius);
 }
 
 function wheelStarPosition(day){
   // The star rides on the outer gold ring instead of floating above the day bubble.
-  return wheelPositionAtRadius(day, WHEEL_DAY_RADIUS + 3.2);
+  return wheelPositionAtRadius(day, currentWheelMetrics().radius + 3.2);
 }
 
 function renderWheel(activeRoom){
@@ -555,10 +565,11 @@ function renderWheel(activeRoom){
   const activePosition=wheelPosition(activeNormalizedRoom);
   const starPosition=wheelStarPosition(activeNormalizedRoom);
 
-  medicineWheel.style.setProperty("--day-radius", `${WHEEL_DAY_RADIUS}%`);
-  medicineWheel.style.setProperty("--ring-base", `${WHEEL_DAY_RADIUS * 2}%`);
-  medicineWheel.style.setProperty("--day-size", `${WHEEL_DAY_SIZE}px`);
-  medicineWheel.style.setProperty("--ring-offset", `${WHEEL_DAY_SIZE + (WHEEL_RING_GAP * 2)}px`);
+  const wheelMetrics = currentWheelMetrics();
+  medicineWheel.style.setProperty("--day-radius", `${wheelMetrics.radius}%`);
+  medicineWheel.style.setProperty("--ring-base", `${wheelMetrics.radius * 2}%`);
+  medicineWheel.style.setProperty("--day-size", `${wheelMetrics.daySize}px`);
+  medicineWheel.style.setProperty("--ring-offset", `${wheelMetrics.daySize + (WHEEL_RING_GAP * 2)}px`);
 
   medicineWheel.innerHTML = `
   <a class="wheel-season wheel-season-autumn" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Autumn Powder Room"><em>🍁</em>Inner Autumn<small>Days 20–26</small></a>
@@ -738,7 +749,7 @@ function renderPowderRoomSharingSetting(){
   toggle.checked=sharingEnabled;
   if(status){
     status.textContent=sharingEnabled
-      ? "Anonymous Powder Room sharing is on for your reflections and checkout notes."
+      ? ""
       : "Powder Room sharing is off. Your reflections stay out of the anonymous rooms.";
   }
 }
@@ -1588,6 +1599,14 @@ const checkoutReturnButton=document.getElementById("checkoutReturnButton");
 if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>{showScene("lobby");window.scrollTo({top:0,behavior:"smooth"});});
 document.getElementById("closeVisitsButton").addEventListener("click",()=>document.getElementById("visitsDrawer").classList.add("hidden"));
 
+
+
+let wheelResizeTimer=null;
+window.addEventListener("resize",()=>{
+  if(!currentStay) return;
+  clearTimeout(wheelResizeTimer);
+  wheelResizeTimer=setTimeout(()=>renderWheel(stayActualDay(currentStay)),120);
+});
 
 const powderRoomSharingToggle=document.getElementById("powderRoomSharingToggle");
 if(powderRoomSharingToggle){
