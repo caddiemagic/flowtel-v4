@@ -240,7 +240,7 @@ export async function createStay({cycleDay,feelsLike}){
   return data;
 }
 
-export async function saveReflection(stayId, reflection){
+export async function saveReflection(stayId, reflection, options={}){
   const cleaned=String(reflection||"").trim();
   if(!cleaned) throw new Error("Add a reflection before saving.");
 
@@ -248,6 +248,7 @@ export async function saveReflection(stayId, reflection){
   if(!user) throw new Error("No signed-in user.");
 
   const savedAt=new Date().toISOString();
+  const shareInPowderRooms=options?.shareInPowderRooms !== false;
 
   const { data:entry, error:entryError } = await supabase
     .from("flowtel_reflections")
@@ -255,6 +256,7 @@ export async function saveReflection(stayId, reflection){
       stay_id: stayId,
       client_id: user.id,
       reflection: cleaned,
+      share_in_powder_rooms: shareInPowderRooms,
       created_at: savedAt,
     })
     .select()
@@ -264,6 +266,7 @@ export async function saveReflection(stayId, reflection){
 
   const {data,error}=await supabase.from("flowtel_stays").update({
     reflection: cleaned,
+    reflection_share_in_powder_rooms: shareInPowderRooms,
     stay_status:"settled",
     updated_at:savedAt
   }).eq("id",stayId).select().single();
@@ -273,11 +276,13 @@ export async function saveReflection(stayId, reflection){
   return { ...data, latest_reflection_entry: entry };
 }
 
-export async function closeStayPersonally(stayId, checkoutNotes=""){
+export async function closeStayPersonally(stayId, checkoutNotes="", options={}){
   const {data:stay,error:stayError}=await supabase.from("flowtel_stays").select("*").eq("id",stayId).single();
   if(stayError) throw stayError;
+  const shareInPowderRooms=options?.shareInPowderRooms !== false;
   const {data,error}=await supabase.from("flowtel_stays").update({
     checkout_notes:checkoutNotes,
+    checkout_share_in_powder_rooms: shareInPowderRooms,
     checked_out_at:new Date().toISOString(),
     stay_status:"checked_out",
     stay_end_type:"manual",

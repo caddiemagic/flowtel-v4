@@ -6,6 +6,7 @@ const intro=document.getElementById("flowMapIntro");
 const viewEyebrow=document.getElementById("viewEyebrow");
 const viewingName=document.getElementById("viewingName");
 const cycleSelector=document.getElementById("cycleSelector");
+const scopeToggle=document.getElementById("scopeToggle");
 const openCycleDataLink=document.getElementById("openCycleDataLink");
 const printFlowMapButton=document.getElementById("printFlowMapButton");
 const practiceCopy=document.getElementById("practiceCopy");
@@ -64,6 +65,30 @@ function cycleDataHref(){
   if(scope==="all") return "/cycle-data/?scope=all";
   return "/cycle-data/";
 }
+function flowMapHrefFor({targetId="",scope=""}={}){
+  if(targetId) return `/flow-map/?client=${encodeURIComponent(targetId)}`;
+  if(scope==="all") return "/flow-map/?scope=all";
+  return "/flow-map/";
+}
+function link(label,href,active=false){
+  const a=document.createElement("a");
+  a.textContent=label;
+  a.href=href;
+  a.className=active ? "active" : "";
+  return a;
+}
+function renderScopeToggle(profile,clients,targetId,mode){
+  if(!scopeToggle) return;
+  scopeToggle.innerHTML="";
+  scopeToggle.appendChild(link("My Flow Map","/flow-map/",mode==="self"));
+  clients.forEach(row=>{
+    const client=row.client || {};
+    scopeToggle.appendChild(link(fullName(client),flowMapHrefFor({targetId:row.client_id}),targetId===row.client_id));
+  });
+  if(isMentorRole(profile)){
+    scopeToggle.appendChild(link(isAdminRole(profile)?"All Flowtel Clients":"All My Clients",flowMapHrefFor({scope:"all"}),mode==="all"));
+  }
+}
 function fetchHrefForCycle(cycleStart){
   const url=new URL(window.location.href);
   if(cycleStart) url.searchParams.set("cycle",cycleStart);
@@ -83,7 +108,7 @@ function buildCycles(entries){
   if(!starts.length){
     return [{start:"",end:"",label:"Current Cycle",entries}];
   }
-  return starts.map((start,index)=>{
+  const cycles=starts.map((start,index)=>{
     const previousNewerStart=starts[index-1] || "";
     const end=previousNewerStart ? addDays(previousNewerStart,-1) : "";
     const label=index===0
@@ -96,13 +121,23 @@ function buildCycles(entries){
       entries:entries.filter(row=>row.cycle_start_date===start),
     };
   });
+  if(starts.length>=2){
+    const last3Starts=starts.slice(0,3);
+    cycles.splice(1,0,{
+      start:"__last3",
+      end:"",
+      label:last3Starts.length>=3 ? "Last 3 Cycles" : "Current + Previous Cycles",
+      entries:entries.filter(row=>last3Starts.includes(row.cycle_start_date)),
+    });
+  }
+  return cycles;
 }
 function defaultCycleStart(cycles){
   const explicit=requestedCycle();
   if(explicit && cycles.some(cycle=>cycle.start===explicit)) return explicit;
   // Flow Map Practice defaults to the most recently completed cycle. If there is
   // no completed cycle yet, show the current cycle in progress.
-  return cycles[1]?.start || cycles[0]?.start || "";
+  return cycles.find((cycle,index)=>index>0 && !String(cycle.start).startsWith("__"))?.start || cycles[0]?.start || "";
 }
 function hydrateCycleSelector(cycles,selectedStart){
   cycleSelector.innerHTML=cycles.map(cycle=>`<option value="${escapeHtml(cycle.start)}" ${cycle.start===selectedStart?"selected":""}>${escapeHtml(cycle.label)}</option>`).join("");
@@ -118,19 +153,32 @@ function offCycleLabel(row){
 function seasonKey(season){
   return String(season || "").replace(/^Inner\s+/i,"").toLowerCase();
 }
-function noteMarkup(row,index){
-  const reflection=String(row.reflection_text||"").trim() || "A quiet check-in. No note left.";
+function noteTextEntriesForRow(row){
+  const entries=[];
+  const reflection=String(row.reflection_text||"").trim();
+  const checkout=String(row.checkout_notes||"").trim();
+  if(reflection){
+    entries.push({row, text:reflection, source:"Check-in", at:row.checked_in_at || row.reflection_created_at});
+  }
+  if(checkout){
+    entries.push({row, text:checkout, source:"Checkout", at:row.checked_out_at || row.reflection_created_at || row.checked_in_at});
+  }
+  return entries;
+}
+function noteCardMarkup(entry,index){
+  const row=entry.row;
   const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? "—";
   const feels=row.feels_like_inner_season ? `Feels like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
-  const time=formatTime(row.checked_in_at || row.reflection_created_at);
+  const time=formatTime(entry.at || row.checked_in_at || row.reflection_created_at);
   const off=offCycleLabel(row);
   const clientName=row.client_name || targetClient?.name || "";
   const showClientName=currentMode!=="self" && clientName;
   return `
     <article class="map-note map-note--${(index % 9) + 1}">
       ${showClientName ? `<p class="map-note-client">${escapeHtml(clientName)}</p>` : ""}
-      <p class="map-note-text">${escapeHtml(reflection)}</p>
+      <p class="map-note-text">${escapeHtml(entry.text)}</p>
       <p class="map-note-meta">
+        <span>${escapeHtml(entry.source)}</span>
         <span>Day ${escapeHtml(actual)}</span>
         <span>${escapeHtml(feels)}</span>
         <span>${escapeHtml(time)}</span>
@@ -143,9 +191,11 @@ function renderQuadrants(entries){
   SEASONS.forEach(season=>{
     const holder=document.getElementById(NOTE_TARGETS[season]);
     if(!holder) return;
-    const rows=entries.filter(row=>row.inner_season===season);
-    holder.innerHTML=rows.length
-      ? rows.map((row,index)=>noteMarkup(row,index)).join("")
+    const noteEntries=entries
+      .filter(row=>row.inner_season===season)
+      .flatMap(noteTextEntriesForRow);
+    holder.innerHTML=noteEntries.length
+      ? noteEntries.map((entry,index)=>noteCardMarkup(entry,index)).join("")
       : `<div class="map-empty">10/10 no notes.</div>`;
   });
 }
@@ -179,6 +229,7 @@ async function init(){
     const targetId=requestedClientId();
     const scope=requestedScope();
     currentMode=scope==="all" ? "all" : targetId ? "client" : "self";
+    renderScopeToggle(currentProfile,currentClients,targetId,currentMode);
 
     if(currentMode==="all"){
       if(!isMentorRole(currentProfile)) throw new Error("Only mentors and admins can open a collective Flow Map.");

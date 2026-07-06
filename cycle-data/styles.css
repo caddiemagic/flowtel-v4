@@ -426,3 +426,15 @@ body:not(.powder-room-mode) .hero-card h1{
     font-size:clamp(2rem,12vw,3.15rem);
   }
 }
+
+
+/* Release 0.9.17 — checkout notes in entry log */
+.checkout-entry-note{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(234,223,212,.78);
+}
+.checkout-entry-note strong{
+  color:var(--ink);
+  font-weight:400;
+}

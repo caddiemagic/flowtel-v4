@@ -413,6 +413,8 @@ function setProgress(step){
 }
 
 function showScene(name){
+  const flowMapLink=document.getElementById("suiteCurrentRoomFlowMapLink");
+  if(flowMapLink) flowMapLink.href="/flow-map/";
   updateFlowtelTimestamp();
   [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene,checkoutCompleteScene].filter(Boolean).forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
@@ -663,6 +665,8 @@ function renderLoungeCheckoutState(){
     const subline=loungeSceneEl.querySelector(".suite-subline");
     if(subline) subline.insertAdjacentElement("afterend",dateLine);
   }
+  const flowMapLink=document.getElementById("suiteCurrentRoomFlowMapLink");
+  if(flowMapLink) flowMapLink.href="/flow-map/";
   updateFlowtelTimestamp();
 
   const card=document.getElementById("loungeCheckoutCard");
@@ -760,6 +764,8 @@ function renderSuite(stay){
     dateLine.setAttribute("data-flowtel-clock","");
     currentRoomCard.appendChild(dateLine);
   }
+  const flowMapLink=document.getElementById("suiteCurrentRoomFlowMapLink");
+  if(flowMapLink) flowMapLink.href="/flow-map/";
   updateFlowtelTimestamp();
 
   document.getElementById("roomTitle").textContent=`${content.title} · Room ${room}`;
@@ -768,6 +774,10 @@ function renderSuite(stay){
   document.getElementById("roomQueenMove").textContent=content.queenMove;
 
   document.getElementById("reflectionInput").value="";
+  const shareReflectionBox=document.getElementById("shareReflectionInPowderRooms");
+  if(shareReflectionBox) shareReflectionBox.checked=true;
+  const shareCheckoutBox=document.getElementById("shareCheckoutInPowderRooms");
+  if(shareCheckoutBox) shareCheckoutBox.checked=true;
 
   renderConciergeCare(stay);
   renderPractitionerConnection();
@@ -1048,12 +1058,17 @@ async function renderPractitionerConnection(){
   const text=document.getElementById("practitionerCardText");
   const directory=document.getElementById("practitionerDirectory");
   const button=document.getElementById("choosePractitionerButton");
+  const scheduleButton=document.getElementById("scheduleMentorCallButton");
   const note=document.getElementById("practitionerMessage");
 
   if(!card||!title||!text||!directory||!button) return;
 
   directory.classList.add("hidden");
   directory.innerHTML="";
+  if(scheduleButton){
+    scheduleButton.classList.add("hidden");
+    scheduleButton.removeAttribute("href");
+  }
   if(note) note.textContent="";
 
   try{
@@ -1066,6 +1081,12 @@ async function renderPractitionerConnection(){
       text.textContent=`${name} is your Mentor to the Moon. This connection will stay with you across future stays until you intentionally change it.`;
       button.textContent="Mentor Connected";
       button.disabled=true;
+      if(scheduleButton){
+        const schedulingUrl=mentor?.mentor_scheduling_url || mentor?.scheduling_url || mentor?.booking_url || "#";
+        scheduleButton.href=schedulingUrl;
+        scheduleButton.classList.remove("hidden");
+        scheduleButton.setAttribute("aria-disabled", schedulingUrl==="#" ? "true" : "false");
+      }
       return;
     }
 
@@ -1428,7 +1449,9 @@ async function handleSaveReflection(){
     const saveButton=document.getElementById("saveReflectionButton");
     if(saveButton) saveButton.disabled=true;
 
-    currentStay=await saveReflection(currentStay.id,value);
+    const shareCheckbox=document.getElementById("shareReflectionInPowderRooms");
+    const shareInPowderRooms=shareCheckbox ? shareCheckbox.checked : true;
+    currentStay=await saveReflection(currentStay.id,value,{shareInPowderRooms});
     cacheSuiteStay(currentStay);
     input.value="";
     if(message) message.textContent="Reflection saved. Your stay has remembered this note.";
@@ -1451,7 +1474,9 @@ async function handleCheckout(){
   if(!currentStay) return;
 
   try{
-    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value);
+    const shareCheckoutBox=document.getElementById("shareCheckoutInPowderRooms");
+    const shareCheckoutInPowderRooms=shareCheckoutBox ? shareCheckoutBox.checked : true;
+    currentStay=await closeStayPersonally(currentStay.id,document.getElementById("checkoutInput").value,{shareInPowderRooms:shareCheckoutInPowderRooms});
     cacheSuiteStay(currentStay);
     document.getElementById("checkoutMessage").textContent="You have personally checked out of today's stay.";
     renderLoungeVisits();

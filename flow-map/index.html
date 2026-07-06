@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Flow Map Practice</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.16" />
+  <link rel="stylesheet" href="./styles.css?v=0.9.17" />
 </head>
 <body>
   <main class="flow-map-shell">
@@ -15,19 +15,22 @@
     </section>
 
     <section class="control-card">
-      <div>
+      <div class="control-heading">
         <p class="eyebrow" id="viewEyebrow">CURRENT VIEW</p>
         <h2 id="viewingName">Loading...</h2>
       </div>
-      <div class="control-actions">
-        <label class="cycle-selector-label">
-          Cycle
-          <select id="cycleSelector"></select>
-        </label>
-        <a class="return-link" id="openCycleDataLink" href="/cycle-data/">View Data Dashboard</a>
-        <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
-        <a class="return-link" href="/client/?suite=1">Return to Suite</a>
-        <a class="return-link" href="/manager/">Return to Concierge</a>
+      <div class="flow-map-controls">
+        <div class="scope-toggle" id="scopeToggle" aria-label="Flow Map view options"></div>
+        <div class="control-actions">
+          <label class="cycle-selector-label">
+            Cycle
+            <select id="cycleSelector"></select>
+          </label>
+          <a class="return-link" id="openCycleDataLink" href="/cycle-data/">View Data Dashboard</a>
+          <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
+          <a class="return-link" href="/client/?suite=1">Return to Suite</a>
+          <a class="return-link" href="/manager/">Return to Concierge</a>
+        </div>
       </div>
     </section>
 
@@ -79,6 +82,6 @@
     <p id="flowMapMessage" class="message"></p>
   </main>
 
-  <script type="module" src="./app.js?v=0.9.16"></script>
+  <script type="module" src="./app.js?v=0.9.17"></script>
 </body>
 </html>

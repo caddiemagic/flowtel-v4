@@ -223,3 +223,17 @@ Medicine Wheel Compass
 - Added a little more vertical space between Powder Room navigation buttons and **Notes left on the mirror**.
 - Updated `/cycle-data/` cache-busting to `v=0.9.15`.
 - No Supabase migration required.
+
+## v0.9.17 — Flow Map Consent + Practice Polish
+
+- Added reflection-level anonymous Powder Room sharing controls, checked by default.
+- Added checkout-note sharing controls, checked by default.
+- Removed quiet/no-note check-ins from the Flow Map Practice.
+- Added checkout notes to Flow Map note pills, Cycle Data entry logs, and eligible Powder Room reflections.
+- Added mentor/admin Flow Map toggles for self, individual clients, and collective client views.
+- Added Last 3 Cycles to the Flow Map cycle selector.
+- Improved mobile Flow Map order: Winter, Spring, Summer, Autumn.
+- Improved Print / Save PDF to preserve the cross-axis Flow Map layout.
+- Added Schedule Call to the connected Mentor to the Moon card.
+- Added View Flow Map under the Current Room pill.
+- Adds Supabase migration 020.

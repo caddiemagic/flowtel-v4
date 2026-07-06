@@ -293,3 +293,79 @@ p{line-height:1.55;color:var(--muted)}
   .flow-map-canvas{box-shadow:none;min-height:920px;page-break-inside:avoid}
   .map-note{box-shadow:none;background:#fff}
 }
+
+/* Release 0.9.17 — Flow Map practice refinements */
+.control-card{
+  align-items:flex-start;
+}
+.control-heading{
+  min-width:220px;
+}
+.flow-map-controls{
+  flex:1;
+  display:grid;
+  gap:14px;
+  justify-items:end;
+}
+.scope-toggle{
+  width:100%;
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:8px;
+}
+.scope-toggle a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:36px;
+  padding:9px 14px;
+  border:1px solid rgba(230,201,196,.9);
+  border-radius:999px;
+  background:rgba(255,253,250,.78);
+  color:var(--ink);
+  text-decoration:none;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.scope-toggle a.active{
+  background:var(--blush);
+  border-color:rgba(217,173,79,.72);
+}
+.map-note-meta span:first-child{
+  color:var(--rose);
+}
+@media(max-width:940px){
+  .flow-map-controls{justify-items:start;margin-top:16px}
+  .scope-toggle{justify-content:flex-start}
+  .quadrant-winter{order:1}
+  .quadrant-spring{order:2}
+  .quadrant-summer{order:3}
+  .quadrant-autumn{order:4}
+}
+@media print{
+  @page{size:landscape;margin:.35in}
+  .flow-map-hero{padding:6px 0 12px!important;margin-bottom:8px!important}
+  .flow-map-hero h1{font-size:2.2rem!important;letter-spacing:.16em!important}
+  .flow-map-hero p{font-size:.8rem!important}
+  .flow-map-canvas{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    grid-template-rows:1fr 1fr!important;
+    min-height:7.1in!important;
+    overflow:hidden!important;
+    border-radius:0!important;
+  }
+  .flow-map-canvas:before,.flow-map-canvas:after,.axis-label,.axis-center{display:block!important}
+  .quadrant{min-height:auto!important;border-top:none!important;padding:26px 28px!important;order:initial!important;page-break-inside:avoid!important}
+  .quadrant header{min-height:54px!important;margin-bottom:4px!important}
+  .note-field{gap:7px!important;padding:4px!important;align-content:flex-start!important}
+  .map-note{width:190px!important;margin:0!important;transform:none!important;padding:10px 12px!important;border-radius:16px!important}
+  .map-note-text{font-size:.72rem!important;line-height:1.25!important}
+  .map-note-meta{margin-top:6px!important;gap:3px!important}
+  .map-note-meta span{font-size:.43rem!important;padding:3px 5px!important}
+  .map-empty{font-size:.72rem!important;margin-top:28px!important;padding:12px!important}
+}

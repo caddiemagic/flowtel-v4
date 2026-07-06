@@ -233,6 +233,7 @@ function entryMarkup(row,{anonymous=false}={}){
         ${row.checked_out_at ? `<span>Checked Out</span>` : `<span>Still Open</span>`}
       </div>
       ${reflection ? `<p class="entry-reflection">${escapeHtml(reflection)}</p>` : `<p>No reflection was saved for this check-in.</p>`}
+      ${String(row.checkout_notes||"").trim() ? `<p class="entry-reflection checkout-entry-note"><strong>Checkout note:</strong> ${escapeHtml(row.checkout_notes)}</p>` : ""}
     </article>
   `;
 }
