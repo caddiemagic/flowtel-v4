@@ -1,0 +1,21 @@
+:root{--ink:#161616;--line:#333;--cream:#fbf7ef;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--cream);font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+.printable-shell{width:min(980px,calc(100% - 32px));margin:0 auto;padding:26px 0 48px}
+.print-actions{display:flex;gap:12px;justify-content:center;margin:0 0 18px}
+.print-actions button,.print-actions a{border:1px solid #d5c9c1;border-radius:999px;background:#fff;padding:11px 18px;color:#6f4b40;text-decoration:none;font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+.flow-map-print{position:relative;width:100%;aspect-ratio:8.5/11;background:#fff;padding:86px 70px 70px;box-shadow:0 20px 60px rgba(0,0,0,.08)}
+h1{margin:0;text-align:center;font-size:2.15rem;letter-spacing:.55em;font-weight:700;line-height:1}
+.axis{position:absolute;background:var(--line)}
+.axis-y{width:1px;top:170px;bottom:90px;left:50%}
+.axis-x{height:1px;left:70px;right:70px;top:50%}
+.axis-label{position:absolute;font-size:.72rem;letter-spacing:.28em;font-weight:700}
+.axis-n{top:160px;left:50%;transform:translateX(-50%)}
+.axis-s{bottom:70px;left:50%;transform:translateX(-50%)}
+.axis-w{left:78px;top:50%;transform:translateY(-50%)}
+.axis-e{right:78px;top:50%;transform:translateY(-50%)}
+.axis-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:54px;height:54px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;background:#fff;font-size:2.15rem;line-height:1}
+.quadrant{position:absolute;width:36%;text-align:center;text-transform:uppercase;letter-spacing:.28em}
+.quadrant p,.quadrant h2,.quadrant small{margin:0;font-weight:700}.quadrant p{font-size:.72rem}.quadrant h2{margin:7px 0 5px;font-size:.9rem;font-weight:500}.quadrant small{font-size:.72rem}.quadrant-autumn{top:150px;left:95px}.quadrant-summer{top:150px;right:95px}.quadrant-winter{top:calc(50% + 28px);left:95px}.quadrant-spring{top:calc(50% + 28px);right:95px}
+@media(max-width:760px){.flow-map-print{aspect-ratio:8.5/11;padding:70px 28px}.axis-x{left:34px;right:34px}.quadrant{width:40%}.quadrant-autumn,.quadrant-winter{left:36px}.quadrant-summer,.quadrant-spring{right:36px}.print-actions{display:grid}}
+@media print{@page{size:letter;margin:0}body{background:#fff}.printable-shell{width:100%;padding:0}.print-actions{display:none}.flow-map-print{width:8.5in;height:11in;box-shadow:none;page-break-inside:avoid}}

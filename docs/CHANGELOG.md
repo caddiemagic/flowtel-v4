@@ -1,4 +1,14 @@
 
+## v0.9.22 — Flow Map Room Expansion + Printable Map
+
+- Added a Printable Flow Map button on the Flow Map Practice screen.
+- Added a blank one-page printable Flow Map at `/flow-map/printable/`.
+- Expanded the Flow Map canvas dynamically when seasonal notes crowd a quadrant.
+- Added note-density sizing so notes become smaller when there are many notes in one season.
+- Added the line: “There’s always room on the moon.”
+- No Supabase migration required.
+
+
 ## v0.9.21 — Suite Spacing + Cycle Tracker Facelift
 
 - Tightened Suite Cycle Data, Today's Room, Reflection, and Mentor card spacing.

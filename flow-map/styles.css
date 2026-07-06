@@ -468,3 +468,72 @@ p{line-height:1.55;color:var(--muted)}
     overflow:hidden !important;
   }
 }
+
+/* Release 0.9.22 — There is always room on the moon */
+.flow-map-canvas{
+  --top-row-height:560px;
+  --bottom-row-height:560px;
+  --axis-y:50%;
+  grid-template-rows:var(--top-row-height) var(--bottom-row-height);
+  transition:min-height .35s ease;
+}
+.flow-map-canvas:before{top:70px;bottom:48px}
+.flow-map-canvas:after{top:var(--axis-y)}
+.axis-center{top:var(--axis-y)}
+.axis-e,.axis-w{top:var(--axis-y)}
+.axis-n{top:54px}
+.quadrant{
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+.quadrant .note-field{
+  flex:1;
+  align-content:flex-start;
+}
+.flow-map-canvas[data-room-state="expanded"]{
+  background:
+    radial-gradient(circle at 50% var(--axis-y),rgba(217,173,79,.08),transparent 24%),
+    rgba(255,253,250,.55);
+}
+.note-field[data-density="dense"]{
+  gap:14px 15px;
+}
+.note-field[data-density="very-dense"]{
+  gap:10px 12px;
+}
+.map-note-dense{
+  width:min(100%,240px);
+  padding:16px 17px 13px;
+  border-radius:22px;
+}
+.map-note-dense .map-note-text{font-size:.96rem;line-height:1.42}
+.map-note-dense .map-note-meta{margin-top:10px}
+.map-note-dense .map-note-meta span{font-size:.52rem;padding:4px 7px}
+.map-note-very-dense{
+  width:min(100%,210px);
+  padding:13px 14px 11px;
+  border-radius:19px;
+}
+.map-note-very-dense .map-note-text{font-size:.88rem;line-height:1.34}
+.map-note-very-dense .map-note-meta{margin-top:8px;gap:4px}
+.map-note-very-dense .map-note-meta span{font-size:.48rem;padding:3px 6px}
+@media(min-width:941px){
+  .flow-map-canvas{
+    min-height:calc(var(--top-row-height) + var(--bottom-row-height));
+  }
+}
+@media(max-width:940px){
+  .flow-map-canvas{
+    grid-template-rows:auto;
+    min-height:auto;
+  }
+}
+@media print{
+  .flow-map-canvas{
+    grid-template-rows:1fr 1fr!important;
+    min-height:7.1in!important;
+  }
+  .flow-map-canvas:after{top:50%!important}
+  .axis-center,.axis-e,.axis-w{top:50%!important}
+}

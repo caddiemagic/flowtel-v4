@@ -9,6 +9,8 @@ const cycleSelector=document.getElementById("cycleSelector");
 const scopeToggle=document.getElementById("scopeToggle");
 const openCycleDataLink=document.getElementById("openCycleDataLink");
 const printFlowMapButton=document.getElementById("printFlowMapButton");
+const printableFlowMapLink=document.getElementById("printableFlowMapLink");
+const flowMapCanvas=document.getElementById("flowMapCanvas");
 const practiceCopy=document.getElementById("practiceCopy");
 const message=document.getElementById("flowMapMessage");
 
@@ -165,7 +167,7 @@ function noteTextEntriesForRow(row){
   }
   return entries;
 }
-function noteCardMarkup(entry,index){
+function noteCardMarkup(entry,index,densityMode="open"){
   const row=entry.row;
   const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? "—";
   const feels=row.feels_like_inner_season ? `Felt like ${(row.feels_like_inner_season.replace(/^Inner\s+/i,"").toLowerCase()==="autumn" ? "Fall" : row.feels_like_inner_season.replace(/^Inner\s+/i,""))}` : "Felt season unknown";
@@ -173,7 +175,7 @@ function noteCardMarkup(entry,index){
   const clientName=row.client_name || targetClient?.name || "";
   const showClientName=currentMode!=="self" && clientName;
   return `
-    <article class="map-note map-note--${(index % 9) + 1}">
+    <article class="map-note map-note--${(index % 9) + 1} ${densityMode!=="open" ? `map-note-${densityMode}` : ""}">
       ${showClientName ? `<p class="map-note-client">${escapeHtml(clientName)}</p>` : ""}
       <p class="map-note-text">${escapeHtml(entry.text)}</p>
       <p class="map-note-meta">
@@ -185,15 +187,49 @@ function noteCardMarkup(entry,index){
     </article>
   `;
 }
+
+function densityModeForCount(count){
+  if(count>=13) return "very-dense";
+  if(count>=8) return "dense";
+  return "open";
+}
+function rowHeightForCount(count){
+  const base=560;
+  const extra=Math.max(0,count-3)*92;
+  return base + extra;
+}
+function updateCanvasRoom(counts){
+  if(!flowMapCanvas) return;
+  const topCount=Math.max(counts["Inner Autumn"]||0, counts["Inner Summer"]||0);
+  const bottomCount=Math.max(counts["Inner Winter"]||0, counts["Inner Spring"]||0);
+  const topHeight=rowHeightForCount(topCount);
+  const bottomHeight=rowHeightForCount(bottomCount);
+  const total=topHeight+bottomHeight;
+  flowMapCanvas.style.setProperty("--top-row-height", `${topHeight}px`);
+  flowMapCanvas.style.setProperty("--bottom-row-height", `${bottomHeight}px`);
+  flowMapCanvas.style.setProperty("--axis-y", `${(topHeight/total)*100}%`);
+  flowMapCanvas.dataset.roomState=Math.max(topCount,bottomCount)>=8 ? "expanded" : "open";
+}
+
 function renderQuadrants(entries){
+  const counts={};
+  const seasonNotes={};
   SEASONS.forEach(season=>{
-    const holder=document.getElementById(NOTE_TARGETS[season]);
-    if(!holder) return;
     const noteEntries=entries
       .filter(row=>row.inner_season===season)
       .flatMap(noteTextEntriesForRow);
+    counts[season]=noteEntries.length;
+    seasonNotes[season]=noteEntries;
+  });
+  updateCanvasRoom(counts);
+  SEASONS.forEach(season=>{
+    const holder=document.getElementById(NOTE_TARGETS[season]);
+    if(!holder) return;
+    const noteEntries=seasonNotes[season] || [];
+    const densityMode=densityModeForCount(noteEntries.length);
+    holder.dataset.density=densityMode;
     holder.innerHTML=noteEntries.length
-      ? noteEntries.map((entry,index)=>noteCardMarkup(entry,index)).join("")
+      ? noteEntries.map((entry,index)=>noteCardMarkup(entry,index,densityMode)).join("")
       : `<div class="map-empty">10/10 no notes.</div>`;
   });
 }
@@ -221,6 +257,7 @@ async function init(){
     }
 
     if(openCycleDataLink) openCycleDataLink.href=cycleDataHref();
+    if(printableFlowMapLink) printableFlowMapLink.href="/flow-map/printable/";
     bindPrint();
 
     currentClients=await listMyClients().catch(()=>[]);
@@ -234,7 +271,7 @@ async function init(){
       viewEyebrow.textContent=isAdminRole(currentProfile)?"ADMIN FLOW MAP":"MENTOR FLOW MAP";
       viewingName.textContent=isAdminRole(currentProfile)?"All Flowtel Clients":"All My Clients";
       intro.textContent="A spacious seasonal spread of client check-ins organized by actual inner season.";
-      practiceCopy.textContent="Use this spread to notice collective patterns, then return to one woman at a time.";
+      practiceCopy.textContent="Use this spread to notice collective patterns, then return to one woman at a time. There’s always room on the moon.";
       allEntries=await fetchCycleEntries({scope:"all"});
     }else if(currentMode==="client"){
       const relationship=currentClients.find(row=>row.client_id===targetId);
@@ -246,13 +283,13 @@ async function init(){
       viewEyebrow.textContent="CLIENT FLOW MAP";
       viewingName.textContent=targetClient.name;
       intro.textContent="A consent-aware Flow Map for this guest’s cycle reflections.";
-      practiceCopy.textContent="Use this with your client after her first completed cycle. The map gathers the notes; she names the patterns.";
+      practiceCopy.textContent="Use this with your client after her first completed cycle. The map gathers the notes; she names the patterns. There’s always room on the moon.";
       allEntries=await fetchCycleEntries({subjectId:targetId,scope:"client"});
     }else{
       viewEyebrow.textContent="MY FLOW MAP";
       viewingName.textContent=fullName(currentProfile);
       intro.textContent="Your check-ins from one cycle, placed into the four seasonal quadrants.";
-      practiceCopy.textContent="Read your own notes and write down the themes you notice between seasons. Reflection is where the magic happens.";
+      practiceCopy.textContent="Read your own notes and write down the themes you notice between seasons. Reflection is where the magic happens. There’s always room on the moon.";
       allEntries=await fetchCycleEntries({scope:"self"});
     }
 

@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Printable Flow Map</title>
+  <link rel="stylesheet" href="./styles.css?v=0.9.22" />
+</head>
+<body>
+  <main class="printable-shell">
+    <div class="print-actions">
+      <button type="button" onclick="window.print()">Download / Save PDF</button>
+      <a href="/flow-map/">Return to Flow Map</a>
+    </div>
+    <section class="flow-map-print" aria-label="Printable Flow Map">
+      <h1>FLOW MAP</h1>
+      <span class="axis-label axis-n">N</span>
+      <span class="axis-label axis-e">E</span>
+      <span class="axis-label axis-s">S</span>
+      <span class="axis-label axis-w">W</span>
+      <span class="axis-center" aria-hidden="true">↺</span>
+      <div class="axis axis-y"></div>
+      <div class="axis axis-x"></div>
+      <article class="quadrant quadrant-autumn">
+        <p>HALF NEW MOON PHASE</p>
+        <h2>INNER AUTUMN</h2>
+        <small>DAYS 20–26</small>
+      </article>
+      <article class="quadrant quadrant-summer">
+        <p>FULL MOON PHASE</p>
+        <h2>INNER SUMMER</h2>
+        <small>DAYS 12–19</small>
+      </article>
+      <article class="quadrant quadrant-winter">
+        <p>NEW MOON PHASE</p>
+        <h2>INNER WINTER</h2>
+        <small>DAYS 27–5</small>
+      </article>
+      <article class="quadrant quadrant-spring">
+        <p>HALF FULL MOON PHASE</p>
+        <h2>INNER SPRING</h2>
+        <small>DAYS 6–11</small>
+      </article>
+    </section>
+  </main>
+</body>
+</html>
