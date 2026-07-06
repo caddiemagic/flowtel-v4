@@ -3,7 +3,7 @@ import {
   labelForAssignmentStatus,
   toneForPriestessProfileStatus,
   labelForPriestessProfileStatus,
-} from '../shared/flowtel.js';
+} from '/shared/flowtel.js';
 
 export function params(){ return new URLSearchParams(window.location.search); }
 export function requestedMemberId(){ return params().get('member') || params().get('client') || null; }
@@ -64,8 +64,7 @@ export function profileStatusPill(status){
 }
 export function csvToPills(value){
   return String(value || '')
-    .split(/[
-,]/)
+    .split(/[,\n]/)
     .map(item => item.trim())
     .filter(Boolean)
     .slice(0, 12)
