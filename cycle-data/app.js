@@ -8,6 +8,7 @@ const intro=document.getElementById("dashboardIntro");
 const viewEyebrow=document.getElementById("viewEyebrow");
 const viewingName=document.getElementById("viewingName");
 const viewerToggle=document.getElementById("viewerToggle");
+const dashboardActions=document.querySelector(".dashboard-actions");
 const filtersTitle=document.getElementById("filtersTitle");
 const seasonFilter=document.getElementById("seasonFilter");
 const moonPhaseFilter=document.getElementById("moonPhaseFilter");
@@ -86,6 +87,38 @@ function link(label,href,active=false){
   a.textContent=label;
   if(active) a.classList.add("active");
   return a;
+}
+function powderRoomHref(season){
+  return `/cycle-data/?season=${encodeURIComponent(season)}`;
+}
+function renderPowderRoomSeasonNav(activeSeason){
+  if(!dashboardActions) return;
+  dashboardActions.classList.add("powder-room-season-actions");
+  dashboardActions.innerHTML="";
+  SEASONS.filter(season=>season!==activeSeason).forEach(season=>{
+    const label=powderRoomName(season).replace(/ Powder Room$/i," Room");
+    dashboardActions.appendChild(link(label,powderRoomHref(season),false));
+  });
+}
+function renderPowderRoomReturnNav(){
+  let nav=document.getElementById("powderRoomBottomActions");
+  if(!nav){
+    nav=document.createElement("nav");
+    nav.id="powderRoomBottomActions";
+    nav.className="powder-room-bottom-actions";
+    nav.setAttribute("aria-label","Powder Room return navigation");
+    const suite=link("Return to Suite","/client/?suite=1");
+    const concierge=link("Return to Concierge","/manager/");
+    nav.append(suite,concierge);
+    const dashboardCard=document.querySelector(".dashboard-card");
+    if(dashboardCard && message) dashboardCard.insertBefore(nav,message);
+    else document.querySelector(".cycle-dashboard-shell")?.appendChild(nav);
+  }
+  nav.classList.remove("hidden");
+}
+function restoreDashboardActions(){
+  const nav=document.getElementById("powderRoomBottomActions");
+  if(nav) nav.classList.add("hidden");
 }
 function countBy(rows,key){
   return rows.reduce((map,row)=>{
@@ -252,7 +285,7 @@ function powderNoteMarkup(row,index){
   const note=reflection || "A guest passed through this season quietly.";
   const toneClass=`powder-note--${(index % 8) + 1}`;
   const moon=compactMoonPhase(row.moon_phase);
-  const feels=row.feels_like_inner_season ? `Felt like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
+  const feels=row.feels_like_inner_season ? `Felt like ${(row.feels_like_inner_season.replace(/^Inner\s+/i,"").toLowerCase()==="autumn" ? "Fall" : row.feels_like_inner_season.replace(/^Inner\s+/i,""))}` : "Felt season unknown";
   return `
     <article class="powder-note ${toneClass}">
       <p class="powder-note-text">${escapeHtml(note)}</p>
@@ -327,12 +360,15 @@ async function init(){
       openFlowMapLink.href=flowMapHrefFor({targetId,scope});
       openFlowMapLink.classList.toggle("hidden",currentMode==="season");
     }
+    restoreDashboardActions();
     renderToggle(currentProfile,clients,targetId,currentMode);
     bindFilters(currentMode);
 
     document.body.classList.toggle("powder-room-mode",currentMode==="season");
 
     if(currentMode==="season"){
+      renderPowderRoomSeasonNav(season);
+      renderPowderRoomReturnNav();
       if(pageEyebrow) pageEyebrow.textContent="ANONYMOUS REFLECTIONS";
       pageTitle.textContent=powderRoomTitle(season);
       viewEyebrow.textContent="GIRLS' BATHROOM";

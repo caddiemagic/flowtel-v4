@@ -1115,6 +1115,68 @@
         }
       }
 
+
+    /* Release 0.9.21 — Cycle Tracker lobby facelift + printable cycle data */
+    .tracker-shell{width:min(100% - 32px,1040px) !important;}
+    .tracker-hero{
+      width:min(100%,1000px) !important;
+      padding:42px clamp(22px,5vw,64px) 46px !important;
+      margin-bottom:28px !important;
+      border-radius:40px !important;
+      background:
+        radial-gradient(circle at 18% 10%,rgba(248,231,227,.34),transparent 34%),
+        radial-gradient(circle at 92% 16%,rgba(231,189,105,.14),transparent 28%),
+        linear-gradient(145deg,rgba(255,253,249,.99),rgba(251,247,241,.94)) !important;
+    }
+    .tracker-hero h1{font-size:clamp(3.1rem,8vw,6.4rem) !important;letter-spacing:.12em !important;}
+    .tracker-hero .hero-line{font-size:1rem !important;max-width:620px !important;}
+    #cycleTrackerApp{width:min(100%,1000px) !important;}
+    .cycle-widget{padding:42px clamp(22px,5vw,56px) 50px !important;border-radius:38px !important;}
+    .cycle-widget::after{opacity:.075 !important;right:-34px !important;top:-32px !important;width:230px !important;height:230px !important;}
+    .question{border-radius:30px !important;}
+    #cycleResults.question{padding:0 !important;background:transparent !important;border:0 !important;box-shadow:none !important;}
+    #cycleResultsContent{width:100% !important;}
+    #cycleSnapshotCard.result-card{padding:clamp(28px,5vw,56px) !important;border-radius:38px !important;}
+    #cycleSnapshotCard .tracker-dashboard{grid-template-columns:minmax(300px,420px) 1fr !important;align-items:center !important;}
+    .mini-wheel{width:min(100%,390px) !important;}
+    .mini-wheel::before{width:64% !important;height:64% !important;border-width:2.8px !important;}
+    .mini-wheel::after{width:92% !important;height:92% !important;border-width:2.8px !important;}
+    .mini-rose{width:55% !important;height:55% !important;}
+    .mini-day{width:29px !important;height:29px !important;font-size:.70rem !important;}
+    .framework-item strong{display:block !important;}
+    .framework-item strong span{display:block;margin-top:3px;font-family:Arial,sans-serif;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:var(--rose);}
+    .action-row{max-width:820px;margin:22px auto 0 !important;grid-template-columns:repeat(3,minmax(0,1fr));}
+    @media(max-width:780px){
+      .tracker-hero{padding:34px 18px 36px !important;}
+      .tracker-hero h1{font-size:clamp(3rem,16vw,4.8rem) !important;}
+      .cycle-widget{padding:28px 16px 36px !important;}
+      #cycleSnapshotCard .tracker-dashboard{grid-template-columns:1fr !important;}
+      .mini-wheel{width:min(100%,338px) !important;}
+      .mini-day{width:25px !important;height:25px !important;font-size:.60rem !important;}
+      .action-row{grid-template-columns:1fr;}
+    }
+
+    @page{size:letter portrait;margin:0;}
+    @media print{
+      body.printing-cycle-snapshot{background:#fff !important;}
+      body.printing-cycle-snapshot .tracker-hero,
+      body.printing-cycle-snapshot .progress-wrap,
+      body.printing-cycle-snapshot #cycleMainHeading,
+      body.printing-cycle-snapshot #cycleSubHeading,
+      body.printing-cycle-snapshot .action-row{display:none !important;}
+      body.printing-cycle-snapshot .tracker-shell,
+      body.printing-cycle-snapshot #cycleTrackerApp,
+      body.printing-cycle-snapshot #cycleResults,
+      body.printing-cycle-snapshot #cycleResultsContent,
+      body.printing-cycle-snapshot #cycleSnapshotCard{width:100% !important;margin:0 !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:#fff !important;}
+      body.printing-cycle-snapshot #cycleSnapshotCard{padding:.45in !important;}
+      body.printing-cycle-snapshot #cycleSnapshotCard .tracker-dashboard{display:grid !important;grid-template-columns:40% 1fr !important;gap:.28in !important;}
+      body.printing-cycle-snapshot .mini-wheel{width:3.6in !important;max-width:100% !important;}
+      body.printing-cycle-snapshot .tracker-cta,
+      body.printing-cycle-snapshot .day-detail{display:none !important;}
+      body.printing-cycle-snapshot *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    }
+
 </style>
 </head>
 <body>
@@ -1122,7 +1184,7 @@
     <section class="tracker-card tracker-hero">
       <p class="tracker-eyebrow">Welcome to the</p>
       <h1>Flowtel</h1>
-      <p class="hero-line">Track your cycle and unlock your cycle data using the Flowtel framework.</p>
+      <p class="hero-line">Track your cycle data using the Flowtel Framework.</p>
     </section>
 
     <section id="cycleTrackerApp" class="tracker-card cycle-widget">
@@ -1169,6 +1231,7 @@
         <div id="cycleResultsContent"></div>
         <div class="action-row">
           <a class="tracker-button tracker-link-button" href="https://www.theidyllcollective.com/check-into-the-flowtel">Check Into the Flowtel</a>
+          <button type="button" class="secondary-button" onclick="cyclePrintSnapshot()">Download / Save PDF</button>
           <button type="button" class="secondary-button" onclick="cycleRestartQuiz()">Start Over</button>
         </div>
       </div>
@@ -1396,7 +1459,7 @@
         const step = 360 / 28;
         const startAngle = 180 + (step / 2);
         const angle = (startAngle + ((room - 1) * step)) * Math.PI / 180;
-        const radius = 39;
+        const radius = 39.5;
         return {x:50 + radius * Math.cos(angle), y:50 - radius * Math.sin(angle)};
       }
 
@@ -1476,10 +1539,10 @@
             <div class="prompt"><h3>Journal Prompt</h3><p>${wombSeason.prompt}</p></div>
             <div class="framework">
               <h3>Womb Magic Inner Seasons</h3>
-              <div class="framework-item"><strong>Inner Winter</strong> Days 27–5 — Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
-              <div class="framework-item"><strong>Inner Spring</strong> Days 6–11 — Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
-              <div class="framework-item"><strong>Inner Summer</strong> Days 12–19 — Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
-              <div class="framework-item"><strong>Inner Autumn</strong> Days 20–26 — Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
+              <div class="framework-item"><strong>Inner Winter <span>Days 27–5</span></strong> Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
+              <div class="framework-item"><strong>Inner Spring <span>Days 6–11</span></strong> Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
+              <div class="framework-item"><strong>Inner Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
+              <div class="framework-item"><strong>Inner Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
@@ -1516,16 +1579,22 @@
             <div class="prompt"><h3>Journal Prompt</h3><p>${moon.moonSeason.prompt}</p></div>
             <div class="framework">
               <h3>Moon Magic Framework</h3>
-              <div class="framework-item"><strong>New Moon · Days 27–5</strong> Rest and dream your new big vision.</div>
-              <div class="framework-item"><strong>Half Full Moon · Days 6–11</strong> Create and scheme.</div>
-              <div class="framework-item"><strong>Full Moon · Days 12–19</strong> Witness your magic and be seen.</div>
-              <div class="framework-item"><strong>Half New Moon · Days 20–26</strong> Audit and revise what you have created, then prepare for the next cycle.</div>
+              <div class="framework-item"><strong>New Moon <span>Days 27–5</span></strong> Rest and dream your new big vision.</div>
+              <div class="framework-item"><strong>Half Full Moon <span>Days 6–11</span></strong> Create and scheme.</div>
+              <div class="framework-item"><strong>Full Moon <span>Days 12–19</span></strong> Witness your magic and be seen.</div>
+              <div class="framework-item"><strong>Half New Moon <span>Days 20–26</span></strong> Audit and revise what you have created, then prepare for the next cycle.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
           </div>
         `;
         addDayClickInvite();
+      };
+
+      window.cyclePrintSnapshot = function(){
+        document.body.classList.add("printing-cycle-snapshot");
+        window.print();
+        setTimeout(()=>document.body.classList.remove("printing-cycle-snapshot"), 500);
       };
 
       window.cycleRestartQuiz = function(){

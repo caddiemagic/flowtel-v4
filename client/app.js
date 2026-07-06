@@ -141,6 +141,16 @@ function profileFullName(profile=currentProfile){
   return [parts.firstName, parts.lastName].filter(Boolean).join(" ") || profile?.email || "Guest";
 }
 
+function directSeasonName(value,{lower=false}={}){
+  const cleaned=String(value || "").replace(/^Inner\s+/i,"").trim();
+  const normalized=cleaned.toLowerCase()==="autumn" ? "Fall" : (cleaned || "season");
+  return lower ? normalized.toLowerCase() : normalized;
+}
+
+function trueInnerSeason(value){
+  return String(value || "").trim();
+}
+
 function updateDoorwayCopy(){
   const title=document.getElementById("doorwayTitle");
   const note=document.getElementById("doorwayNote");
@@ -729,7 +739,7 @@ function renderKey(stay){
   document.getElementById("keyRoomLine").textContent=`Room ${room}`;
   document.getElementById("keyCourtLine").textContent=stay.court||"Season Court";
   const feedback=document.getElementById("keyCycleFeedback");
-  if(feedback) feedback.textContent=stay.cycle_accuracy_message || `You are on Day ${actualDay}.`;
+  if(feedback) feedback.textContent=stay.cycle_accuracy_message || `You are on day ${actualDay}.`;
 }
 
 
@@ -783,9 +793,13 @@ function renderSuite(stay){
 
   document.getElementById("suiteWelcome").textContent=`Welcome home, ${name}.`;
 
-  const connector=stay.inner_season===stay.feels_like_inner_season?"and":"but";
-  const recordedAside=recordedDay!==actualDay ? ` You recorded Day ${recordedDay}.` : "";
-  document.getElementById("suiteSubline").textContent=`You're on Day ${actualDay} ${connector} today feels like ${stay.feels_like_inner_season}.${recordedAside}`;
+  const feelsLikeName=directSeasonName(stay.feels_like_inner_season,{lower:true});
+  const connector=trueInnerSeason(stay.inner_season)===trueInnerSeason(stay.feels_like_inner_season)?"and":"but";
+  const recordedAside=recordedDay!==actualDay ? ` You recorded day ${recordedDay}.` : "";
+  const soSeasonTag=(recordedDay!==actualDay && trueInnerSeason(stay.inner_season)!==trueInnerSeason(stay.feels_like_inner_season))
+    ? ` That’s so <em>${escapeHtml(feelsLikeName)}</em> of you.`
+    : "";
+  document.getElementById("suiteSubline").innerHTML=`You're on day ${escapeHtml(actualDay)} ${connector} today feels like ${escapeHtml(feelsLikeName)}.${escapeHtml(recordedAside)}${soSeasonTag}`;
 
   document.getElementById("loungeCourtTitle").textContent=`Welcome to the ${stay.court || "Season Court"}.`;
 
@@ -793,7 +807,7 @@ function renderSuite(stay){
   setSuiteMoonMagic(liveMoon);
 
   document.getElementById("suiteRoom").textContent=`Room ${room}`;
-  document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season||"not recorded"}`;
+  document.getElementById("suiteSeason").textContent=`${stay.inner_season||"Inner season"} · feels like ${stay.feels_like_inner_season ? directSeasonName(stay.feels_like_inner_season,{lower:true}) : "not recorded"}`;
   const dayOne=document.getElementById("suiteDayOne");
   if(dayOne) dayOne.textContent="";
   renderCycleData(stay);
@@ -830,7 +844,7 @@ function cycleDataMarkup(stay,{previousCycleLine="",streakLine="",welcomeBackLin
   const actual=stayActualDay(stay);
   const recorded=stayRecordedDay(stay);
   const difference=Number(stay?.cycle_day_difference ?? (recorded-actual));
-  const accuracyMessage=stay?.cycle_accuracy_message || (difference===0 ? `You nailed it. You are on Day ${actual}.` : "Your cycle data has been updated.");
+  const accuracyMessage=stay?.cycle_accuracy_message || (difference===0 ? `You nailed it. You are on day ${actual}.` : "Your cycle data has been updated.");
 
   return `
     <div class="cycle-data-grid">

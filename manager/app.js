@@ -380,6 +380,11 @@ function guestName(stay){
   return [first,last].filter(Boolean).join(" ") || profile.email || "Guest";
 }
 
+function directSeasonName(value){
+  const cleaned=String(value || "").replace(/^Inner\s+/i,"").trim();
+  return cleaned.toLowerCase()==="autumn" ? "Fall" : cleaned;
+}
+
 function escapeHtml(value){
   return String(value||"").replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;","\"":"&quot;"}[char]));
 }
@@ -595,7 +600,7 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
   const actionLabel=checkoutItem?"Clean Room":awaitingItem?"Complete Turndown":"Open Room";
   const action=checkoutItem?"clean":"witness";
   const isRequestCard=mode==="awaiting" || mode==="completed" || turndownItem || completedItem;
-  const feelsLike=stay.feels_like_inner_season || stay.feels_like || stay.feels_like_season || "Not recorded";
+  const feelsLike=directSeasonName(stay.feels_like_inner_season || stay.feels_like || stay.feels_like_season) || "Not recorded";
   const statusLine=checkoutItem
     ? `<p>Checkout confirmation · ${new Date(stay.checked_out_at).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}</p>`
     : completedItem

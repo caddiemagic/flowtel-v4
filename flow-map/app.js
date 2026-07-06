@@ -168,7 +168,7 @@ function noteTextEntriesForRow(row){
 function noteCardMarkup(entry,index){
   const row=entry.row;
   const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? "—";
-  const feels=row.feels_like_inner_season ? `Felt like ${row.feels_like_inner_season.replace(/^Inner\s+/i,"")}` : "Felt season unknown";
+  const feels=row.feels_like_inner_season ? `Felt like ${(row.feels_like_inner_season.replace(/^Inner\s+/i,"").toLowerCase()==="autumn" ? "Fall" : row.feels_like_inner_season.replace(/^Inner\s+/i,""))}` : "Felt season unknown";
   const off=offCycleLabel(row);
   const clientName=row.client_name || targetClient?.name || "";
   const showClientName=currentMode!=="self" && clientName;

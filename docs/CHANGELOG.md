@@ -1,4 +1,14 @@
 
+## v0.9.21 — Suite Spacing + Cycle Tracker Facelift
+
+- Tightened Suite Cycle Data, Today's Room, Reflection, and Mentor card spacing.
+- Moved Mentor to the Moon below the Reflection card.
+- Updated feels-like language to Winter/Spring/Summer/Fall and lowercase conversational day/season phrasing.
+- Added the “That’s so _season_ of you.” Suite line for off-day + mismatched feels-like check-ins.
+- Polished the public Cycle Tracker lobby and medicine wheel proportions.
+- Added Download / Save PDF support for public Cycle Tracker results.
+
+
 ## v0.9.20 — Mobile Medicine Wheel Breathing Room
 
 - Spreads the mobile day-number ring outward and slightly tightens bubble size.

@@ -2166,3 +2166,100 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
     margin-top:66px !important;
   }
 }
+
+/* Release 0.9.21 — Suite spacing, conversational season language, and tracker polish */
+.suite-rail{
+  align-items:stretch !important;
+}
+.suite-rail .cycle-data-card,
+.suite-rail .room-card{
+  width:100% !important;
+  min-height:0 !important;
+  align-self:stretch !important;
+}
+.cycle-data-card{
+  padding:18px 20px 22px !important;
+}
+.cycle-data-card .eyebrow{
+  margin-bottom:10px !important;
+}
+.cycle-data-grid{
+  margin:8px 0 10px !important;
+}
+.cycle-data-grid p{
+  padding:12px 13px !important;
+}
+.cycle-data-grid span{
+  font-family:Arial,sans-serif !important;
+  font-size:.68rem !important;
+  letter-spacing:.14em !important;
+}
+.cycle-data-grid strong{
+  font-size:1.32rem !important;
+}
+.cycle-accuracy-message{
+  margin:10px 0 0 !important;
+  padding:12px 13px !important;
+  line-height:1.38 !important;
+}
+.room-card{
+  padding:18px 20px 22px !important;
+  min-height:0 !important;
+}
+.room-card h3{
+  margin-bottom:14px !important;
+}
+.room-stack{
+  gap:12px !important;
+}
+.room-stack article{
+  padding:13px 15px !important;
+  min-height:0 !important;
+}
+.room-stack article p{
+  margin-bottom:0 !important;
+}
+.wheel-panel{
+  justify-content:flex-start !important;
+  padding-top:38px !important;
+  padding-bottom:48px !important;
+}
+.wheel-panel .suite-moon-magic-pill{
+  margin:0 0 22px !important;
+  padding:16px 20px !important;
+  min-height:0 !important;
+  align-items:start !important;
+}
+.reflection-moon-magic strong{
+  margin:0 !important;
+  line-height:1.14 !important;
+}
+.reflection-moon-magic small{
+  margin-top:2px !important;
+  line-height:1.24 !important;
+}
+.journal-card{
+  padding:22px 24px 24px !important;
+  margin-bottom:0 !important;
+}
+.journal-card textarea{
+  min-height:150px !important;
+}
+.powder-master-setting{
+  margin-bottom:14px !important;
+}
+.suite-scene > .practitioner-card{
+  padding:22px 24px 24px !important;
+  margin-top:22px !important;
+}
+.suite-scene > .practitioner-card p:last-child{
+  margin-bottom:0 !important;
+}
+.suite-subline em{
+  font-style:italic;
+}
+@media(max-width:900px){
+  .wheel-panel{padding-top:32px !important;padding-bottom:44px !important;}
+  .journal-card{padding:20px 18px 22px !important;}
+  .suite-scene > .practitioner-card{padding:20px 18px 22px !important;}
+}

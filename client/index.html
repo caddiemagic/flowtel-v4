@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.9.20" />
+  <link rel="stylesheet" href="./styles.css?v=0.9.21" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -64,10 +64,10 @@
             <label for="feelsLike">Today feels like</label>
             <select id="feelsLike">
               <option value="">Select</option>
-              <option>Inner Winter</option>
-              <option>Inner Spring</option>
-              <option>Inner Summer</option>
-              <option>Inner Autumn</option>
+              <option value="Inner Winter">Winter</option>
+              <option value="Inner Spring">Spring</option>
+              <option value="Inner Summer">Summer</option>
+              <option value="Inner Autumn">Fall</option>
             </select>
 
             <button id="checkInButton" type="button">Check Into the Flowtel</button>
@@ -149,18 +149,6 @@
           </aside>
         </section>
 
-        <article class="practitioner-card" id="practitionerCard">
-              <p class="eyebrow">YOUR MENTOR TO THE MOON</p>
-              <h3 id="practitionerCardTitle">No mentor chosen yet.</h3>
-              <p id="practitionerCardText">Choose the mentor you would like to tend your stays.</p>
-              <div id="practitionerDirectory" class="practitioner-directory"></div>
-              <div class="mentor-card-actions">
-                <button id="choosePractitionerButton" type="button" class="secondary">Choose Your Mentor</button>
-                <a id="scheduleMentorCallButton" class="secondary mentor-schedule-button hidden" href="#" target="_blank" rel="noopener">Schedule Call</a>
-              </div>
-              <p id="practitionerMessage" class="microcopy"></p>
-            </article>
-
         <section class="journal-card">
           <p class="eyebrow">REFLECTION</p>
           <textarea id="reflectionInput" placeholder="Write what you want the Flowtel to remember from today..."></textarea>
@@ -178,6 +166,18 @@
           <button id="saveReflectionButton" type="button">Save Reflection</button>
           <p id="reflectionMessage"></p>
         </section>
+
+        <article class="practitioner-card" id="practitionerCard">
+              <p class="eyebrow">YOUR MENTOR TO THE MOON</p>
+              <h3 id="practitionerCardTitle">No mentor chosen yet.</h3>
+              <p id="practitionerCardText">Choose the mentor you would like to tend your stays.</p>
+              <div id="practitionerDirectory" class="practitioner-directory"></div>
+              <div class="mentor-card-actions">
+                <button id="choosePractitionerButton" type="button" class="secondary">Choose Your Mentor</button>
+                <a id="scheduleMentorCallButton" class="secondary mentor-schedule-button hidden" href="#" target="_blank" rel="noopener">Schedule Call</a>
+              </div>
+              <p id="practitionerMessage" class="microcopy"></p>
+            </article>
 
         <section class="visits-drawer hidden" id="visitsDrawer">
           <button id="closeVisitsButton" type="button" class="drawer-close">Close</button>
@@ -227,11 +227,11 @@
       <section class="scene checkout-complete-scene" id="checkoutCompleteScene">
         <p class="eyebrow">FLOWTEL</p>
         <h2>We trust you enjoyed your stay.</h2>
-        <p class="suite-subline">Same time tomorrow.</p>
+        <p class="suite-subline">Same time tomorrow?</p>
         <button id="checkoutReturnButton" type="button" class="secondary">Return Home</button>
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.9.20"></script>
+  <script type="module" src="./app.js?v=0.9.21"></script>
 </body>
 </html>
