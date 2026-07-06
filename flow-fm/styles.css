@@ -149,3 +149,132 @@ input,textarea,button{font:inherit;color:inherit}
 @media(max-width:640px){.nav-pill{min-width:0}.profile-studio-layout{gap:14px}.selection-chip{width:100%}.hero-card--compact{padding:36px 18px}}
 
 .progress-pulse{width:min(480px,100%);height:8px;border-radius:999px;background:rgba(109,78,65,.09);overflow:hidden;margin-top:16px;border:1px solid rgba(216,168,79,.22)}.progress-pulse span{display:block;height:100%;background:linear-gradient(90deg,rgba(216,168,79,.5),rgba(199,116,109,.35));border-radius:999px}
+
+
+/* Release 0.10.10 — Temple Door Restoration + Portal Cleanup + Profile Studio Recovery */
+.moon-portal-library-card .section-heading.compact h2{
+  font-size:clamp(2.2rem,5.8vw,4.6rem);
+  line-height:.9;
+}
+.portal-door-grid{
+  grid-template-columns:repeat(auto-fit,minmax(74px,1fr));
+  gap:10px;
+  align-items:stretch;
+}
+.portal-door-grid .temple-door{
+  display:grid;
+  grid-template-columns:1fr;
+  grid-template-rows:auto auto 1fr auto;
+  justify-items:center;
+  text-align:center;
+  min-height:168px;
+  padding:14px 8px 12px;
+  border-radius:20px 20px 14px 14px;
+  background:
+    radial-gradient(circle at 50% 0%,rgba(216,168,79,.16),transparent 42%),
+    linear-gradient(180deg,rgba(255,253,249,.98),rgba(251,247,241,.72));
+  border-color:rgba(216,168,79,.42);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.76),0 12px 28px rgba(109,78,65,.045);
+}
+.portal-door-grid .temple-door:before{
+  inset:7px;
+  border-radius:16px 16px 10px 10px;
+  border-color:rgba(216,168,79,.28);
+}
+.portal-door-grid .temple-door:after{
+  display:none;
+}
+.portal-door-grid .temple-door .door-arch{
+  width:42px;
+  height:22px;
+  border:1px solid rgba(216,168,79,.28);
+  border-bottom:0;
+  border-radius:42px 42px 0 0;
+  margin:3px 0 8px;
+  background:rgba(248,231,227,.28);
+}
+.portal-door-grid .temple-door .portal-number{
+  width:28px;
+  height:28px;
+  font-size:.68rem;
+  position:relative;
+  z-index:1;
+}
+.temple-door-copy{position:relative;z-index:1;display:grid;align-content:start;gap:4px;min-width:0}
+.portal-door-grid .temple-door .eyebrow{
+  font-size:.49rem;
+  letter-spacing:.16em;
+  margin:0;
+  line-height:1.15;
+}
+.portal-door-grid .temple-door h3{
+  font-size:.92rem;
+  line-height:1.03;
+  margin:2px 0 0;
+}
+.portal-door-grid .temple-door p:not(.eyebrow){
+  font-family:Arial,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.1em;
+  font-size:.52rem;
+  line-height:1.25;
+  margin:2px 0 0;
+}
+.door-open-label{
+  position:relative;
+  z-index:1;
+  display:inline-flex;
+  justify-content:center;
+  border-top:1px solid rgba(216,168,79,.26);
+  width:70%;
+  padding-top:8px;
+  margin-top:8px;
+  font-family:Arial,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.16em;
+  font-size:.48rem;
+  color:var(--rose);
+}
+.portal-door-grid .temple-door.current{
+  background:linear-gradient(180deg,rgba(248,231,227,.9),rgba(255,253,249,.96));
+  border-color:rgba(216,168,79,.86);
+  box-shadow:0 0 0 4px rgba(216,168,79,.09),0 16px 30px rgba(109,78,65,.07);
+}
+.portal-door-grid .temple-door.return-door{
+  border-style:double;
+}
+.hero-card--portal h1,#hereTitle{
+  text-transform:uppercase;
+}
+.you-are-here-card #hereTitle{
+  font-size:clamp(2.2rem,5vw,4.8rem);
+}
+.moon-date-pills{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:12px 0 10px;
+}
+.moon-date-pills span{
+  border:1px solid rgba(109,78,65,.12);
+  border-radius:14px;
+  background:rgba(255,253,249,.68);
+  padding:8px 10px;
+  font-family:Arial,sans-serif;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  font-size:.62rem;
+  line-height:1.25;
+  color:var(--soft-brown);
+}
+.moon-date-pills strong{
+  display:block;
+  color:var(--rose);
+  font-size:.55rem;
+  margin-bottom:3px;
+  letter-spacing:.14em;
+}
+.profile-studio-card .loading-note{font-style:italic;color:var(--soft-brown)}
+.profile-studio-card--simple .profile-studio-layout{align-items:start}
+@media(max-width:980px){.portal-door-grid{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}}
+@media(max-width:640px){.portal-door-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.portal-door-grid .temple-door{min-height:148px}.moon-date-pills{grid-template-columns:1fr}}

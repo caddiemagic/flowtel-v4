@@ -32,9 +32,20 @@ function renderSupportDoors(){
   doorGrid.innerHTML=SUPPORT_DOORS.map(item=>`<a class="door-card" href="${item.href}"><p class="eyebrow">${escapeHtml(item.eyebrow)}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.copy)}</p><span class="door-link">Open room</span></a>`).join('');
 }
 function renderPortalDoors(path){
+  if(!portalDoorGrid) return;
   portalDoorGrid.innerHTML=path.map(portal=>{
-    const moonDates=getMoonDatesForPortal(portal);
-    return `<a class="portal-door ${portal.isCurrent ? 'current' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}"><span class="portal-number">${escapeHtml(portal.portalIndex)}</span><div><p class="eyebrow">${portal.isCurrent ? 'CURRENT MOON' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN TO EXPLORE')}</p><h3>${escapeHtml(portal.name)}</h3><div class="moon-date-line"><span>New Moon: ${escapeHtml(moonDates.newMoonLabel)}</span><span>Full Moon: ${escapeHtml(moonDates.fullMoonLabel)}</span></div><p>${portal.isOuroboros ? `Returning through ${escapeHtml(portal.returnMoon?.name || 'entry moon')}` : `${escapeHtml(portal.wombWorkModule?.title || 'Womb Work')} · ${escapeHtml(portal.businessAssignment?.title || 'Assignment')}`}</p></div></a>`;
+    const state=portal.isCurrent ? 'CURRENT MOON' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN');
+    const returnLine=portal.isOuroboros ? `Return: ${portal.returnMoon?.name || 'entry moon'}` : portal.month;
+    return `<a class="portal-door temple-door ${portal.isCurrent ? 'current' : ''} ${portal.isOuroboros ? 'return-door' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
+      <span class="portal-number">${escapeHtml(portal.portalIndex)}</span>
+      <span class="door-arch" aria-hidden="true"></span>
+      <div class="temple-door-copy">
+        <p class="eyebrow">${escapeHtml(state)}</p>
+        <h3>${escapeHtml(portal.name)}</h3>
+        <p>${escapeHtml(returnLine)}</p>
+      </div>
+      <span class="door-open-label">Enter</span>
+    </a>`;
   }).join('');
 }
 function renderStatus(profile){

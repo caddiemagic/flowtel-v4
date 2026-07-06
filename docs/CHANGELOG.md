@@ -1,4 +1,16 @@
 
+## v0.10.10 — Temple Door Restoration + Portal Cleanup
+
+- Restored the Initiation Hall's 13 moon preview as **The Doors Ahead** with compact temple-door styling, gold trim, arch details, and clear current/open/return states.
+- Kept the full Moon Portal Library / 13 Moons Path separate from the simple door preview so the main hall has visual dimension without becoming another dense dashboard.
+- Removed the duplicated **Explore the Spiral / All Moon Portals Are Open** section from individual Moon Portal pages.
+- Updated Moon Portal orientation copy so the current portal heading can stand alone as the moon name instead of “You are walking…” language.
+- Cleaned up the full 13 Moons Path moon date display so New Moon and Full Moon dates render as readable date pills.
+- Repaired Priestess Profile Studio loading by rendering the simplified form immediately before Supabase/profile imports finish.
+- Added static Profile Studio top navigation fallback so navigation appears even if JavaScript/save hydration fails.
+- No Supabase migration required.
+
+
 ## v0.10.9 — Profile Studio Simplification + Initiation Hall Polish
 
 - Simplified Priestess Profile Studio into a low-overwhelm selection flow with Profile Name, Legal Name, Title, Bio Template, Offerings, optional Location, Preferred Timezone, and External Website URL.

@@ -28,7 +28,16 @@ function renderMoonPath(profile){
       ? `Return moon: ${portal.returnMoon?.name || 'entry moon'}`
       : `${portal.wombWorkModule?.title || 'Womb Work'} · ${portal.businessAssignment?.title || 'Assignment'}`;
     const moonDates=getMoonDatesForPortal(portal);
-    return `<article class="moon-card ${active ? 'active' : ''} moon-${seasonClass(portal.season)}"><div class="moon-number">${escapeHtml(portal.portalIndex)}</div><div><p class="eyebrow">${portal.isOuroboros ? '13TH WING' : `${escapeHtml(portal.month)} · ${escapeHtml(portal.wing)}`}</p><h3>${escapeHtml(portal.name)}</h3><div class="moon-date-line"><span>New Moon: ${escapeHtml(moonDates.newMoonLabel)}</span><span>Full Moon: ${escapeHtml(moonDates.fullMoonLabel)}</span></div><p class="assignment-line">${escapeHtml(assignmentLine)}</p><div class="assignment-links"><a href="/flow-fm/portal/?portal=${portal.portalIndex}">Open initiation</a></div></div></article>`;
+    return `<article class="moon-card ${active ? 'active' : ''} moon-${seasonClass(portal.season)}">
+      <div class="moon-number">${escapeHtml(portal.portalIndex)}</div>
+      <div>
+        <p class="eyebrow">${portal.isOuroboros ? '13TH WING' : `${escapeHtml(portal.month)} · ${escapeHtml(portal.wing)}`}</p>
+        <h3>${escapeHtml(portal.name)}</h3>
+        <div class="moon-date-pills"><span><strong>New</strong>${escapeHtml(moonDates.newMoonLabel)}</span><span><strong>Full</strong>${escapeHtml(moonDates.fullMoonLabel)}</span></div>
+        <p class="assignment-line">${escapeHtml(assignmentLine)}</p>
+        <div class="assignment-links"><a href="/flow-fm/portal/?portal=${portal.portalIndex}">Open initiation</a></div>
+      </div>
+    </article>`;
   }).join('');
 }
 
