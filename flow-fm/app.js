@@ -6,6 +6,7 @@ import {
   getFlowFmAssignmentForMoon,
   getMoonDatesForPortal,
 } from '/shared/flowtel.js';
+import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
 
 const topNav=document.getElementById('topNav');
@@ -97,8 +98,18 @@ function renderVaultDoor(portal){
     <span class="door-open-label">Open Vault</span>
   </a>`;
 }
-function renderPortalDoors(path){
+function renderLockedCurriculumNotice(){
+  const card=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The full temple curriculum is still sealed.</h3><p>For this first round of testing, guests are moving through the Flowtel guest experience and the Profile Studio only. The wider 13 Moon curriculum will open in a later rollout once this path feels solid.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
+  portalDoorRowOne.innerHTML=card;
+  portalDoorRowTwo.innerHTML='';
+  portalDoorVaultRow.innerHTML='';
+}
+function renderPortalDoors(path, profile){
   if(!portalDoorRowOne || !portalDoorRowTwo || !portalDoorVaultRow) return;
+  if(!canAccessFlowFmCurriculum(profile || {})){
+    renderLockedCurriculumNotice();
+    return;
+  }
   const regularDoors=(path || []).filter(portal=>!portal.isOuroboros);
   const vault=(path || []).find(portal=>portal.isOuroboros) || null;
   portalDoorRowOne.innerHTML=regularDoors.slice(0,6).map(renderPortalDoor).join('');
@@ -115,14 +126,21 @@ function renderStatus(profile){
   currentMoonMeta.innerHTML=status.hasStartDate
     ? `${escapeHtml(status.monthLine)}<div class="progress-pulse"><span style="width:${Math.min(100, Math.max(5, (Number(currentPortal.portalIndex || 1)/13)*100))}%"></span></div>`
     : 'Previewing Temple Moon until Flow FM start date is set.';
-  currentPortalLink.href=`/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}`;
-  nextDoorTitle.textContent=`Open ${currentPortal.name} Portal`;
-  nextDoorCopy.textContent='Your moon portal gathers the training, womb work practice, business assignment, and next doorway in one place.';
-  currentModuleTitle.textContent=currentModule?.title || 'Womb Work Module';
-  currentModuleCopy.innerHTML=`${escapeHtml(currentModule?.description || 'Your inner curriculum lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#womb-work">Open Current Womb Work</a></div>`;
-  currentAssignmentTitle.textContent=currentAssignment?.title || 'Business Assignment';
-  currentAssignmentCopy.innerHTML=`${escapeHtml(currentAssignment?.description || 'Your outer build task lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="${Number(currentAssignment?.index || 0)===1 ? '/flow-fm/profile-studio/' : `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#business-assignment`}">Open Current Business Assignment</a></div>`;
-  renderPortalDoors(path);
+  const curriculumOpen=canAccessFlowFmCurriculum(profile || {});
+  currentPortalLink.href=curriculumOpen ? `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}` : '/flow-fm/profile-studio/';
+  nextDoorTitle.textContent=curriculumOpen ? `Open ${currentPortal.name} Portal` : 'Open Your Profile Studio';
+  nextDoorCopy.textContent=curriculumOpen
+    ? 'Your moon portal gathers the training, womb work practice, business assignment, and next doorway in one place.'
+    : 'Phase 1 beta is focused on the guest journey and your profile submission flow. The rest of the curriculum is staying sealed for now.';
+  currentModuleTitle.textContent=curriculumOpen ? (currentModule?.title || 'Womb Work Module') : 'Phase 1 testing focus';
+  currentModuleCopy.innerHTML=curriculumOpen
+    ? `${escapeHtml(currentModule?.description || 'Your inner curriculum lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#womb-work">Open Current Womb Work</a></div>`
+    : `Guest arrival, check-in rhythm, mentor selection, and Profile Studio submission are the only open testing paths in this phase.<div class="module-cta-row"><a class="pill-link muted" href="/client/">Return to Guest Flow</a></div>`;
+  currentAssignmentTitle.textContent=curriculumOpen ? (currentAssignment?.title || 'Business Assignment') : 'Profile submission';
+  currentAssignmentCopy.innerHTML=curriculumOpen
+    ? `${escapeHtml(currentAssignment?.description || 'Your outer build task lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="${Number(currentAssignment?.index || 0)===1 ? '/flow-fm/profile-studio/' : `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#business-assignment`}">Open Current Business Assignment</a></div>`
+    : `Use the Profile Studio to choose your title, bio, offerings, and send your Priestess Profile to be witnessed.<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/profile-studio/">Open Profile Studio</a></div>`;
+  renderPortalDoors(path, profile);
 }
 async function init(){
   topNav.innerHTML=renderTopNav('hallway');
@@ -132,7 +150,9 @@ async function init(){
     renderStatus(profile);
     const state=renderAccessState(profile);
     heroCopy.textContent=profile
-      ? 'Welcome back. Your temple doors are open. Enter your current portal first, then move through the hallway as your body says yes.'
+      ? (canAccessFlowFmCurriculum(profile)
+          ? 'Welcome back. Your temple doors are open. Enter your current portal first, then move through the hallway as your body says yes.'
+          : 'Welcome back. Phase 1 beta is focused on your guest journey and Profile Studio. The wider curriculum remains sealed while we localize testing.')
       : 'Preview the Flow FM hallway, then sign in to open your personalized moon portal.';
     setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
   }catch(error){

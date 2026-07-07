@@ -4,6 +4,7 @@ import {
   toneForPriestessProfileStatus,
   labelForPriestessProfileStatus,
 } from '/shared/flowtel.js';
+import { FLOWTEL_ROLLOUT } from '/shared/rollout.js';
 
 export function params(){ return new URLSearchParams(window.location.search); }
 export function requestedMemberId(){ return params().get('member') || params().get('client') || null; }
@@ -81,7 +82,8 @@ const NAV_ITEMS = [
 ];
 
 export function renderTopNav(currentKey){
-  return NAV_ITEMS.map(item => `<a class="nav-pill ${item.key === currentKey ? 'active' : ''}" href="${item.href}">${escapeHtml(item.label)}</a>`).join('');
+  const items = NAV_ITEMS.filter(item => item.key !== 'planning-room' || FLOWTEL_ROLLOUT.enablePlanningRoomForGuests);
+  return items.map(item => `<a class="nav-pill ${item.key === currentKey ? 'active' : ''}" href="${item.href}">${escapeHtml(item.label)}</a>`).join('');
 }
 
 export function renderAccessState(profile){

@@ -6,6 +6,7 @@ import {
   getPersonalizedMoonPath,
   getMoonDatesForPortal,
 } from '/shared/flowtel.js';
+import { canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import { renderTopNav, escapeHtml, seasonClass, setMessage } from '/flow-fm/ui.js';
 
 const topNav=document.getElementById('topNav');
@@ -22,6 +23,10 @@ function renderArcs(){
 function renderMoonPath(profile){
   const status=getFlowFmInitiationStatus(profile || {});
   const path=getPersonalizedMoonPath(profile || {});
+  if(!canAccessFlowFmCurriculum(profile || {})){
+    moonPath.innerHTML=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The 13 Moons Path is resting for now.</h3><p>During this first beta, guests are only testing the Flowtel guest journey and Profile Studio submission flow. The moon curriculum will open in a later phase.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
+    return;
+  }
   moonPath.innerHTML=path.map(portal=>{
     const active=portal.isCurrent;
     if(portal.isOuroboros && portal.isLocked){

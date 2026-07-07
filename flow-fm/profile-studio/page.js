@@ -1,4 +1,4 @@
-// Flowtel v0.10.12 — Royal Queendom facelift + dirty-state display.
+// Flowtel v0.10.14 — Royal Queendom hero + Phase 1 beta polish.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -334,7 +334,7 @@ async function handleProfileAction(form,action){
 }
 function renderStaticNav(){
   if(!topNav) return;
-  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill" href="/flow-fm/planning-room/">Planning Room</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
+  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
 }
 async function loadSavedProfile(){
   if(!api?.getPriestessProfile) return;

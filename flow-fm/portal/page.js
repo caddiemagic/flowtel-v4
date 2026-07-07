@@ -7,6 +7,7 @@ import {
   assignmentStatusCopy,
   getMoonDatesForPortal,
 } from '/shared/flowtel.js';
+import { canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import {
   renderTopNav,
   escapeHtml,
@@ -101,7 +102,19 @@ function renderPortal(portal){
   const assignment=portal.businessAssignment || {};
   const record=recordForIndex(currentRecords, assignment.index);
   const readOnly=!currentProfile || isViewingAnotherMember(currentProfile) || !canTendOwnAssignments(currentProfile);
-  portalActions.innerHTML=`<a class="pill-link muted" href="/flow-fm/">Initiation Hall</a><a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a><a class="pill-link muted" href="/concierge/">Return to Concierge</a>`;
+  portalActions.innerHTML=`<a class="pill-link muted" href="/flow-fm/">Initiation Hall</a><a class="pill-link muted" href="/flow-fm/profile-studio/">Profile Studio</a><a class="pill-link muted" href="/client/">Return to Suite</a>`;
+
+  if(!canAccessFlowFmCurriculum(currentProfile || {})){
+    portalEyebrow.textContent='PHASE 1 BETA';
+    portalTitle.textContent='Temple curriculum sealed';
+    portalIntro.textContent='The moon curriculum is being held back for a later rollout so guest-flow testing stays clean and easy to localize.';
+    hereTitle.textContent='Profile Studio is the active doorway.';
+    hereCopy.textContent='In this phase, guests can move through the Flowtel arrival experience, choose a mentor, and submit their Priestess Profile for review.';
+    moonPanel.innerHTML=`<p class="eyebrow">ACTIVE TESTING PATH</p><h3>Guest Flow + Profile Studio</h3><p>The wider 13 Moon path is intentionally paused during this round of testing.</p><div class="portal-meta"><span>Guest experience open</span><span>Mentor selection open</span><span>Profile submission open</span></div>`;
+    trainingPanel.innerHTML=`<p class="eyebrow">WHAT TO TEST NOW</p><h3>Stay in the simplest path.</h3><p>Use this phase to test profile drafting, submission, and the guest Flowtel rhythm over time.</p><div class="module-detail-grid"><article><span>Open</span><p>Guest check-in, Profile Studio, mentor request flow, and admin review queue.</p></article><article><span>Closed</span><p>Clock-in, practitioner concierge workflows, and the wider curriculum.</p></article><article><span>Next step</span><p>Complete your profile and send it to be witnessed.</p></article></div><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div>`;
+    assignmentPanel.innerHTML=`<p class="eyebrow">CURRENT ACTION</p><div class="assignment-row-heading"><div><h3>Submit your Priestess Profile</h3><p>This is the core build path for Phase 1 beta.</p></div>${statusPill('drafting')}</div><p class="assignment-status-copy">Once the profile is submitted, the admin review queue can witness it under the founding Flowtel admin account.</p><div class="assignment-actions"><a class="pill-link" href="/flow-fm/profile-studio/">Go to Profile Studio</a></div>`;
+    return;
+  }
 
   if(portal.isOuroboros && portal.isLocked){
     portalEyebrow.textContent='MONTH 13 · TIME VAULT';

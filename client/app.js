@@ -1,6 +1,7 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
+import { canUseClockInFlow, FLOWTEL_ROLLOUT } from "../shared/rollout.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -437,7 +438,7 @@ function showScene(name){
 }
 
 function canClockIn(profile){
-  return ["practitioner","owner","admin"].includes(profile?.role);
+  return canUseClockInFlow(profile);
 }
 
 function showCheckIn(){
@@ -1225,8 +1226,10 @@ async function renderPractitionerConnection(){
     }
 
     currentMentorRelationship=null;
-    title.textContent="No mentor chosen yet.";
-    text.textContent="Choose the mentor you would like to tend your stays. This creates a relationship that can remember you across future visits.";
+    title.textContent="Choose your Mentor to the Moon.";
+    text.textContent=FLOWTEL_ROLLOUT.restrictMentorsToAdminAndOwner
+      ? "For this first beta, one mentor is available so Flowtel can localize issues and tend your testing journey closely."
+      : "Choose the mentor you would like to tend your stays. This creates a relationship that can remember you across future visits.";
     button.textContent="Choose Your Mentor";
     button.disabled=false;
 
@@ -1246,7 +1249,7 @@ async function renderPractitionerConnection(){
 
         directory.classList.remove("hidden");
         directory.innerHTML=`
-          <p class="microcopy mentor-consent-copy">${escapeHtml(MENTOR_DATA_CONSENT_LANGUAGE)}</p>
+          <p class="microcopy mentor-consent-copy">${escapeHtml(MENTOR_DATA_CONSENT_LANGUAGE)}</p>${FLOWTEL_ROLLOUT.restrictMentorsToAdminAndOwner ? `<p class="microcopy mentor-consent-copy">Only the founding mentor account is available during Phase 1 beta testing.</p>` : ""}
           <div class="mentor-directory-grid">
             ${mentors.map(mentor=>mentorCardMarkup(mentor)).join("")}
           </div>

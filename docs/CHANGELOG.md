@@ -1,3 +1,16 @@
+## v0.10.14 — Phase 1 Guest Beta Rollout + Royal Queendom Hero
+
+- Replaced the Queendom/Profile Studio beetle emblem with the new luxury golden scarab sun-disk artwork.
+- Upgraded the Queendom hero with temple-pillar side treatments using carved pillar artwork for a more royal Egyptian feel.
+- Added a shared rollout config for intentional user testing phases.
+- Set the active rollout to Phase 1: guest flow + Profile Studio beta.
+- Disabled Clock In during Phase 1 so guests cannot enter the Concierge Desk yet.
+- Restricted mentor selection during Phase 1 to admin/owner mentor accounts only, so a single founding mentor can receive early guest requests.
+- Sealed the wider Flow FM curriculum for guest testers and redirected the hallway / portal / moons experience toward Profile Studio during this phase.
+- Added rollout planning documentation for the 3-phase testing path.
+- No Supabase migration required.
+
+
 ## v0.10.13 — 13 Moon Path Time Vault + Row Layout Polish
 
 - Reworked the Initiation Hall 13 Moon Path into two clean rows of six doors for Months 1–6 and Months 7–12.

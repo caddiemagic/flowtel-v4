@@ -903,3 +903,112 @@ input,textarea,button{font:inherit;color:inherit}
   .portal-door-row{grid-template-columns:repeat(2,minmax(0,1fr))}
   .portal-door-vault-row .temple-door{width:min(280px,100%)}
 }
+
+/* Release 0.10.14 — Phase 1 beta gating + royal Queendom hero pillars */
+.hero-card--royal-queendom::before,
+.hero-card--royal-queendom::after{
+  display:none;
+}
+.queendom-hero-stage{
+  position:relative;
+  max-width:1080px;
+  min-height:420px;
+  padding:28px 110px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.queendom-hero-copy{
+  position:relative;
+  z-index:2;
+  max-width:720px;
+}
+.queendom-pillar-edge{
+  position:absolute;
+  top:18px;
+  bottom:18px;
+  width:92px;
+  border-radius:28px;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 18%,rgba(255,255,255,.14) 80%,rgba(120,79,42,.08)),
+    url('/assets/queendom-pillar-carving.png') center/cover no-repeat;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,248,237,.72),
+    inset 0 0 24px rgba(196,139,83,.16),
+    0 18px 34px rgba(109,78,65,.08);
+  opacity:.96;
+  pointer-events:none;
+}
+.queendom-pillar-edge::before,
+.queendom-pillar-edge::after{
+  content:"";
+  position:absolute;
+  left:10px;
+  right:10px;
+  height:24px;
+  border-radius:999px;
+  background:linear-gradient(180deg,rgba(243,221,184,.95),rgba(194,144,88,.92));
+  box-shadow:inset 0 2px 0 rgba(255,255,255,.5),0 6px 12px rgba(109,78,65,.1);
+}
+.queendom-pillar-edge::before{top:14px}
+.queendom-pillar-edge::after{bottom:14px}
+.queendom-pillar-edge.left{left:16px}
+.queendom-pillar-edge.right{right:16px;transform:scaleX(-1)}
+.queendom-emblem-frame{
+  width:min(100%,560px);
+  margin:0 auto 14px;
+  display:flex;
+  justify-content:center;
+}
+.queendom-emblem-image{
+  display:block;
+  width:min(100%,500px);
+  height:auto;
+  filter:drop-shadow(0 18px 28px rgba(109,78,65,.12));
+}
+.hero-card--royal-queendom h1{
+  font-size:clamp(3.2rem,8vw,5.9rem);
+}
+.queendom-hero-mantra{
+  padding:14px 28px;
+  border:1px solid rgba(216,168,79,.28);
+  background:linear-gradient(180deg,rgba(255,253,249,.96),rgba(248,241,233,.92));
+  box-shadow:0 14px 28px rgba(109,78,65,.08);
+}
+.flowfm-beta-lock-card{
+  grid-column:1/-1;
+  width:min(900px,100%);
+  margin:0 auto;
+  padding:28px 26px;
+  border-radius:30px;
+  border:1px solid rgba(216,168,79,.26);
+  background:
+    radial-gradient(circle at 85% 18%,rgba(216,168,79,.12),transparent 24%),
+    linear-gradient(180deg,rgba(255,253,249,.98),rgba(247,239,229,.96));
+  box-shadow:0 20px 44px rgba(109,78,65,.08), inset 0 0 0 1px rgba(255,255,255,.78);
+  text-align:center;
+}
+.flowfm-beta-lock-card h3{
+  margin:.2rem 0 .8rem;
+  color:var(--brown);
+  font-size:clamp(1.5rem,3vw,2.1rem);
+}
+.flowfm-beta-lock-card p:not(.eyebrow){
+  max-width:680px;
+  margin:0 auto;
+  color:#7d6153;
+  line-height:1.6;
+}
+.flowfm-beta-lock-card .module-cta-row{
+  justify-content:center;
+  margin-top:18px;
+}
+@media(max-width:900px){
+  .queendom-hero-stage{padding:18px 72px;min-height:unset}
+  .queendom-pillar-edge{width:56px}
+}
+@media(max-width:640px){
+  .queendom-hero-stage{padding:8px 0}
+  .queendom-pillar-edge{display:none}
+  .queendom-emblem-image{width:min(100%,360px)}
+}
