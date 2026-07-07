@@ -2408,3 +2408,20 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 .mentor-panel-grid span{display:block;margin-bottom:8px;font-family:Arial,sans-serif;font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--rose)}
 .mentor-panel-grid p{margin:0;color:var(--soft-brown);line-height:1.4}
 @media(max-width:900px){.suite-actions,.mentor-panel-grid{grid-template-columns:1fr!important}.powder-share-actions{justify-content:stretch}.powder-share-actions button{width:100%}}
+
+
+/* Release 0.10.17 — Lounge access to Profile View */
+.profile-lounge-card{
+  max-width:760px;
+  margin:22px auto 0;
+  padding:22px 20px;
+  text-align:left;
+  background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(252,246,239,.82));
+  border:1px solid rgba(216,168,79,.2);
+  border-radius:24px;
+  box-shadow:0 12px 34px rgba(109,78,65,.07);
+}
+.profile-lounge-card .eyebrow{margin-top:0}
+.profile-lounge-card h3{margin:.2rem 0 .55rem}
+.profile-lounge-card p{margin:0; color:var(--muted)}
+.lounge-profile-link{max-width:320px; margin-top:18px}

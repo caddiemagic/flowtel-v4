@@ -1,3 +1,12 @@
+## v0.10.17 — Concierge Holding Page + Lounge Profile Access
+
+- Redirected the Flow Map `Return to Concierge` button to a temporary Concierge Desk holding page for Phase 1 beta.
+- Added a new `/concierge-soon/` page that tells guests the Concierge Desk will be open for service soon.
+- Added the elegant bell image as a soft background on the temporary Concierge Desk page.
+- Added direct access to the Profile Studio from the Flowtel Lounge so guests can open their profile view from the lounge experience.
+- No Supabase migration required.
+
+
 ## v0.10.15 — Login Recovery + Rollout Hardening
 
 - Hardened the guest/client login app so Phase 1 rollout gating no longer depends on a newly introduced shared rollout module at login time.
