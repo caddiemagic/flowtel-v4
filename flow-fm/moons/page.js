@@ -24,6 +24,17 @@ function renderMoonPath(profile){
   const path=getPersonalizedMoonPath(profile || {});
   moonPath.innerHTML=path.map(portal=>{
     const active=portal.isCurrent;
+    if(portal.isOuroboros && portal.isLocked){
+      return `<article class="moon-card ${active ? 'active' : ''} moon-${seasonClass(portal.season)}">
+        <div class="moon-number">?</div>
+        <div>
+          <p class="eyebrow">TIME VAULT</p>
+          <h3>Mystery Moon</h3>
+          <p class="assignment-line">Opens ${escapeHtml(portal.vaultOpensLabel || 'one year after your Flow FM start date')} · returns through ${escapeHtml(portal.returnMoon?.name || 'your entry moon')}</p>
+          <div class="assignment-links"><span>Sealed until your anniversary</span></div>
+        </div>
+      </article>`;
+    }
     const assignmentLine=portal.isOuroboros
       ? `Return moon: ${portal.returnMoon?.name || 'entry moon'}`
       : `${portal.wombWorkModule?.title || 'Womb Work'} · ${portal.businessAssignment?.title || 'Assignment'}`;

@@ -19,7 +19,9 @@ const currentModuleTitle=document.getElementById('currentModuleTitle');
 const currentModuleCopy=document.getElementById('currentModuleCopy');
 const currentAssignmentTitle=document.getElementById('currentAssignmentTitle');
 const currentAssignmentCopy=document.getElementById('currentAssignmentCopy');
-const portalDoorGrid=document.getElementById('portalDoorGrid');
+const portalDoorRowOne=document.getElementById('portalDoorRowOne');
+const portalDoorRowTwo=document.getElementById('portalDoorRowTwo');
+const portalDoorVaultRow=document.getElementById('portalDoorVaultRow');
 const doorGrid=document.getElementById('doorGrid');
 const message=document.getElementById('message');
 
@@ -38,13 +40,30 @@ function renderSupportDoors(){
     <span class="door-link">Open room</span>
   </a>`).join('');
 }
-function renderPortalDoors(path){
-  if(!portalDoorGrid) return;
-  portalDoorGrid.innerHTML=path.map(portal=>{
-    const state=portal.isCurrent ? 'CURRENT PORTAL' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN DOOR');
-    const returnLine=portal.isOuroboros ? `Return: ${portal.returnMoon?.name || 'entry moon'}` : portal.month;
-    const theme=PORTAL_DOOR_THEMES[(Number(portal.portalIndex || 1)-1) % PORTAL_DOOR_THEMES.length];
-    return `<a class="portal-door temple-door temple-door--${theme} ${portal.isCurrent ? 'current' : ''} ${portal.isOuroboros ? 'return-door' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
+function renderPortalDoor(portal){
+  const theme=PORTAL_DOOR_THEMES[(Number(portal.portalIndex || 1)-1) % PORTAL_DOOR_THEMES.length];
+  const state=portal.isCurrent ? 'CURRENT PORTAL' : 'OPEN DOOR';
+  return `<a class="portal-door temple-door temple-door--${theme} ${portal.isCurrent ? 'current' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
+    <span class="temple-door-crown" aria-hidden="true">
+      <span class="wing left"></span>
+      <span class="sun-disk"></span>
+      <span class="scarab-body"></span>
+      <span class="wing right"></span>
+    </span>
+    <span class="door-arch" aria-hidden="true"></span>
+    <span class="portal-number">${escapeHtml(portal.portalIndex)}</span>
+    <div class="temple-door-copy">
+      <p class="eyebrow">${escapeHtml(state)}</p>
+      <h3>${escapeHtml(portal.name)}</h3>
+      <p>${escapeHtml(portal.month || '')}</p>
+    </div>
+    <span class="door-open-label">Enter</span>
+  </a>`;
+}
+function renderVaultDoor(portal){
+  if(!portal) return '';
+  if(portal.isLocked){
+    return `<article class="portal-door temple-door temple-door--vault is-locked" aria-disabled="true">
       <span class="temple-door-crown" aria-hidden="true">
         <span class="wing left"></span>
         <span class="sun-disk"></span>
@@ -52,15 +71,39 @@ function renderPortalDoors(path){
         <span class="wing right"></span>
       </span>
       <span class="door-arch" aria-hidden="true"></span>
-      <span class="portal-number">${escapeHtml(portal.portalIndex)}</span>
+      <span class="portal-number">?</span>
       <div class="temple-door-copy">
-        <p class="eyebrow">${escapeHtml(state)}</p>
-        <h3>${escapeHtml(portal.name)}</h3>
-        <p>${escapeHtml(returnLine)}</p>
+        <p class="eyebrow">MYSTERY MOON</p>
+        <h3>Time Vault</h3>
+        <p>${escapeHtml(portal.vaultOpensLabel ? `Opens ${portal.vaultOpensLabel}` : 'Opens one year after you join')}</p>
       </div>
-      <span class="door-open-label">Enter</span>
-    </a>`;
-  }).join('');
+      <span class="door-open-label">Sealed</span>
+    </article>`;
+  }
+  return `<a class="portal-door temple-door temple-door--vault ${portal.isCurrent ? 'current' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
+    <span class="temple-door-crown" aria-hidden="true">
+      <span class="wing left"></span>
+      <span class="sun-disk"></span>
+      <span class="scarab-body"></span>
+      <span class="wing right"></span>
+    </span>
+    <span class="door-arch" aria-hidden="true"></span>
+    <span class="portal-number">13</span>
+    <div class="temple-door-copy">
+      <p class="eyebrow">OUROBOROS MOON</p>
+      <h3>${escapeHtml(portal.name)}</h3>
+      <p>${escapeHtml(portal.returnMoon?.name ? `Returns through ${portal.returnMoon.name}` : 'The next spiral')}</p>
+    </div>
+    <span class="door-open-label">Open Vault</span>
+  </a>`;
+}
+function renderPortalDoors(path){
+  if(!portalDoorRowOne || !portalDoorRowTwo || !portalDoorVaultRow) return;
+  const regularDoors=(path || []).filter(portal=>!portal.isOuroboros);
+  const vault=(path || []).find(portal=>portal.isOuroboros) || null;
+  portalDoorRowOne.innerHTML=regularDoors.slice(0,6).map(renderPortalDoor).join('');
+  portalDoorRowTwo.innerHTML=regularDoors.slice(6,12).map(renderPortalDoor).join('');
+  portalDoorVaultRow.innerHTML=renderVaultDoor(vault);
 }
 function renderStatus(profile){
   const status=getFlowFmInitiationStatus(profile || {});

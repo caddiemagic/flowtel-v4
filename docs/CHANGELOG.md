@@ -1,3 +1,14 @@
+## v0.10.13 — 13 Moon Path Time Vault + Row Layout Polish
+
+- Reworked the Initiation Hall 13 Moon Path into two clean rows of six doors for Months 1–6 and Months 7–12.
+- Moved the 13th Ouroboros Moon into its own centered Time Vault card to build suspense and make the final initiation feel more ceremonial.
+- Added anniversary-based locking for the Ouroboros Moon so it stays sealed until the same calendar day one year after the member joined Flow FM.
+- Updated initiation progress logic so Month 13 no longer opens early at the start of the anniversary month.
+- Added a locked Mystery Moon / Time Vault state on the Moon Portal page for direct access attempts before the vault opens.
+- Updated the 13 Moons Path page so the Ouroboros Moon also appears as a sealed mystery until the vault date arrives.
+- No Supabase migration required.
+
+
 ## v0.10.12 — Temple Door Grandeur + Royal Queendom Facelift
 
 - Restyled the Initiation Hall hero with a grander Egyptian temple mood, including a winged scarab / sun-disk crest and richer luxury framing.

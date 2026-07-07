@@ -101,6 +101,22 @@ function renderPortal(portal){
   const assignment=portal.businessAssignment || {};
   const record=recordForIndex(currentRecords, assignment.index);
   const readOnly=!currentProfile || isViewingAnotherMember(currentProfile) || !canTendOwnAssignments(currentProfile);
+  portalActions.innerHTML=`<a class="pill-link muted" href="/flow-fm/">Initiation Hall</a><a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a><a class="pill-link muted" href="/concierge/">Return to Concierge</a>`;
+
+  if(portal.isOuroboros && portal.isLocked){
+    portalEyebrow.textContent='MONTH 13 · TIME VAULT';
+    portalTitle.textContent='Mystery Moon';
+    portalIntro.textContent='The Ouroboros Moon is sealed for now. It opens as a ceremonial time vault on the anniversary of your Flow FM beginning.';
+    hereTitle.textContent='This door is still sealed.';
+    hereCopy.textContent=portal.vaultOpensLabel
+      ? `Your Mystery Moon opens on ${portal.vaultOpensLabel}. Until then, let the suspense build and keep walking the first twelve doors.`
+      : 'Your Mystery Moon opens one year after you join Flow FM.';
+    moonPanel.innerHTML=`<p class="eyebrow">MYSTERY MOON</p><h3>Ouroboros Time Vault</h3><p>The final moon is being kept as a sacred reveal. This chamber opens one full year after your Flow FM initiation so the ending can arrive with ceremony.</p><div class="portal-meta"><span>Sealed door</span><span>${escapeHtml(portal.vaultOpensLabel ? `Opens ${portal.vaultOpensLabel}` : 'Opens after one year')}</span><span>${escapeHtml(portal.returnMoon?.name ? `Returns through ${portal.returnMoon.name}` : 'Returns through your entry moon')}</span></div>`;
+    trainingPanel.innerHTML=`<p class="eyebrow">BEFORE THE VAULT OPENS</p><h3>Tend the first twelve moons.</h3><p>The Mystery Moon is not a room to rush. Let your initiation ripen first, then come back when the vault opens.</p><div class="module-detail-grid"><article><span>What to do now</span><p>Stay with your current moon portal and complete the first twelve doors in rhythm.</p></article><article><span>Why it is sealed</span><p>The final moon is designed as a one-year return, opened on the same date you joined Flow FM.</p></article><article><span>When it opens</span><p>${escapeHtml(portal.vaultOpensLabel || 'One year after your start date')}</p></article></div>`;
+    assignmentPanel.innerHTML=`<p class="eyebrow">TIME-LOCKED ASSIGNMENT</p><div class="assignment-row-heading"><div><h3>Vault not open yet</h3><p>The Month 13 assignment is intentionally hidden until your anniversary door opens.</p></div>${statusPill('not_started')}</div><p class="assignment-status-copy">Return on the anniversary of your Flow FM start date to open this final initiation.</p>`;
+    return;
+  }
+
   portalEyebrow.textContent=`MONTH ${portal.portalIndex} · MOON PORTAL`;
   portalTitle.textContent=portal.isOuroboros ? 'Ouroboros Moon' : portal.name;
   portalIntro.textContent=portal.isOuroboros
@@ -110,7 +126,6 @@ function renderPortal(portal){
   hereCopy.textContent=portal.isCurrent
     ? 'This is the moon Flowtel is currently orienting you through. Training, practice, and the business doorway are gathered below.'
     : 'This room is open for exploration. Return to the Initiation Hall any time to see the full path.';
-  portalActions.innerHTML=`<a class="pill-link muted" href="/flow-fm/">Initiation Hall</a><a class="pill-link muted" href="/flow-fm/planning-room/">Planning Room</a><a class="pill-link muted" href="/concierge/">Return to Concierge</a>`;
   const moonDates=getMoonDatesForPortal(portal);
   moonPanel.innerHTML=`<p class="eyebrow">MOON INITIATION</p><h3>${escapeHtml(portal.name)}</h3><p>${escapeHtml(portal.theme || '')}</p><div class="portal-meta"><span>${escapeHtml(portal.wing || '')}</span><span>${escapeHtml(portal.season || '')}</span><span>New Moon: ${escapeHtml(moonDates.newMoonLabel)}</span><span>Full Moon: ${escapeHtml(moonDates.fullMoonLabel)}</span><span>${portal.isOuroboros ? `Returns through ${escapeHtml(portal.returnMoon?.name || 'entry moon')}` : `Canonical ${escapeHtml(portal.month || '')}`}</span></div>`;
   trainingPanel.innerHTML=`<p class="eyebrow">WOMB WORK MODULE ${escapeHtml(module.index || portal.portalIndex)}</p><h3>${escapeHtml(module.title || 'Integration')}</h3><p>${escapeHtml(module.description || 'Integration practices live here.')}</p><div class="module-detail-grid"><article><span>Practice</span><p>${escapeHtml(module.practice || 'Practice will be added here.')}</p></article><article><span>Reflection Prompt</span><p>${escapeHtml(module.prompt || 'Prompt will be added here.')}</p></article><article><span>Course Content</span><p><span class="lesson-placeholder">Squarespace lesson placeholder</span></p></article></div>${Number(module.index || portal.portalIndex)===1 ? '<div class="module-cta-row"><a class="pill-link" href="/tracker/">Track Your Cycle</a></div>' : ''}`;
