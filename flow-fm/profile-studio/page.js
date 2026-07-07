@@ -1,4 +1,4 @@
-// Flowtel v0.10.10 — Profile Studio robust renderer.
+// Flowtel v0.10.11 — Profile Studio luxury polish + dirty-state display.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -49,6 +49,7 @@ const accessState = document.getElementById('accessState');
 
 let currentProfile = null;
 let currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
+let profileDirtyDisplayStatus = '';
 let api = null;
 
 function escapeHtml(value){
@@ -61,6 +62,16 @@ function safeHref(value){
     const url = new URL(raw, window.location.origin);
     if(['http:','https:','mailto:'].includes(url.protocol)) return url.href;
   }catch(error){ console.warn('Ignoring unsafe URL', error); }
+  return '';
+}
+function safeImageSrc(value){
+  const raw = String(value || '').trim();
+  if(!raw) return '';
+  if(raw.startsWith('/')) return raw;
+  try{
+    const url = new URL(raw, window.location.origin);
+    if(['http:','https:'].includes(url.protocol)) return url.href;
+  }catch(error){ console.warn('Ignoring unsafe profile image URL', error); }
   return '';
 }
 function setPageMessage(text=''){
@@ -107,17 +118,32 @@ function displayLocation(record={}){
   return !!String(record.location || '').trim();
 }
 function renderProfileStatusPill(status='draft'){
-  const label = {draft:'Draft',submitted:'Submitted',approved:'Approved',needs_revision:'Needs revision'}[String(status || 'draft')] || 'Draft';
-  const tone = {draft:'draft',submitted:'submitted',approved:'complete',needs_revision:'revision'}[String(status || 'draft')] || 'draft';
+  const key=String(status || 'draft');
+  const label = {draft:'Draft',draft_revision:'Draft Revision',submitted:'Submitted',approved:'Approved',needs_revision:'Needs revision'}[key] || 'Draft';
+  const tone = {draft:'draft',draft_revision:'revision',submitted:'submitted',approved:'complete',needs_revision:'revision'}[key] || 'draft';
   return `<span class="status-pill tone-${escapeHtml(tone)}">${escapeHtml(label)}</span>`;
+}
+function displayStatusForProfile(profile={}){
+  return profile.display_status || profileDirtyDisplayStatus || profile.status || 'draft';
+}
+function dirtyDisplayStatusFor(status='draft'){
+  const key=String(status || 'draft');
+  if(key==='submitted') return 'draft';
+  if(key==='approved') return 'draft_revision';
+  return key || 'draft';
 }
 function statusCopy(status='draft'){
   return {
     draft:'Your profile draft is still in your hands. Save as often as you need.',
+    draft_revision:'This approved profile has fresh edits. Save the draft revision, then send it to be witnessed when it is ready.',
     submitted:'Your Priestess Profile has been sent to be witnessed.',
     approved:'Your Priestess Profile has been approved for the next doorway.',
     needs_revision:'A refinement has been requested. Tend the note, soften the language, and send the next version when ready.',
   }[String(status || 'draft')] || 'Your profile draft is still in your hands. Save as often as you need.';
+}
+function profilePhotoMarkup(profile={}){
+  const src=safeImageSrc(profile.profile_photo_url || profile.profilePhotoUrl) || '/assets/flowtel-pinkrose.png';
+  return `<div class="profile-photo profile-photo--rose"><img src="${escapeHtml(src)}" alt="" loading="lazy" onerror="this.hidden=true; this.parentElement && this.parentElement.classList.add('photo-fallback');" /></div>`;
 }
 function valuesFromForm(form){
   const data=new FormData(form);
@@ -185,8 +211,9 @@ function renderDisplayProfile(profile={}){
   const timezoneLine=String(profile.timezone || '').trim();
   const website=safeHref(profile.website_url);
   const offerings=offeringLabelsFromValues(profile.offering_template_keys || profile.offerings).map(item=>`<span>${escapeHtml(item)}</span>`).join('');
+  const displayStatus=displayStatusForProfile(profile);
   return `<article class="display-profile-card display-profile-card--simple">
-    <div class="display-profile-hero"><div class="profile-photo">🌹</div><div><p class="eyebrow">${escapeHtml(title)}</p><h3>${escapeHtml(name)}</h3>${locationLine ? `<p>${escapeHtml(locationLine)}</p>` : ''}${timezoneLine ? `<p class="timezone-line">${escapeHtml(timezoneLine)}</p>` : ''}${renderProfileStatusPill(profile.status)}</div></div>
+    <div class="display-profile-hero">${profilePhotoMarkup(profile)}<div><p class="eyebrow">${escapeHtml(title)}</p><h3>${escapeHtml(name)}</h3>${locationLine ? `<p>${escapeHtml(locationLine)}</p>` : ''}${timezoneLine ? `<p class="timezone-line">${escapeHtml(timezoneLine)}</p>` : ''}${renderProfileStatusPill(displayStatus)}</div></div>
     <div class="profile-section"><p class="eyebrow">ABOUT ME</p><p>${escapeHtml(profile.bio || 'Choose a prepared bio to begin. Your profile can evolve as your medicine becomes clearer.')}</p></div>
     ${offerings ? `<div class="profile-section"><p class="eyebrow">OFFERINGS</p><div class="profile-tags">${offerings}</div></div>` : ''}
     ${website ? `<div class="profile-links"><a href="${escapeHtml(website)}" target="_blank" rel="noreferrer">Visit Website</a></div>` : ''}
@@ -225,10 +252,16 @@ function refreshSelectedBioPreview(){
   const bio=PRIESTESS_BIO_TEMPLATES.find(item => item.value === form.querySelector('[name="bio_template"]')?.value);
   node.innerHTML=`<p>${escapeHtml(bio?.copy || '')}</p>`;
 }
-function refreshPreviewFromForm(form){
+function refreshPreviewFromForm(form,{ markDirty=true }={}){
   const payload=profilePayloadFromForm(form);
-  currentPriestessProfile={...(currentPriestessProfile || {}),priestess_name:payload.priestessName,legal_name:payload.legalName,bio:payload.bio,modalities:payload.modalities,website_url:payload.websiteUrl,offerings:payload.offerings,location:payload.location,timezone:payload.timezone};
+  const displayStatus=markDirty ? dirtyDisplayStatusFor(currentPriestessProfile?.status) : displayStatusForProfile(currentPriestessProfile || {});
+  profileDirtyDisplayStatus = displayStatus !== (currentPriestessProfile?.status || 'draft') ? displayStatus : '';
+  currentPriestessProfile={...(currentPriestessProfile || {}),display_status:displayStatus,priestess_name:payload.priestessName,legal_name:payload.legalName,bio:payload.bio,modalities:payload.modalities,website_url:payload.websiteUrl,offerings:payload.offerings,location:payload.location,timezone:payload.timezone};
   profileStudioPreview.innerHTML=renderDisplayProfile(currentPriestessProfile);
+  const statusCopyNode=form?.querySelector('[data-profile-status-copy]');
+  if(statusCopyNode) statusCopyNode.textContent=statusCopy(displayStatus);
+  const statusPillNode=form?.querySelector('[data-profile-status-pill]');
+  if(statusPillNode) statusPillNode.innerHTML=renderProfileStatusPill(displayStatus);
 }
 function renderProfileStudio(record=currentPriestessProfile){
   const profile=record || { status:'draft', timezone:'America/Los_Angeles' };
@@ -236,10 +269,11 @@ function renderProfileStudio(record=currentPriestessProfile){
   const bioValue=selectedBioValue(profile);
   const offeringValues=selectedOfferingValues(profile);
   const timezone=profile.timezone || 'America/Los_Angeles';
+  const displayStatus=displayStatusForProfile(profile);
   profileStudioIntro.textContent='Choose a prepared title, bio, and offering doorway. This profile can be refined later.';
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
-    <div class="profile-form-heading"><div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p>${escapeHtml(statusCopy(profile.status))}</p></div>${renderProfileStatusPill(profile.status)}</div>
+    <div class="profile-form-heading"><div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>
     <div class="form-grid"><label><span>Profile Name</span><input name="priestess_name" value="${escapeHtml(profile.priestess_name || '')}" placeholder="First name or priestess name" /></label><label><span>Legal Name — private</span><input name="legal_name" value="${escapeHtml(profile.legal_name || '')}" placeholder="For future network documents" /></label></div>
     <label><span>Title</span><select name="title_value">${renderTitleOptions(titleValue)}</select></label>
     <label><span>Bio Template</span><select name="bio_template">${renderBioOptions(titleValue,bioValue)}</select></label>
@@ -264,15 +298,16 @@ function bindProfileForm(){
     const options=bioTemplatesForTitle(titleSelect.value);
     bioSelect.innerHTML=options.map(item=>`<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
     refreshSelectedBioPreview();
-    refreshPreviewFromForm(form);
+    refreshPreviewFromForm(form,{ markDirty:true });
   });
-  bioSelect?.addEventListener('change',()=>{ refreshSelectedBioPreview(); refreshPreviewFromForm(form); });
-  form.querySelectorAll('input, select').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form)));
+  bioSelect?.addEventListener('change',()=>{ refreshSelectedBioPreview(); refreshPreviewFromForm(form,{ markDirty:true }); });
+  form.querySelectorAll('input, select').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form,{ markDirty:true })));
+  form.querySelectorAll('input[type="checkbox"], select').forEach(input=>input.addEventListener('change',()=>refreshPreviewFromForm(form,{ markDirty:true })));
   form.querySelectorAll('[data-profile-action]').forEach(button=>button.addEventListener('click',()=>handleProfileAction(form,button.dataset.profileAction)));
 }
 async function handleProfileAction(form,action){
   if(action==='preview'){
-    refreshPreviewFromForm(form);
+    refreshPreviewFromForm(form,{ markDirty:false });
     setPageMessage('Profile preview refreshed.');
     return;
   }
@@ -289,6 +324,7 @@ async function handleProfileAction(form,action){
     setPageMessage(action==='submit' ? 'Sending your Priestess Profile to be witnessed...' : 'Saving your Priestess Profile draft...');
     if(action==='submit') await api.submitPriestessProfile(payload);
     else await api.savePriestessProfileDraft(payload);
+    profileDirtyDisplayStatus='';
     await loadSavedProfile();
     setPageMessage(action==='submit' ? 'Priestess Profile sent to be witnessed.' : 'Priestess Profile draft saved.');
   }catch(error){
@@ -304,7 +340,8 @@ async function loadSavedProfile(){
   if(!api?.getPriestessProfile) return;
   try{
     const profile=await api.getPriestessProfile(requestedMemberId());
-    currentPriestessProfile={...currentPriestessProfile,...(profile || {})};
+    profileDirtyDisplayStatus='';
+    currentPriestessProfile={...currentPriestessProfile,...(profile || {}),display_status:''};
     renderProfileStudio(currentPriestessProfile);
   }catch(error){
     console.warn('Saved profile could not be loaded; keeping local form visible.', error);
@@ -313,7 +350,7 @@ async function loadSavedProfile(){
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.10');
+    api=await import('/shared/flowtel.js?v=0.10.11');
     currentProfile=await api.getCurrentProfile();
     if(accessState) accessState.innerHTML='';
     await loadSavedProfile();

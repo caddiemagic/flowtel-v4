@@ -1,3 +1,15 @@
+## v0.10.11 — Initiation Hall Luxury Polish + Queendom Studio Refinement
+
+- Added Initiation Hall-only rose-gold wax seal hero graphic.
+- Replaced Profile Studio rose emoji with the pink rose profile image fallback.
+- Added Profile Studio dirty-state display behavior for submitted and approved profiles.
+- Upgraded Flow FM buttons, pills, offering chips, status pills, moon-door Enter labels, profile tags, and Planning Room actions with softer luxury styling.
+- Reduced Flow FM header scale for less visual overwhelm.
+- Refined Your Queendom hero copy/styling without adding the wax seal.
+- Updated Planning Room calendar cards to Dragon Moon, Wild Woman Moon, and Lover Moon with New Moon / Full Moon date lines.
+- Converted Moon Phase Key and Weekly Planning Prompts into refined teaching cards and prompt notes.
+- Documented reserved calendar PDF paths; final calendar PDFs are still pending.
+
 
 ## v0.10.10 — Temple Door Restoration + Portal Cleanup
 
