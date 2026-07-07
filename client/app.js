@@ -1,7 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
-import { canUseClockInFlow, FLOWTEL_ROLLOUT } from "../shared/rollout.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -312,6 +311,19 @@ async function openMemberBridge(){
   await createNewMemberBridge();
 }
 
+
+// Release 0.10.15 login recovery:
+// Keep Phase 1 gating local to the guest app so a missing/new rollout module
+// cannot prevent the client login screen from loading.
+const FLOWTEL_ROLLOUT={
+  phaseLabel:"Phase 1 — Guest Flow + Profile Studio Beta",
+  enableClockIn:false,
+  restrictMentorsToAdminAndOwner:true,
+};
+function canUseClockInFlow(profile={}){
+  if(!FLOWTEL_ROLLOUT.enableClockIn) return false;
+  return ["practitioner","owner","admin"].includes(String(profile?.role || "").toLowerCase());
+}
 
 const BETA_PASSWORD="FlowtelBeta!2026";
 const BETA_ACCOUNTS=[

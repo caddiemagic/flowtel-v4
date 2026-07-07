@@ -18,6 +18,22 @@ const FALLBACK_SELECT_RELATIONSHIP = `
   client:client_id (id, first_name, last_name, email, role, membership_type)
 `;
 
+// Release 0.10.15 login recovery:
+// Keep mentor-list gating self-contained so the guest app is not fragile if
+// the rollout helper file is missed during a partial deploy.
+const PHASE_1_RESTRICT_MENTORS_TO_ADMIN_OWNER = true;
+
+function roleKey(profile={}){
+  return String(profile?.role || "").trim().toLowerCase();
+}
+
+function mentorIsVisibleInPhaseOne(profile={}){
+  if(profile?.mentor_accepting_clients === false) return false;
+  if(!PHASE_1_RESTRICT_MENTORS_TO_ADMIN_OWNER) return true;
+  return ["admin","owner"].includes(roleKey(profile));
+}
+
+
 function isMissingColumnError(error){
   const message=String(error?.message || "").toLowerCase();
   return error?.code==="42703" || message.includes("column") && message.includes("does not exist");
@@ -83,7 +99,7 @@ export async function listMentors(){
   if(error) throw error;
 
   return (data || []).filter(profile=>{
-    if(profile.mentor_accepting_clients === false) return false;
+    if(!mentorIsVisibleInPhaseOne(profile)) return false;
     // A practitioner is still a guest first, but no guest should be able to
     // invite themselves as their own Mentor to the Moon.
     if(currentUser?.id && profile.id === currentUser.id) return false;

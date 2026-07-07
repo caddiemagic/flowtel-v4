@@ -1,3 +1,12 @@
+## v0.10.15 — Login Recovery + Rollout Hardening
+
+- Hardened the guest/client login app so Phase 1 rollout gating no longer depends on a newly introduced shared rollout module at login time.
+- Hardened the mentor directory helper so one-mother/founding-mentor filtering remains local to the relationships module.
+- Preserved Phase 1 behavior: Clock In remains disabled and mentor selection remains narrowed to admin/owner mentor accounts.
+- Kept the Profile Studio, review queue, and Queendom styling from v0.10.14 unchanged.
+- No Supabase migration required.
+
+
 ## v0.10.14 — Phase 1 Guest Beta Rollout + Royal Queendom Hero
 
 - Replaced the Queendom/Profile Studio beetle emblem with the new luxury golden scarab sun-disk artwork.
