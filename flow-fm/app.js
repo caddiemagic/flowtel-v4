@@ -24,21 +24,35 @@ const doorGrid=document.getElementById('doorGrid');
 const message=document.getElementById('message');
 
 const SUPPORT_DOORS=[
-  { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.' },
-  { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.' },
+  { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
+  { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
 ];
+const PORTAL_DOOR_THEMES=['winged','cartouche','sunburst','lotus'];
 
 function renderSupportDoors(){
-  doorGrid.innerHTML=SUPPORT_DOORS.map(item=>`<a class="door-card" href="${item.href}"><p class="eyebrow">${escapeHtml(item.eyebrow)}</p><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.copy)}</p><span class="door-link">Open room</span></a>`).join('');
+  doorGrid.innerHTML=SUPPORT_DOORS.map(item=>`<a class="door-card door-card--royal door-card--${item.motif || 'royal'}" href="${item.href}">
+    <span class="support-door-crest" aria-hidden="true"></span>
+    <p class="eyebrow">${escapeHtml(item.eyebrow)}</p>
+    <h3>${escapeHtml(item.title)}</h3>
+    <p>${escapeHtml(item.copy)}</p>
+    <span class="door-link">Open room</span>
+  </a>`).join('');
 }
 function renderPortalDoors(path){
   if(!portalDoorGrid) return;
   portalDoorGrid.innerHTML=path.map(portal=>{
-    const state=portal.isCurrent ? 'CURRENT MOON' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN');
+    const state=portal.isCurrent ? 'CURRENT PORTAL' : (portal.isOuroboros ? 'RETURN MOON' : 'OPEN DOOR');
     const returnLine=portal.isOuroboros ? `Return: ${portal.returnMoon?.name || 'entry moon'}` : portal.month;
-    return `<a class="portal-door temple-door ${portal.isCurrent ? 'current' : ''} ${portal.isOuroboros ? 'return-door' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
-      <span class="portal-number">${escapeHtml(portal.portalIndex)}</span>
+    const theme=PORTAL_DOOR_THEMES[(Number(portal.portalIndex || 1)-1) % PORTAL_DOOR_THEMES.length];
+    return `<a class="portal-door temple-door temple-door--${theme} ${portal.isCurrent ? 'current' : ''} ${portal.isOuroboros ? 'return-door' : ''}" href="/flow-fm/portal/?portal=${portal.portalIndex}">
+      <span class="temple-door-crown" aria-hidden="true">
+        <span class="wing left"></span>
+        <span class="sun-disk"></span>
+        <span class="scarab-body"></span>
+        <span class="wing right"></span>
+      </span>
       <span class="door-arch" aria-hidden="true"></span>
+      <span class="portal-number">${escapeHtml(portal.portalIndex)}</span>
       <div class="temple-door-copy">
         <p class="eyebrow">${escapeHtml(state)}</p>
         <h3>${escapeHtml(portal.name)}</h3>
@@ -75,7 +89,7 @@ async function init(){
     renderStatus(profile);
     const state=renderAccessState(profile);
     heroCopy.textContent=profile
-      ? 'Welcome back. Follow your current moon portal, or explore any open room when your body says yes.'
+      ? 'Welcome back. Your temple doors are open. Enter your current portal first, then move through the hallway as your body says yes.'
       : 'Preview the Flow FM hallway, then sign in to open your personalized moon portal.';
     setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
   }catch(error){

@@ -1,4 +1,4 @@
-// Flowtel v0.10.11 — Profile Studio luxury polish + dirty-state display.
+// Flowtel v0.10.12 — Royal Queendom facelift + dirty-state display.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -270,7 +270,7 @@ function renderProfileStudio(record=currentPriestessProfile){
   const offeringValues=selectedOfferingValues(profile);
   const timezone=profile.timezone || 'America/Los_Angeles';
   const displayStatus=displayStatusForProfile(profile);
-  profileStudioIntro.textContent='Choose a prepared title, bio, and offering doorway. This profile can be refined later.';
+  profileStudioIntro.textContent='Choose a prepared title, bio, and offering doorway. Let this first version feel regal, clear, and true enough for now.';
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
     <div class="profile-form-heading"><div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>

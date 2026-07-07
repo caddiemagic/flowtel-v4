@@ -1,3 +1,14 @@
+## v0.10.12 — Temple Door Grandeur + Royal Queendom Facelift
+
+- Restyled the Initiation Hall hero with a grander Egyptian temple mood, including a winged scarab / sun-disk crest and richer luxury framing.
+- Turned the 13 moon preview cards into taller, more extravagant golden temple doors with stronger hover lift, arch structure, and jewel-like detailing.
+- Upgraded the Support Rooms cards so they feel like smaller luxury chambers instead of standard dashboard cards.
+- Gave the Profile Studio header a more royal Your Queendom presentation with a winged scarab crest, regal copy treatment, and soft architectural framing.
+- Elevated the Priestess Profile preview card with a more ceremonial frame, stronger gold trim, and richer rose-gold luxury styling.
+- Kept Profile Studio dirty-state behavior, review flow, Flowtel Time logic, and database structure unchanged.
+- No Supabase migration required.
+
+
 ## v0.10.11 — Initiation Hall Luxury Polish + Queendom Studio Refinement
 
 - Added Initiation Hall-only rose-gold wax seal hero graphic.
