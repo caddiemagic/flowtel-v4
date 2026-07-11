@@ -1,0 +1,217 @@
+// api/squarespace-bridge.js
+// Flowtel v0.10.18 — server-side Squarespace Contacts API bridge.
+// Keeps Squarespace and Supabase service keys out of browser code.
+
+const SQUARESPACE_API_BASE = "https://api.squarespace.com";
+const DEFAULT_BRIDGE_PASSWORD = "FlowtelMemberBridge!2026";
+
+const MEMBERSHIP_LABEL = {
+  queendom: "Queendom",
+  flowfm: "Flow FM",
+  council: "Council",
+};
+
+function setCors(res) {
+  res.setHeader("Access-Control-Allow-Origin", process.env.FLOWTEL_ALLOWED_ORIGIN || "*");
+  res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
+function normalizeMembership(value) {
+  const cleaned = String(value || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (cleaned === "queen" || cleaned === "queendom") return "queendom";
+  if (cleaned === "flow" || cleaned === "flowfm" || cleaned === "flowfmmember") return "flowfm";
+  if (cleaned === "council") return "council";
+  return "queendom";
+}
+
+function normalizeEmail(value) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function safeJsonParse(value) {
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function readRequestBody(req) {
+  if (req.body && typeof req.body === "object") return req.body;
+  if (typeof req.body === "string") return safeJsonParse(req.body) || {};
+
+  const chunks = [];
+  for await (const chunk of req) chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  const raw = Buffer.concat(chunks).toString("utf8");
+  return safeJsonParse(raw) || {};
+}
+
+function contactEmail(contact) {
+  return normalizeEmail(contact?.primaryEmail?.email || contact?.email || "");
+}
+
+function publicContact(contact, requestedEmail) {
+  if (!contact) return null;
+
+  return {
+    id: contact.id || null,
+    firstName: contact.firstName || contact.defaultShippingAddress?.address?.firstName || null,
+    lastName: contact.lastName || contact.defaultShippingAddress?.address?.lastName || null,
+    email: contactEmail(contact) || requestedEmail || null,
+    locale: contact.locale || null,
+  };
+}
+
+async function querySquarespaceContact(email) {
+  const apiKey = process.env.SQUARESPACE_API_KEY;
+
+  if (!apiKey) {
+    if (process.env.FLOWTEL_BRIDGE_ALLOW_UNVERIFIED === "1") {
+      return {
+        id: null,
+        firstName: null,
+        lastName: null,
+        email,
+        locale: null,
+        unverified: true,
+      };
+    }
+
+    const error = new Error("Squarespace API key is not configured on Vercel.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const response = await fetch(`${SQUARESPACE_API_BASE}/v1/contacts/query`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.18",
+    },
+    body: JSON.stringify({
+      searchString: email,
+      pageSize: 10,
+      sortField: "EMAIL",
+      sortDirection: "ASCENDING",
+    }),
+  });
+
+  const text = await response.text();
+  const data = safeJsonParse(text) || {};
+
+  if (!response.ok) {
+    const error = new Error(data.message || data.error || text || "Squarespace contact lookup failed.");
+    error.statusCode = response.status;
+    throw error;
+  }
+
+  const contacts = Array.isArray(data.contacts) ? data.contacts : [];
+  const exact = contacts.find((contact) => contactEmail(contact) === email);
+
+  if (!exact) {
+    const error = new Error("No Squarespace contact was found for this email address.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return publicContact(exact, email);
+}
+
+async function ensureSupabaseAuthUser({ email, contact, membershipType }) {
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL;
+
+  if (!serviceKey || !supabaseUrl) {
+    return {
+      prepared: false,
+      reason: !serviceKey
+        ? "SUPABASE_SERVICE_ROLE_KEY not configured."
+        : "SUPABASE_URL not configured.",
+    };
+  }
+
+  const password = process.env.FLOWTEL_BRIDGE_PASSWORD || DEFAULT_BRIDGE_PASSWORD;
+  const response = await fetch(`${String(supabaseUrl).replace(/\/$/, "")}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: {
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: {
+        first_name: contact?.firstName || null,
+        last_name: contact?.lastName || null,
+        squarespace_contact_id: contact?.id || null,
+        membership_type: membershipType,
+      },
+    }),
+  });
+
+  const text = await response.text();
+  const data = safeJsonParse(text) || {};
+
+  if (response.ok) {
+    return { prepared: true, userId: data.id || data.user?.id || null };
+  }
+
+  const alreadyExists = /already|registered|exists|duplicate/i.test(text);
+  if (alreadyExists) {
+    return { prepared: false, reason: "Supabase user already exists." };
+  }
+
+  const error = new Error(data.message || data.error || text || "Supabase auth user preparation failed.");
+  error.statusCode = response.status;
+  throw error;
+}
+
+module.exports = async function handler(req, res) {
+  setCors(res);
+
+  if (req.method === "OPTIONS") {
+    res.status(204).end();
+    return;
+  }
+
+  if (req.method !== "POST") {
+    res.status(405).json({ ok: false, error: "Method not allowed." });
+    return;
+  }
+
+  try {
+    const body = await readRequestBody(req);
+    const email = normalizeEmail(body.email);
+    const membershipType = normalizeMembership(body.membershipType || body.membership || body.doorway);
+
+    if (!email || !email.includes("@")) {
+      res.status(400).json({ ok: false, error: "A valid member email is required." });
+      return;
+    }
+
+    const contact = await querySquarespaceContact(email);
+    const authResult = await ensureSupabaseAuthUser({ email, contact, membershipType });
+
+    res.status(200).json({
+      ok: true,
+      membershipType,
+      membershipLabel: MEMBERSHIP_LABEL[membershipType] || "Flowtel",
+      contact,
+      supabaseUserPrepared: authResult.prepared,
+      supabaseUserId: authResult.userId || null,
+      note: authResult.reason || null,
+    });
+  } catch (error) {
+    const status = Number(error.statusCode || error.status || 500);
+    const safeStatus = status >= 400 && status < 600 ? status : 500;
+
+    res.status(safeStatus).json({
+      ok: false,
+      error: error.message || "Squarespace bridge failed.",
+    });
+  }
+};

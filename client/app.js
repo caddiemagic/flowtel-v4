@@ -178,13 +178,47 @@ function memberBridgeEmail(){
   return (emailInput?.value || extractSquarespaceEmail() || "").trim().toLowerCase();
 }
 
-async function completeMemberBridgeEntrance(email){
+async function verifySquarespaceMember(email,intent="enter"){
+  const response=await fetch("/api/squarespace-bridge",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      email,
+      intent,
+      membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
+      doorway:SQUARESPACE_MEMBERSHIP || "queendom",
+    }),
+  });
+
+  const data=await response.json().catch(()=>({}));
+
+  if(!response.ok || !data.ok){
+    throw new Error(data.error || "Squarespace member verification failed.");
+  }
+
+  return data;
+}
+
+function bridgeContactNameParts(bridgeData){
+  const contact=bridgeData?.contact || {};
   const memberName=extractSquarespaceNameParts();
+
+  return {
+    firstName:contact.firstName || memberName.firstName || "",
+    lastName:contact.lastName || memberName.lastName || "",
+  };
+}
+
+async function completeMemberBridgeEntrance(email,bridgeData=null){
+  const memberName=bridgeContactNameParts(bridgeData);
   currentProfile=await ensureProfile({
     firstName:memberName.firstName || firstNameFromEmail(email),
     lastName:memberName.lastName || null,
-    membershipType:SQUARESPACE_MEMBERSHIP || "queendom",
-    squarespaceSource:SQUARESPACE_MEMBERSHIP || "unknown",
+    membershipType:bridgeData?.membershipType || SQUARESPACE_MEMBERSHIP || "queendom",
+    squarespaceSource:SQUARESPACE_MEMBERSHIP || bridgeData?.membershipType || "squarespace-api",
+    squarespaceContactId:bridgeData?.contact?.id || null,
+    squarespaceContactEmail:bridgeData?.contact?.email || email,
+    squarespaceVerifiedAt:new Date().toISOString(),
   });
 
   clearCachedSuiteStayIfItBelongsToAnotherGuest();
@@ -217,15 +251,16 @@ function isInvalidCredentialsError(error){
   return message.includes("invalid login") || message.includes("invalid credentials");
 }
 
-async function enterWithBridgePassword(email){
+async function enterWithBridgePassword(email,bridgeData=null){
   await signOut();
   clearCachedSuiteStay();
   await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
-  await completeMemberBridgeEntrance(email);
+  await completeMemberBridgeEntrance(email,bridgeData);
 }
 
 async function createNewMemberBridge(){
   const email=memberBridgeEmail();
+  let bridgeData=null;
 
   if(!email){
     setMessage("Add the email you use for your Idyll Collective membership.");
@@ -233,21 +268,31 @@ async function createNewMemberBridge(){
   }
 
   try{
-    setMessage("Preparing your Flowtel profile...");
+    setMessage("Checking your Squarespace membership...");
+    bridgeData=await verifySquarespaceMember(email,"new");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
 
+    setMessage("Preparing your Flowtel profile...");
     await signOut();
     clearCachedSuiteStay();
-    await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+
+    if(!bridgeData.supabaseUserPrepared){
+      try{
+        await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+      }catch(signUpError){
+        if(!isAlreadyRegisteredError(signUpError)) throw signUpError;
+      }
+    }
+
     await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
-    await completeMemberBridgeEntrance(email);
+    await completeMemberBridgeEntrance(email,bridgeData);
   }catch(error){
     console.error("Flowtel New Member Bridge Error:", error);
 
     if(isAlreadyRegisteredError(error)){
       try{
         setMessage("This email already has a Flowtel room. Opening it through your member doorway...");
-        await enterWithBridgePassword(email);
+        await enterWithBridgePassword(email,bridgeData);
         return;
       }catch(signInError){
         console.error("Existing bridge account could not be opened with the bridge password:", signInError);
@@ -275,9 +320,11 @@ async function openReturningMemberBridge(){
   }
 
   try{
-    setMessage("Welcome back. Opening your Flowtel room...");
+    setMessage("Checking your Squarespace membership...");
+    const bridgeData=await verifySquarespaceMember(email,"returning");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
-    await enterWithBridgePassword(email);
+    setMessage("Welcome back. Opening your Flowtel room...");
+    await enterWithBridgePassword(email,bridgeData);
   }catch(error){
     console.error("Flowtel Returning Member Bridge Error:", error);
 

@@ -1,3 +1,12 @@
+## v0.10.18 — Squarespace API Bridge for Phase 1 Beta
+
+- Added `/api/squarespace-bridge` as a server-side Vercel endpoint for Squarespace Contacts API verification.
+- Updated the Flowtel member doorway so entered emails are checked against Squarespace Contacts before a room is prepared.
+- Kept the Squarespace API key and Supabase service role key out of browser code.
+- Added profile metadata fields for Squarespace contact id, contact email, sync timestamp, and verification timestamp.
+- Preserved Phase 1 beta gates: guest flow and Profile Studio open, Clock In and live Concierge Desk still closed.
+- Adds Supabase migration 027.
+
 ## v0.10.17 — Concierge Holding Page + Lounge Profile Access
 
 - Redirected the Flow Map `Return to Concierge` button to a temporary Concierge Desk holding page for Phase 1 beta.

@@ -59,8 +59,28 @@ export async function ensureProfile(profile = {}) {
       profile.source ||
       existing?.squarespace_source ||
       null,
+    squarespace_contact_id:
+      profile.squarespaceContactId ||
+      profile.squarespace_contact_id ||
+      existing?.squarespace_contact_id ||
+      null,
+    squarespace_contact_email:
+      profile.squarespaceContactEmail ||
+      profile.squarespace_contact_email ||
+      existing?.squarespace_contact_email ||
+      user.email ||
+      null,
+    squarespace_contact_synced_at:
+      profile.squarespaceContactId || profile.squarespace_contact_id
+        ? new Date().toISOString()
+        : existing?.squarespace_contact_synced_at || null,
+    squarespace_verified_at:
+      profile.squarespaceVerifiedAt ||
+      (profile.squarespaceContactId || profile.squarespace_contact_id
+        ? new Date().toISOString()
+        : existing?.squarespace_verified_at || null),
     source_updated_at:
-      profile.squarespaceSource || profile.source
+      profile.squarespaceSource || profile.source || profile.squarespaceContactId || profile.squarespace_contact_id
         ? new Date().toISOString()
         : existing?.source_updated_at || null,
     flowfm_started_at:
