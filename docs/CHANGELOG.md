@@ -1,3 +1,12 @@
+## v0.10.19 — Remembered Room Key + Bridge Fallback
+
+- Added a remembered Supabase session check on guest app startup so returning Flowtel users can bypass the email doorway.
+- Routes remembered users to Check-In or Suite based on current Flowtel Day stay state.
+- Added `/client/?logout=1` and `/client/?forceDoorway=1` testing helpers for beta account switching.
+- Improved Squarespace bridge authorization errors and opens Developer Login fallback when the Contacts bridge is blocked during setup.
+- Updated client cache busting to v0.10.19.
+- No Supabase migration required.
+
 ## v0.10.18 — Squarespace API Bridge for Phase 1 Beta
 
 - Added `/api/squarespace-bridge` as a server-side Vercel endpoint for Squarespace Contacts API verification.

@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.18 — server-side Squarespace Contacts API bridge.
+// Flowtel v0.10.19 — server-side Squarespace Contacts API bridge.
 // Keeps Squarespace and Supabase service keys out of browser code.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -88,7 +88,7 @@ async function querySquarespaceContact(email) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.18",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.19",
     },
     body: JSON.stringify({
       searchString: email,
@@ -102,8 +102,15 @@ async function querySquarespaceContact(email) {
   const data = safeJsonParse(text) || {};
 
   if (!response.ok) {
-    const error = new Error(data.message || data.error || text || "Squarespace contact lookup failed.");
+    const message = data.message || data.error || text || "Squarespace contact lookup failed.";
+    const isAuthorization = response.status === 401 || response.status === 403;
+    const error = new Error(isAuthorization
+      ? "Squarespace Contacts rejected the bridge request. Confirm SQUARESPACE_API_KEY in Vercel is the raw Contacts Read Only key, then redeploy."
+      : message);
     error.statusCode = response.status;
+    error.externalService = "squarespace";
+    error.externalStatus = response.status;
+    error.externalMessage = message;
     throw error;
   }
 
@@ -212,6 +219,8 @@ module.exports = async function handler(req, res) {
     res.status(safeStatus).json({
       ok: false,
       error: error.message || "Squarespace bridge failed.",
+      service: error.externalService || null,
+      serviceStatus: error.externalStatus || null,
     });
   }
 };

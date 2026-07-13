@@ -1,4 +1,4 @@
-import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
+import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
@@ -307,6 +307,11 @@ async function createNewMemberBridge(){
       }
     }
 
+    if(isBridgeAuthorizationError(error)){
+      openBridgeSetupFallback();
+      return;
+    }
+
     setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
   }
 }
@@ -334,6 +339,11 @@ async function openReturningMemberBridge(){
       return;
     }
 
+    if(isBridgeAuthorizationError(error)){
+      openBridgeSetupFallback();
+      return;
+    }
+
     setMessage(`Returning Member Error: ${error?.message || "Unknown error"}`);
   }
 }
@@ -356,6 +366,82 @@ function openReturningMemberLogin(showMessage=true){
 async function openMemberBridge(){
   // Kept for future Squarespace auto-bridge support. During beta, auto-bridge creates a new temporary profile only when explicitly requested with ?auto=1 or ?bridge=1.
   await createNewMemberBridge();
+}
+
+function shouldSkipRememberedRoomKey(){
+  const forceDoorway=urlParam("forceDoorway")==="1" || urlParam("doorway")==="1";
+  const explicitBridge=urlParam("auto")==="1" || urlParam("bridge")==="1";
+  const explicitLogout=urlParam("logout")==="1";
+  return forceDoorway || explicitBridge || explicitLogout;
+}
+
+async function openRememberedRoomKey(){
+  if(shouldSkipRememberedRoomKey()) return false;
+
+  try{
+    const user=await getCurrentUser();
+    if(!user) return false;
+
+    setMessage("Welcome back. Finding your room key...");
+
+    currentProfile=await ensureProfile({
+      membershipType:SQUARESPACE_MEMBERSHIP || undefined,
+      squarespaceSource:SQUARESPACE_MEMBERSHIP || undefined,
+    });
+
+    clearCachedSuiteStayIfItBelongsToAnotherGuest();
+    await prepareDailyStayState();
+
+    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+      setMessage("");
+      return true;
+    }
+
+    if(await openTodaySuiteIfPresent()){
+      setMessage("");
+      return true;
+    }
+
+    clearCachedSuiteStay();
+    currentStay=null;
+    pendingArrivalStay=null;
+    showCheckIn();
+    setMessage("");
+    return true;
+  }catch(error){
+    console.warn("Remembered Flowtel session could not be opened.",error);
+    await signOut();
+    clearCachedSuiteStay();
+    setMessage("We could not reopen your remembered room key. Enter through the member doorway again.");
+    showScene("lobby");
+    return false;
+  }
+}
+
+async function handleLogoutParam(){
+  if(urlParam("logout")!=="1") return false;
+  await signOut();
+  clearCachedSuiteStay();
+  try{
+    localStorage.removeItem("flowtel:memberEmail");
+  }catch(error){}
+  currentProfile=null;
+  currentStay=null;
+  pendingArrivalStay=null;
+  showScene("lobby");
+  setMessage("You have stepped out of the Flowtel on this browser.");
+  return true;
+}
+
+function isBridgeAuthorizationError(error){
+  const message=String(error?.message || "").toLowerCase();
+  return message.includes("not authorized") || message.includes("forbidden") || message.includes("403") || message.includes("api key") || message.includes("permission");
+}
+
+function openBridgeSetupFallback(){
+  setMessage("The Squarespace member bridge is not authorized yet. For testing, open Developer Login and use the Flowtel account credentials while the API key setup is finalized.");
+  openReturningMemberLogin(false);
 }
 
 
@@ -1801,8 +1887,18 @@ if(powderRoomSharingToggle){
   powderRoomSharingToggle.addEventListener("change",handlePowderRoomSharingChange);
 }
 
-// Auto-enter is opt-in for later Squarespace code injection.
-// Example: /client/?membership=flowfm&email=member@example.com&auto=1
-if((urlParam("auto")==="1" || urlParam("bridge")==="1") && extractSquarespaceEmail()){
-  openMemberBridge();
+async function startFlowtelClient(){
+  const loggedOut=await handleLogoutParam();
+  if(loggedOut) return;
+
+  // Auto-enter is opt-in for later Squarespace code injection.
+  // Example: /client/?membership=flowfm&email=member@example.com&auto=1
+  if((urlParam("auto")==="1" || urlParam("bridge")==="1") && extractSquarespaceEmail()){
+    await openMemberBridge();
+    return;
+  }
+
+  await openRememberedRoomKey();
 }
+
+startFlowtelClient();
