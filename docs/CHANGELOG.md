@@ -1,10 +1,13 @@
-## v0.10.19 — Remembered Room Key + Bridge Fallback
+# Changelog
 
-- Added a remembered Supabase session check on guest app startup so returning Flowtel users can bypass the email doorway.
-- Routes remembered users to Check-In or Suite based on current Flowtel Day stay state.
-- Added `/client/?logout=1` and `/client/?forceDoorway=1` testing helpers for beta account switching.
-- Improved Squarespace bridge authorization errors and opens Developer Login fallback when the Contacts bridge is blocked during setup.
-- Updated client cache busting to v0.10.19.
+## v0.10.20 — Trusted Doorway + Beta Reset Guide
+
+- Added trusted-doorway beta fallback so Squarespace Contacts API instability does not block Phase 1 testing.
+- Kept Squarespace Contacts verification when it works, but accepts the protected Squarespace member doorway as the front gate during beta.
+- Added remembered-room-key startup behavior: active Supabase sessions bypass the email doorway and go to Check-In or Suite.
+- Added `/client/?logout=1` and `/client/?forceDoorway=1` testing helpers.
+- Updated doorway copy for Phase 1 trusted entry.
+- Added `docs/BETA_DATA_RESET.md` and `database/beta-reset-before-phase-1.sql` for clearing pre-beta test data safely.
 - No Supabase migration required.
 
 ## v0.10.18 — Squarespace API Bridge for Phase 1 Beta

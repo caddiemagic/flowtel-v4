@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.19 — server-side Squarespace Contacts API bridge.
+// Flowtel v0.10.20 — Squarespace bridge with trusted-doorway beta fallback.
 // Keeps Squarespace and Supabase service keys out of browser code.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -60,22 +60,35 @@ function publicContact(contact, requestedEmail) {
     lastName: contact.lastName || contact.defaultShippingAddress?.address?.lastName || null,
     email: contactEmail(contact) || requestedEmail || null,
     locale: contact.locale || null,
+    unverified: Boolean(contact.unverified),
   };
 }
 
-async function querySquarespaceContact(email) {
+function trustedDoorwayContact(email, reason = "trusted doorway beta fallback") {
+  return {
+    id: null,
+    firstName: null,
+    lastName: null,
+    email,
+    locale: null,
+    unverified: true,
+    trustedDoorway: true,
+    reason,
+  };
+}
+
+function canUseTrustedDoorway(body = {}) {
+  if (process.env.FLOWTEL_TRUSTED_DOORWAY === "0") return false;
+  if (process.env.FLOWTEL_BRIDGE_ALLOW_UNVERIFIED === "1") return true;
+  return body.trustedDoorway !== false;
+}
+
+async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
   const apiKey = process.env.SQUARESPACE_API_KEY;
 
   if (!apiKey) {
-    if (process.env.FLOWTEL_BRIDGE_ALLOW_UNVERIFIED === "1") {
-      return {
-        id: null,
-        firstName: null,
-        lastName: null,
-        email,
-        locale: null,
-        unverified: true,
-      };
+    if (trustedDoorway) {
+      return trustedDoorwayContact(email, "Squarespace API key unavailable; trusted doorway accepted for beta.");
     }
 
     const error = new Error("Squarespace API key is not configured on Vercel.");
@@ -88,7 +101,7 @@ async function querySquarespaceContact(email) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.19",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.20",
     },
     body: JSON.stringify({
       searchString: email,
@@ -102,15 +115,12 @@ async function querySquarespaceContact(email) {
   const data = safeJsonParse(text) || {};
 
   if (!response.ok) {
-    const message = data.message || data.error || text || "Squarespace contact lookup failed.";
-    const isAuthorization = response.status === 401 || response.status === 403;
-    const error = new Error(isAuthorization
-      ? "Squarespace Contacts rejected the bridge request. Confirm SQUARESPACE_API_KEY in Vercel is the raw Contacts Read Only key, then redeploy."
-      : message);
+    if (trustedDoorway) {
+      return trustedDoorwayContact(email, `Squarespace Contacts returned ${response.status}; trusted doorway accepted for beta.`);
+    }
+
+    const error = new Error(data.message || data.error || text || "Squarespace contact lookup failed.");
     error.statusCode = response.status;
-    error.externalService = "squarespace";
-    error.externalStatus = response.status;
-    error.externalMessage = message;
     throw error;
   }
 
@@ -118,6 +128,10 @@ async function querySquarespaceContact(email) {
   const exact = contacts.find((contact) => contactEmail(contact) === email);
 
   if (!exact) {
+    if (trustedDoorway) {
+      return trustedDoorwayContact(email, "No exact Squarespace contact match; trusted doorway accepted for beta.");
+    }
+
     const error = new Error("No Squarespace contact was found for this email address.");
     error.statusCode = 404;
     throw error;
@@ -200,7 +214,8 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const contact = await querySquarespaceContact(email);
+    const trustedDoorway = canUseTrustedDoorway(body);
+    const contact = await querySquarespaceContact(email, { trustedDoorway });
     const authResult = await ensureSupabaseAuthUser({ email, contact, membershipType });
 
     res.status(200).json({
@@ -208,6 +223,9 @@ module.exports = async function handler(req, res) {
       membershipType,
       membershipLabel: MEMBERSHIP_LABEL[membershipType] || "Flowtel",
       contact,
+      verified: !contact?.unverified,
+      bridgeMode: contact?.unverified ? "trusted-doorway" : "squarespace-contacts",
+      bridgeNote: contact?.reason || null,
       supabaseUserPrepared: authResult.prepared,
       supabaseUserId: authResult.userId || null,
       note: authResult.reason || null,
@@ -219,8 +237,6 @@ module.exports = async function handler(req, res) {
     res.status(safeStatus).json({
       ok: false,
       error: error.message || "Squarespace bridge failed.",
-      service: error.externalService || null,
-      serviceStatus: error.externalStatus || null,
     });
   }
 };
