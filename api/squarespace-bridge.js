@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.20 — Squarespace bridge with trusted-doorway beta fallback.
+// Flowtel v0.10.21 — Trusted-doorway bridge hardening.
 // Keeps Squarespace and Supabase service keys out of browser code.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -101,7 +101,7 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.20",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.21",
     },
     body: JSON.stringify({
       searchString: email,
@@ -140,55 +140,106 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
   return publicContact(exact, email);
 }
 
-async function ensureSupabaseAuthUser({ email, contact, membershipType }) {
+function normalizeSupabaseProjectUrl(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+
+  try {
+    const url = new URL(raw);
+    return `${url.protocol}//${url.host}`.replace(/\/$/, "");
+  } catch (error) {
+    return raw.replace(/\/$/, "");
+  }
+}
+
+function bridgeNotice(message, extra = {}) {
+  return {
+    prepared: false,
+    reason: message,
+    ...extra,
+  };
+}
+
+async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, trustedDoorway }) {
+  // For returning members, we do not need an admin-level create-user call.
+  // The browser will attempt to sign in with the bridge password, or fall back to the visible login form.
+  // This avoids blocking beta users if the service role URL/key is not configured perfectly yet.
+  if (intent === "returning") {
+    return bridgeNotice("Returning member path skipped Supabase admin preparation.");
+  }
+
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const supabaseUrl = process.env.SUPABASE_URL;
+  const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
 
   if (!serviceKey || !supabaseUrl) {
-    return {
-      prepared: false,
-      reason: !serviceKey
-        ? "SUPABASE_SERVICE_ROLE_KEY not configured."
-        : "SUPABASE_URL not configured.",
-    };
+    return bridgeNotice(
+      !serviceKey
+        ? "SUPABASE_SERVICE_ROLE_KEY not configured; client signup fallback may be used."
+        : "SUPABASE_URL not configured; client signup fallback may be used."
+    );
   }
 
   const password = process.env.FLOWTEL_BRIDGE_PASSWORD || DEFAULT_BRIDGE_PASSWORD;
-  const response = await fetch(`${String(supabaseUrl).replace(/\/$/, "")}/auth/v1/admin/users`, {
-    method: "POST",
-    headers: {
-      apikey: serviceKey,
-      Authorization: `Bearer ${serviceKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: {
-        first_name: contact?.firstName || null,
-        last_name: contact?.lastName || null,
-        squarespace_contact_id: contact?.id || null,
-        membership_type: membershipType,
+
+  try {
+    const response = await fetch(`${supabaseUrl}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: {
+        apikey: serviceKey,
+        Authorization: `Bearer ${serviceKey}`,
+        "Content-Type": "application/json",
       },
-    }),
-  });
+      body: JSON.stringify({
+        email,
+        password,
+        email_confirm: true,
+        user_metadata: {
+          first_name: contact?.firstName || null,
+          last_name: contact?.lastName || null,
+          squarespace_contact_id: contact?.id || null,
+          membership_type: membershipType,
+        },
+      }),
+    });
 
-  const text = await response.text();
-  const data = safeJsonParse(text) || {};
+    const text = await response.text();
+    const data = safeJsonParse(text) || {};
 
-  if (response.ok) {
-    return { prepared: true, userId: data.id || data.user?.id || null };
+    if (response.ok) {
+      return { prepared: true, userId: data.id || data.user?.id || null };
+    }
+
+    const alreadyExists = /already|registered|exists|duplicate/i.test(text);
+    if (alreadyExists) {
+      return bridgeNotice("Supabase user already exists.");
+    }
+
+    const message = data.message || data.error || text || "Supabase auth user preparation failed.";
+
+    if (trustedDoorway) {
+      console.warn("Flowtel bridge: Supabase admin preparation failed, but trusted doorway is enabled.", {
+        status: response.status,
+        message,
+      });
+      return bridgeNotice("Supabase admin preparation failed; trusted doorway continued for beta.", {
+        supabaseAdminStatus: response.status,
+        supabaseAdminMessage: message,
+      });
+    }
+
+    const error = new Error(message);
+    error.statusCode = response.status;
+    throw error;
+  } catch (error) {
+    if (trustedDoorway) {
+      console.warn("Flowtel bridge: Supabase admin preparation threw, but trusted doorway is enabled.", error);
+      return bridgeNotice("Supabase admin preparation threw; trusted doorway continued for beta.", {
+        supabaseAdminMessage: error.message || "Unknown Supabase admin error.",
+      });
+    }
+
+    throw error;
   }
-
-  const alreadyExists = /already|registered|exists|duplicate/i.test(text);
-  if (alreadyExists) {
-    return { prepared: false, reason: "Supabase user already exists." };
-  }
-
-  const error = new Error(data.message || data.error || text || "Supabase auth user preparation failed.");
-  error.statusCode = response.status;
-  throw error;
 }
 
 module.exports = async function handler(req, res) {
@@ -207,6 +258,7 @@ module.exports = async function handler(req, res) {
   try {
     const body = await readRequestBody(req);
     const email = normalizeEmail(body.email);
+    const intent = String(body.intent || "enter").toLowerCase();
     const membershipType = normalizeMembership(body.membershipType || body.membership || body.doorway);
 
     if (!email || !email.includes("@")) {
@@ -216,7 +268,13 @@ module.exports = async function handler(req, res) {
 
     const trustedDoorway = canUseTrustedDoorway(body);
     const contact = await querySquarespaceContact(email, { trustedDoorway });
-    const authResult = await ensureSupabaseAuthUser({ email, contact, membershipType });
+    const authResult = await ensureSupabaseAuthUser({
+      email,
+      contact,
+      membershipType,
+      intent,
+      trustedDoorway,
+    });
 
     res.status(200).json({
       ok: true,

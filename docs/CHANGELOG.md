@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.10.21 — Trusted Doorway Bridge Hardening
+
+- Hardened the Squarespace trusted-doorway bridge so optional Supabase admin user preparation no longer blocks Phase 1 beta entry.
+- Skipped Supabase admin preparation on the returning member path; returning users now proceed to the existing Flowtel sign-in flow.
+- Normalized `SUPABASE_URL` on the server so pasted values with `/auth/v1` or other paths do not create invalid Auth Admin URLs.
+- Added safer bridge notes when Supabase admin preparation fails during trusted-doorway beta mode.
+- Updated client cache-busting to `0.10.21`.
+- No Supabase migration required.
+
 ## v0.10.20 — Trusted Doorway + Beta Reset Guide
 
 - Added trusted-doorway beta fallback so Squarespace Contacts API instability does not block Phase 1 testing.
