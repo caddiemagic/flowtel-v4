@@ -11,6 +11,10 @@
       "destination": "/client/index.html"
     },
     {
+      "source": "/beta-request",
+      "destination": "/beta-request/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },

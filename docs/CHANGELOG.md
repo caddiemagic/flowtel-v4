@@ -1,5 +1,15 @@
 # Changelog
 
+
+## v0.10.22 — Beta Access Request Form
+
+- Added `/beta-request/` so Queendom/Flow FM beta testers can request their own Flowtel room key from a protected Squarespace page.
+- Added `/api/beta-request` to create or refresh Supabase Auth users and `public.profiles` rows with `role = client`.
+- Added optional beta access code support through `FLOWTEL_BETA_REQUEST_CODE`.
+- Added optional temporary beta password override through `FLOWTEL_BETA_TEMP_PASSWORD`.
+- Added a focused SQL cleanup script for removing the manually seeded beta tester accounts before testing the new access request flow.
+- No Supabase migration required.
+
 ## v0.10.21 — Trusted Doorway Bridge Hardening
 
 - Hardened the Squarespace trusted-doorway bridge so optional Supabase admin user preparation no longer blocks Phase 1 beta entry.

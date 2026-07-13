@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Flowtel Access</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.22" />
+</head>
+<body>
+  <main class="beta-shell">
+    <section class="beta-card" aria-labelledby="betaTitle">
+      <p class="eyebrow">THE FLOWTEL</p>
+      <h1 id="betaTitle">Request Your Room Key</h1>
+      <p class="intro">
+        Flowtel is opening slowly for Phase 1 beta. Request access with the email you use inside the Queendom or Flow FM.
+      </p>
+
+      <form id="betaRequestForm" class="beta-form">
+        <label for="name">Name</label>
+        <input id="name" name="name" type="text" autocomplete="name" required />
+
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" autocomplete="email" required />
+
+        <label for="membershipType">Where are you entering from?</label>
+        <select id="membershipType" name="membershipType">
+          <option value="queendom">The Queendom</option>
+          <option value="flowfm">Flow FM</option>
+          <option value="council">The Council</option>
+        </select>
+
+        <label for="trackingStyle">How are you currently tracking?</label>
+        <select id="trackingStyle" name="trackingStyle">
+          <option value="period">I have a period</option>
+          <option value="moon">I track with the moon</option>
+          <option value="learning">I am still learning</option>
+        </select>
+
+        <label for="betaCode">Beta access code <span class="optional">optional unless Megan gave you one</span></label>
+        <input id="betaCode" name="betaCode" type="text" autocomplete="off" />
+
+        <label class="consent-line">
+          <input id="consent" name="consent" type="checkbox" required />
+          <span>I understand Flowtel is in beta and I may be asked to share feedback.</span>
+        </label>
+
+        <button id="submitButton" type="submit">Request Flowtel Access</button>
+      </form>
+
+      <div id="message" class="message" role="status" aria-live="polite"></div>
+
+      <div id="successPanel" class="success-panel hidden">
+        <p class="eyebrow">ROOM KEY READY</p>
+        <h2>Your Flowtel room key has been prepared.</h2>
+        <p>
+          Use this same email and the current Flowtel beta password Megan shared with you to enter the Flowtel.
+        </p>
+        <a class="flowtel-link" href="../client/?membership=queendom">Enter the Flowtel</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js?v=0.10.22"></script>
+</body>
+</html>
