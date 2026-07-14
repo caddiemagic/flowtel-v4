@@ -2953,3 +2953,179 @@ body.flowtel-is-loading{overflow:hidden}
   .moon-phase-symbol{width:14px;height:14px}
   .flowtel-loading-overlay{padding-inline:9px !important}
 }
+
+
+/* Release 0.10.39 — Suite quiet luxury geometry + refined loading */
+.suite-arrival{
+  width:min(100%,880px) !important;
+  margin:0 auto 18px !important;
+  padding:18px clamp(16px,3vw,34px) 18px !important;
+}
+.suite-arrival .eyebrow{
+  margin:4px 0 8px !important;
+  font-size:.66rem !important;
+  letter-spacing:.28em !important;
+}
+.suite-arrival h2{
+  margin:0 auto !important;
+  max-width:760px;
+  font-size:clamp(2.05rem,4.4vw,3.35rem) !important;
+  line-height:.98 !important;
+  letter-spacing:.03em !important;
+}
+.suite-arrival .suite-subline{
+  margin:10px auto 14px !important;
+  max-width:640px !important;
+  font-size:clamp(1rem,1.45vw,1.24rem) !important;
+}
+.suite-arrival .queendom-return-link{
+  min-width:min(100%,285px) !important;
+  padding:.78rem 1.12rem !important;
+  font-size:.68rem !important;
+}
+
+.wheel-panel{
+  max-width:660px !important;
+  padding:22px 24px 28px !important;
+}
+.medicine-wheel{
+  width:min(100%,540px) !important;
+  max-width:540px !important;
+  min-height:540px;
+}
+.wheel-orbit{
+  top:68px !important;
+  right:74px !important;
+  bottom:68px !important;
+  left:74px !important;
+  width:auto !important;
+  height:auto !important;
+}
+.wheel-number-ring{
+  box-sizing:border-box;
+}
+.wheel-room{
+  width:var(--day-size) !important;
+  height:var(--day-size) !important;
+  aspect-ratio:1/1 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  padding:0 !important;
+  line-height:1 !important;
+  font-size:clamp(.64rem,1.2vw,.8rem) !important;
+}
+.rose-compass-center{
+  width:52% !important;
+  height:52% !important;
+}
+.wheel-season{
+  width:124px !important;
+  min-width:124px !important;
+  min-height:84px !important;
+  padding:10px 10px !important;
+  gap:4px !important;
+}
+.wheel-season strong{
+  font-size:.72rem !important;
+  line-height:1.14 !important;
+}
+.wheel-season small{
+  font-size:.46rem !important;
+  letter-spacing:.12em !important;
+}
+.wheel-season-autumn{left:-12px !important;top:-8px !important;}
+.wheel-season-summer{right:-12px !important;top:-8px !important;}
+.wheel-season-winter{left:-12px !important;bottom:-8px !important;}
+.wheel-season-spring{right:-12px !important;bottom:-8px !important;}
+.you-are-here{
+  margin:18px 0 0 !important;
+}
+
+.powder-share-inline{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:10px 12px;
+  margin:10px 0 0;
+  padding:12px 14px;
+  border:1px solid rgba(216,168,79,.18);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(255,253,249,.9),rgba(248,231,227,.34));
+  color:#7b5a4e;
+  font-size:.92rem;
+  line-height:1.45;
+}
+.powder-share-inline button{
+  margin-left:auto;
+  border:none;
+  background:transparent;
+  color:var(--rose);
+  font:700 .78rem/1 Arial,sans-serif;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.powder-master-setting{
+  margin-top:12px !important;
+  padding:16px 18px !important;
+  border-radius:22px !important;
+  border:1px solid rgba(216,168,79,.18) !important;
+  background:linear-gradient(145deg,rgba(255,253,249,.96),rgba(248,231,227,.26)) !important;
+  gap:14px !important;
+}
+.powder-master-setting .eyebrow{margin-top:0 !important;}
+.powder-master-toggle{
+  display:flex !important;
+  align-items:flex-start !important;
+  gap:10px !important;
+  padding:12px 14px !important;
+  border-radius:16px !important;
+  background:rgba(255,255,255,.64) !important;
+}
+.powder-master-toggle input{margin-top:3px;}
+.powder-share-actions{margin-top:0 !important;}
+.powder-share-status{margin:0 !important;}
+
+.flowtel-loading-card{
+  padding:28px clamp(18px,4vw,34px) 30px !important;
+  background:
+    linear-gradient(180deg,rgba(255,253,249,.58),rgba(255,250,244,.9) 68%,rgba(255,253,249,.96)),
+    url('../assets/concierge-open-soon-bell.png') center 58%/cover no-repeat !important;
+}
+.flowtel-loading-card::before{
+  inset:10px !important;
+  background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.02));
+}
+.flowtel-loading-bell-wrap{display:none !important;}
+.flowtel-loading-card h2,
+.flowtel-loading-card #flowtelLoadingCopy,
+.flowtel-loading-card small,
+.flowtel-loading-eyebrow,
+.flowtel-loading-progress{position:relative;z-index:1;}
+.flowtel-loading-card h2{margin-top:128px !important;}
+.flowtel-loading-card #flowtelLoadingCopy{font-size:1rem !important;}
+
+@media(max-width:700px){
+  .suite-arrival{padding:16px 14px 16px !important;}
+  .suite-arrival h2{font-size:clamp(1.6rem,8.6vw,2.35rem) !important;max-width:320px;}
+  .suite-arrival .suite-subline{margin:9px auto 12px !important;font-size:1rem !important;}
+  .wheel-panel{padding:18px 12px 24px !important;}
+  .medicine-wheel{width:min(100%,392px) !important;max-width:392px !important;min-height:0;}
+  .wheel-orbit{top:auto !important;right:auto !important;bottom:auto !important;left:auto !important;width:100% !important;height:auto !important;}
+  .wheel-room{font-size:clamp(.56rem,2.5vw,.7rem) !important;}
+  .rose-compass-center{width:50% !important;height:50% !important;}
+  .wheel-season{min-height:80px !important;padding:10px 8px !important;}
+  .wheel-season strong{font-size:.76rem !important;}
+  .powder-share-inline{display:block;font-size:.88rem;}
+  .powder-share-inline button{display:block;margin:10px 0 0;}
+  .powder-master-setting{padding:14px !important;}
+  .flowtel-loading-card h2{margin-top:120px !important;font-size:clamp(1.5rem,8vw,2rem) !important;}
+}
+
+@media(max-width:360px){
+  .medicine-wheel{width:min(100%,356px) !important;max-width:356px !important;}
+  .wheel-season{min-height:76px !important;}
+  .wheel-season strong{font-size:.71rem !important;}
+  .flowtel-loading-card h2{margin-top:108px !important;}
+}

@@ -564,3 +564,34 @@ body:not(.powder-room-mode) .hero-card h1{
 }
 .powder-room-bottom-actions{padding-top:10px;border-top:1px solid rgba(109,78,65,.08)}
 @media(max-width:720px){.powder-room-season-actions,.powder-room-bottom-actions{display:grid}.powder-room-season-actions .return-link,.powder-room-bottom-actions .return-link{width:100%}}
+
+
+/* Release 0.10.39 — Powder Room header refinement */
+.powder-room-mode .viewer-toggle-card{display:none !important;}
+.powder-room-mode .hero-card{
+  padding:28px 22px 24px !important;
+  box-shadow:0 18px 44px rgba(109,78,65,.07) !important;
+}
+.powder-room-mode .hero-card .eyebrow{
+  margin-bottom:10px !important;
+  font-size:.72rem !important;
+  letter-spacing:.32em !important;
+}
+.powder-room-mode .hero-card h1{
+  font-size:clamp(2rem,4.8vw,3.5rem) !important;
+  line-height:.96 !important;
+  letter-spacing:.04em !important;
+}
+.powder-room-mode .hero-card p:last-child{
+  max-width:760px !important;
+  margin:12px auto 0 !important;
+  font-size:1rem !important;
+}
+.powder-room-mode .dashboard-header{margin-bottom:4px !important;}
+.powder-room-season-actions{justify-content:center !important;gap:12px !important;}
+.powder-room-season-actions .return-link{min-width:170px;}
+@media(max-width:720px){
+  .powder-room-mode .hero-card{padding:24px 18px 20px !important;}
+  .powder-room-mode .hero-card h1{font-size:clamp(1.75rem,9vw,2.45rem) !important;}
+  .powder-room-season-actions .return-link{min-width:0;width:100%;}
+}

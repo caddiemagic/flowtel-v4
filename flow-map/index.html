@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Flow Map Practice</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.31" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.39" />
 </head>
 <body>
   <main class="flow-map-shell">
@@ -25,7 +25,11 @@
           <div class="scope-toggle" id="scopeToggle" aria-label="Flow Map view options"></div>
         </details>
         <div class="control-actions">
-          <label class="cycle-selector-label">
+          <div class="guest-cycle-toolbar hidden" id="guestCycleToolbar">
+            <span class="guest-cycle-summary" id="guestCycleSummary"></span>
+            <nav class="guest-cycle-nav" id="guestCycleNav" aria-label="Cycle view options"></nav>
+          </div>
+          <label class="cycle-selector-label" id="cycleSelectorWrap">
             Cycle
             <select id="cycleSelector"></select>
           </label>
@@ -93,6 +97,6 @@
     <p id="flowMapMessage" class="message"></p>
   </main>
 
-  <script type="module" src="./app.js?v=0.10.31"></script>
+  <script type="module" src="./app.js?v=0.10.39"></script>
 </body>
 </html>

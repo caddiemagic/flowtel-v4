@@ -700,3 +700,77 @@ p{line-height:1.55;color:var(--muted)}
     width:100%;
   }
 }
+
+
+/* Release 0.10.39 — quieter Flow Map controls */
+.hidden{display:none !important;}
+.flow-map-hero{
+  padding:26px 18px 22px !important;
+}
+.flow-map-hero .eyebrow{margin-bottom:8px !important;}
+.flow-map-hero h1{
+  margin:0 0 10px !important;
+  font-size:clamp(2rem,4vw,3rem) !important;
+  letter-spacing:.1em !important;
+}
+.flow-map-hero p:last-child{
+  font-size:1rem !important;
+  max-width:620px !important;
+}
+.control-card--quiet{
+  padding:18px 20px !important;
+}
+.control-heading--compact h2{
+  margin-top:4px !important;
+  font-size:clamp(1.55rem,2.3vw,2rem) !important;
+}
+.flow-map-controls{align-items:flex-end !important;}
+.control-actions{gap:10px !important;}
+.cycle-selector-label{margin:0 !important;}
+.cycle-selector-label select{min-width:300px !important;}
+.guest-cycle-toolbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.guest-cycle-summary{
+  display:inline-flex;
+  align-items:center;
+  min-height:46px;
+  padding:0 16px;
+  border-radius:999px;
+  border:1px solid rgba(216,168,79,.26);
+  background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.28));
+  color:#745347;
+  font:400 .96rem/1.2 Georgia,serif;
+}
+.guest-cycle-nav{display:flex;gap:8px;flex-wrap:wrap;}
+.guest-cycle-nav button{
+  min-height:46px;
+  padding:0 16px;
+  border-radius:999px;
+  border:1px solid rgba(216,168,79,.22);
+  background:rgba(255,253,249,.92);
+  color:#8a6456;
+  font:700 .68rem/1 Arial,sans-serif;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.guest-cycle-nav button:hover{background:#fff7f2;}
+body.guest-flow-map-mode .view-disclosure,
+body.guest-flow-map-mode #cycleSelectorWrap{display:none !important;}
+
+@media(max-width:720px){
+  .flow-map-hero{padding:22px 16px 18px !important;}
+  .flow-map-hero h1{font-size:clamp(1.7rem,9vw,2.3rem) !important;}
+  .control-card--quiet{padding:16px !important;}
+  .control-actions{align-items:stretch !important;}
+  .guest-cycle-toolbar{width:100%;}
+  .guest-cycle-summary,
+  .guest-cycle-nav button{min-height:42px;}
+  .guest-cycle-nav{width:100%;}
+  .guest-cycle-nav button{flex:1 1 auto;}
+  .cycle-selector-label select{min-width:0 !important;width:100% !important;}
+}

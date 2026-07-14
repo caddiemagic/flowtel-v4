@@ -6,6 +6,10 @@ const intro=document.getElementById("flowMapIntro");
 const viewEyebrow=document.getElementById("viewEyebrow");
 const viewingName=document.getElementById("viewingName");
 const cycleSelector=document.getElementById("cycleSelector");
+const cycleSelectorWrap=document.getElementById("cycleSelectorWrap");
+const guestCycleToolbar=document.getElementById("guestCycleToolbar");
+const guestCycleSummary=document.getElementById("guestCycleSummary");
+const guestCycleNav=document.getElementById("guestCycleNav");
 const scopeToggle=document.getElementById("scopeToggle");
 const openCycleDataLink=document.getElementById("openCycleDataLink");
 const printableFlowMapLink=document.getElementById("printableFlowMapLink");
@@ -31,6 +35,7 @@ function params(){ return new URLSearchParams(window.location.search); }
 function requestedClientId(){ return params().get("client"); }
 function requestedScope(){ return params().get("scope"); }
 function requestedCycle(){ return params().get("cycle"); }
+function isGuestFacingMode(){ return currentMode==="self" || currentMode==="client"; }
 function isAdminRole(profile){ return ["admin","owner"].includes(profile?.role); }
 function isMentorRole(profile){ return ["practitioner","admin","owner"].includes(profile?.role); }
 function escapeHtml(value){
@@ -92,8 +97,11 @@ function renderScopeToggle(profile,clients,targetId,mode){
 }
 function fetchHrefForCycle(cycleStart){
   const url=new URL(window.location.href);
-  if(cycleStart) url.searchParams.set("cycle",cycleStart);
-  else url.searchParams.delete("cycle");
+  if(cycleStart){
+    url.searchParams.set("cycle", cycleStart==="__all" ? "all" : cycleStart);
+  }else{
+    url.searchParams.delete("cycle");
+  }
   return `${url.pathname}${url.search}`;
 }
 async function fetchCycleEntries({subjectId=null,scope="self"}){
@@ -122,27 +130,21 @@ function buildCycles(entries){
       entries:entries.filter(row=>row.cycle_start_date===start),
     };
   });
-  if(starts.length>=2){
-    const last3Starts=starts.slice(0,3);
-    cycles.splice(1,0,{
-      start:"__last3",
-      end:"",
-      label:last3Starts.length>=3 ? "Last 3 Cycles" : "Current + Previous Cycles",
-      entries:entries.filter(row=>last3Starts.includes(row.cycle_start_date)),
-    });
-  }
   return cycles;
 }
 function defaultCycleStart(cycles){
   const explicit=requestedCycle();
+  if(explicit==="all") return "__all";
   if(explicit && cycles.some(cycle=>cycle.start===explicit)) return explicit;
-  // Flow Map Practice defaults to the most recently completed cycle. If there is
-  // no completed cycle yet, show the current cycle in progress.
+  if(isGuestFacingMode()) return cycles[0]?.start || "__all";
+  // Admin + mentor collective views default to the most recently completed cycle.
   return cycles.find((cycle,index)=>index>0 && !String(cycle.start).startsWith("__"))?.start || cycles[0]?.start || "";
 }
 function hydrateCycleSelector(cycles,selectedStart){
-  cycleSelector.innerHTML=cycles.map(cycle=>`<option value="${escapeHtml(cycle.start)}" ${cycle.start===selectedStart?"selected":""}>${escapeHtml(cycle.label)}</option>`).join("");
-  if(!cycles.length) cycleSelector.innerHTML=`<option value="">Current Cycle</option>`;
+  const options=cycles.map(cycle=>`<option value="${escapeHtml(cycle.start)}" ${cycle.start===selectedStart?"selected":""}>${escapeHtml(cycle.label)}</option>`);
+  if(isGuestFacingMode()) options.push(`<option value="__all" ${selectedStart==="__all"?"selected":""}>All Cycles</option>`);
+  cycleSelector.innerHTML=options.join("");
+  if(!cycles.length) cycleSelector.innerHTML=`<option value="__all">All Cycles</option>`;
 }
 function offCycleLabel(row){
   const actual=Number(row.cycle_day_actual ?? row.cycle_day_calculated);
@@ -229,13 +231,48 @@ function renderQuadrants(entries){
 }
 function selectedCycle(cycles){
   const selected=cycleSelector.value;
+  if(selected==="__all") return {start:"__all",label:"All Cycles",entries:allEntries};
   return cycles.find(cycle=>cycle.start===selected) || cycles[0] || {entries:[]};
+}
+function guestCycleOptions(cycles){
+  const current=cycles[0] ? {label:"Current Cycle", token:cycles[0].start} : null;
+  const last=cycles[1] ? {label:"Last Cycle", token:cycles[1].start} : null;
+  const all=allEntries.length ? {label:"All Cycles", token:"__all"} : null;
+  return [current,last,all].filter(Boolean);
+}
+function renderGuestCycleControls(cycles,selectedToken){
+  if(!guestCycleToolbar || !guestCycleSummary || !guestCycleNav) return;
+  const options=guestCycleOptions(cycles);
+  const active=options.find(option=>option.token===selectedToken) || options[0];
+  guestCycleSummary.textContent=active?.label || "All Cycles";
+  guestCycleNav.innerHTML=options
+    .filter(option=>option.token!== (active?.token || selectedToken))
+    .map(option=>`<button type="button" data-cycle-token="${escapeHtml(option.token)}">${escapeHtml(option.label)}</button>`)
+    .join("");
+  guestCycleNav.querySelectorAll("button").forEach(button=>{
+    button.addEventListener("click",()=>{
+      cycleSelector.value=button.dataset.cycleToken || "__all";
+      const selected=selectedCycle(cycles);
+      history.replaceState(null,"",fetchHrefForCycle(selected.start));
+      renderQuadrants(selected.entries);
+      renderGuestCycleControls(cycles,selected.start);
+    });
+  });
+}
+function syncCycleControlVisibility(cycles,selectedToken){
+  const guestMode=isGuestFacingMode();
+  document.body.classList.toggle("guest-flow-map-mode", guestMode);
+  if(guestCycleToolbar) guestCycleToolbar.classList.toggle("hidden", !guestMode);
+  if(cycleSelectorWrap) cycleSelectorWrap.classList.toggle("hidden", guestMode);
+  document.querySelectorAll(".view-disclosure").forEach(node=>node.classList.toggle("hidden", guestMode));
+  if(guestMode) renderGuestCycleControls(cycles,selectedToken);
 }
 function bindCycleSelector(cycles){
   cycleSelector.addEventListener("change",()=>{
     const selected=selectedCycle(cycles);
     history.replaceState(null,"",fetchHrefForCycle(selected.start));
     renderQuadrants(selected.entries);
+    syncCycleControlVisibility(cycles,selected.start);
   });
 }
 async function init(){
@@ -287,7 +324,10 @@ async function init(){
     const chosenStart=defaultCycleStart(cycles);
     hydrateCycleSelector(cycles,chosenStart);
     bindCycleSelector(cycles);
-    const cycle=cycles.find(item=>item.start===chosenStart) || cycles[0] || {entries:[]};
+    const cycle=chosenStart==="__all"
+      ? {start:"__all", entries:allEntries}
+      : cycles.find(item=>item.start===chosenStart) || cycles[0] || {entries:[]};
+    syncCycleControlVisibility(cycles,cycle.start || chosenStart);
     renderQuadrants(cycle.entries || []);
   }catch(error){
     console.error(error);

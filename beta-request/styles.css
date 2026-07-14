@@ -236,3 +236,20 @@ body.beta-is-loading{overflow:hidden}
   .beta-loading-card::before{inset:8px;border-radius:21px}
   .beta-loading-bell-wrap{width:min(100%,280px);margin-bottom:-4px}
 }
+
+
+/* Release 0.10.39 — full-card bell background */
+.beta-loading-card{
+  background:
+    linear-gradient(180deg,rgba(255,253,249,.58),rgba(255,250,244,.9) 68%,rgba(255,253,249,.96)),
+    url('../assets/concierge-open-soon-bell.png') center 58%/cover no-repeat !important;
+}
+.beta-loading-card::before{background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.02));}
+.beta-loading-bell-wrap{display:none !important;}
+.beta-loading-card h2,
+.beta-loading-card #betaLoadingCopy,
+.beta-loading-card small,
+.beta-loading-card .eyebrow,
+.beta-loading-line{position:relative;z-index:1;}
+.beta-loading-card h2{margin-top:120px !important;}
+@media(max-width:700px){.beta-loading-card h2{margin-top:108px !important;}}

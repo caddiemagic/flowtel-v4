@@ -641,14 +641,14 @@ function cycleDifferenceLabel(difference){
   EAST = 360° / 0°
   NORTH = 90°
 */
-const WHEEL_DESKTOP_RADIUS = 40;
-const WHEEL_MOBILE_RADIUS = 39.5;
+const WHEEL_DESKTOP_RADIUS = 36.5;
+const WHEEL_MOBILE_RADIUS = 35.8;
 
 function currentWheelMetrics(){
   const availableWidth=Math.max(260,Math.min(520,medicineWheel?.clientWidth || window.innerWidth - 52));
   const isMobile=availableWidth < 430 || (window.matchMedia && window.matchMedia("(max-width: 700px)").matches);
-  const daySize=Math.round(Math.max(22,Math.min(34,availableWidth * .068)));
-  const ringGap=Math.round(Math.max(8,Math.min(12,availableWidth * .024)));
+  const daySize=Math.round(Math.max(22,Math.min(31,availableWidth * .062)));
+  const ringGap=Math.round(Math.max(9,Math.min(13,availableWidth * .024)));
 
   return {
     radius:isMobile ? WHEEL_MOBILE_RADIUS : WHEEL_DESKTOP_RADIUS,
@@ -685,7 +685,7 @@ function wheelPosition(day,metrics=currentWheelMetrics()){
 
 function wheelStarPosition(day,metrics=currentWheelMetrics()){
   // The star rides on the outer gold ring instead of floating above the day bubble.
-  return wheelPositionAtRadius(day,metrics.radius + 3.1);
+  return wheelPositionAtRadius(day,metrics.radius + 2.35);
 }
 
 function wheelSeasonForDay(day){
@@ -732,19 +732,19 @@ function renderWheel(activeRoom){
     <nav class="wheel-season-grid" aria-label="Inner season Powder Rooms">
       <a class="wheel-season wheel-season-autumn ${activeSeason==="autumn"?"current":""}" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Autumn Powder Room">
         <span class="moon-phase-symbol moon-phase-half-new" aria-hidden="true"></span>
-        <strong>Inner Autumn</strong><small>Days 20–26</small>
+        <strong>Inner Autumn Powder Room</strong><small>Days 20–26</small>
       </a>
       <a class="wheel-season wheel-season-summer ${activeSeason==="summer"?"current":""}" href="/cycle-data/?season=Inner%20Summer" aria-label="Open Summer Powder Room">
         <span class="moon-phase-symbol moon-phase-full" aria-hidden="true"></span>
-        <strong>Inner Summer</strong><small>Days 12–19</small>
+        <strong>Inner Summer Powder Room</strong><small>Days 12–19</small>
       </a>
       <a class="wheel-season wheel-season-winter ${activeSeason==="winter"?"current":""}" href="/cycle-data/?season=Inner%20Winter" aria-label="Open Winter Powder Room">
         <span class="moon-phase-symbol moon-phase-new" aria-hidden="true"></span>
-        <strong>Inner Winter</strong><small>Days 27–5</small>
+        <strong>Inner Winter Powder Room</strong><small>Days 27–5</small>
       </a>
       <a class="wheel-season wheel-season-spring ${activeSeason==="spring"?"current":""}" href="/cycle-data/?season=Inner%20Spring" aria-label="Open Spring Powder Room">
         <span class="moon-phase-symbol moon-phase-half-full" aria-hidden="true"></span>
-        <strong>Inner Spring</strong><small>Days 6–11</small>
+        <strong>Inner Spring Powder Room</strong><small>Days 6–11</small>
       </a>
     </nav>
   `;

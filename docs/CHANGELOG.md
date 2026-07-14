@@ -1,3 +1,15 @@
+## v0.10.39 — Suite Geometry + Quiet Control Polish
+
+- Softened the Suite welcome header so it takes up less vertical space and feels more subtle.
+- Rebalanced the Suite Medicine Wheel geometry on desktop and mobile with smaller orbit rings, cleaner day markers, and a larger center rose compass.
+- Fixed day markers to render as true circles and repositioned seasonal Powder Room cards into cleaner corner placement.
+- Renamed Suite seasonal cards to explicitly say **Inner [Season] Powder Room**.
+- Refined the Suite Powder Room sharing disclaimer and control box for better desktop and mobile proportion.
+- Changed Flowtel, Entry, and Beta loading cards to use the concierge bell image as the full-card background.
+- Removed the Powder Room switch-view pill and softened the Powder Room hero treatment.
+- Simplified guest/client Flow Map controls to Current Cycle / Last Cycle / All Cycles with a smaller, cleaner header treatment.
+- No Supabase migration required.
+
 ## v0.10.38 — Seamless Entry + Responsive Suite Temple Polish
 
 - Added the concierge bell as the full-screen waiting experience during remembered-session checks, first-time beta access creation, login, check-in, and room routing.
