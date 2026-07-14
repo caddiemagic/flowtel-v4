@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.37" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.38" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -102,19 +102,23 @@
         </div>
       </section>
 
-      <section class="scene" id="preparingScene">
-        <p class="eyebrow">FLOWTEL</p>
-        <h2>Preparing your room...</h2>
-        <div class="moon-glow" aria-hidden="true">☾</div>
+      <section class="scene preparing-scene" id="preparingScene">
+        <p class="eyebrow">FLOWTEL FRONT DESK</p>
+        <h2>Preparing your suite...</h2>
+        <img class="preparing-bell" src="../assets/concierge-open-soon-bell.png" alt="" aria-hidden="true" />
+        <p class="preparing-note">One quiet moment while we ready your room.</p>
       </section>
 
       <section class="scene suite-scene" id="suiteScene">
-        <p class="eyebrow">YOUR SUITE</p>
-        <h2 id="suiteWelcome">Room is ready for you.</h2>
-        <p class="suite-subline" id="suiteSubline"></p>
-        <div class="suite-external-actions">
-          <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
-        </div>
+        <header class="suite-arrival">
+          <img class="suite-arrival-emblem" src="../assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+          <p class="eyebrow">YOUR SUITE</p>
+          <h2 id="suiteWelcome">Room is ready for you.</h2>
+          <p class="suite-subline" id="suiteSubline"></p>
+          <div class="suite-external-actions">
+            <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
+          </div>
+        </header>
 
         <section class="suite-grid suite-grid--wheel-left">
           <section class="wheel-column">
@@ -283,6 +287,19 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.37"></script>
+
+  <div class="flowtel-loading-overlay hidden" id="flowtelLoadingOverlay" role="status" aria-live="polite" aria-hidden="true">
+    <section class="flowtel-loading-card" aria-label="Flowtel is preparing your suite">
+      <p class="flowtel-loading-eyebrow">FLOWTEL FRONT DESK</p>
+      <div class="flowtel-loading-bell-wrap" aria-hidden="true">
+        <img class="flowtel-loading-bell" src="../assets/concierge-open-soon-bell.png" alt="" />
+      </div>
+      <h2>Preparing your suite</h2>
+      <p id="flowtelLoadingCopy">The Flowtel is preparing your room...</p>
+      <small id="flowtelLoadingHelper">One quiet moment while we ready your room.</small>
+      <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
+    </section>
+  </div>
+  <script type="module" src="./app.js?v=0.10.38"></script>
 </body>
 </html>

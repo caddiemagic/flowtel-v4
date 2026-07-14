@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Enter the Flowtel</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.26" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.38" />
 </head>
 <body>
   <main class="entry-shell">
@@ -30,6 +30,16 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=0.10.26"></script>
+
+  <div class="entry-loading-overlay" id="entryLoadingOverlay" role="status" aria-live="polite">
+    <section class="entry-loading-card">
+      <p class="eyebrow">FLOWTEL FRONT DESK</p>
+      <div class="entry-loading-bell-wrap" aria-hidden="true"><img src="../assets/concierge-open-soon-bell.png" alt="" /></div>
+      <h2>Preparing your arrival</h2>
+      <p id="entryLoadingCopy">Checking for your room key...</p>
+      <div class="entry-loading-line" aria-hidden="true"><span></span></div>
+    </section>
+  </div>
+  <script type="module" src="./app.js?v=0.10.38"></script>
 </body>
 </html>

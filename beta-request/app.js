@@ -6,6 +6,10 @@ const button = document.getElementById("submitButton");
 const successPanel = document.getElementById("successPanel");
 const loginLink = document.getElementById("loginLink");
 const membershipSelect = document.getElementById("membershipType");
+const betaLoadingOverlay = document.getElementById("betaLoadingOverlay");
+const betaLoadingCopy = document.getElementById("betaLoadingCopy");
+const betaLoadingHelper = document.getElementById("betaLoadingHelper");
+let betaLoadingTimer = null;
 
 function setMessage(text, type = "") {
   message.textContent = text || "";
@@ -14,6 +18,20 @@ function setMessage(text, type = "") {
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
+}
+
+function setBetaLoading(isLoading, copy="Creating your Flowtel access...") {
+  window.clearTimeout(betaLoadingTimer);
+  betaLoadingOverlay?.classList.toggle("hidden", !isLoading);
+  betaLoadingOverlay?.setAttribute("aria-hidden", isLoading ? "false" : "true");
+  document.body.classList.toggle("beta-is-loading", !!isLoading);
+  if (betaLoadingCopy && copy) betaLoadingCopy.textContent = copy;
+  if (betaLoadingHelper) betaLoadingHelper.textContent = "Please keep this window open while we ready your room.";
+  if (isLoading) {
+    betaLoadingTimer = window.setTimeout(() => {
+      if (betaLoadingHelper) betaLoadingHelper.textContent = "Your room is still being prepared. Thank you for your patience.";
+    }, 5500);
+  }
 }
 
 function membershipFromUrl() {
@@ -64,6 +82,7 @@ form?.addEventListener("submit", async (event) => {
   button.disabled = true;
   button.textContent = "Creating access...";
   setMessage("Creating your Flowtel access. If approved, we’ll log you in automatically.");
+  setBetaLoading(true, "Creating your Flowtel access...");
 
   try {
     const response = await fetch("/api/beta-request", {
@@ -87,10 +106,12 @@ form?.addEventListener("submit", async (event) => {
     );
 
     button.textContent = "Logging you in...";
+    setBetaLoading(true, "Your access is ready. Logging you in and preparing your suite...");
     await autoLoginAndEnter(payload.email, result.temporaryPassword, payload.membershipType);
   } catch (error) {
     console.error("Beta request could not complete automatic login:", error);
     setMessage(error.message || "Something went wrong at the Front Desk.", "error");
+    setBetaLoading(false);
     button.disabled = false;
     button.textContent = "Request Flowtel Access";
   }

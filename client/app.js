@@ -18,6 +18,8 @@ const message=document.getElementById("message");
 const medicineWheel=document.getElementById("medicineWheel");
 const flowtelLoadingOverlay=document.getElementById("flowtelLoadingOverlay");
 const flowtelLoadingCopy=document.getElementById("flowtelLoadingCopy");
+const flowtelLoadingHelper=document.getElementById("flowtelLoadingHelper");
+let flowtelLoadingTimer=null;
 
 let currentProfile=null;
 let currentMentorRelationship=null;
@@ -31,11 +33,26 @@ function updatePhaseOneSuiteLinks(){
 
 function setFlowtelLoading(isLoading, copy="The Flowtel is preparing your room..."){
   document.body.classList.toggle("flowtel-is-loading", !!isLoading);
+  window.clearTimeout(flowtelLoadingTimer);
+
   if(flowtelLoadingOverlay){
     flowtelLoadingOverlay.classList.toggle("hidden", !isLoading);
     flowtelLoadingOverlay.setAttribute("aria-hidden", isLoading ? "false" : "true");
   }
+
   if(flowtelLoadingCopy && copy) flowtelLoadingCopy.textContent=copy;
+  if(flowtelLoadingHelper){
+    flowtelLoadingHelper.textContent="One quiet moment while we ready your room.";
+  }
+
+  if(isLoading){
+    flowtelLoadingTimer=window.setTimeout(()=>{
+      if(flowtelLoadingHelper){
+        flowtelLoadingHelper.textContent="Your room is still being prepared. Thank you for your patience.";
+      }
+    },5500);
+  }
+
   authPanel?.querySelectorAll("button,input,select,textarea").forEach(control=>{
     control.disabled=!!isLoading;
   });
@@ -624,17 +641,19 @@ function cycleDifferenceLabel(difference){
   EAST = 360° / 0°
   NORTH = 90°
 */
-const WHEEL_DAY_RADIUS = 33;
-const WHEEL_DAY_RADIUS_MOBILE = 38.5;
-const WHEEL_DAY_SIZE = 34;
-const WHEEL_DAY_SIZE_MOBILE = 30;
-const WHEEL_RING_GAP = 12;
+const WHEEL_DESKTOP_RADIUS = 40;
+const WHEEL_MOBILE_RADIUS = 39.5;
 
 function currentWheelMetrics(){
-  const isMobile = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(max-width: 700px)").matches;
+  const availableWidth=Math.max(260,Math.min(520,medicineWheel?.clientWidth || window.innerWidth - 52));
+  const isMobile=availableWidth < 430 || (window.matchMedia && window.matchMedia("(max-width: 700px)").matches);
+  const daySize=Math.round(Math.max(22,Math.min(34,availableWidth * .068)));
+  const ringGap=Math.round(Math.max(8,Math.min(12,availableWidth * .024)));
+
   return {
-    radius: isMobile ? WHEEL_DAY_RADIUS_MOBILE : WHEEL_DAY_RADIUS,
-    daySize: isMobile ? WHEEL_DAY_SIZE_MOBILE : WHEEL_DAY_SIZE,
+    radius:isMobile ? WHEEL_MOBILE_RADIUS : WHEEL_DESKTOP_RADIUS,
+    daySize,
+    ringGap,
   };
 }
 
@@ -660,52 +679,75 @@ function wheelPositionAtRadius(day, radius){
   };
 }
 
-function wheelPosition(day){
-  return wheelPositionAtRadius(day, currentWheelMetrics().radius);
+function wheelPosition(day,metrics=currentWheelMetrics()){
+  return wheelPositionAtRadius(day,metrics.radius);
 }
 
-function wheelStarPosition(day){
+function wheelStarPosition(day,metrics=currentWheelMetrics()){
   // The star rides on the outer gold ring instead of floating above the day bubble.
-  return wheelPositionAtRadius(day, currentWheelMetrics().radius + 3.2);
+  return wheelPositionAtRadius(day,metrics.radius + 3.1);
+}
+
+function wheelSeasonForDay(day){
+  const room=normalizedRoom(day);
+  if(room >= 27 || room <= 5) return "winter";
+  if(room <= 11) return "spring";
+  if(room <= 19) return "summer";
+  return "autumn";
 }
 
 function renderWheel(activeRoom){
   const rooms=Array.from({length:28},(_,i)=>i+1);
   const activeNormalizedRoom=normalizedRoom(activeRoom);
-  const activePosition=wheelPosition(activeNormalizedRoom);
-  const starPosition=wheelStarPosition(activeNormalizedRoom);
+  const wheelMetrics=currentWheelMetrics();
+  const starPosition=wheelStarPosition(activeNormalizedRoom,wheelMetrics);
+  const activeSeason=wheelSeasonForDay(activeNormalizedRoom);
 
-  const wheelMetrics = currentWheelMetrics();
   medicineWheel.style.setProperty("--day-radius", `${wheelMetrics.radius}%`);
   medicineWheel.style.setProperty("--ring-base", `${wheelMetrics.radius * 2}%`);
   medicineWheel.style.setProperty("--day-size", `${wheelMetrics.daySize}px`);
-  medicineWheel.style.setProperty("--ring-offset", `${wheelMetrics.daySize + (WHEEL_RING_GAP * 2)}px`);
+  medicineWheel.style.setProperty("--ring-offset", `${wheelMetrics.daySize + (wheelMetrics.ringGap * 2)}px`);
 
   medicineWheel.innerHTML = `
-  <a class="wheel-season wheel-season-autumn" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Autumn Powder Room"><em>🍁</em>Inner Autumn<small>Days 20–26</small></a>
-  <a class="wheel-season wheel-season-summer" href="/cycle-data/?season=Inner%20Summer" aria-label="Open Summer Powder Room"><em>☀</em>Inner Summer<small>Days 12–19</small></a>
-  <a class="wheel-season wheel-season-spring" href="/cycle-data/?season=Inner%20Spring" aria-label="Open Spring Powder Room"><em>🌸</em>Inner Spring<small>Days 6–11</small></a>
-  <a class="wheel-season wheel-season-winter" href="/cycle-data/?season=Inner%20Winter" aria-label="Open Winter Powder Room"><em>❄</em>Inner Winter<small>Days 27–5</small></a>
+    <div class="wheel-orbit" aria-hidden="false">
+      <div class="wheel-number-ring wheel-number-ring-inner" aria-hidden="true"></div>
+      <div class="wheel-number-ring wheel-number-ring-outer" aria-hidden="true"></div>
 
-  <div class="wheel-number-ring wheel-number-ring-inner" aria-hidden="true"></div>
-  <div class="wheel-number-ring wheel-number-ring-outer" aria-hidden="true"></div>
+      <img
+        class="rose-compass-center"
+        src="../assets/rose_compass_center.png"
+        alt=""
+        aria-hidden="true"
+      />
 
-  <img
-    class="rose-compass-center"
-    src="../assets/rose_compass_center.png"
-    alt=""
-    aria-hidden="true"
-  />
+      <span class="wheel-star-marker" style="--star-x:${starPosition.x}%;--star-y:${starPosition.y}%;" aria-hidden="true">✦</span>
 
-  <span class="wheel-star-marker" style="--star-x:${starPosition.x}%;--star-y:${starPosition.y}%;" aria-hidden="true">✦</span>
+      ${rooms.map(room=>{
+        const p=wheelPosition(room,wheelMetrics);
+        const isActive=room===activeNormalizedRoom;
+        return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="--x:${p.x}%;--y:${p.y}%" aria-label="Open previous visits for Room ${room===28?"28 plus":room}">${room===28?"28+":room}</button>`;
+      }).join("")}
+    </div>
 
-  ${rooms.map(room=>{
-    const p=wheelPosition(room);
-    const isActive=room===activeNormalizedRoom;
-
-    return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="--x:${p.x}%;--y:${p.y}%" aria-label="Open previous visits for Room ${room===28?"28 plus":room}">${room===28?"28+":room}</button>`;
-  }).join("")}
-`;
+    <nav class="wheel-season-grid" aria-label="Inner season Powder Rooms">
+      <a class="wheel-season wheel-season-autumn ${activeSeason==="autumn"?"current":""}" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Autumn Powder Room">
+        <span class="moon-phase-symbol moon-phase-half-new" aria-hidden="true"></span>
+        <strong>Inner Autumn</strong><small>Days 20–26</small>
+      </a>
+      <a class="wheel-season wheel-season-summer ${activeSeason==="summer"?"current":""}" href="/cycle-data/?season=Inner%20Summer" aria-label="Open Summer Powder Room">
+        <span class="moon-phase-symbol moon-phase-full" aria-hidden="true"></span>
+        <strong>Inner Summer</strong><small>Days 12–19</small>
+      </a>
+      <a class="wheel-season wheel-season-winter ${activeSeason==="winter"?"current":""}" href="/cycle-data/?season=Inner%20Winter" aria-label="Open Winter Powder Room">
+        <span class="moon-phase-symbol moon-phase-new" aria-hidden="true"></span>
+        <strong>Inner Winter</strong><small>Days 27–5</small>
+      </a>
+      <a class="wheel-season wheel-season-spring ${activeSeason==="spring"?"current":""}" href="/cycle-data/?season=Inner%20Spring" aria-label="Open Spring Powder Room">
+        <span class="moon-phase-symbol moon-phase-half-full" aria-hidden="true"></span>
+        <strong>Inner Spring</strong><small>Days 6–11</small>
+      </a>
+    </nav>
+  `;
 
   medicineWheel.querySelectorAll("[data-room]").forEach(button=>{
     button.addEventListener("click",()=>openVisitsForRoom(button.dataset.room));
@@ -962,6 +1004,9 @@ function renderSuite(stay){
   updatePhaseOneSuiteLinks();
 
   renderWheel(actualDay);
+  window.requestAnimationFrame(()=>{
+    if(currentStay===stay && suiteScene?.classList.contains("active")) renderWheel(actualDay);
+  });
   refineWheelLegend();
   renderReflectionMoonMagic(stay);
 }

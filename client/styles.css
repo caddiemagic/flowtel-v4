@@ -2547,3 +2547,409 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 }
 
 .suite-actions #suiteClockInButton{order:-1}
+
+/* Release 0.10.38 — Seamless Entry + Responsive Suite Temple Polish */
+body.flowtel-is-loading{overflow:hidden}
+
+.preparing-scene{
+  min-height:560px;
+  display:none;
+  place-content:center;
+  justify-items:center;
+  padding:54px 20px;
+}
+.preparing-scene.active{display:grid}
+.preparing-scene .eyebrow{margin:0 0 12px}
+.preparing-bell{
+  display:block;
+  width:min(100%,420px);
+  aspect-ratio:4/3;
+  margin:18px auto 2px;
+  object-fit:cover;
+  object-position:center 70%;
+  filter:drop-shadow(0 24px 34px rgba(109,78,65,.10));
+}
+.preparing-note{margin:0;color:var(--soft-brown);font-size:1rem;line-height:1.5}
+
+.suite-arrival{
+  position:relative;
+  width:min(100%,920px);
+  margin:0 auto 26px;
+  padding:24px clamp(18px,4vw,44px) 22px;
+  border:1px solid rgba(216,168,79,.22);
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 50% -18%,rgba(216,168,79,.16),transparent 42%),
+    linear-gradient(180deg,rgba(255,253,249,.96),rgba(248,231,227,.28));
+  box-shadow:0 22px 60px rgba(109,78,65,.08),inset 0 0 0 1px rgba(255,255,255,.74);
+  overflow:hidden;
+}
+.suite-arrival::before,.suite-arrival::after{
+  content:"";
+  position:absolute;
+  top:18px;
+  bottom:18px;
+  width:1px;
+  background:linear-gradient(180deg,transparent,rgba(216,168,79,.44),transparent);
+}
+.suite-arrival::before{left:18px}.suite-arrival::after{right:18px}
+.suite-arrival-emblem{
+  display:block;
+  width:88px;
+  height:64px;
+  margin:0 auto -2px;
+  object-fit:contain;
+  filter:drop-shadow(0 10px 18px rgba(109,78,65,.10));
+}
+.suite-arrival .eyebrow{margin:4px 0 10px}
+.suite-arrival .suite-subline{margin:13px auto 18px}
+.suite-arrival .suite-external-actions{margin:0}
+
+.suite-grid.suite-grid--wheel-left{
+  width:min(100%,1120px);
+  margin:26px auto 0;
+  grid-template-columns:minmax(0,1.12fr) minmax(340px,.88fr);
+  gap:24px;
+}
+.wheel-panel{
+  width:100% !important;
+  max-width:640px !important;
+  min-height:0 !important;
+  padding:24px 26px 28px !important;
+  border-color:rgba(216,168,79,.26) !important;
+  border-radius:30px !important;
+  background:
+    radial-gradient(circle at 50% 43%,rgba(216,168,79,.08),transparent 38%),
+    linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.22)) !important;
+  box-shadow:0 24px 64px rgba(109,78,65,.09),inset 0 0 0 1px rgba(255,255,255,.78) !important;
+}
+.wheel-panel .suite-moon-magic-pill{
+  margin:0 0 18px !important;
+  padding:14px 16px !important;
+  border-color:rgba(216,168,79,.24) !important;
+  background:linear-gradient(135deg,rgba(255,253,249,.94),rgba(248,231,227,.44)) !important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.7);
+}
+
+.medicine-wheel{
+  position:relative !important;
+  display:block;
+  width:min(100%,520px) !important;
+  max-width:520px !important;
+  aspect-ratio:1 !important;
+  margin:0 auto !important;
+  overflow:visible !important;
+  border-radius:30px !important;
+  background:transparent !important;
+  box-shadow:none !important;
+}
+.wheel-orbit{
+  position:absolute;
+  inset:0;
+  width:100%;
+  aspect-ratio:1;
+  border:1px solid rgba(216,168,79,.22);
+  border-radius:50%;
+  background:
+    radial-gradient(circle at center,rgba(255,253,249,.98) 0 32%,rgba(255,253,249,.78) 33% 37%,transparent 38%),
+    radial-gradient(circle at center,rgba(255,253,249,.98),rgba(251,247,241,.84));
+  box-shadow:inset 0 0 58px rgba(109,78,65,.045),0 18px 48px rgba(109,78,65,.06);
+}
+.wheel-number-ring{
+  border-width:2px !important;
+  border-color:rgba(216,168,79,.78) !important;
+}
+.wheel-room{
+  width:var(--day-size) !important;
+  height:var(--day-size) !important;
+  border:1.5px solid rgba(216,168,79,.72) !important;
+  background:rgba(255,253,249,.99) !important;
+  color:#5a4639 !important;
+  font-size:clamp(.58rem,1.4vw,.78rem) !important;
+  box-shadow:0 7px 16px rgba(109,78,65,.07),inset 0 1px 0 rgba(255,255,255,.96) !important;
+}
+.wheel-room.active{
+  background:linear-gradient(145deg,#fffaf1,#f6ded8) !important;
+  border-color:rgba(191,127,116,.8) !important;
+  box-shadow:0 0 0 4px rgba(243,212,207,.26),0 8px 18px rgba(109,78,65,.09) !important;
+}
+.wheel-room.active::after{content:none !important}
+.wheel-star-marker{
+  left:var(--star-x) !important;
+  top:var(--star-y) !important;
+  color:#c49337 !important;
+  font-size:1.04rem !important;
+  filter:drop-shadow(0 3px 7px rgba(109,78,65,.22));
+}
+.rose-compass-center{
+  width:44% !important;
+  height:44% !important;
+  max-width:none !important;
+  filter:drop-shadow(0 16px 20px rgba(109,78,65,.09)) !important;
+}
+
+.wheel-season-grid{
+  position:absolute;
+  inset:0;
+  z-index:12;
+  pointer-events:none;
+}
+.wheel-season{
+  position:absolute !important;
+  display:flex !important;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:3px !important;
+  width:112px !important;
+  min-width:112px !important;
+  min-height:76px;
+  padding:9px 10px !important;
+  border:1px solid rgba(216,168,79,.28) !important;
+  border-radius:18px !important;
+  background:linear-gradient(145deg,rgba(255,253,249,.97),rgba(248,231,227,.30)) !important;
+  box-shadow:0 13px 28px rgba(109,78,65,.07),inset 0 0 0 1px rgba(255,255,255,.68) !important;
+  color:#6d4e41 !important;
+  font-size:.66rem !important;
+  line-height:1.08 !important;
+  text-align:center;
+  text-decoration:none;
+  pointer-events:auto !important;
+  transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease;
+}
+.wheel-season:hover{transform:translateY(-2px);border-color:rgba(216,168,79,.54) !important;box-shadow:0 17px 34px rgba(109,78,65,.10) !important}
+.wheel-season.current{
+  border-color:rgba(191,127,116,.56) !important;
+  background:linear-gradient(145deg,#fffaf5,rgba(243,212,207,.54)) !important;
+  box-shadow:0 0 0 4px rgba(243,212,207,.18),0 15px 32px rgba(109,78,65,.09) !important;
+}
+.wheel-season strong{font:400 .77rem/1.05 Georgia,"Times New Roman",serif;letter-spacing:.01em;color:#6d4e41}
+.wheel-season small{
+  font-family:Arial,sans-serif !important;
+  font-size:.47rem !important;
+  font-weight:700;
+  letter-spacing:.1em !important;
+  text-transform:uppercase;
+  color:rgba(109,78,65,.72) !important;
+}
+.wheel-season-autumn{left:1.5% !important;top:1.5% !important;right:auto !important;bottom:auto !important}
+.wheel-season-summer{right:1.5% !important;top:1.5% !important;left:auto !important;bottom:auto !important}
+.wheel-season-winter{left:1.5% !important;bottom:1.5% !important;right:auto !important;top:auto !important}
+.wheel-season-spring{right:1.5% !important;bottom:1.5% !important;left:auto !important;top:auto !important}
+
+.moon-phase-symbol{
+  display:block;
+  width:16px;
+  height:16px;
+  margin-bottom:2px;
+  border:1.5px solid rgba(169,116,48,.82);
+  border-radius:50%;
+  background:#fffdf9;
+  box-shadow:0 3px 8px rgba(109,78,65,.08);
+}
+.moon-phase-new{background:linear-gradient(145deg,#b67f34,#d9ae58)}
+.moon-phase-full{background:#fffdf9}
+.moon-phase-half-full{background:linear-gradient(90deg,#b67f34 0 50%,#fffdf9 50% 100%)}
+.moon-phase-half-new{background:linear-gradient(90deg,#fffdf9 0 50%,#b67f34 50% 100%)}
+
+.you-are-here{
+  margin:16px 0 0 !important;
+  color:rgba(109,78,65,.68);
+  font-family:Arial,sans-serif;
+  font-size:.62rem;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.wheel-current-room{
+  margin-top:14px !important;
+  border-color:rgba(216,168,79,.22) !important;
+  background:linear-gradient(145deg,rgba(255,253,249,.94),rgba(248,231,227,.30)) !important;
+}
+.suite-flow-map-link--below-room{margin-top:14px !important}
+
+.flowtel-loading-overlay{
+  background:
+    radial-gradient(circle at 50% 36%,rgba(255,255,255,.96),rgba(251,247,241,.88) 46%,rgba(243,212,207,.58)),
+    rgba(251,247,241,.92) !important;
+  backdrop-filter:blur(10px) !important;
+  padding:max(18px,env(safe-area-inset-top)) 18px max(18px,env(safe-area-inset-bottom)) !important;
+}
+.flowtel-loading-card{
+  position:relative;
+  width:min(100%,520px) !important;
+  padding:28px clamp(20px,5vw,42px) 32px !important;
+  overflow:hidden;
+  border-color:rgba(216,168,79,.34) !important;
+  border-radius:34px !important;
+  background:linear-gradient(180deg,rgba(255,253,249,.98),rgba(251,247,241,.96)) !important;
+  box-shadow:0 34px 92px rgba(109,78,65,.16),inset 0 0 0 1px rgba(255,255,255,.86) !important;
+}
+.flowtel-loading-card::before{
+  content:"";
+  position:absolute;
+  inset:11px;
+  border:1px solid rgba(216,168,79,.16);
+  border-radius:25px;
+  pointer-events:none;
+}
+.flowtel-loading-eyebrow{
+  position:relative;
+  z-index:1;
+  margin:0 0 4px !important;
+  color:var(--rose) !important;
+  font-family:Arial,sans-serif !important;
+  font-size:.64rem !important;
+  font-weight:800;
+  letter-spacing:.28em;
+  text-transform:uppercase;
+}
+.flowtel-loading-bell-wrap{
+  position:relative;
+  z-index:1;
+  width:min(100%,330px);
+  aspect-ratio:4/3;
+  margin:0 auto -8px;
+  overflow:hidden;
+}
+.flowtel-loading-bell{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center 72%;
+  animation:flowtelBellBreathe 2.8s ease-in-out infinite;
+}
+.flowtel-loading-card h2{
+  position:relative;
+  z-index:1;
+  margin:0 0 10px;
+  color:#6d4e41;
+  font-size:clamp(1.45rem,5vw,2.2rem);
+  letter-spacing:.08em;
+}
+.flowtel-loading-card #flowtelLoadingCopy{
+  position:relative;
+  z-index:1;
+  margin:0 !important;
+  color:#7b5a4e !important;
+  font-size:1rem !important;
+}
+.flowtel-loading-card small{
+  position:relative;
+  z-index:1;
+  display:block;
+  margin:8px auto 0;
+  color:rgba(109,78,65,.62);
+  font-size:.83rem;
+  line-height:1.45;
+}
+.flowtel-loading-progress{
+  position:relative;
+  z-index:1;
+  width:min(100%,250px);
+  height:3px;
+  margin:22px auto 0;
+  overflow:hidden;
+  border-radius:999px;
+  background:rgba(216,168,79,.14);
+}
+.flowtel-loading-progress span{
+  display:block;
+  width:42%;
+  height:100%;
+  border-radius:inherit;
+  background:linear-gradient(90deg,transparent,#d8a84f,#c97974,transparent);
+  animation:flowtelLoadingSweep 1.8s ease-in-out infinite;
+}
+@keyframes flowtelBellBreathe{0%,100%{transform:scale(1);filter:drop-shadow(0 18px 26px rgba(109,78,65,.08))}50%{transform:scale(1.018);filter:drop-shadow(0 22px 32px rgba(109,78,65,.12))}}
+@keyframes flowtelLoadingSweep{0%{transform:translateX(-110%)}100%{transform:translateX(250%)}}
+
+@media(max-width:900px){
+  .suite-grid.suite-grid--wheel-left{grid-template-columns:1fr;max-width:680px}
+  .wheel-panel{max-width:620px !important}
+}
+
+@media(max-width:700px){
+  .flowtel-app{padding:14px 9px}
+  .flowtel-shell{min-height:0;padding:42px 12px 30px;border-radius:26px}
+  .rose-corner{width:94px;height:94px;top:8px;right:8px;opacity:.32}
+  .suite-arrival{margin-bottom:18px;padding:20px 16px 18px;border-radius:24px}
+  .suite-arrival::before{left:10px}.suite-arrival::after{right:10px}
+  .suite-arrival-emblem{width:74px;height:54px}
+  .suite-arrival .eyebrow{margin-top:2px}
+
+  .wheel-panel{
+    width:100% !important;
+    max-width:440px !important;
+    padding:18px 12px 22px !important;
+    overflow:visible !important;
+    border-radius:24px !important;
+  }
+  .wheel-panel .suite-moon-magic-pill{margin-bottom:16px !important;padding:13px 14px !important}
+  .medicine-wheel{
+    display:grid !important;
+    width:min(100%,390px) !important;
+    max-width:390px !important;
+    aspect-ratio:auto !important;
+    gap:16px;
+  }
+  .wheel-orbit{
+    position:relative !important;
+    inset:auto !important;
+    width:100%;
+    aspect-ratio:1;
+    order:1;
+  }
+  .wheel-season-grid{
+    position:static !important;
+    inset:auto !important;
+    order:2;
+    display:grid !important;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+    width:100%;
+    pointer-events:auto;
+  }
+  .wheel-season{
+    position:static !important;
+    inset:auto !important;
+    left:auto !important;
+    right:auto !important;
+    top:auto !important;
+    bottom:auto !important;
+    width:100% !important;
+    min-width:0 !important;
+    min-height:76px;
+    padding:9px 8px !important;
+  }
+  .wheel-season-winter{order:1}.wheel-season-spring{order:2}.wheel-season-summer{order:3}.wheel-season-autumn{order:4}
+  .wheel-season strong{font-size:.73rem}
+  .wheel-season small{font-size:.44rem !important}
+  .moon-phase-symbol{width:15px;height:15px}
+  .wheel-room{font-size:clamp(.52rem,2.7vw,.68rem) !important}
+  .wheel-star-marker{font-size:.92rem !important}
+  .rose-compass-center{width:43% !important;height:43% !important}
+  .you-are-here{margin-top:14px !important}
+  .wheel-current-room{margin-top:12px !important}
+
+  .reflection-moon-magic{grid-template-columns:1fr;text-align:center}
+  .reflection-moon-label{grid-row:auto;justify-self:center}
+  .flowtel-loading-card{border-radius:28px !important;padding:20px 16px 26px !important}
+  .flowtel-loading-card::before{inset:8px;border-radius:21px}
+  .flowtel-loading-bell-wrap{width:min(100%,280px);margin-bottom:-4px}
+  .flowtel-loading-card small{max-width:270px}
+  .preparing-scene{min-height:470px;padding:40px 12px}
+  .preparing-bell{width:min(100%,330px)}
+}
+
+@media(max-width:360px){
+  .flowtel-app{padding:8px 5px}
+  .flowtel-shell{padding-inline:8px;border-radius:20px}
+  .wheel-panel{padding-inline:6px !important}
+  .wheel-season-grid{gap:7px}
+  .wheel-season{min-height:72px;padding-inline:5px !important}
+  .wheel-season strong{font-size:.68rem}
+  .wheel-season small{font-size:.4rem !important;letter-spacing:.07em !important}
+  .moon-phase-symbol{width:14px;height:14px}
+  .flowtel-loading-overlay{padding-inline:9px !important}
+}

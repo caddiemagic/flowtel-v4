@@ -1,3 +1,15 @@
+## v0.10.38 — Seamless Entry + Responsive Suite Temple Polish
+
+- Added the concierge bell as the full-screen waiting experience during remembered-session checks, first-time beta access creation, login, check-in, and room routing.
+- Added long-load reassurance copy and mobile-safe loading layouts.
+- Rebuilt the Suite Medicine Wheel around one responsive square orbit so the rings, days, star, and center remain proportional across desktop and phones.
+- Removed mobile seasonal-card overflow and moved the cards into a contained two-by-two grid beneath the wheel on phones.
+- Replaced seasonal emojis with New Moon, Half Full Moon, Full Moon, and Half New Moon symbols.
+- Added a soft current-season highlight and a winged-scarab Suite arrival treatment.
+- Added the **Summer Waning Moon 2026** PDF as the featured Planning Room calendar.
+- Updated the Planning Room phase key with the matching Inner Seasons.
+- No Supabase migration required.
+
 ## v0.10.37 — Suite Checkout + Tracker CTA Combined
 
 - Removed the optional helper line under the beta access code field on the Request Flowtel Access page.

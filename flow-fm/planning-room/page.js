@@ -1,4 +1,4 @@
-import { MOON_CALENDARS, MOON_PHASE_KEY, WEEKLY_PLANNING_PROMPTS } from '/shared/moon-calendars.js?v=0.10.11';
+import { MOON_CALENDARS, MOON_PHASE_KEY, WEEKLY_PLANNING_PROMPTS } from '/shared/moon-calendars.js?v=0.10.38';
 import { renderTopNav, escapeHtml } from '/flow-fm/ui.js';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
@@ -13,18 +13,25 @@ calendarGrid.innerHTML = MOON_CALENDARS.map(item => {
   const pdfNote = item.pdfAvailable
     ? ''
     : `<p class="calendar-placeholder-note">Placeholder path reserved. Final custom calendar PDF has not been installed yet.</p>`;
-  return `<article class="calendar-card calendar-card--lunar">
+  const moonLines = item.newMoon || item.fullMoon
+    ? `<div class="calendar-moon-lines">
+        ${item.newMoon ? `<span><strong>New Moon</strong>${escapeHtml(item.newMoon)}</span>` : ''}
+        ${item.fullMoon ? `<span><strong>Full Moon</strong>${escapeHtml(item.fullMoon)}</span>` : ''}
+      </div>`
+    : '';
+  const currentBadge = item.featured ? `<span class="calendar-current-badge">Current Moon</span>` : '';
+
+  return `<article class="calendar-card calendar-card--lunar ${item.featured ? 'current-moon-calendar' : ''}">
+    ${currentBadge}
     <p class="eyebrow">${escapeHtml(item.rangeLabel)}</p>
     <h3>${escapeHtml(item.title)}</h3>
     <p>${escapeHtml(item.summary)}</p>
-    <div class="calendar-moon-lines">
-      <span><strong>New Moon</strong>${escapeHtml(item.newMoon)}</span>
-      <span><strong>Full Moon</strong>${escapeHtml(item.fullMoon)}</span>
-    </div>
+    ${moonLines}
     <div class="assignment-actions"><a class="pill-link muted calendar-pdf-link" href="${escapeHtml(item.assetPath)}" target="_blank" rel="noreferrer">Open Calendar PDF</a></div>
     ${pdfNote}
   </article>`;
 }).join('');
+
 
 phaseKeyCard.innerHTML = `<p class="eyebrow">MOON PHASE KEY</p>
   <h3>Let the phase choose the pace.</h3>
