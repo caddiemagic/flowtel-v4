@@ -641,19 +641,35 @@ function cycleDifferenceLabel(difference){
   EAST = 360° / 0°
   NORTH = 90°
 */
-const WHEEL_DESKTOP_RADIUS = 36.5;
-const WHEEL_MOBILE_RADIUS = 35.8;
+const WHEEL_DESKTOP_RADIUS = 41.4;
+const WHEEL_MOBILE_RADIUS = 41.2;
+
+function clamp(value,min,max){
+  return Math.max(min,Math.min(max,value));
+}
 
 function currentWheelMetrics(){
-  const availableWidth=Math.max(260,Math.min(520,medicineWheel?.clientWidth || window.innerWidth - 52));
-  const isMobile=availableWidth < 430 || (window.matchMedia && window.matchMedia("(max-width: 700px)").matches);
-  const daySize=Math.round(Math.max(22,Math.min(31,availableWidth * .062)));
-  const ringGap=Math.round(Math.max(9,Math.min(13,availableWidth * .024)));
+  const shellWidth=Math.max(280,medicineWheel?.clientWidth || window.innerWidth - 36);
+  const isMobile=(window.matchMedia && window.matchMedia("(max-width: 700px)").matches) || shellWidth < 500;
+  const orbitWidth=isMobile
+    ? Math.min(shellWidth,430)
+    : Math.min(500,Math.max(420,shellWidth - 150));
+  const radius=isMobile ? WHEEL_MOBILE_RADIUS : WHEEL_DESKTOP_RADIUS;
+  const daySize=Math.round(isMobile
+    ? clamp(orbitWidth * .068,22,29)
+    : clamp(orbitWidth * .064,27,32));
+  const ringGap=Math.round(clamp(orbitWidth * .016,6,9));
+  const ringDiameter=Math.round(orbitWidth * ((radius * 2) / 100));
+  const compassSize=Math.round(Math.min(isMobile ? 222 : 252,orbitWidth * (isMobile ? .54 : .55)));
 
   return {
-    radius:isMobile ? WHEEL_MOBILE_RADIUS : WHEEL_DESKTOP_RADIUS,
+    isMobile,
+    orbitWidth,
+    radius,
     daySize,
     ringGap,
+    ringDiameter,
+    compassSize,
   };
 }
 
@@ -684,8 +700,7 @@ function wheelPosition(day,metrics=currentWheelMetrics()){
 }
 
 function wheelStarPosition(day,metrics=currentWheelMetrics()){
-  // The star rides on the outer gold ring instead of floating above the day bubble.
-  return wheelPositionAtRadius(day,metrics.radius + 2.35);
+  return wheelPositionAtRadius(day,metrics.radius + 2.55);
 }
 
 function wheelSeasonForDay(day){
@@ -702,47 +717,49 @@ function renderWheel(activeRoom){
   const wheelMetrics=currentWheelMetrics();
   const starPosition=wheelStarPosition(activeNormalizedRoom,wheelMetrics);
   const activeSeason=wheelSeasonForDay(activeNormalizedRoom);
+  const ringOffset=wheelMetrics.daySize + (wheelMetrics.ringGap * 2);
 
-  medicineWheel.style.setProperty("--day-radius", `${wheelMetrics.radius}%`);
-  medicineWheel.style.setProperty("--ring-base", `${wheelMetrics.radius * 2}%`);
+  medicineWheel.style.setProperty("--orbit-size", `${wheelMetrics.orbitWidth}px`);
+  medicineWheel.style.setProperty("--ring-base", `${wheelMetrics.ringDiameter}px`);
   medicineWheel.style.setProperty("--day-size", `${wheelMetrics.daySize}px`);
-  medicineWheel.style.setProperty("--ring-offset", `${wheelMetrics.daySize + (wheelMetrics.ringGap * 2)}px`);
+  medicineWheel.style.setProperty("--ring-offset", `${ringOffset}px`);
+  medicineWheel.style.setProperty("--compass-size", `${wheelMetrics.compassSize}px`);
 
   medicineWheel.innerHTML = `
-    <div class="wheel-orbit" aria-hidden="false">
-      <div class="wheel-number-ring wheel-number-ring-inner" aria-hidden="true"></div>
-      <div class="wheel-number-ring wheel-number-ring-outer" aria-hidden="true"></div>
+    <div class="mwv2-orbit" aria-label="Cycle day wheel">
+      <div class="mwv2-ring mwv2-ring-inner" aria-hidden="true"></div>
+      <div class="mwv2-ring mwv2-ring-outer" aria-hidden="true"></div>
 
       <img
-        class="rose-compass-center"
+        class="mwv2-compass"
         src="../assets/rose_compass_center.png"
         alt=""
         aria-hidden="true"
       />
 
-      <span class="wheel-star-marker" style="--star-x:${starPosition.x}%;--star-y:${starPosition.y}%;" aria-hidden="true">✦</span>
+      <span class="mwv2-star" style="--star-x:${starPosition.x}%;--star-y:${starPosition.y}%;" aria-hidden="true">✦</span>
 
       ${rooms.map(room=>{
-        const p=wheelPosition(room,wheelMetrics);
+        const position=wheelPosition(room,wheelMetrics);
         const isActive=room===activeNormalizedRoom;
-        return `<button class="wheel-room ${isActive?"active":""}" type="button" data-room="${room}" style="--x:${p.x}%;--y:${p.y}%" aria-label="Open previous visits for Room ${room===28?"28 plus":room}">${room===28?"28+":room}</button>`;
+        return `<button class="mwv2-day ${isActive?"active":""}" type="button" data-room="${room}" style="--x:${position.x}%;--y:${position.y}%" aria-label="Open previous visits for Room ${room===28?"28 plus":room}">${room===28?"28+":room}</button>`;
       }).join("")}
     </div>
 
-    <nav class="wheel-season-grid" aria-label="Inner season Powder Rooms">
-      <a class="wheel-season wheel-season-autumn ${activeSeason==="autumn"?"current":""}" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Autumn Powder Room">
+    <nav class="mwv2-season-grid" aria-label="Inner season Powder Rooms">
+      <a class="mwv2-season-card mwv2-season-autumn ${activeSeason==="autumn"?"current":""}" href="/cycle-data/?season=Inner%20Autumn" aria-label="Open Inner Autumn Powder Room">
         <span class="moon-phase-symbol moon-phase-half-new" aria-hidden="true"></span>
         <strong>Inner Autumn Powder Room</strong><small>Days 20–26</small>
       </a>
-      <a class="wheel-season wheel-season-summer ${activeSeason==="summer"?"current":""}" href="/cycle-data/?season=Inner%20Summer" aria-label="Open Summer Powder Room">
+      <a class="mwv2-season-card mwv2-season-summer ${activeSeason==="summer"?"current":""}" href="/cycle-data/?season=Inner%20Summer" aria-label="Open Inner Summer Powder Room">
         <span class="moon-phase-symbol moon-phase-full" aria-hidden="true"></span>
         <strong>Inner Summer Powder Room</strong><small>Days 12–19</small>
       </a>
-      <a class="wheel-season wheel-season-winter ${activeSeason==="winter"?"current":""}" href="/cycle-data/?season=Inner%20Winter" aria-label="Open Winter Powder Room">
+      <a class="mwv2-season-card mwv2-season-winter ${activeSeason==="winter"?"current":""}" href="/cycle-data/?season=Inner%20Winter" aria-label="Open Inner Winter Powder Room">
         <span class="moon-phase-symbol moon-phase-new" aria-hidden="true"></span>
         <strong>Inner Winter Powder Room</strong><small>Days 27–5</small>
       </a>
-      <a class="wheel-season wheel-season-spring ${activeSeason==="spring"?"current":""}" href="/cycle-data/?season=Inner%20Spring" aria-label="Open Spring Powder Room">
+      <a class="mwv2-season-card mwv2-season-spring ${activeSeason==="spring"?"current":""}" href="/cycle-data/?season=Inner%20Spring" aria-label="Open Inner Spring Powder Room">
         <span class="moon-phase-symbol moon-phase-half-full" aria-hidden="true"></span>
         <strong>Inner Spring Powder Room</strong><small>Days 6–11</small>
       </a>
@@ -753,7 +770,7 @@ function renderWheel(activeRoom){
     button.addEventListener("click",()=>openVisitsForRoom(button.dataset.room));
   });
 
-  medicineWheel.querySelectorAll(".wheel-season").forEach(link=>{
+  medicineWheel.querySelectorAll(".mwv2-season-card").forEach(link=>{
     link.addEventListener("click",event=>{
       const href=link.getAttribute("href");
       if(!href) return;
@@ -911,11 +928,16 @@ function renderPowderRoomSharingSetting(){
   const toggle=document.getElementById("powderRoomSharingToggle");
   const status=document.getElementById("powderRoomSharingStatus");
   const inline=document.getElementById("powderRoomSharingInline");
+  const copy=document.getElementById("powderRoomSharingCopy");
   const expand=document.getElementById("powderRoomSharingExpandButton");
   if(!toggle) return;
   const sharingEnabled=isPowderRoomSharingEnabled();
   toggle.checked=sharingEnabled;
-  if(inline){
+  if(copy){
+    copy.textContent=sharingEnabled
+      ? "Your reflections will be shared anonymously in the Powder Rooms."
+      : "Powder Room sharing is off. Your reflections stay out of the anonymous rooms.";
+  }else if(inline){
     inline.firstChild.textContent=sharingEnabled
       ? "Your reflections will be shared anonymously in the Powder Rooms. "
       : "Powder Room sharing is off. Your reflections stay out of the anonymous rooms. ";

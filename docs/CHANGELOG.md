@@ -1,3 +1,16 @@
+## v0.10.40 — Medicine Wheel Finalization + Complete Note History
+
+- Rebuilt the Suite Medicine Wheel with a new isolated v2 class system so legacy wheel CSS can no longer interfere with current geometry.
+- Restored the larger ring presence from v0.10.38 while keeping a larger compass center and evenly spaced circular day markers.
+- Restored the approved centered two-by-two mobile Powder Room card grid and separated desktop seasonal cards from the number orbit.
+- Stopped the wheel column from stretching Cycle Data, Concierge Card, and other Suite rail cards.
+- Dramatically reduced the Suite welcome header scale and height, aligned it to the full Suite grid width, and gave it a softer distinct background.
+- Returned the Powder Room opt-out link to quiet inline text and rebuilt the expanded sharing control so its checkbox and copy align cleanly on desktop and mobile.
+- Added a dedicated Flow Map RPC that returns every append-only reflection and checkout note instead of collapsing each stay to its latest reflection.
+- Updated Flow Map and Powder Room note cards to show only the actual Day tag and Moon Magic phase tag.
+- Standardized Moon Magic tags to include the word **Phase**.
+- Adds Supabase migration 030.
+
 ## v0.10.39 — Suite Geometry + Quiet Control Polish
 
 - Softened the Suite welcome header so it takes up less vertical space and feels more subtle.

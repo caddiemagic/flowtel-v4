@@ -774,3 +774,16 @@ body.guest-flow-map-mode #cycleSelectorWrap{display:none !important;}
   .guest-cycle-nav button{flex:1 1 auto;}
   .cycle-selector-label select{min-width:0 !important;width:100% !important;}
 }
+
+/* Release 0.10.40 — Flow Map day + Moon Magic phase tags */
+.map-note-meta--note-tags{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:6px !important;
+  margin:14px 0 0 !important;
+}
+.map-note-meta--note-tags span{
+  display:inline-flex !important;
+  align-items:center !important;
+  width:auto !important;
+}

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.39" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.40" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -129,7 +129,7 @@
                 <small id="suiteMoonTheme"></small>
               </article>
 
-              <div class="medicine-wheel" id="medicineWheel" aria-label="Medicine wheel"></div>
+              <div class="medicine-wheel-v2" id="medicineWheel" aria-label="Medicine wheel"></div>
               <p class="you-are-here">You are here</p>
               <article class="info-card current-room-card wheel-current-room">
                 <span>Current Room</span>
@@ -170,7 +170,7 @@
           <p class="eyebrow">REFLECTION</p>
           <textarea id="reflectionInput" placeholder="Write what you want the Flowtel to remember from today..."></textarea>
           <p class="powder-share-inline" id="powderRoomSharingInline">
-            Your reflections will be shared anonymously in the Powder Rooms.
+            <span id="powderRoomSharingCopy">Your reflections will be shared anonymously in the Powder Rooms.</span>
             <button id="powderRoomSharingExpandButton" type="button">Click here to opt out.</button>
           </p>
           <article class="powder-master-setting powder-master-setting--collapsed hidden" id="powderRoomSharingPanel">
@@ -180,7 +180,7 @@
             </div>
             <label class="powder-share-control powder-master-toggle">
               <input id="powderRoomSharingToggle" type="checkbox" checked />
-              <span>I want my daily reflections to be witnessed in the Powder Room.</span>
+              <span>Share my daily reflections anonymously in the Powder Room.</span>
             </label>
             <div class="powder-share-actions">
               <button id="powderRoomSharingCollapseButton" type="button" class="secondary">Done</button>
@@ -300,6 +300,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.39"></script>
+  <script type="module" src="./app.js?v=0.10.40"></script>
 </body>
 </html>

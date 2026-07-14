@@ -105,12 +105,22 @@ function fetchHrefForCycle(cycleStart){
   return `${url.pathname}${url.search}`;
 }
 async function fetchCycleEntries({subjectId=null,scope="self"}){
-  const { data, error } = await supabase.rpc("flowtel_get_cycle_data_entries",{
+  const args={
     p_subject_id: subjectId,
     p_scope: scope,
-  });
-  if(error) throw error;
-  return data || [];
+  };
+  const { data, error } = await supabase.rpc("flowtel_get_flow_map_entries",args);
+  if(!error) return data || [];
+
+  // Keep the Flow Map available if the front end is deployed moments before
+  // migration 030. The legacy RPC remains a temporary fallback, but it only
+  // returns the latest reflection per stay.
+  const missingFunction=error?.code==="PGRST202" || error?.code==="42883" || /flowtel_get_flow_map_entries/i.test(error?.message || "");
+  if(!missingFunction) throw error;
+
+  const fallback=await supabase.rpc("flowtel_get_cycle_data_entries",args);
+  if(fallback.error) throw fallback.error;
+  return fallback.data || [];
 }
 function buildCycles(entries){
   const starts=[...new Set(entries.map(row=>row.cycle_start_date).filter(Boolean))].sort().reverse();
@@ -156,15 +166,20 @@ function offCycleLabel(row){
 function seasonKey(season){
   return String(season || "").replace(/^Inner\s+/i,"").toLowerCase();
 }
+function moonPhaseLabel(value){
+  const phase=String(value || "Moon Phase Unknown").trim();
+  if(!phase) return "Moon Phase Unknown";
+  return /\bphase$/i.test(phase) ? phase : `${phase} Phase`;
+}
 function noteTextEntriesForRow(row){
   const entries=[];
   const reflection=String(row.reflection_text||"").trim();
   const checkout=String(row.checkout_notes||"").trim();
   if(reflection){
-    entries.push({row, text:reflection, source:"Check-in", at:row.checked_in_at || row.reflection_created_at});
+    entries.push({row, text:reflection, source:"Check-in", at:row.reflection_created_at || row.checked_in_at, moonPhase:moonPhaseLabel(row.moon_phase)});
   }
   if(checkout){
-    entries.push({row, text:checkout, source:"Checkout", at:row.checked_out_at || row.reflection_created_at || row.checked_in_at});
+    entries.push({row, text:checkout, source:"Checkout", at:row.reflection_created_at || row.checked_out_at || row.checked_in_at, moonPhase:moonPhaseLabel(row.moon_phase)});
   }
   return entries;
 }
@@ -175,8 +190,9 @@ function noteCardMarkup(entry,index,densityMode="open"){
   return `
     <article class="map-note map-note--${(index % 9) + 1} ${densityMode!=="open" ? `map-note-${densityMode}` : ""}">
       <p class="map-note-text">${escapeHtml(entry.text)}</p>
-      <p class="map-note-meta map-note-meta--day-only">
+      <p class="map-note-meta map-note-meta--note-tags">
         <span>${escapeHtml(dayLabel)}</span>
+        <span>${escapeHtml(entry.moonPhase || moonPhaseLabel(row.moon_phase))}</span>
       </p>
     </article>
   `;

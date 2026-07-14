@@ -150,7 +150,8 @@ function powderRoomCopy(season){
   return POWDER_ROOM_COPY[season] || "Anonymous reflections from guests moving through the Flowtel.";
 }
 function compactMoonPhase(value){
-  return String(value || "Moon Phase Unknown").replace(/\s*Phase$/i, "");
+  const phase=String(value || "Moon Phase Unknown").trim();
+  return /\bphase$/i.test(phase) ? phase : `${phase} Phase`;
 }
 function dateInRange(date,start,end){
   if(!date) return false;
@@ -288,11 +289,12 @@ function powderNoteMarkup(row,index){
   const note=reflection || "A guest passed through this season quietly.";
   const toneClass=`powder-note--${(index % 8) + 1}`;
   const moon=compactMoonPhase(row.moon_phase);
-  const feels=row.feels_like_inner_season ? `Felt like ${(row.feels_like_inner_season.replace(/^Inner\s+/i,"").toLowerCase()==="autumn" ? "Fall" : row.feels_like_inner_season.replace(/^Inner\s+/i,""))}` : "Felt season unknown";
+  const actual=row.cycle_day_actual ?? row.cycle_day_recorded ?? "—";
+  const dayLabel=actual === "—" || actual === null || actual === undefined ? "DAY —" : `DAY ${actual}`;
   return `
     <article class="powder-note ${toneClass}">
       <p class="powder-note-text">${escapeHtml(note)}</p>
-      <p class="powder-note-meta">${escapeHtml(moon)} · ${escapeHtml(feels)}</p>
+      <p class="powder-note-meta"><span>${escapeHtml(dayLabel)}</span><span>${escapeHtml(moon)}</span></p>
     </article>
   `;
 }
