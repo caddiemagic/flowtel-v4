@@ -588,3 +588,12 @@ Medicine Wheel Compass
 - Added Schedule Call to the connected Mentor to the Moon card.
 - Added View Flow Map under the Current Room pill.
 - Adds Supabase migration 020.
+
+## v0.10.33 — Practitioner Clock-In + Owner Desk Access
+
+- Re-enabled Clock Into the Flowtel for practitioner-level roles only.
+- Kept client/beta tester accounts blocked from Concierge Desk and practitioner rooms.
+- Concierge Desk now hydrates the current user’s active Suite stay when opened directly.
+- Suite return / Clock Out card now appears for practitioner-level users in the Concierge Desk.
+- Updated owner/admin Concierge Desk guidance when no clock-in context exists.
+- No Supabase migration required.

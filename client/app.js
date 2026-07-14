@@ -391,12 +391,12 @@ async function openMemberBridge(){
 // cannot prevent the client login screen from loading.
 const FLOWTEL_ROLLOUT={
   phaseLabel:"Phase 1 — Guest Flow + Profile Studio Beta",
-  enableClockIn:false,
+  enableClockInForPractitionerRoles:true,
   restrictMentorsToAdminAndOwner:true,
 };
 function canUseClockInFlow(profile={}){
-  if(!FLOWTEL_ROLLOUT.enableClockIn) return false;
-  return ["practitioner","owner","admin"].includes(String(profile?.role || "").toLowerCase());
+  if(!FLOWTEL_ROLLOUT.enableClockInForPractitionerRoles) return false;
+  return isPractitionerLevel(profile);
 }
 
 const BETA_PASSWORD="FlowtelBeta!2026";

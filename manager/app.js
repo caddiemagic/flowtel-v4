@@ -1,7 +1,7 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -12,6 +12,11 @@ let currentClientsCount=0;
 let clockInContext=null;
 let currentManagerProfile=null;
 const boundConnectionButtons=new WeakSet();
+
+function isOwnerOrAdmin(profile=currentManagerProfile){
+  return ["owner","admin"].includes(String(profile?.role || "").toLowerCase());
+}
+
 const boundClientDataButtons=new WeakSet();
 
 const BETA_PASSWORD="FlowtelBeta!2026";
@@ -360,7 +365,9 @@ function updateTodayFlow(){
     setText("deskAssignmentNote",`Today you are tending guests in the ${assigned}.`);
   }else{
     setText("deskAssignmentTitle","The Concierge Desk is open.");
-    setText("deskAssignmentNote","Clock in through your Suite to receive a wing assignment, or view all turndown requests here.");
+    setText("deskAssignmentNote", isOwnerOrAdmin()
+      ? "Owner access is open. View beta guests and mentor requests here, or return to your Suite to clock in for a wing assignment."
+      : "Return to your Suite to check in, then clock into the Concierge Desk for a wing assignment.");
   }
 }
 
@@ -582,13 +589,23 @@ function getCachedSuiteStay(){
   }
 }
 function updateSuiteReturn(){
-  const stay=getCachedSuiteStay();
-  if(!suiteReturnCard||!stay) return;
-  const room=roomLabelForDay(stayActualDay(stay));
+  if(!suiteReturnCard || !isPractitionerLevel(currentManagerProfile)) return;
+  const stay=clockInContext || getCachedSuiteStay();
   suiteReturnCard.classList.remove("hidden");
-  if(suiteReturnNote){
-    suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
+
+  if(stay){
+    const room=roomLabelForDay(stayActualDay(stay));
+    if(suiteReturnNote){
+      suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
+    }
+    if(goToSuiteButton) goToSuiteButton.textContent="Clock Out";
+    return;
   }
+
+  if(suiteReturnNote){
+    suiteReturnNote.textContent="Return to your Suite to check in, then clock into the Concierge Desk for a wing assignment.";
+  }
+  if(goToSuiteButton) goToSuiteButton.textContent="Return to Suite";
 }
 async function goToSuite(){
   try{
@@ -885,6 +902,25 @@ function routeToFlowtelLogin(){
   window.location.href=`/enter/?membership=queendom&next=${encodeURIComponent(next)}`;
 }
 
+async function hydrateClockInContextForSession(profile){
+  clockInContext=getClockInContext();
+
+  if(clockInContext || !profile?.id) return clockInContext;
+
+  try{
+    const todayStay=await getTodayStayForClient(profile.id);
+    if(todayStay){
+      clockInContext=todayStay;
+      sessionStorage.setItem("flowtel:lastSuiteStay",JSON.stringify(todayStay));
+      return clockInContext;
+    }
+  }catch(error){
+    console.warn("Concierge Desk could not hydrate today’s Suite stay.",error);
+  }
+
+  return null;
+}
+
 async function openDeskFromSession(){
   try{
     if(managerMessage) managerMessage.textContent="Checking your Concierge access...";
@@ -905,7 +941,7 @@ async function openDeskFromSession(){
     }
 
     currentManagerProfile=profile;
-    clockInContext=getClockInContext();
+    await hydrateClockInContextForSession(profile);
     if(loginCard) loginCard.classList.add("hidden");
     if(dashboard) dashboard.classList.remove("hidden");
     if(managerMessage) managerMessage.textContent="";
