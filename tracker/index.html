@@ -1177,14 +1177,192 @@
       body.printing-cycle-snapshot *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
     }
 
+
+
+    /* Release 0.10.29 — Public Cycle Tracker Temple Facelift */
+    body{
+      background:
+        radial-gradient(circle at 10% 2%,rgba(231,189,105,.14),transparent 24%),
+        radial-gradient(circle at 90% 0%,rgba(248,231,227,.62),transparent 30%),
+        linear-gradient(180deg,#fffdf9 0%,#fbf5ec 54%,#fffdf9 100%) !important;
+    }
+    .tracker-shell{width:min(100% - 28px,1120px) !important;padding:34px 0 90px !important;}
+    .tracker-card{border-color:rgba(216,168,79,.27) !important;}
+    .tracker-temple-hero{
+      position:relative !important;
+      overflow:hidden !important;
+      min-height:360px !important;
+      display:grid !important;
+      place-items:center !important;
+      isolation:isolate !important;
+      border-radius:46px !important;
+      background:
+        radial-gradient(circle at center,rgba(255,253,249,.98),rgba(251,247,241,.92) 64%,rgba(248,231,227,.32)),
+        linear-gradient(140deg,rgba(255,253,249,.98),rgba(251,247,241,.94)) !important;
+    }
+    .tracker-temple-hero::before,
+    .tracker-temple-hero::after{
+      content:"";
+      position:absolute;
+      top:0;
+      bottom:0;
+      width:min(18vw,150px);
+      background:url("../assets/queendom-pillar-carving.png") center/cover no-repeat;
+      opacity:.19;
+      filter:saturate(.82) contrast(.95);
+      z-index:-1;
+      pointer-events:none;
+    }
+    .tracker-temple-hero::before{left:0;transform:scaleX(-1);}
+    .tracker-temple-hero::after{right:0;}
+    .tracker-scarab{
+      width:min(160px,32vw);
+      margin:0 auto 10px;
+      display:block;
+      opacity:.96;
+      filter:drop-shadow(0 18px 26px rgba(109,78,65,.12));
+    }
+    .tracker-temple-hero .tracker-eyebrow{font-size:.78rem !important;letter-spacing:.28em !important;color:#c87570 !important;}
+    .tracker-temple-hero h1{
+      max-width:900px;
+      margin-inline:auto !important;
+      font-size:clamp(3.25rem,9vw,7.2rem) !important;
+      letter-spacing:.035em !important;
+      text-transform:none !important;
+      line-height:.85 !important;
+    }
+    .tracker-temple-hero .hero-line{
+      font-size:clamp(1.04rem,1.8vw,1.28rem) !important;
+      line-height:1.62 !important;
+      max-width:650px !important;
+      color:#9f7668 !important;
+    }
+    .tracker-privacy-note{
+      max-width:600px;
+      margin:18px auto 0;
+      padding:12px 18px;
+      border:1px solid rgba(216,168,79,.22);
+      border-radius:999px;
+      background:rgba(255,253,249,.74);
+      color:#a98477;
+      font-family:Arial,sans-serif;
+      font-size:.72rem;
+      line-height:1.45;
+      letter-spacing:.045em;
+    }
+    .cycle-widget{
+      border-radius:44px !important;
+      background:
+        radial-gradient(circle at 94% 2%,rgba(216,168,79,.12),transparent 26%),
+        radial-gradient(circle at 8% 10%,rgba(248,231,227,.44),transparent 32%),
+        rgba(255,253,249,.94) !important;
+    }
+    .cycle-widget::before{
+      content:"";
+      position:absolute;
+      left:50%;
+      top:18px;
+      width:min(600px,74%);
+      height:2px;
+      transform:translateX(-50%);
+      background:linear-gradient(90deg,transparent,rgba(216,168,79,.7),transparent);
+      pointer-events:none;
+    }
+    #cycleMainHeading{
+      font-size:clamp(2.1rem,5vw,4rem) !important;
+      letter-spacing:.04em !important;
+      text-transform:none !important;
+    }
+    #cycleSubHeading{font-size:1.08rem !important;max-width:720px !important;}
+    .question{
+      background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.90)) !important;
+      border-color:rgba(216,168,79,.25) !important;
+      box-shadow:0 18px 50px rgba(109,78,65,.08) !important;
+    }
+    .button-grid button,
+    .season-button-grid button,
+    .action-row button,
+    .tracker-button{
+      border-color:rgba(201,127,115,.28) !important;
+      background:linear-gradient(180deg,#f9e3df,#f7dcd6) !important;
+      box-shadow:0 10px 22px rgba(109,78,65,.05) !important;
+    }
+    .button-grid button.secondary-button,
+    .season-button-grid button.secondary-button,
+    .action-row button.secondary-button{
+      background:rgba(255,253,249,.95) !important;
+    }
+    .season-button-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:14px;
+      margin-top:20px;
+    }
+    .season-button-grid button{
+      min-height:58px;
+      border:1px solid rgba(109,78,65,.14);
+      border-radius:999px;
+      color:var(--brown);
+      font-family:Arial,sans-serif;
+      font-size:.75rem;
+      font-weight:700;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      cursor:pointer;
+    }
+    .season-button-grid button:last-child{grid-column:1/-1;}
+    #cycleSnapshotCard.result-card{
+      background:
+        radial-gradient(circle at 88% 8%,rgba(216,168,79,.11),transparent 24%),
+        linear-gradient(145deg,rgba(255,253,249,.99),rgba(251,247,241,.92)) !important;
+      border:1px solid rgba(216,168,79,.25) !important;
+    }
+    #cycleSnapshotCard .result-topline{
+      color:#c87570 !important;
+      letter-spacing:.22em !important;
+    }
+    #cycleSnapshotCard.result-card h2{
+      font-size:clamp(2.2rem,5.4vw,4.6rem) !important;
+      text-transform:none !important;
+      letter-spacing:.01em !important;
+    }
+    .stat,.stat-wide,.prompt,.framework,.day-detail{
+      border-color:rgba(216,168,79,.20) !important;
+      background:rgba(255,253,249,.88) !important;
+    }
+    .stat span,.stat-wide span,.prompt h3,.framework h3{color:#c87570 !important;}
+    .tracker-cta-temple{
+      margin-top:28px !important;
+      padding:32px !important;
+      border:1px solid rgba(216,168,79,.30) !important;
+      border-radius:32px !important;
+      background:
+        radial-gradient(circle at 16% 12%,rgba(248,231,227,.5),transparent 34%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.90)) !important;
+      text-align:center;
+      box-shadow:0 18px 50px rgba(109,78,65,.07) !important;
+    }
+    .tracker-cta-temple h3{font-size:clamp(1.7rem,3vw,2.6rem) !important;line-height:1 !important;}
+    .tracker-cta-temple a{max-width:560px;margin-inline:auto !important;}
+    @media(max-width:720px){
+      .tracker-temple-hero::before,.tracker-temple-hero::after{width:76px;opacity:.12;}
+      .tracker-privacy-note{border-radius:22px;}
+      .season-button-grid{grid-template-columns:1fr;}
+      .season-button-grid button:last-child{grid-column:auto;}
+    }
+
 </style>
 </head>
 <body>
   <main class="tracker-shell">
-    <section class="tracker-card tracker-hero">
-      <p class="tracker-eyebrow">Welcome to the</p>
-      <h1>Flowtel</h1>
-      <p class="hero-line">Track your cycle data using the Flowtel Framework.</p>
+    <section class="tracker-card tracker-hero tracker-temple-hero">
+      <div class="tracker-pillar tracker-pillar-left" aria-hidden="true"></div>
+      <div class="tracker-pillar tracker-pillar-right" aria-hidden="true"></div>
+      <img class="tracker-scarab" src="../assets/queendom-scarab-sundisk.png" alt="" aria-hidden="true">
+      <p class="tracker-eyebrow">Public Cycle Temple</p>
+      <h1>Track Your Cycle</h1>
+      <p class="hero-line">A free Flowtel doorway for locating yourself in your body, your inner season, and the moon’s weather.</p>
+      <p class="tracker-privacy-note">Anonymous tracker patterns may be counted to help us improve this free tool. No name or email is collected here.</p>
     </section>
 
     <section id="cycleTrackerApp" class="tracker-card cycle-widget">
@@ -1222,15 +1400,28 @@
           <p class="date-helper"></p>
         </div>
         <div class="button-grid">
-          <button type="button" id="cycleRevealBtn" onclick="cycleCalculateWombCycle()" disabled>My Cycle Data</button>
-          <button type="button" class="secondary-button" onclick="cycleShowMoonCycle('unknown-date')">I don’t know when my last period was</button>
+          <button type="button" id="cycleRevealBtn" onclick="cycleAskFeelsLike('period-date')" disabled>My Cycle Data</button>
+          <button type="button" class="secondary-button" onclick="cycleAskFeelsLike('unknown-date')">I don’t know when my last period was</button>
+        </div>
+      </div>
+
+      <div id="cycleFeelsQuestion" class="question cycle-feels-question">
+        <button type="button" class="back-button" onclick="cycleGoBack()">← Back</button>
+        <h2>What season do you feel like today?</h2>
+        <p>Your body may be in one season while your energy feels like another. This is useful information.</p>
+        <div class="season-button-grid">
+          <button type="button" data-feels-season="Inner Winter">❄️ Inner Winter</button>
+          <button type="button" data-feels-season="Inner Spring">🌸 Inner Spring</button>
+          <button type="button" data-feels-season="Inner Summer">☀️ Inner Summer</button>
+          <button type="button" data-feels-season="Inner Autumn">🍁 Inner Autumn</button>
+          <button type="button" data-feels-season="Not sure" class="secondary-button">I’m not sure yet</button>
         </div>
       </div>
 
       <div id="cycleResults" class="question cycle-results-screen">
         <div id="cycleResultsContent"></div>
         <div class="action-row">
-          <a class="tracker-button tracker-link-button" href="https://www.theidyllcollective.com/check-into-the-flowtel">Check Into the Flowtel</a>
+          <a class="tracker-button tracker-link-button" data-tracker-cta="queendom" href="https://www.theidyllcollective.com/queendomhome">Join the Queendom to Enter the Flowtel</a>
           <button type="button" class="secondary-button" onclick="cyclePrintSnapshot()">Download / Save PDF</button>
           <button type="button" class="secondary-button" onclick="cycleRestartQuiz()">Start Over</button>
         </div>
@@ -1242,6 +1433,8 @@
     (function(){
       let currentStep = 1;
       let screenHistory = ["cycleQuestion1"];
+      let pendingResultReason = "";
+      let selectedFeelsLikeSeason = "";
 
       const synodicMonth = 29.530588853;
       const canonicalNewMoons = [
@@ -1261,6 +1454,40 @@
       const knownNewMoonISO = "2026-06-14";
 
       function $(id){ return document.getElementById(id); }
+
+      function trackerSource(){
+        const params = new URLSearchParams(window.location.search || "");
+        return params.get("source") || document.body?.dataset?.source || "public-cycle-tracker";
+      }
+
+      function sendTrackerEvent(eventType, detail = {}){
+        const payload = {
+          event_type: eventType,
+          source_page: trackerSource(),
+          ...detail,
+        };
+        try{
+          const body = JSON.stringify(payload);
+          if(navigator.sendBeacon){
+            navigator.sendBeacon("/api/public-tracker-event", new Blob([body], {type:"application/json"}));
+            return;
+          }
+          fetch("/api/public-tracker-event", {
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body,
+            keepalive:true,
+          }).catch(()=>{});
+        }catch(error){}
+      }
+
+      function seasonLabel(value){
+        const raw = String(value || "").trim();
+        if(!raw) return "Not sure";
+        return raw;
+      }
+
+      sendTrackerEvent("tracker_view");
 
       window.cycleOpenDatePicker = function(input){
         if(input.showPicker){
@@ -1283,7 +1510,7 @@
         if(pushHistory && screenHistory[screenHistory.length - 1] !== id){
           screenHistory.push(id);
         }
-        $("cycleProgressBar").style.width = (currentStep * 25) + "%";
+        $("cycleProgressBar").style.width = Math.min(100, currentStep * 20) + "%";
       };
 
       window.cycleUpdateHeader = function(title, subtitle){
@@ -1297,7 +1524,7 @@
           cycleUpdateHeader("Find Your Day 1","We'll need to know the first day of your last bleed.");
           cycleShowScreen("cycleQuestion2");
         }else{
-          cycleShowMoonCycle("no-period");
+          cycleAskFeelsLike("no-period");
         }
       };
 
@@ -1307,7 +1534,7 @@
           cycleUpdateHeader("Find Your Day 1","Select the start date of your last period.");
           cycleShowScreen("cycleDateQuestion");
         }else{
-          cycleShowMoonCycle("unknown-date");
+          cycleAskFeelsLike("unknown-date");
         }
       };
 
@@ -1326,6 +1553,10 @@
         if(previous === "cycleDateQuestion"){
           currentStep = 3;
           cycleUpdateHeader("Find Your Day 1","Select the start date of your last period.");
+        }
+        if(previous === "cycleFeelsQuestion"){
+          currentStep = 4;
+          cycleUpdateHeader("How does today feel?","Choose the inner season that best matches your energy right now.");
         }
         cycleShowScreen(previous, false);
       };
@@ -1478,11 +1709,11 @@
       }
 
       function inviteHtml(){
-        return `<section class="tracker-cta">
-          <p class="tracker-eyebrow">Your room can remember you</p>
-          <h3>Want to keep tracking inside the Flowtel?</h3>
-          <p>Record your stays in the Flowtel as a Queendom member. Save reflections, previous stays, concierge notes, and your complete medicine wheel.</p>
-          <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
+        return `<section class="tracker-cta tracker-cta-temple">
+          <p class="tracker-eyebrow">Enter the Queendom</p>
+          <h3>Want your cycle map to remember you?</h3>
+          <p>Inside the Queendom, you can enter the Flowtel, check in with your cycle, save reflections, and begin building your living medicine wheel.</p>
+          <a data-tracker-cta="queendom" href="https://www.theidyllcollective.com/queendomhome">Join the Queendom to Enter the Flowtel</a>
         </section>`;
       }
 
@@ -1493,9 +1724,41 @@
         wheel.querySelectorAll("[data-day]").forEach(btn => {
           btn.addEventListener("click", () => {
             detail.innerHTML = `<strong>Room ${btn.dataset.day}</strong><p>Every day can become part of your living cycle map inside the Flowtel.</p>`;
+            sendTrackerEvent("tracker_day_preview", { selected_cycle_day: btn.dataset.day === "28+" ? 28 : Number(btn.dataset.day) });
           });
         });
       }
+
+      window.cycleAskFeelsLike = function(reason){
+        pendingResultReason = reason || "period-date";
+        if(pendingResultReason === "period-date"){
+          const value = $("cyclePeriodDate").value;
+          if(!value){
+            alert("Please select your Day 1 date.");
+            return;
+          }
+          const startDate = new Date(value + "T00:00:00");
+          const today = new Date();
+          startDate.setHours(0,0,0,0);
+          today.setHours(0,0,0,0);
+          if(Math.floor((today - startDate) / 86400000) + 1 < 1){
+            alert("Please choose today or a date in the past.");
+            return;
+          }
+        }
+        currentStep = 4;
+        cycleUpdateHeader("How does today feel?","Choose the inner season that best matches your energy right now.");
+        cycleShowScreen("cycleFeelsQuestion");
+      };
+
+      window.cycleChooseFeelsLike = function(season){
+        selectedFeelsLikeSeason = seasonLabel(season);
+        if(pendingResultReason === "period-date"){
+          cycleCalculateWombCycle();
+        }else{
+          cycleShowMoonCycle(pendingResultReason || "no-period");
+        }
+      };
 
       window.cycleCalculateWombCycle = function(){
         const value = $("cyclePeriodDate").value;
@@ -1514,6 +1777,16 @@
         }
         const wombSeason = getWombSeason(cycleDay);
         const moon = getMoonData();
+        const feelsLike = seasonLabel(selectedFeelsLikeSeason);
+        sendTrackerEvent("tracker_submit", {
+          tracking_method: "bleed",
+          selected_cycle_day: cycleDay,
+          selected_feels_like_season: feelsLike,
+          calculated_inner_season: wombSeason.name,
+          moon_phase: moon.moonSeason.phase,
+          moon_day: moon.moonDay,
+          next_new_moon: moon.nextNewMoon.toISOString().slice(0,10),
+        });
 
         currentStep = 4;
         cycleUpdateHeader("My Cycle Data","Your personalized cycle snapshot is ready.");
@@ -1529,7 +1802,8 @@
               <div class="stat-grid">
                 <div class="stat"><span>Day 1</span><strong>${startDate.toLocaleDateString()}</strong></div>
                 <div class="stat"><span>Cycle Day</span><strong>Day ${cycleDay}</strong></div>
-                <div class="stat"><span>Inner Season</span><strong>${wombSeason.name}</strong></div>
+                <div class="stat"><span>Actual Inner Season</span><strong>${wombSeason.name}</strong></div>
+                <div class="stat"><span>Feels Like</span><strong>${feelsLike}</strong></div>
                 <div class="stat"><span>Wing</span><strong>${wombSeason.wing}</strong></div>
                 <div class="stat"><span>Moon Day</span><strong>Day ${moon.moonDay}</strong></div>
                 <div class="stat"><span>Moon Phase</span><strong>${moon.moonSeason.emoji} ${moon.moonSeason.phase}</strong></div>
@@ -1560,6 +1834,16 @@
         const reasonText = reason === "no-period"
           ? "Start tracking your energy shifts with the moon’s phases. After 3 months of tracking with the moon, you will begin to witness your own rhythms."
           : "Since you do not know your last Day 1 yet, begin with the moon. Your next first day of full flow will become your Day 1.";
+        const feelsLike = seasonLabel(selectedFeelsLikeSeason);
+        sendTrackerEvent("tracker_submit", {
+          tracking_method: reason === "no-period" ? "moon-no-period" : "moon-unknown-day-1",
+          selected_cycle_day: null,
+          selected_feels_like_season: feelsLike,
+          calculated_inner_season: moon.moonSeason.name,
+          moon_phase: moon.moonSeason.phase,
+          moon_day: moon.moonDay,
+          next_new_moon: moon.nextNewMoon.toISOString().slice(0,10),
+        });
 
         $("cycleResultsContent").innerHTML = `
           <div class="result-card" id="cycleSnapshotCard">
@@ -1572,6 +1856,7 @@
                 <div class="stat"><span>Last New Moon / Cycle Day 1</span><strong>${moon.lastNewMoon.toLocaleDateString()}</strong></div>
                 <div class="stat"><span>Moon Day</span><strong>Day ${moon.moonDay}</strong></div>
                 <div class="stat"><span>Moon Phase</span><strong>${moon.moonSeason.emoji} ${moon.moonSeason.phase}</strong></div>
+                <div class="stat"><span>Feels Like</span><strong>${feelsLike}</strong></div>
                 <div class="stat"><span>Next New Moon</span><strong>${moon.nextNewMoon.toLocaleDateString()}</strong></div>
                 <div class="stat-wide"><span>Theme</span><strong>${moon.moonSeason.theme}</strong></div>
               </div>
@@ -1600,6 +1885,8 @@
       window.cycleRestartQuiz = function(){
         currentStep = 1;
         screenHistory = ["cycleQuestion1"];
+        pendingResultReason = "";
+        selectedFeelsLikeSeason = "";
         cycleUpdateHeader("Track Your Cycle","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
         const input = $("cyclePeriodDate");
         const btn = $("cycleRevealBtn");
@@ -1618,6 +1905,16 @@
         dateInput.addEventListener("change", cycleUpdateDateLabel);
         dateInput.addEventListener("input", cycleUpdateDateLabel);
       }
+      document.querySelectorAll("[data-feels-season]").forEach((button) => {
+        button.addEventListener("click", () => cycleChooseFeelsLike(button.dataset.feelsSeason));
+      });
+      document.addEventListener("click", (event) => {
+        const cta = event.target.closest("[data-tracker-cta]");
+        if(!cta) return;
+        sendTrackerEvent("cta_click", {
+          cta_target: cta.getAttribute("href") || "",
+        });
+      });
 
     })();
   </script>

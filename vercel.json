@@ -27,6 +27,10 @@
       "destination": "/moon-widget-join-queendom/index.html"
     },
     {
+      "source": "/tracker",
+      "destination": "/tracker/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },

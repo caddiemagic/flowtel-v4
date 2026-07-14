@@ -1,3 +1,14 @@
+## v0.10.29 — Public Cycle Tracker Temple Facelift
+
+- Upgraded the public Cycle Tracker into a more luxurious Flowtel / Egyptian temple doorway.
+- Added scarab and carved-pillar visual language to the public tracker hero.
+- Added a feels-like season step so the tracker can compare calculated inner season with how the visitor feels.
+- Updated the public tracker CTA to **Join the Queendom to Enter the Flowtel**.
+- Added anonymous public tracker event capture through `/api/public-tracker-event`.
+- Added the private `flowtel_public_tracker_events` table for aggregate usage patterns only.
+- Added `docs/PUBLIC_TRACKER_ANALYTICS.md` with starter Supabase queries.
+- Adds Supabase migration 028.
+
 
 ## v0.10.28 — Phase 2 Access Gates + Queendom Return
 
