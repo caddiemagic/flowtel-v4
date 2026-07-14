@@ -2,11 +2,26 @@ const form = document.getElementById("betaRequestForm");
 const message = document.getElementById("message");
 const button = document.getElementById("submitButton");
 const successPanel = document.getElementById("successPanel");
+const enterFlowtelLink = document.getElementById("enterFlowtelLink");
+const params = new URLSearchParams(window.location.search);
 
 function setMessage(text, type = "") {
   message.textContent = text || "";
   message.className = `message ${type}`.trim();
 }
+
+function normalizeMembership(value) {
+  const cleaned = String(value || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (cleaned === "queen" || cleaned === "queendom") return "queendom";
+  if (cleaned === "flow" || cleaned === "flowfm" || cleaned === "flowfmmember") return "flowfm";
+  if (cleaned === "council") return "council";
+  return "queendom";
+}
+
+const incomingMembership = normalizeMembership(params.get("membership") || params.get("source") || params.get("doorway"));
+const membershipField = document.getElementById("membershipType");
+if (membershipField) membershipField.value = incomingMembership;
+if (enterFlowtelLink) enterFlowtelLink.href = `../client/?membership=${encodeURIComponent(incomingMembership)}&forceDoorway=1`;
 
 function normalizeEmail(value) {
   return String(value || "").trim().toLowerCase();
@@ -28,8 +43,8 @@ form?.addEventListener("submit", async (event) => {
   }
 
   button.disabled = true;
-  button.textContent = "Preparing room key...";
-  setMessage("The Front Desk is preparing your Flowtel room key.");
+  button.textContent = "Preparing access...";
+  setMessage("The Front Desk is preparing your Flowtel access.");
 
   try {
     const response = await fetch("/api/beta-request", {
@@ -41,15 +56,15 @@ form?.addEventListener("submit", async (event) => {
     const result = await response.json().catch(() => ({}));
 
     if (!response.ok || !result.ok) {
-      throw new Error(result.error || "Could not prepare this Flowtel room key.");
+      throw new Error(result.error || "Could not prepare this Flowtel access.");
     }
 
     form.classList.add("hidden");
     successPanel.classList.remove("hidden");
     setMessage(
       result.accountStatus === "created"
-        ? "Your room key is ready."
-        : "Your room key already existed, so we refreshed the profile connection."
+        ? "Your Flowtel access is ready."
+        : "Your Flowtel access already existed, so we refreshed the profile connection."
     );
   } catch (error) {
     setMessage(error.message || "Something went wrong at the Front Desk.", "error");

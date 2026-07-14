@@ -1,4 +1,14 @@
 
+## v0.10.24 — Smart Flowtel Entry
+
+- Added `/enter/`, a clear smart doorway between the Queendom Moon Magic widget, returning Flowtel login, and beta access request.
+- Updated the Moon Magic widget CTA to **Enter the Flowtel** and routed it to `/enter/?membership=queendom`.
+- If a Supabase session already exists, `/enter/` shows **“We’re logging you in.”** and sends the guest into Flowtel.
+- If no session exists, `/enter/` shows **I’ve checked in before** and **Request access**.
+- Removed room-key language from the beta request flow and replaced it with clearer Flowtel access language.
+- Added the `/enter` Vercel rewrite.
+- No Supabase migration required.
+
 ## v0.10.23 — Queendom Moon Magic Widget
 
 - Added `/moon-widget/`, an iframe-friendly Moon Magic card for the Queendom homepage.

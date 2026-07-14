@@ -15,6 +15,10 @@
       "destination": "/beta-request/index.html"
     },
     {
+      "source": "/enter",
+      "destination": "/enter/index.html"
+    },
+    {
       "source": "/moon-widget",
       "destination": "/moon-widget/index.html"
     },

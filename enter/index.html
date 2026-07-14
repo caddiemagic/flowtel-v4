@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Enter the Flowtel</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.24" />
+</head>
+<body>
+  <main class="entry-shell">
+    <section class="entry-card" aria-labelledby="entryTitle">
+      <p class="eyebrow">THE FLOWTEL</p>
+      <h1 id="entryTitle">Welcome to the Flowtel</h1>
+      <p id="entryIntro" class="intro">
+        We’re checking whether this device already remembers your Flowtel access.
+      </p>
+
+      <div id="loadingPanel" class="loading-panel" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <p>We’re logging you in.</p>
+      </div>
+
+      <div id="choicePanel" class="choice-panel hidden">
+        <p class="microcopy">
+          If you’ve already received Flowtel access, check in with your login. If this is your first time entering the beta, request access first.
+        </p>
+        <a id="returningLink" class="entry-button" href="/client/?membership=queendom&forceDoorway=1">I’ve checked in before</a>
+        <a id="requestLink" class="entry-button secondary" href="/beta-request/?membership=queendom">Request access</a>
+      </div>
+
+      <p class="footer-line">The moon gives the weather. Your body gives the truth.</p>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js?v=0.10.24"></script>
+</body>
+</html>

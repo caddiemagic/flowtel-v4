@@ -271,7 +271,7 @@ async function createNewMemberBridge(){
   }
 
   try{
-    setMessage("Finding your Flowtel room key...");
+    setMessage("Finding your Flowtel access...");
     bridgeData=await verifySquarespaceMember(email,"new");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
 
@@ -323,7 +323,7 @@ async function openReturningMemberBridge(){
   }
 
   try{
-    setMessage("Finding your Flowtel room key...");
+    setMessage("Finding your Flowtel access...");
     const bridgeData=await verifySquarespaceMember(email,"returning");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
     setMessage("Welcome back. Opening your Flowtel room...");
@@ -1386,7 +1386,7 @@ async function openRememberedRoomKey(){
       localStorage.removeItem("flowtel:memberEmail");
       sessionStorage.clear();
     }catch(error){}
-    setMessage("Your Flowtel room key has been released for testing. You can enter again when you are ready.");
+    setMessage("Your Flowtel session has been cleared for testing. You can enter again when you are ready.");
     showScene("lobby");
     return true;
   }
@@ -1429,7 +1429,7 @@ async function openRememberedRoomKey(){
     showCheckIn();
     return true;
   }catch(error){
-    console.warn("Remembered room key could not open automatically.",error);
+    console.warn("Remembered Flowtel access could not open automatically.",error);
     clearCachedSuiteStay();
     return false;
   }
@@ -1702,7 +1702,7 @@ async function handleCheckIn(){
     },650);
   }catch(error){
     showScene("lobby");
-    setMessage("Your room key could not be prepared. Please try again or message the Front Desk.");
+    setMessage("Your Flowtel access could not be prepared. Please try again or message the Front Desk.");
     console.error(error);
   }
 }
@@ -1862,7 +1862,7 @@ if(powderRoomSharingToggle){
 }
 
 // Auto-enter remains opt-in for later Squarespace code injection.
-// Remembered room key is now the primary beta experience:
+// Remembered Flowtel access is now the primary beta experience:
 // if Supabase already has a session in this browser, bypass the doorway.
 async function bootFlowtelClient(){
   const openedRememberedRoom=await openRememberedRoomKey();

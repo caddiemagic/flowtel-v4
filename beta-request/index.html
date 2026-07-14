@@ -4,13 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request Flowtel Access</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.23" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.24" />
 </head>
 <body>
   <main class="beta-shell">
     <section class="beta-card" aria-labelledby="betaTitle">
       <p class="eyebrow">THE FLOWTEL</p>
-      <h1 id="betaTitle">Request Your Room Key</h1>
+      <h1 id="betaTitle">Request Flowtel Access</h1>
       <p class="intro">
         Flowtel is opening slowly for Phase 1 beta. Request access with the email you use inside the Queendom or Flow FM.
       </p>
@@ -44,16 +44,16 @@
       <div id="message" class="message" role="status" aria-live="polite"></div>
 
       <div id="successPanel" class="success-panel hidden">
-        <p class="eyebrow">ROOM KEY READY</p>
-        <h2>Your Flowtel room key has been prepared.</h2>
+        <p class="eyebrow">ACCESS READY</p>
+        <h2>Your Flowtel access has been created.</h2>
         <p>
-          Use this same email and the current Flowtel beta password Megan shared with you to enter the Flowtel.
+          Use this same email and the current Flowtel beta password Megan shared with you to log in. After your first login, Flowtel will remember you on this device.
         </p>
-        <a class="flowtel-link" href="../client/?membership=queendom">Enter the Flowtel</a>
+        <a id="enterFlowtelLink" class="flowtel-link" href="../client/?membership=queendom&forceDoorway=1">Log in to the Flowtel</a>
       </div>
     </section>
   </main>
 
-  <script src="./app.js?v=0.10.23"></script>
+  <script src="./app.js?v=0.10.24"></script>
 </body>
 </html>
