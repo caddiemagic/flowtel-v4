@@ -19,7 +19,6 @@ form?.addEventListener("submit", async (event) => {
     name: document.getElementById("name")?.value?.trim() || "",
     email: normalizeEmail(document.getElementById("email")?.value),
     membershipType: document.getElementById("membershipType")?.value || "queendom",
-    trackingStyle: document.getElementById("trackingStyle")?.value || "learning",
     betaCode: document.getElementById("betaCode")?.value?.trim() || "",
   };
 

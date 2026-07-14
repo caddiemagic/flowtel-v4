@@ -1,3 +1,13 @@
+
+## v0.10.23 — Queendom Moon Magic Widget
+
+- Added `/moon-widget/`, an iframe-friendly Moon Magic card for the Queendom homepage.
+- The widget shows the current Moon phase, Moon day, phase theme, Next New Moon date, and Flowtel Time date.
+- Added a **Check Into the Flowtel** call-to-action from the Moon widget.
+- Removed the unused tracking-style question from the beta access request form.
+- Updated remembered-room-key login copy to **“We’re logging you in.”**
+- No Supabase migration required.
+
 # Changelog
 
 

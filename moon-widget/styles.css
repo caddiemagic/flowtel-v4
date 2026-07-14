@@ -1,0 +1,116 @@
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --flowtel-ivory: #fffaf3;
+  --flowtel-cream: #f8efe7;
+  --flowtel-blush: #f6dfda;
+  --flowtel-rose: #c97872;
+  --flowtel-brown: #715142;
+  --flowtel-gold: #d6a94e;
+  --flowtel-border: rgba(214, 169, 78, 0.34);
+  --flowtel-shadow: rgba(113, 81, 66, 0.12);
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: transparent;
+  color: var(--flowtel-brown);
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.moon-widget-shell {
+  width: 100%;
+  padding: 12px;
+}
+
+.moon-card {
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: clamp(22px, 5vw, 42px);
+  border: 1px solid var(--flowtel-border);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 82% 8%, rgba(214, 169, 78, 0.16), transparent 24%),
+    linear-gradient(145deg, rgba(255, 250, 243, 0.98), rgba(248, 239, 231, 0.9));
+  box-shadow: 0 24px 70px var(--flowtel-shadow);
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 14px;
+  color: var(--flowtel-rose);
+  font-family: Arial, sans-serif;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.28em;
+}
+
+h1 {
+  margin: 0;
+  color: var(--flowtel-brown);
+  font-size: clamp(1.55rem, 5vw, 2.5rem);
+  font-weight: 400;
+  line-height: 1.12;
+}
+
+.moon-theme {
+  max-width: 520px;
+  margin: 14px auto 0;
+  font-size: clamp(1rem, 3.5vw, 1.18rem);
+  line-height: 1.55;
+}
+
+.moon-meta {
+  margin: 14px auto 0;
+  color: rgba(113, 81, 66, 0.78);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.checkin-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: min(100%, 280px);
+  margin-top: 24px;
+  padding: 13px 22px;
+  border: 1px solid rgba(201, 120, 114, 0.32);
+  border-radius: 999px;
+  background: var(--flowtel-blush);
+  color: var(--flowtel-brown);
+  font-family: Arial, sans-serif;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.checkin-link:hover,
+.checkin-link:focus-visible {
+  outline: none;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(113, 81, 66, 0.12);
+}
+
+.footer-line {
+  margin: 18px 0 0;
+  color: rgba(113, 81, 66, 0.72);
+  font-size: 0.92rem;
+  font-style: italic;
+}
+
+@media (max-width: 520px) {
+  .moon-widget-shell {
+    padding: 8px;
+  }
+
+  .moon-card {
+    border-radius: 24px;
+  }
+}

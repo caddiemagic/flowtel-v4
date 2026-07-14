@@ -1400,7 +1400,7 @@ async function openRememberedRoomKey(){
     const user=await getCurrentUser();
     if(!user) return false;
 
-    setMessage("Welcome back. Your Flowtel room key is still warm.");
+    setMessage("We're logging you in.");
     currentProfile=await ensureProfile({
       membershipType:SQUARESPACE_MEMBERSHIP || undefined,
       squarespaceSource:"remembered-room-key",
