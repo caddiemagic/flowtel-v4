@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.28" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.32" />
 </head>
 
 <body>
@@ -28,24 +28,11 @@
     </section>
 
     <section class="login-card" id="loginCard">
-      <p class="eyebrow">CONCIERGE KEY</p>
-      <h2>Open the Desk</h2>
-
-      <label>Email</label>
-      <input id="managerEmail" type="email" />
-
-      <label>Password</label>
-      <input id="managerPassword" type="password" />
-
-      <button id="managerSignInButton">Open Concierge Desk</button>
-
-      <details class="beta-login-card">
-        <summary>Beta practitioner accounts</summary>
-        <p class="microcopy">Use these to test wing assignments and concierge permissions.</p>
-        <div class="beta-login-grid" id="betaManagerLoginPanel"></div>
-      </details>
-
-      <p id="managerMessage"></p>
+      <p class="eyebrow">CONCIERGE ACCESS</p>
+      <h2>Checking your role.</h2>
+      <p class="microcopy">The Concierge Desk opens for practitioner, admin, and owner accounts. Enter through Flowtel first, then return here and the Desk will open automatically.</p>
+      <button id="managerEntryButton" type="button">Enter Through Flowtel</button>
+      <p id="managerMessage">Checking your Concierge access...</p>
     </section>
 
     <section class="dashboard hidden" id="dashboard">
@@ -108,6 +95,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=0.10.28"></script>
+  <script type="module" src="./app.js?v=0.10.32"></script>
 </body>
 </html>

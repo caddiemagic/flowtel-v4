@@ -1,3 +1,13 @@
+
+## v0.10.32 — Concierge Session Gate Repair
+
+- Fixed `isPractitionerLevel is not defined` on the Concierge Desk.
+- Removed the separate Concierge email/password form.
+- Concierge Desk now opens from the active Supabase session for practitioner/admin/owner roles.
+- Client accounts remain blocked behind the Phase 2 beta gate.
+- Logged-out users are directed to enter through Flowtel first.
+- No Supabase migration required.
+
 ## v0.10.31 — Flow Map + Tracker + Mentor Polish
 
 - Applied Notes 037–050: Flow Map day tags, Powder Room copy, mentor selection polish, tracker copy updates, Flow Map simplification, and login loading state.

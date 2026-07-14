@@ -1,5 +1,6 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients } from "../shared/flowtel.js";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
@@ -870,33 +871,31 @@ async function loadDesk(){
   updateStats();
   renderQueue();
 }
-async function openDesk(){
-  try{
-    managerMessage.textContent="Opening the Concierge Desk...";
-    const email=document.getElementById("managerEmail").value.trim(), password=document.getElementById("managerPassword").value;
-    if(!email||!password){managerMessage.textContent="Add email and password.";return;}
-    await signInWithEmail(email,password);
-    const profile=await getCurrentProfile();
-    currentManagerProfile=profile;
-    if(!profile||!isPractitionerLevel(profile)){
-      replacePageWithPhaseTwoGate({
-        featureName:"Concierge Desk",
-        title:"Opening in Phase 2",
-        copy:"The Concierge Desk will open in Phase 2 of beta testing for practitioner-level users. Phase 1 is focused on guest check-in, Suite, Lounge, and Flow Map.",
-      });
-      return;
-    }
-    clockInContext=getClockInContext();
-    loginCard.classList.add("hidden");dashboard.classList.remove("hidden");
-    updateSuiteReturn();
-    updateTodayFlow();
-    await loadDesk();
-  }catch(error){managerMessage.textContent=error.message;}
+function showConciergeAccessPrompt(){
+  if(!loginCard) return;
+  loginCard.classList.remove("hidden");
+  if(dashboard) dashboard.classList.add("hidden");
+  if(managerMessage){
+    managerMessage.textContent="Enter through Flowtel first. Once you are logged in, the Concierge Desk will verify your role automatically.";
+  }
 }
-async function autoOpenExistingManager(){
+
+function routeToFlowtelLogin(){
+  const next="/manager/";
+  window.location.href=`/enter/?membership=queendom&next=${encodeURIComponent(next)}`;
+}
+
+async function openDeskFromSession(){
   try{
+    if(managerMessage) managerMessage.textContent="Checking your Concierge access...";
     const profile=await getCurrentProfile();
-    if(profile && !isPractitionerLevel(profile)){
+
+    if(!profile){
+      showConciergeAccessPrompt();
+      return;
+    }
+
+    if(!isPractitionerLevel(profile)){
       replacePageWithPhaseTwoGate({
         featureName:"Concierge Desk",
         title:"Opening in Phase 2",
@@ -904,23 +903,29 @@ async function autoOpenExistingManager(){
       });
       return;
     }
-    if(!profile) return;
+
     currentManagerProfile=profile;
     clockInContext=getClockInContext();
     if(loginCard) loginCard.classList.add("hidden");
     if(dashboard) dashboard.classList.remove("hidden");
+    if(managerMessage) managerMessage.textContent="";
     updateSuiteReturn();
     updateTodayFlow();
     await loadDesk();
   }catch(error){
-    console.warn("Auto Concierge open skipped.",error);
+    console.warn("Concierge session gate failed.",error);
+    if(managerMessage){
+      managerMessage.textContent=error?.message
+        ? `Concierge access could not be verified: ${error.message}`
+        : "Concierge access could not be verified. Please enter through Flowtel and try again.";
+    }
   }
 }
 
 renderBetaPractitionerPanel();
-autoOpenExistingManager();
+openDeskFromSession();
 
-document.getElementById("managerSignInButton").addEventListener("click",openDesk);
+document.getElementById("managerEntryButton")?.addEventListener("click",routeToFlowtelLogin);
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
 
 if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);
