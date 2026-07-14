@@ -1865,7 +1865,8 @@ if(suiteClockInButton) suiteClockInButton.addEventListener("click",handleClockIn
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
 document.getElementById("checkoutButton").addEventListener("click",handleCheckout);
-document.getElementById("returnLobbyButton").addEventListener("click",openCheckoutFromSuite);
+const returnLobbyButton=document.getElementById("returnLobbyButton");
+if(returnLobbyButton) returnLobbyButton.addEventListener("click",openCheckoutFromSuite);
 document.getElementById("flowtelLoungeButton").addEventListener("click",()=>showScene("lounge"));
 document.getElementById("backToSuiteButton").addEventListener("click",()=>{showScene("suite");window.scrollTo({top:0,behavior:"smooth"});});
 const checkoutReturnButton=document.getElementById("checkoutReturnButton");

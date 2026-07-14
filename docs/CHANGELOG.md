@@ -1,3 +1,21 @@
+## v0.10.37 — Suite Checkout + Tracker CTA Combined
+
+- Removed the optional helper line under the beta access code field on the Request Flowtel Access page.
+
+- Combines v0.10.35 and v0.10.36 into one patch for projects that have not applied either release yet.
+- Removed the duplicate **Check Out** button from the Suite action row; checkout remains in the Flowtel Lounge.
+- Changed the public tracker result action-row button to **Enter The Flowtel**.
+- Changed the Enter the Queendom card button to **Join The Queendom**.
+- Updated client cache-busting to `0.10.37`.
+- No Supabase migration required.
+
+## v0.10.35 — Suite Checkout Button Cleanup
+
+- Removed the duplicate **Check Out** button from the Suite action row.
+- Kept checkout inside the Flowtel Lounge.
+- Guarded the old Suite checkout button binding so the page does not error when the button is absent.
+- Updated client cache-busting to `0.10.35`.
+- No Supabase migration required.
 
 ## v0.10.34 — Suite Clock-In Button Repair
 
@@ -603,4 +621,10 @@ Medicine Wheel Compass
 - Concierge Desk now hydrates the current user’s active Suite stay when opened directly.
 - Suite return / Clock Out card now appears for practitioner-level users in the Concierge Desk.
 - Updated owner/admin Concierge Desk guidance when no clock-in context exists.
+- No Supabase migration required.
+
+## v0.10.36 — Public Tracker CTA Copy Swap
+
+- Changed the tracker result action-row CTA from **Join the Queendom to Enter the Flowtel** to **Enter The Flowtel**.
+- Changed the Enter the Queendom card CTA from **Enter The Flowtel** to **Join The Queendom**.
 - No Supabase migration required.
