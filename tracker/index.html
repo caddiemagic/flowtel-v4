@@ -1351,24 +1351,295 @@
       .season-button-grid button:last-child{grid-column:auto;}
     }
 
+
+    /* Release 0.10.30 — Public Cycle Tracker Refinement + PDF Snapshot Cleanup */
+    .tracker-hero,
+    .tracker-temple-hero{
+      display:none !important;
+    }
+
+    .tracker-shell{
+      width:min(100% - 28px,980px) !important;
+      padding:26px 0 74px !important;
+    }
+
+    .cycle-widget-refined{
+      padding:26px 28px 34px !important;
+      border-radius:34px !important;
+      overflow:hidden !important;
+      background:
+        radial-gradient(circle at 50% -8%,rgba(216,168,79,.10),transparent 24%),
+        radial-gradient(circle at 94% 4%,rgba(248,231,227,.34),transparent 28%),
+        linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.94)) !important;
+    }
+
+    .cycle-widget-refined::before{
+      top:14px !important;
+      width:min(440px,60%) !important;
+      opacity:.6 !important;
+    }
+
+    .cycle-widget-refined::after{
+      opacity:.04 !important;
+      width:210px !important;
+      height:210px !important;
+      right:-70px !important;
+      top:90px !important;
+    }
+
+    .tracker-ritual-intro{
+      max-width:620px;
+      margin:0 auto 22px;
+      text-align:center;
+    }
+
+    .tracker-scarab-compact{
+      display:block;
+      width:min(96px,28vw);
+      height:auto;
+      margin:0 auto 8px;
+      object-fit:contain;
+      opacity:.95;
+      background:transparent !important;
+      filter:drop-shadow(0 14px 20px rgba(109,78,65,.10));
+    }
+
+    .tracker-ritual-intro .hero-line{
+      max-width:520px !important;
+      margin:0 auto !important;
+      font-size:.98rem !important;
+      line-height:1.55 !important;
+      color:#9f7668 !important;
+    }
+
+    .tracker-ritual-intro .tracker-privacy-note{
+      max-width:560px;
+      margin:14px auto 0 !important;
+      padding:10px 16px !important;
+      border-radius:22px !important;
+      font-size:.68rem !important;
+      line-height:1.45 !important;
+      background:rgba(255,253,249,.72) !important;
+    }
+
+    #cycleMainHeading{
+      font-size:clamp(1.35rem,3.4vw,2.2rem) !important;
+      line-height:1.05 !important;
+      letter-spacing:.035em !important;
+      margin-bottom:8px !important;
+    }
+
+    #cycleSubHeading{
+      max-width:560px !important;
+      font-size:.9rem !important;
+      line-height:1.55 !important;
+      margin-bottom:22px !important;
+    }
+
+    #cycleSnapshotCard.result-card h2,
+    #cycleResults #cycleMainHeading,
+    .result-card h2{
+      font-size:clamp(1.35rem,3.1vw,2.2rem) !important;
+      line-height:1.12 !important;
+      letter-spacing:.005em !important;
+      max-width:720px !important;
+    }
+
+    .tracker-cta-temple h3{
+      font-size:clamp(1.05rem,2vw,1.35rem) !important;
+      line-height:1.2 !important;
+      margin-bottom:8px !important;
+    }
+
+    .tracker-cta-temple p{
+      font-size:.9rem !important;
+      max-width:560px !important;
+    }
+
+    .stat-grid{
+      grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    }
+
+    .stat span,
+    .stat-wide span{
+      font-size:.60rem !important;
+      letter-spacing:.12em !important;
+    }
+
+    .stat strong,
+    .stat-wide strong{
+      font-size:.98rem !important;
+    }
+
+    .framework-item strong span{
+      color:#c87570;
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-left:4px;
+    }
+
+    @media(max-width:780px){
+      .cycle-widget-refined{
+        padding:22px 16px 28px !important;
+      }
+
+      .tracker-scarab-compact{
+        width:min(82px,30vw);
+      }
+
+      .tracker-ritual-intro .hero-line{
+        font-size:.88rem !important;
+      }
+
+      #cycleMainHeading{
+        font-size:clamp(1.25rem,7vw,1.75rem) !important;
+      }
+
+      #cycleSnapshotCard.result-card h2,
+      #cycleResults #cycleMainHeading,
+      .result-card h2{
+        font-size:clamp(1.18rem,6vw,1.55rem) !important;
+      }
+    }
+
+    @media print{
+      @page{
+        size:letter portrait;
+        margin:.38in;
+      }
+
+      body.printing-cycle-snapshot{
+        background:#fffdf9 !important;
+      }
+
+      body.printing-cycle-snapshot .tracker-ritual-intro,
+      body.printing-cycle-snapshot .progress-wrap,
+      body.printing-cycle-snapshot #cycleMainHeading,
+      body.printing-cycle-snapshot #cycleSubHeading,
+      body.printing-cycle-snapshot .action-row,
+      body.printing-cycle-snapshot .mini-wheel,
+      body.printing-cycle-snapshot .tracker-cta,
+      body.printing-cycle-snapshot .day-detail{
+        display:none !important;
+      }
+
+      body.printing-cycle-snapshot .tracker-shell,
+      body.printing-cycle-snapshot #cycleTrackerApp,
+      body.printing-cycle-snapshot #cycleResults,
+      body.printing-cycle-snapshot #cycleResultsContent{
+        width:100% !important;
+        max-width:none !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:0 !important;
+        box-shadow:none !important;
+        background:#fffdf9 !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard{
+        width:100% !important;
+        min-height:0 !important;
+        padding:.24in !important;
+        border:1px solid rgba(216,168,79,.28) !important;
+        box-shadow:none !important;
+        background:#fffdf9 !important;
+        page-break-inside:avoid !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard .result-topline{
+        font-size:.58rem !important;
+        margin-bottom:.08in !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard h2{
+        font-size:1.28rem !important;
+        line-height:1.12 !important;
+        margin:0 0 .08in !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard > p{
+        font-size:.82rem !important;
+        line-height:1.32 !important;
+        margin:0 0 .12in !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard .tracker-dashboard{
+        display:block !important;
+        margin:.10in 0 !important;
+      }
+
+      body.printing-cycle-snapshot #cycleSnapshotCard .stat-grid{
+        display:grid !important;
+        grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+        gap:.10in !important;
+      }
+
+      body.printing-cycle-snapshot .stat,
+      body.printing-cycle-snapshot .stat-wide,
+      body.printing-cycle-snapshot .prompt,
+      body.printing-cycle-snapshot .framework{
+        padding:.10in !important;
+        border-radius:.14in !important;
+        background:#fff !important;
+        box-shadow:none !important;
+        page-break-inside:avoid !important;
+      }
+
+      body.printing-cycle-snapshot .stat span,
+      body.printing-cycle-snapshot .stat-wide span,
+      body.printing-cycle-snapshot .prompt h3,
+      body.printing-cycle-snapshot .framework h3{
+        font-size:.50rem !important;
+        margin-bottom:.04in !important;
+      }
+
+      body.printing-cycle-snapshot .stat strong,
+      body.printing-cycle-snapshot .stat-wide strong{
+        font-size:.78rem !important;
+        line-height:1.2 !important;
+      }
+
+      body.printing-cycle-snapshot .prompt,
+      body.printing-cycle-snapshot .framework{
+        margin-top:.10in !important;
+      }
+
+      body.printing-cycle-snapshot .prompt p,
+      body.printing-cycle-snapshot .framework-item{
+        font-size:.70rem !important;
+        line-height:1.25 !important;
+        margin:0 !important;
+      }
+
+      body.printing-cycle-snapshot .framework-item{
+        display:grid !important;
+        grid-template-columns:1.15in 1fr !important;
+        gap:.10in !important;
+        padding:.045in 0 !important;
+      }
+
+      body.printing-cycle-snapshot *{
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+      }
+    }
+
+
 </style>
 </head>
 <body>
   <main class="tracker-shell">
-    <section class="tracker-card tracker-hero tracker-temple-hero">
-      <div class="tracker-pillar tracker-pillar-left" aria-hidden="true"></div>
-      <div class="tracker-pillar tracker-pillar-right" aria-hidden="true"></div>
-      <img class="tracker-scarab" src="../assets/queendom-scarab-sundisk.png" alt="" aria-hidden="true">
-      <p class="tracker-eyebrow">Public Cycle Temple</p>
-      <h1>Track Your Cycle</h1>
-      <p class="hero-line">A free Flowtel doorway for locating yourself in your body, your inner season, and the moon’s weather.</p>
-      <p class="tracker-privacy-note">Anonymous tracker patterns may be counted to help us improve this free tool. No name or email is collected here.</p>
-    </section>
+    <section id="cycleTrackerApp" class="tracker-card cycle-widget cycle-widget-refined">
+      <div class="tracker-ritual-intro">
+        <img class="tracker-scarab tracker-scarab-compact" src="../assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true">
+        <p class="hero-line">A free Flowtel doorway for locating yourself in your body, your season, and the moon’s weather.</p>
+        <p class="tracker-privacy-note">Anonymous tracker patterns may be counted to help us improve this free tool. No name or email is collected here.</p>
+      </div>
 
-    <section id="cycleTrackerApp" class="tracker-card cycle-widget">
       <div class="progress-wrap"><div class="progress-bar" id="cycleProgressBar"></div></div>
 
-      <h1 id="cycleMainHeading">Track Your Cycle</h1>
+      <h1 id="cycleMainHeading">Find Your Cycle Day</h1>
       <p class="intro" id="cycleSubHeading">Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.</p>
 
       <div id="cycleQuestion1" class="question active">
@@ -1410,10 +1681,10 @@
         <h2>What season do you feel like today?</h2>
         <p>Your body may be in one season while your energy feels like another. This is useful information.</p>
         <div class="season-button-grid">
-          <button type="button" data-feels-season="Inner Winter">❄️ Inner Winter</button>
-          <button type="button" data-feels-season="Inner Spring">🌸 Inner Spring</button>
-          <button type="button" data-feels-season="Inner Summer">☀️ Inner Summer</button>
-          <button type="button" data-feels-season="Inner Autumn">🍁 Inner Autumn</button>
+          <button type="button" data-feels-season="Winter">❄️ Winter</button>
+          <button type="button" data-feels-season="Spring">🌸 Spring</button>
+          <button type="button" data-feels-season="Summer">☀️ Summer</button>
+          <button type="button" data-feels-season="Autumn">🍁 Autumn</button>
           <button type="button" data-feels-season="Not sure" class="secondary-button">I’m not sure yet</button>
         </div>
       </div>
@@ -1544,7 +1815,7 @@
         const previous = screenHistory[screenHistory.length - 1];
         if(previous === "cycleQuestion1"){
           currentStep = 1;
-          cycleUpdateHeader("Track Your Cycle","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
+          cycleUpdateHeader("Find Your Cycle Day","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
         }
         if(previous === "cycleQuestion2"){
           currentStep = 2;
@@ -1556,7 +1827,7 @@
         }
         if(previous === "cycleFeelsQuestion"){
           currentStep = 4;
-          cycleUpdateHeader("How does today feel?","Choose the inner season that best matches your energy right now.");
+          cycleUpdateHeader("How does today feel?","Choose the season that best matches your energy right now.");
         }
         cycleShowScreen(previous, false);
       };
@@ -1631,7 +1902,7 @@
         const normalized = ((day - 1) % 28) + 1;
         if(normalized >= 27 || normalized <= 5){
           return {
-            name:"Inner Winter",
+            name:"Winter",
             wing:"West Wing",
             emoji:"❄️",
             prompt:"Where are you being invited to move slower, reduce commitments, and say no without guilt?",
@@ -1640,7 +1911,7 @@
         }
         if(normalized >= 6 && normalized <= 11){
           return {
-            name:"Inner Spring",
+            name:"Spring",
             wing:"South Wing",
             emoji:"🌱",
             prompt:"What creative burst, desire, or new version of you is beginning to come alive?",
@@ -1649,7 +1920,7 @@
         }
         if(normalized >= 12 && normalized <= 19){
           return {
-            name:"Inner Summer",
+            name:"Summer",
             wing:"East Wing",
             emoji:"☀️",
             prompt:"Where are you ready to show up, be seen, and make decisions as the version of you who already holds the vision?",
@@ -1657,7 +1928,7 @@
           };
         }
         return {
-          name:"Inner Autumn",
+          name:"Autumn",
           wing:"North Wing",
           emoji:"🍂",
           prompt:"What old part of you no longer feels aligned, and what are you ready to revise or release?",
@@ -1667,22 +1938,22 @@
 
       function getMoonSeason(day){
         if(day >= 27 || day <= 5){
-          return {name:"Inner Winter",phase:"New Moon",emoji:"🌑",prompt:"What big vision are you ready to dream into being?",theme:"Rest and dream your new big vision."};
+          return {name:"Winter",phase:"New Moon",emoji:"🌑",prompt:"What big vision are you ready to dream into being?",theme:"Rest and dream your new big vision."};
         }
         if(day >= 6 && day <= 11){
-          return {name:"Inner Spring",phase:"Half Full Moon",emoji:"🌓",prompt:"What are you ready to create, plan, scheme, or bring into motion?",theme:"Create and scheme."};
+          return {name:"Spring",phase:"Half Full Moon",emoji:"🌓",prompt:"What are you ready to create, plan, scheme, or bring into motion?",theme:"Create and scheme."};
         }
         if(day >= 12 && day <= 19){
-          return {name:"Inner Summer",phase:"Full Moon",emoji:"🌕",prompt:"Where can you witness your magic and allow yourself to be seen?",theme:"Witness your magic and be seen."};
+          return {name:"Summer",phase:"Full Moon",emoji:"🌕",prompt:"Where can you witness your magic and allow yourself to be seen?",theme:"Witness your magic and be seen."};
         }
-        return {name:"Inner Autumn",phase:"Half New Moon",emoji:"🌗",prompt:"What needs to be audited, revised, released, or prepared for the next cycle?",theme:"Audit and revise what you have created, then prepare for the next cycle."};
+        return {name:"Autumn",phase:"Half New Moon",emoji:"🌗",prompt:"What needs to be audited, revised, released, or prepared for the next cycle?",theme:"Audit and revise what you have created, then prepare for the next cycle."};
       }
 
       function bestieLine(wombSeason, moonSeason){
         if(wombSeason.name === moonSeason.name){
-          return `You’re currently in your ${wombSeason.name}, and the moon is in her ${moonSeason.name} too — bestie alignment.`;
+          return `You’re currently in ${wombSeason.name}, and the moon is moving through ${moonSeason.name} too — bestie alignment.`;
         }
-        return `You’re currently in your ${wombSeason.name}, while the moon is in her ${moonSeason.name}. Think of her as your bestie in the sky — you’re each moving through your own cycle together.`;
+        return `You’re currently in ${wombSeason.name}, while the moon is moving through ${moonSeason.name}. Think of her as your bestie in the sky — you’re each moving through your own cycle together.`;
       }
 
       function wheelPosition(day){
@@ -1747,7 +2018,7 @@
           }
         }
         currentStep = 4;
-        cycleUpdateHeader("How does today feel?","Choose the inner season that best matches your energy right now.");
+        cycleUpdateHeader("How does today feel?","Choose the season that best matches your energy right now.");
         cycleShowScreen("cycleFeelsQuestion");
       };
 
@@ -1802,9 +2073,8 @@
               <div class="stat-grid">
                 <div class="stat"><span>Day 1</span><strong>${startDate.toLocaleDateString()}</strong></div>
                 <div class="stat"><span>Cycle Day</span><strong>Day ${cycleDay}</strong></div>
-                <div class="stat"><span>Actual Inner Season</span><strong>${wombSeason.name}</strong></div>
+                <div class="stat"><span>Actual Season</span><strong>${wombSeason.name}</strong></div>
                 <div class="stat"><span>Feels Like</span><strong>${feelsLike}</strong></div>
-                <div class="stat"><span>Wing</span><strong>${wombSeason.wing}</strong></div>
                 <div class="stat"><span>Moon Day</span><strong>Day ${moon.moonDay}</strong></div>
                 <div class="stat"><span>Moon Phase</span><strong>${moon.moonSeason.emoji} ${moon.moonSeason.phase}</strong></div>
                 <div class="stat-wide"><span>Theme</span><strong>${wombSeason.theme}</strong></div>
@@ -1812,11 +2082,11 @@
             </div>
             <div class="prompt"><h3>Journal Prompt</h3><p>${wombSeason.prompt}</p></div>
             <div class="framework">
-              <h3>Womb Magic Inner Seasons</h3>
-              <div class="framework-item"><strong>Inner Winter <span>Days 27–5</span></strong> Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
-              <div class="framework-item"><strong>Inner Spring <span>Days 6–11</span></strong> Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
-              <div class="framework-item"><strong>Inner Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
-              <div class="framework-item"><strong>Inner Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
+              <h3>Womb Magic Seasons</h3>
+              <div class="framework-item"><strong>Winter <span>Days 27–5</span></strong> Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
+              <div class="framework-item"><strong>Spring <span>Days 6–11</span></strong> Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
+              <div class="framework-item"><strong>Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
+              <div class="framework-item"><strong>Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
@@ -1887,7 +2157,7 @@
         screenHistory = ["cycleQuestion1"];
         pendingResultReason = "";
         selectedFeelsLikeSeason = "";
-        cycleUpdateHeader("Track Your Cycle","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
+        cycleUpdateHeader("Find Your Cycle Day","Use this tracker to discover your current cycle data and begin learning the language of your body’s seasons.");
         const input = $("cyclePeriodDate");
         const btn = $("cycleRevealBtn");
         if(input) input.value = "";

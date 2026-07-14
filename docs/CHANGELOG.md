@@ -1,3 +1,14 @@
+## v0.10.30 — Public Cycle Tracker Refinement + PDF Snapshot Cleanup
+
+- Removed the oversized public tracker hero and heavy pillar treatment.
+- Kept the scarab as a smaller refined motif using a new transparent/cropped asset.
+- Moved tracker intro/privacy copy into a smaller opening area inside the tracker.
+- Reduced oversized result and CTA typography.
+- Changed displayed feels-like seasons to Winter, Spring, Summer, and Autumn.
+- Removed Wing from the public tracker data chart.
+- Cleaned up the public tracker print/PDF snapshot so it fits more cleanly on one page without the rose compass wheel.
+- No Supabase migration required.
+
 ## v0.10.29 — Public Cycle Tracker Temple Facelift
 
 - Upgraded the public Cycle Tracker into a more luxurious Flowtel / Egyptian temple doorway.
