@@ -1,3 +1,11 @@
+## v0.10.27 — Moon Widget Queendom Variant
+
+- Added `/moon-widget-join-queendom/`, a public/free moon calendar version of the Moon Magic widget.
+- Kept `/moon-widget/` unchanged as the Queendom member widget that routes to Smart Flowtel Entry.
+- Updated both widget footer lines to **It’s always sunny on the moon.**
+- Public widget CTA says **Join the Queendom to Enter the Flowtel** and points to the Queendom home page.
+- No Supabase migration required.
+
 
 ## v0.10.26 — Beta Access Auto-Login + Smart Entry Polish
 

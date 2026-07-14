@@ -23,6 +23,10 @@
       "destination": "/moon-widget/index.html"
     },
     {
+      "source": "/moon-widget-join-queendom",
+      "destination": "/moon-widget-join-queendom/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },
