@@ -1,4 +1,11 @@
 
+## v0.10.34 — Suite Clock-In Button Repair
+
+- Added the Suite-level **Clock Into the Flowtel** button for practitioner-level roles.
+- Kept client beta testers blocked from practitioner-only Clock In access.
+- Updated client cache-busting to `0.10.34`.
+
+
 ## v0.10.32 — Concierge Session Gate Repair
 
 - Fixed `isPractitionerLevel is not defined` on the Concierge Desk.

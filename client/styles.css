@@ -2545,3 +2545,5 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 @media(max-width:640px){
   .mentor-option-card{grid-template-columns:1fr !important;text-align:center !important;justify-items:center !important;}
 }
+
+.suite-actions #suiteClockInButton{order:-1}

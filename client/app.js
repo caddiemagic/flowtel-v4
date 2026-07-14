@@ -26,6 +26,7 @@ let currentStay=null;
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
   if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
+  renderSuiteClockInButton();
 }
 
 function setFlowtelLoading(isLoading, copy="The Flowtel is preparing your room..."){
@@ -543,6 +544,15 @@ function showCheckIn(){
   if(clockInButton){
     clockInButton.classList.toggle("hidden",!canClockIn(currentProfile));
   }
+  renderSuiteClockInButton();
+}
+
+function renderSuiteClockInButton(){
+  const suiteClockInButton=document.getElementById("suiteClockInButton");
+  if(!suiteClockInButton) return;
+  const allowed=canClockIn(currentProfile);
+  suiteClockInButton.classList.toggle("hidden",!allowed);
+  suiteClockInButton.setAttribute("aria-hidden", allowed ? "false" : "true");
 }
 
 function formatDate(dateString){
@@ -898,6 +908,7 @@ async function handlePowderRoomSharingChange(event){
 
 function renderSuite(stay){
   currentStay=stay;
+  renderSuiteClockInButton();
 
   const name=profileFirstName(currentProfile);
   const actualDay=stayActualDay(stay);
@@ -1849,6 +1860,8 @@ document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const guestModeButton=document.getElementById("guestModeButton");
 if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
 document.getElementById("clockInButton").addEventListener("click",handleClockIn);
+const suiteClockInButton=document.getElementById("suiteClockInButton");
+if(suiteClockInButton) suiteClockInButton.addEventListener("click",handleClockIn);
 document.getElementById("checkInButton").addEventListener("click",handleCheckIn);
 document.getElementById("saveReflectionButton").addEventListener("click",handleSaveReflection);
 document.getElementById("checkoutButton").addEventListener("click",handleCheckout);
