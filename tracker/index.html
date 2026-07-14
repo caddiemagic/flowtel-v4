@@ -1626,6 +1626,24 @@
     }
 
 
+
+    /* Release 0.10.31 — public tracker copy + CTA polish */
+    .tracker-ritual-intro{
+      margin-bottom:14px !important;
+    }
+    .tracker-scarab-compact{
+      margin-bottom:0 !important;
+    }
+    .tracker-data-disclaimer{
+      max-width:560px;
+      margin:16px auto 0 !important;
+      color:#a98477;
+      font-family:Arial,sans-serif;
+      font-size:.68rem !important;
+      line-height:1.45 !important;
+      letter-spacing:.045em;
+    }
+
 </style>
 </head>
 <body>
@@ -1633,8 +1651,6 @@
     <section id="cycleTrackerApp" class="tracker-card cycle-widget cycle-widget-refined">
       <div class="tracker-ritual-intro">
         <img class="tracker-scarab tracker-scarab-compact" src="../assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true">
-        <p class="hero-line">A free Flowtel doorway for locating yourself in your body, your season, and the moon’s weather.</p>
-        <p class="tracker-privacy-note">Anonymous tracker patterns may be counted to help us improve this free tool. No name or email is collected here.</p>
       </div>
 
       <div class="progress-wrap"><div class="progress-bar" id="cycleProgressBar"></div></div>
@@ -1902,7 +1918,7 @@
         const normalized = ((day - 1) % 28) + 1;
         if(normalized >= 27 || normalized <= 5){
           return {
-            name:"Winter",
+            name:"Inner Winter",
             wing:"West Wing",
             emoji:"❄️",
             prompt:"Where are you being invited to move slower, reduce commitments, and say no without guilt?",
@@ -1911,7 +1927,7 @@
         }
         if(normalized >= 6 && normalized <= 11){
           return {
-            name:"Spring",
+            name:"Inner Spring",
             wing:"South Wing",
             emoji:"🌱",
             prompt:"What creative burst, desire, or new version of you is beginning to come alive?",
@@ -1920,7 +1936,7 @@
         }
         if(normalized >= 12 && normalized <= 19){
           return {
-            name:"Summer",
+            name:"Inner Summer",
             wing:"East Wing",
             emoji:"☀️",
             prompt:"Where are you ready to show up, be seen, and make decisions as the version of you who already holds the vision?",
@@ -1928,7 +1944,7 @@
           };
         }
         return {
-          name:"Autumn",
+          name:"Inner Autumn",
           wing:"North Wing",
           emoji:"🍂",
           prompt:"What old part of you no longer feels aligned, and what are you ready to revise or release?",
@@ -1950,10 +1966,13 @@
       }
 
       function bestieLine(wombSeason, moonSeason){
-        if(wombSeason.name === moonSeason.name){
-          return `You’re currently in ${wombSeason.name}, and the moon is moving through ${moonSeason.name} too — bestie alignment.`;
+        const wombName = String(wombSeason.name || "");
+        const wombSimple = wombName.replace(/^Inner\s+/i, "");
+        const moonSimple = String(moonSeason.name || "").replace(/^Inner\s+/i, "");
+        if(wombSimple === moonSimple){
+          return `You’re currently in ${wombName}, and the moon is moving through ${moonSimple} too — bestie alignment.`;
         }
-        return `You’re currently in ${wombSeason.name}, while the moon is moving through ${moonSeason.name}. Think of her as your bestie in the sky — you’re each moving through your own cycle together.`;
+        return `You’re currently in ${wombName}, while the moon is moving through ${moonSimple}. Think of her as your bestie in the sky — you’re each moving through your own cycle together.`;
       }
 
       function wheelPosition(day){
@@ -1983,8 +2002,9 @@
         return `<section class="tracker-cta tracker-cta-temple">
           <p class="tracker-eyebrow">Enter the Queendom</p>
           <h3>Want your cycle map to remember you?</h3>
-          <p>Inside the Queendom, you can enter the Flowtel, check in with your cycle, save reflections, and begin building your living medicine wheel.</p>
-          <a data-tracker-cta="queendom" href="https://www.theidyllcollective.com/queendomhome">Join the Queendom to Enter the Flowtel</a>
+          <p>Inside The Flowtel you can check in with your cycle, save daily reflections, choose a mentor, see others’ check-ins, and begin building your own Queendom.</p>
+          <a data-tracker-cta="queendom" href="https://www.theidyllcollective.com/queendomhome">Enter The Flowtel</a>
+          <p class="tracker-data-disclaimer">Your cycle data will be stored anonymously to help us improve The Flowtel Experience. For the good of all.</p>
         </section>`;
       }
 
@@ -2083,10 +2103,10 @@
             <div class="prompt"><h3>Journal Prompt</h3><p>${wombSeason.prompt}</p></div>
             <div class="framework">
               <h3>Womb Magic Seasons</h3>
-              <div class="framework-item"><strong>Winter <span>Days 27–5</span></strong> Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
-              <div class="framework-item"><strong>Spring <span>Days 6–11</span></strong> Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
-              <div class="framework-item"><strong>Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
-              <div class="framework-item"><strong>Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
+              <div class="framework-item"><strong>Inner Winter <span>Days 27–5</span></strong> Slow down, reduce commitments, say no without guilt, and dream the next big vision.</div>
+              <div class="framework-item"><strong>Inner Spring <span>Days 6–11</span></strong> Feel alive again, follow creative sparks, integrate the new timeline, and practice becoming her.</div>
+              <div class="framework-item"><strong>Inner Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
+              <div class="framework-item"><strong>Inner Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
             <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}

@@ -28,7 +28,7 @@ function roleKey(profile={}){
 }
 
 function mentorIsVisibleInPhaseOne(profile={}){
-  if(profile?.mentor_accepting_clients === false) return false;
+  if(profile?.mentor_accepting_clients !== true) return false;
   if(!PHASE_1_RESTRICT_MENTORS_TO_ADMIN_OWNER) return true;
   return ["admin","owner"].includes(roleKey(profile));
 }

@@ -1,3 +1,14 @@
+## v0.10.31 — Flow Map + Tracker + Mentor Polish
+
+- Applied Notes 037–050: Flow Map day tags, Powder Room copy, mentor selection polish, tracker copy updates, Flow Map simplification, and login loading state.
+- Flow Map note cards now show only **DAY X**.
+- Public tracker Actual Season labels restore **Inner** while Feels Like remains simple season names.
+- Public tracker CTA now reads **Enter The Flowtel** and points to the Queendom page.
+- Flow Map Practice moved below the map with Printable Flow Map inside the same pill.
+- Removed Flow Map Print / Save PDF.
+- Added a loading overlay when entering the Flowtel.
+- Adds Supabase migration 029 for `mentor_accepting_clients` default safety.
+
 ## v0.10.30 — Public Cycle Tracker Refinement + PDF Snapshot Cleanup
 
 - Removed the oversized public tracker hero and heavy pillar treatment.

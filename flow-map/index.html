@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Flow Map Practice</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.7" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.31" />
 </head>
 <body>
   <main class="flow-map-shell">
@@ -14,10 +14,10 @@
       <p id="flowMapIntro">Opening your seasonal spread...</p>
     </section>
 
-    <section class="control-card">
-      <div class="control-heading">
-        <p class="eyebrow" id="viewEyebrow">CURRENT VIEW</p>
-        <h2 id="viewingName">Loading...</h2>
+    <section class="control-card control-card--quiet">
+      <div class="control-heading control-heading--compact">
+        <p class="eyebrow" id="viewEyebrow">MY FLOW MAP</p>
+        <h2 id="viewingName">Cycle View</h2>
       </div>
       <div class="flow-map-controls">
         <details class="control-disclosure view-disclosure">
@@ -33,18 +33,12 @@
           <details class="control-disclosure utility-disclosure">
             <summary>More</summary>
             <div class="utility-actions">
-              <button class="return-link" id="printFlowMapButton" type="button">Print / Save PDF</button>
-              <a class="return-link" id="printableFlowMapLink" href="/flow-map/printable/" target="_blank" rel="noopener">Printable Flow Map</a>
               <a class="return-link" href="/client/?suite=1">Return to Suite</a>
               <a class="return-link" href="/concierge-soon/">Return to Concierge</a>
             </div>
           </details>
         </div>
       </div>
-    </section>
-
-    <section class="practice-note">
-      <p id="practiceCopy">After one month of daily check-ins, read your notes and notice the themes. The system organizes the data, but the reflection is yours.</p>
     </section>
 
     <section class="flow-map-canvas" id="flowMapCanvas" aria-label="Flow Map quadrants">
@@ -88,9 +82,17 @@
       </article>
     </section>
 
+    <section class="practice-note practice-note--below-map">
+      <div class="practice-note-copy">
+        <p class="eyebrow">FLOW MAP PRACTICE</p>
+        <p id="practiceCopy">After your first full cycle of check-ins, review your notes and journal entries for patterns. Use the printable Flow Map to mark what you notice, then meet with your mentor to discuss what your cycle revealed.</p>
+      </div>
+      <a class="return-link printable-flow-map-action" id="printableFlowMapLink" href="/flow-map/printable/" target="_blank" rel="noopener">Printable Flow Map</a>
+    </section>
+
     <p id="flowMapMessage" class="message"></p>
   </main>
 
-  <script type="module" src="./app.js?v=0.10.7"></script>
+  <script type="module" src="./app.js?v=0.10.31"></script>
 </body>
 </html>

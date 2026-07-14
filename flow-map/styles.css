@@ -638,3 +638,65 @@ p{line-height:1.55;color:var(--muted)}
 @media print{
   .quadrant-autumn,.quadrant-summer,.quadrant-winter,.quadrant-spring{padding:26px 28px!important;}
 }
+
+
+/* Release 0.10.31 — Flow Map polish + practice consolidation */
+.control-card--quiet{
+  align-items:center;
+  padding:18px 22px;
+  gap:18px;
+}
+.control-heading--compact h2{
+  font-size:clamp(1.05rem,2vw,1.35rem);
+  letter-spacing:.03em;
+}
+.control-heading--compact .eyebrow{
+  margin-bottom:6px;
+}
+.control-actions{
+  gap:9px;
+}
+.utility-actions .return-link{
+  width:100%;
+}
+.practice-note--below-map{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  margin:22px 0 0;
+  padding:22px 24px;
+  text-align:left;
+}
+.practice-note--below-map .practice-note-copy{
+  max-width:860px;
+}
+.practice-note--below-map p:last-child{
+  width:auto;
+  margin:0;
+}
+.printable-flow-map-action{
+  flex:0 0 auto;
+}
+.map-note-meta--day-only{
+  margin-top:14px;
+}
+.map-note-meta--day-only span{
+  border-color:rgba(216,168,79,.32);
+  background:rgba(255,246,219,.36);
+  color:var(--rose);
+  letter-spacing:.16em;
+}
+@media(max-width:760px){
+  .control-card--quiet,
+  .practice-note--below-map{
+    align-items:stretch;
+    flex-direction:column;
+  }
+  .control-actions{
+    justify-content:flex-start;
+  }
+  .printable-flow-map-action{
+    width:100%;
+  }
+}

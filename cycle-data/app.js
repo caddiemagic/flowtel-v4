@@ -46,8 +46,8 @@ const POWDER_ROOM_NAMES={
 const POWDER_ROOM_COPY={
   "Inner Winter":"This is where the body tells the truth. Move slowly. Nothing here needs to be fixed.",
   "Inner Spring":"This is where the first green shoots appear. Read the beginnings, the sparks, the almost-ready things.",
-  "Inner Summer":"This is where the radiance speaks. Read what other women remembered here. Take only what opens you.",
-  "Inner Autumn":"This is where the truth sharpens. Read what other women released, refined, and finally admitted.",
+  "Inner Summer":"This is where the radiance speaks. Read what others remembered here. Take only what opens you.",
+  "Inner Autumn":"This is where the truth sharpens. Read what others released, refined, and finally admitted.",
 };
 
 let allEntries=[];

@@ -16,6 +16,8 @@ const checkinForm=document.getElementById("checkinForm");
 const guestCheckinFields=document.getElementById("guestCheckinFields");
 const message=document.getElementById("message");
 const medicineWheel=document.getElementById("medicineWheel");
+const flowtelLoadingOverlay=document.getElementById("flowtelLoadingOverlay");
+const flowtelLoadingCopy=document.getElementById("flowtelLoadingCopy");
 
 let currentProfile=null;
 let currentMentorRelationship=null;
@@ -24,6 +26,18 @@ let currentStay=null;
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
   if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
+}
+
+function setFlowtelLoading(isLoading, copy="The Flowtel is preparing your room..."){
+  document.body.classList.toggle("flowtel-is-loading", !!isLoading);
+  if(flowtelLoadingOverlay){
+    flowtelLoadingOverlay.classList.toggle("hidden", !isLoading);
+    flowtelLoadingOverlay.setAttribute("aria-hidden", isLoading ? "false" : "true");
+  }
+  if(flowtelLoadingCopy && copy) flowtelLoadingCopy.textContent=copy;
+  authPanel?.querySelectorAll("button,input,select,textarea").forEach(control=>{
+    control.disabled=!!isLoading;
+  });
 }
 
 const SQUARESPACE_MEMBERSHIP = membershipFromUrl();
@@ -277,6 +291,7 @@ async function createNewMemberBridge(){
   }
 
   try{
+    setFlowtelLoading(true,"The Flowtel is preparing your access...");
     setMessage("Finding your Flowtel access...");
     bridgeData=await verifySquarespaceMember(email,"new");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
@@ -296,6 +311,7 @@ async function createNewMemberBridge(){
     await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
     await completeMemberBridgeEntrance(email,bridgeData);
   }catch(error){
+    setFlowtelLoading(false);
     console.error("Flowtel New Member Bridge Error:", error);
 
     if(isAlreadyRegisteredError(error)){
@@ -329,12 +345,14 @@ async function openReturningMemberBridge(){
   }
 
   try{
+    setFlowtelLoading(true,"We’re logging you in.");
     setMessage("Finding your Flowtel access...");
     const bridgeData=await verifySquarespaceMember(email,"returning");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
     setMessage("We’re logging you in.");
     await enterWithBridgePassword(email,bridgeData);
   }catch(error){
+    setFlowtelLoading(false);
     console.error("Flowtel Returning Member Bridge Error:", error);
 
     if(isInvalidCredentialsError(error)){
@@ -493,6 +511,7 @@ function setProgress(step){
 }
 
 function showScene(name){
+  setFlowtelLoading(false);
   const flowMapLink=document.getElementById("suiteCurrentRoomFlowMapLink");
   if(flowMapLink) flowMapLink.href="/flow-map/";
   updateFlowtelTimestamp();
@@ -510,6 +529,7 @@ function canClockIn(profile){
 }
 
 function showCheckIn(){
+  setFlowtelLoading(false);
   authPanel.classList.add("hidden");
   checkinForm.classList.remove("hidden");
 
@@ -1165,11 +1185,7 @@ function mentorTitle(profile){
 }
 
 function mentorMetaLine(profile){
-  const initiation=getFlowFmInitiationStatus(profile || {});
-  const pieces=[];
-  if(initiation?.moon?.name) pieces.push(initiation.moon.name);
-  if(profile?.serving_wing || initiation?.moon?.wing) pieces.push(profile.serving_wing || initiation.moon.wing);
-  return pieces.join(" · ") || "Flow FM";
+  return "";
 }
 
 function mentorSpecialties(profile){
@@ -1184,16 +1200,14 @@ function mentorCardMarkup(mentor){
   const first=mentorFirstName(mentor);
   const bio=mentor?.mentor_bio || "Available to witness your Flowtel stays, tend your room, and remember your cyclical patterns with care.";
   const specialties=mentorSpecialties(mentor);
-  const initials=[mentor?.first_name?.[0], mentor?.last_name?.[0]].filter(Boolean).join("") || "☾";
+  const photoUrl=mentor?.mentor_photo_url || "../assets/queendom-scarab-sundisk.png";
   return `
     <article class="mentor-option-card">
-      <div class="mentor-avatar" aria-hidden="true">${mentor?.mentor_photo_url ? `<img src="${escapeHtml(mentor.mentor_photo_url)}" alt="" />` : `<span>${escapeHtml(initials)}</span>`}</div>
+      <div class="mentor-avatar" aria-hidden="true"><img src="${escapeHtml(photoUrl)}" alt="" /></div>
       <div class="mentor-option-body">
         <p class="mentor-label">${escapeHtml(mentorTitle(mentor))}</p>
         <h4>${escapeHtml(name)}</h4>
         <p>${escapeHtml(bio)}</p>
-        <small>${escapeHtml(mentorMetaLine(mentor))}</small>
-        ${specialties.length ? `<div class="mentor-tags">${specialties.map(tag=>`<span>${escapeHtml(tag)}</span>`).join("")}</div>` : ""}
       </div>
       <button type="button" class="mentor-choice-button" data-practitioner-id="${mentor.id}">Choose ${escapeHtml(first)}</button>
     </article>
@@ -1295,10 +1309,8 @@ async function renderPractitionerConnection(){
     }
 
     currentMentorRelationship=null;
-    title.textContent="Choose your Mentor to the Moon.";
-    text.textContent=FLOWTEL_ROLLOUT.restrictMentorsToAdminAndOwner
-      ? "For this first beta, one mentor is available so Flowtel can localize issues and tend your testing journey closely."
-      : "Choose the mentor you would like to tend your stays. This creates a relationship that can remember you across future visits.";
+    title.textContent="Invite a mentor to witness your Flowtel journey.";
+    text.textContent="A mentor can witness your stays, tend your room, and help you notice the patterns your cycle reveals.";
     button.textContent="Choose Your Mentor";
     button.disabled=false;
 
@@ -1318,7 +1330,7 @@ async function renderPractitionerConnection(){
 
         directory.classList.remove("hidden");
         directory.innerHTML=`
-          <p class="microcopy mentor-consent-copy">${escapeHtml(MENTOR_DATA_CONSENT_LANGUAGE)}</p>${FLOWTEL_ROLLOUT.restrictMentorsToAdminAndOwner ? `<p class="microcopy mentor-consent-copy">Only the founding mentor account is available during Phase 1 beta testing.</p>` : ""}
+          <p class="microcopy mentor-consent-copy">${escapeHtml(MENTOR_DATA_CONSENT_LANGUAGE)}</p>
           <div class="mentor-directory-grid">
             ${mentors.map(mentor=>mentorCardMarkup(mentor)).join("")}
           </div>
@@ -1407,6 +1419,7 @@ async function openRememberedRoomKey(){
     const user=await getCurrentUser();
     if(!user) return false;
 
+    setFlowtelLoading(true,"We’re logging you in.");
     setMessage("We're logging you in.");
     currentProfile=await ensureProfile({
       membershipType:SQUARESPACE_MEMBERSHIP || undefined,
@@ -1436,6 +1449,7 @@ async function openRememberedRoomKey(){
     showCheckIn();
     return true;
   }catch(error){
+    setFlowtelLoading(false);
     console.warn("Remembered Flowtel access could not open automatically.",error);
     clearCachedSuiteStay();
     return false;
@@ -1466,6 +1480,7 @@ async function handleBetaLogin(email){
   if(!account) return;
 
   try{
+    setFlowtelLoading(true,"The Flowtel is preparing your room...");
     setMessage(`Opening beta account for ${account.firstName}...`);
     await signOut();
     clearCachedSuiteStay();
@@ -1499,6 +1514,7 @@ async function handleBetaLogin(email){
     pendingArrivalStay=null;
     showCheckIn();
   }catch(error){
+    setFlowtelLoading(false);
     setMessage("This beta account could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.");
     console.error(error);
   }
@@ -1516,6 +1532,7 @@ async function handleSignIn(){
       return;
     }
 
+    setFlowtelLoading(true,"The Flowtel is preparing your room...");
     await signInWithEmail(email,password);
 
     currentProfile=await ensureProfile({
@@ -1542,6 +1559,7 @@ async function handleSignIn(){
     pendingArrivalStay=null;
     showCheckIn();
   }catch(error){
+    setFlowtelLoading(false);
     setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
     console.error(error);
   }

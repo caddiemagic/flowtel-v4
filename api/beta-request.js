@@ -207,6 +207,7 @@ async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, m
     id: user.id,
     email,
     role: "client",
+    mentor_accepting_clients: false,
     first_name: firstName,
     last_name: lastName,
     membership_type: membershipType,

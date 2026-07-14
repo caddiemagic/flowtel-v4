@@ -2453,3 +2453,95 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 .queendom-return-link:hover{background:#f7e7e3;}
 .profile-lounge-card.hidden{display:none!important;}
 @media(max-width:640px){.queendom-return-link{width:100%;font-size:.68rem;letter-spacing:.18em;}}
+
+
+/* Release 0.10.31 — mentor selection luxury pass + login loading overlay */
+.flowtel-loading-overlay{
+  position:fixed;
+  inset:0;
+  z-index:9999;
+  display:grid;
+  place-items:center;
+  padding:24px;
+  background:rgba(251,247,241,.78);
+  backdrop-filter:blur(7px);
+  opacity:1;
+  transition:opacity .2s ease;
+}
+.flowtel-loading-overlay.hidden{
+  display:none;
+}
+.flowtel-loading-card{
+  width:min(100%,420px);
+  text-align:center;
+  border:1px solid rgba(216,168,79,.28);
+  border-radius:30px;
+  background:rgba(255,253,249,.96);
+  box-shadow:0 28px 76px rgba(109,78,65,.14);
+  padding:34px 26px;
+}
+.flowtel-loading-moon{
+  display:grid;
+  place-items:center;
+  width:64px;
+  height:64px;
+  margin:0 auto 14px;
+  border-radius:50%;
+  border:1px solid rgba(216,168,79,.34);
+  color:var(--gold);
+  font-size:2.4rem;
+  animation:flowtelMoonPulse 1.8s ease-in-out infinite;
+}
+.flowtel-loading-card p{
+  margin:0;
+  color:var(--brown);
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:1.05rem;
+  line-height:1.45;
+}
+.flowtel-is-loading .auth-panel{
+  pointer-events:none;
+  opacity:.62;
+}
+@keyframes flowtelMoonPulse{
+  0%,100%{transform:scale(1);opacity:.74}
+  50%{transform:scale(1.06);opacity:1}
+}
+.mentor-directory-grid{
+  grid-template-columns:1fr !important;
+}
+.mentor-option-card{
+  grid-template-columns:76px 1fr !important;
+  align-items:center !important;
+  width:100% !important;
+  padding:22px !important;
+  border-color:rgba(216,168,79,.28) !important;
+  background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(251,247,241,.90)) !important;
+  box-shadow:0 20px 54px rgba(109,78,65,.08) !important;
+}
+.mentor-avatar{
+  width:64px !important;
+  height:64px !important;
+  border-color:rgba(216,168,79,.42) !important;
+  background:rgba(255,253,249,.86) !important;
+  overflow:hidden !important;
+}
+.mentor-avatar img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:cover !important;
+}
+.mentor-option-body h4{
+  font-size:clamp(1.3rem,2.2vw,1.75rem) !important;
+  line-height:1.05 !important;
+}
+.mentor-option-body small,
+.mentor-tags{
+  display:none !important;
+}
+.mentor-choice-button{
+  margin-top:14px !important;
+}
+@media(max-width:640px){
+  .mentor-option-card{grid-template-columns:1fr !important;text-align:center !important;justify-items:center !important;}
+}

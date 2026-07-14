@@ -8,7 +8,6 @@ const viewingName=document.getElementById("viewingName");
 const cycleSelector=document.getElementById("cycleSelector");
 const scopeToggle=document.getElementById("scopeToggle");
 const openCycleDataLink=document.getElementById("openCycleDataLink");
-const printFlowMapButton=document.getElementById("printFlowMapButton");
 const printableFlowMapLink=document.getElementById("printableFlowMapLink");
 const flowMapCanvas=document.getElementById("flowMapCanvas");
 const practiceCopy=document.getElementById("practiceCopy");
@@ -169,20 +168,13 @@ function noteTextEntriesForRow(row){
 }
 function noteCardMarkup(entry,index,densityMode="open"){
   const row=entry.row;
-  const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? "—";
-  const feels=row.feels_like_inner_season ? `Felt like ${(row.feels_like_inner_season.replace(/^Inner\s+/i,"").toLowerCase()==="autumn" ? "Fall" : row.feels_like_inner_season.replace(/^Inner\s+/i,""))}` : "Felt season unknown";
-  const off=offCycleLabel(row);
-  const clientName=row.client_name || targetClient?.name || "";
-  const showClientName=currentMode!=="self" && clientName;
+  const actual=row.cycle_day_actual ?? row.cycle_day_calculated ?? row.cycle_day_recorded ?? row.cycle_day_claimed ?? "—";
+  const dayLabel=actual === "—" || actual === null || actual === undefined ? "DAY —" : `DAY ${actual}`;
   return `
     <article class="map-note map-note--${(index % 9) + 1} ${densityMode!=="open" ? `map-note-${densityMode}` : ""}">
-      ${showClientName ? `<p class="map-note-client">${escapeHtml(clientName)}</p>` : ""}
       <p class="map-note-text">${escapeHtml(entry.text)}</p>
-      <p class="map-note-meta">
-        <span>${escapeHtml(entry.source)}</span>
-        <span>Day ${escapeHtml(actual)}</span>
-        <span>${escapeHtml(feels)}</span>
-        ${off ? `<span>${escapeHtml(off)}</span>` : ""}
+      <p class="map-note-meta map-note-meta--day-only">
+        <span>${escapeHtml(dayLabel)}</span>
       </p>
     </article>
   `;
@@ -246,9 +238,6 @@ function bindCycleSelector(cycles){
     renderQuadrants(selected.entries);
   });
 }
-function bindPrint(){
-  printFlowMapButton.addEventListener("click",()=>window.print());
-}
 async function init(){
   try{
     currentProfile=await getCurrentProfile();
@@ -260,7 +249,6 @@ async function init(){
 
     if(openCycleDataLink) openCycleDataLink.href=cycleDataHref();
     if(printableFlowMapLink) printableFlowMapLink.href="/flow-map/printable/";
-    bindPrint();
 
     currentClients=await listMyClients().catch(()=>[]);
     const targetId=requestedClientId();
@@ -271,9 +259,9 @@ async function init(){
     if(currentMode==="all"){
       if(!isMentorRole(currentProfile)) throw new Error("Only mentors and admins can open a collective Flow Map.");
       viewEyebrow.textContent=isAdminRole(currentProfile)?"ADMIN FLOW MAP":"MENTOR FLOW MAP";
-      viewingName.textContent=isAdminRole(currentProfile)?"All Flowtel Clients":"All My Clients";
+      viewingName.textContent="Collective View";
       intro.textContent="A spacious seasonal spread of client check-ins organized by actual inner season.";
-      practiceCopy.textContent="Use this spread to notice collective patterns, then return to one woman at a time. There’s always room on the moon.";
+      practiceCopy.textContent="After the first full cycle, review check-ins and journal entries for patterns. Use the printable Flow Map, then meet with a mentor to discuss discoveries.";
       allEntries=await fetchCycleEntries({scope:"all"});
     }else if(currentMode==="client"){
       const relationship=currentClients.find(row=>row.client_id===targetId);
@@ -283,15 +271,15 @@ async function init(){
       const client=relationship?.client || {id:targetId};
       targetClient={ id:targetId, name:fullName(client) };
       viewEyebrow.textContent="CLIENT FLOW MAP";
-      viewingName.textContent=targetClient.name;
+      viewingName.textContent="Client View";
       intro.textContent="A consent-aware Flow Map for this guest’s cycle reflections.";
-      practiceCopy.textContent="Use this with your client after her first completed cycle. The map gathers the notes; she names the patterns. There’s always room on the moon.";
+      practiceCopy.textContent="After the first full cycle, review check-ins and journal entries for patterns. Use the printable Flow Map, then meet with a mentor to discuss discoveries.";
       allEntries=await fetchCycleEntries({subjectId:targetId,scope:"client"});
     }else{
       viewEyebrow.textContent="MY FLOW MAP";
-      viewingName.textContent=fullName(currentProfile);
+      viewingName.textContent="Cycle View";
       intro.textContent="Your check-ins from one cycle, placed into the four seasonal quadrants.";
-      practiceCopy.textContent="Read your own notes and write down the themes you notice between seasons. Reflection is where the magic happens. There’s always room on the moon.";
+      practiceCopy.textContent="After your first full cycle of check-ins, review your notes and journal entries for patterns. Use the printable Flow Map to mark what you notice, then meet with your mentor to discuss what your cycle revealed.";
       allEntries=await fetchCycleEntries({scope:"self"});
     }
 
