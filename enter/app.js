@@ -1,54 +1,49 @@
-import { supabase } from "../shared/supabase.js";
-import { normalizeMembership } from "../shared/membership.js";
+import { getCurrentUser } from "../shared/auth.js";
 
-const params = new URLSearchParams(window.location.search);
-const membership = normalizeMembership(params.get("membership") || "queendom") || "queendom";
+const entryActions = document.getElementById("entryActions");
+const rememberedPanel = document.getElementById("rememberedPanel");
+const checkedInBeforeLink = document.getElementById("checkedInBeforeLink");
+const requestAccessLink = document.getElementById("requestAccessLink");
 
-const loadingPanel = document.getElementById("loadingPanel");
-const choicePanel = document.getElementById("choicePanel");
-const entryIntro = document.getElementById("entryIntro");
-const returningLink = document.getElementById("returningLink");
-const requestLink = document.getElementById("requestLink");
-
-function clientUrl(extra = "") {
-  const suffix = extra ? `&${extra.replace(/^&/, "")}` : "";
-  return `/client/?membership=${encodeURIComponent(membership)}${suffix}`;
+function membershipFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = String(params.get("membership") || "queendom").toLowerCase().replace(/[^a-z]/g, "");
+  if (raw === "flow" || raw === "flowfm") return "flowfm";
+  if (raw === "council") return "council";
+  return "queendom";
 }
 
-function betaRequestUrl() {
-  return `/beta-request/?membership=${encodeURIComponent(membership)}`;
+function show(el) {
+  el?.classList.remove("hidden");
 }
 
-function showChoices() {
-  if (loadingPanel) loadingPanel.classList.add("hidden");
-  if (choicePanel) choicePanel.classList.remove("hidden");
-  if (entryIntro) {
-    entryIntro.textContent = "If you’ve already checked in before, enter with your Flowtel login. If this is your first time entering the beta, request access first.";
-  }
-  if (returningLink) returningLink.href = clientUrl("forceDoorway=1");
-  if (requestLink) requestLink.href = betaRequestUrl();
+function hide(el) {
+  el?.classList.add("hidden");
 }
 
-async function bootEntry() {
+async function initEntry() {
+  const membership = membershipFromUrl();
+  const clientUrl = `/client/?membership=${encodeURIComponent(membership)}`;
+
+  if (checkedInBeforeLink) checkedInBeforeLink.href = `${clientUrl}&forceDoorway=1`;
+  if (requestAccessLink) requestAccessLink.href = `/beta-request/?membership=${encodeURIComponent(membership)}`;
+
   try {
-    if (params.get("logout") === "1") {
-      await supabase.auth.signOut();
-      window.location.href = clientUrl("logout=1");
-      return;
-    }
-
-    const { data, error } = await supabase.auth.getSession();
-    if (error) throw error;
-
-    if (data?.session?.user) {
-      window.location.href = clientUrl();
+    const user = await getCurrentUser();
+    if (user) {
+      hide(entryActions);
+      show(rememberedPanel);
+      setTimeout(() => {
+        window.location.href = clientUrl;
+      }, 900);
       return;
     }
   } catch (error) {
-    console.warn("Flowtel entry could not read the remembered session.", error);
+    console.warn("Flowtel entry could not check remembered session.", error);
   }
 
-  showChoices();
+  hide(rememberedPanel);
+  show(entryActions);
 }
 
-bootEntry();
+initEntry();

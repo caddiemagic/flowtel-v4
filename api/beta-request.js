@@ -1,5 +1,5 @@
 // api/beta-request.js
-// Flowtel v0.10.22 — Beta Access Request endpoint.
+// Flowtel v0.10.26 — Beta Access Request endpoint with auto-login support.
 // Creates a Flowtel Auth user + client profile from a controlled beta request form.
 
 const DEFAULT_TEMP_PASSWORD = "FlowtelBeta!2026";
@@ -156,7 +156,48 @@ async function createAuthUser({ supabaseUrl, serviceKey, email, fullName, member
     const user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
     if (!user) throw error;
 
+    await updateAuthUserForBeta({ supabaseUrl, serviceKey, userId: user.id, password, fullName, membershipType });
     return { user, created: false, password };
+  }
+}
+
+async function updateAuthUserForBeta({ supabaseUrl, serviceKey, userId, password, fullName, membershipType }) {
+  if (!userId) return null;
+  const { firstName, lastName } = splitName(fullName);
+
+  try {
+    return await fetchJson(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      method: "PUT",
+      headers: supabaseHeaders(serviceKey),
+      body: JSON.stringify({
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName || null,
+          first_name: firstName,
+          last_name: lastName,
+          membership_type: membershipType,
+          flowtel_beta_access: true,
+        },
+      }),
+    });
+  } catch (error) {
+    // Some Supabase versions expect PATCH for user updates. Try that before failing.
+    return await fetchJson(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
+      method: "PATCH",
+      headers: supabaseHeaders(serviceKey),
+      body: JSON.stringify({
+        password,
+        email_confirm: true,
+        user_metadata: {
+          full_name: fullName || null,
+          first_name: firstName,
+          last_name: lastName,
+          membership_type: membershipType,
+          flowtel_beta_access: true,
+        },
+      }),
+    });
   }
 }
 
@@ -245,7 +286,17 @@ module.exports = async function handler(req, res) {
     let password = process.env.FLOWTEL_BETA_TEMP_PASSWORD || process.env.FLOWTEL_BRIDGE_PASSWORD || DEFAULT_TEMP_PASSWORD;
 
     if (existingProfile?.id) {
-      user = { id: existingProfile.id, email };
+      user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
+
+      if (user?.id) {
+        await updateAuthUserForBeta({ supabaseUrl, serviceKey, userId: user.id, password, fullName, membershipType });
+      } else {
+        const result = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
+        user = result.user;
+        accountStatus = result.created ? "created" : "existing";
+        password = result.password;
+      }
+
       await upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType });
     } else {
       const result = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
@@ -262,8 +313,10 @@ module.exports = async function handler(req, res) {
       role: "client",
       membershipType,
       userId: user.id,
+      autoLoginAvailable: true,
       temporaryPasswordShared: true,
-      temporaryPasswordHint: process.env.FLOWTEL_BETA_TEMP_PASSWORD ? "Use the temporary password shared for this beta round." : "Use the current Flowtel beta password.",
+      temporaryPassword: password,
+      temporaryPasswordHint: process.env.FLOWTEL_BETA_TEMP_PASSWORD ? "Using the current beta password for automatic login." : "Using the current Flowtel beta password for automatic login.",
     });
   } catch (error) {
     const status = Number(error.statusCode || error.status || 500);
@@ -271,7 +324,7 @@ module.exports = async function handler(req, res) {
 
     res.status(safeStatus).json({
       ok: false,
-      error: error.message || "Could not prepare this Flowtel room key.",
+      error: error.message || "Could not prepare this Flowtel access.",
     });
   }
 };

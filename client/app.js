@@ -294,13 +294,13 @@ async function createNewMemberBridge(){
 
     if(isAlreadyRegisteredError(error)){
       try{
-        setMessage("This email already has a Flowtel room. Opening it through your member doorway...");
+        setMessage("This email already has Flowtel access. Opening it through your member doorway...");
         await enterWithBridgePassword(email,bridgeData);
         return;
       }catch(signInError){
         console.error("Existing bridge account could not be opened with the bridge password:", signInError);
         if(isInvalidCredentialsError(signInError)){
-          setMessage("This email already has a Flowtel room with a custom password. Choose “I've Stayed Before” and enter that password.");
+          setMessage("This email already has Flowtel access with a custom password. Choose “I've Stayed Before” and enter that password.");
           openReturningMemberLogin(false);
           return;
         }
@@ -326,7 +326,7 @@ async function openReturningMemberBridge(){
     setMessage("Finding your Flowtel access...");
     const bridgeData=await verifySquarespaceMember(email,"returning");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
-    setMessage("Welcome back. Opening your Flowtel room...");
+    setMessage("We’re logging you in.");
     await enterWithBridgePassword(email,bridgeData);
   }catch(error){
     console.error("Flowtel Returning Member Bridge Error:", error);
@@ -1403,7 +1403,7 @@ async function openRememberedRoomKey(){
     setMessage("We're logging you in.");
     currentProfile=await ensureProfile({
       membershipType:SQUARESPACE_MEMBERSHIP || undefined,
-      squarespaceSource:"remembered-room-key",
+      squarespaceSource:"remembered-flowtel-access",
     });
 
     if(user.email){
