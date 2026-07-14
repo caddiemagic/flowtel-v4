@@ -9,6 +9,7 @@ import {
 } from '/shared/flowtel.js';
 import { canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import {
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
   renderTopNav,
   escapeHtml,
   requestedMemberId,
@@ -154,6 +155,10 @@ async function init(){
   topNav.innerHTML=renderTopNav('portal');
   try{
     currentProfile=await getCurrentProfile();
+    if(!isPractitionerLevel(currentProfile)){
+      replacePageWithPhaseTwoGate({ featureName:'Moon Portal', title:'Opening in Phase 2', copy:'Moon Portal will open in Phase 2 of beta testing for practitioner-level users.' });
+      return;
+    }
     await loadRecords();
     const portal=getPersonalizedMoonPortal(currentProfile || {}, portalParam());
     renderPortal(portal);

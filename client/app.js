@@ -2,6 +2,7 @@ import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut } from "../sh
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
+import { isPractitionerLevel } from "../shared/beta-access.js";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -19,6 +20,11 @@ const medicineWheel=document.getElementById("medicineWheel");
 let currentProfile=null;
 let currentMentorRelationship=null;
 let currentStay=null;
+
+function updatePhaseOneSuiteLinks(){
+  const profileLoungeCard=document.querySelector(".profile-lounge-card");
+  if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
+}
 
 const SQUARESPACE_MEMBERSHIP = membershipFromUrl();
 const FLOWTEL_BRIDGE_PASSWORD = "FlowtelMemberBridge!2026";
@@ -922,6 +928,7 @@ function renderSuite(stay){
 
   renderConciergeCare(stay);
   renderPractitionerConnection();
+  updatePhaseOneSuiteLinks();
 
   renderWheel(actualDay);
   refineWheelLegend();

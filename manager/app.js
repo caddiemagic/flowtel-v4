@@ -878,7 +878,14 @@ async function openDesk(){
     await signInWithEmail(email,password);
     const profile=await getCurrentProfile();
     currentManagerProfile=profile;
-    if(!profile||!["owner","admin","practitioner"].includes(profile.role)){managerMessage.textContent="This key does not open the Concierge Desk yet.";return;}
+    if(!profile||!isPractitionerLevel(profile)){
+      replacePageWithPhaseTwoGate({
+        featureName:"Concierge Desk",
+        title:"Opening in Phase 2",
+        copy:"The Concierge Desk will open in Phase 2 of beta testing for practitioner-level users. Phase 1 is focused on guest check-in, Suite, Lounge, and Flow Map.",
+      });
+      return;
+    }
     clockInContext=getClockInContext();
     loginCard.classList.add("hidden");dashboard.classList.remove("hidden");
     updateSuiteReturn();
@@ -889,7 +896,15 @@ async function openDesk(){
 async function autoOpenExistingManager(){
   try{
     const profile=await getCurrentProfile();
-    if(!profile || !["owner","admin","practitioner"].includes(profile.role)) return;
+    if(profile && !isPractitionerLevel(profile)){
+      replacePageWithPhaseTwoGate({
+        featureName:"Concierge Desk",
+        title:"Opening in Phase 2",
+        copy:"The Concierge Desk will open in Phase 2 of beta testing for practitioner-level users. Phase 1 is focused on guest check-in, Suite, Lounge, and Flow Map.",
+      });
+      return;
+    }
+    if(!profile) return;
     currentManagerProfile=profile;
     clockInContext=getClockInContext();
     if(loginCard) loginCard.classList.add("hidden");

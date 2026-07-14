@@ -7,6 +7,7 @@ import {
   reviewPriestessProfile,
 } from '/shared/flowtel.js';
 import {
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
   renderTopNav,
   renderAccessCard,
   escapeHtml,
@@ -134,6 +135,10 @@ async function init(){
   topNav.innerHTML = renderTopNav('review');
   try{
     currentProfile = await getCurrentProfile();
+    if(!isPractitionerLevel(currentProfile)){
+      replacePageWithPhaseTwoGate({ featureName:'Review Desk', title:'Opening in Phase 2', copy:'Review Desk will open in Phase 2 of beta testing for practitioner-level users.' });
+      return;
+    }
     accessState.innerHTML = renderAccessCard(currentProfile);
     await refresh();
   }catch(error){

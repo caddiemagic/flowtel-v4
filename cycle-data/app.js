@@ -1,6 +1,7 @@
 import { getCurrentProfile } from "../shared/profiles.js";
 import { listMyClients } from "../shared/flowtel.js";
 import { supabase } from "../shared/supabase.js";
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
 
 const pageEyebrow=document.getElementById("pageEyebrow");
 const pageTitle=document.getElementById("pageTitle");
@@ -348,8 +349,21 @@ async function init(){
   try{
     currentProfile=await getCurrentProfile();
     if(!currentProfile){
-      intro.textContent="Please sign in through your Suite or Concierge Desk to view cycle data.";
-      viewingName.textContent="No active session";
+      replacePageWithPhaseTwoGate({
+        featureName:"Cycle Data Dashboard",
+        title:"Opening in Phase 2",
+        copy:"The Cycle Data Dashboard will open in Phase 2 of beta testing. For now, return to the guest flow and keep testing check-in, Suite, Lounge, and Flow Map basics.",
+        returnHref:"/enter/?membership=queendom",
+        returnLabel:"Enter the Flowtel",
+      });
+      return;
+    }
+    if(!isPractitionerLevel(currentProfile)){
+      replacePageWithPhaseTwoGate({
+        featureName:"Cycle Data Dashboard",
+        title:"Opening in Phase 2",
+        copy:"The Cycle Data Dashboard is reserved for practitioner-level beta testing. Guest beta testers are helping us stabilize check-in, Suite, Lounge, and Flow Map first.",
+      });
       return;
     }
 

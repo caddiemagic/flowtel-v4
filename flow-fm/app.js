@@ -8,6 +8,7 @@ import {
 } from '/shared/flowtel.js';
 import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');
 const heroCopy=document.getElementById('heroCopy');
@@ -147,6 +148,14 @@ async function init(){
   renderSupportDoors();
   try{
     const profile=await getCurrentProfile();
+    if(!isPractitionerLevel(profile)){
+      replacePageWithPhaseTwoGate({
+        featureName:'Initiation Hall',
+        title:'Opening in Phase 2',
+        copy:'The Initiation Hall will open in Phase 2 of beta testing for practitioner-level users. Phase 1 is focused on the guest Flowtel path.',
+      });
+      return;
+    }
     renderStatus(profile);
     const state=renderAccessState(profile);
     heroCopy.textContent=profile

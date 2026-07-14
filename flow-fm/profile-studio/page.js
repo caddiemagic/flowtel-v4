@@ -1,3 +1,4 @@
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 // Flowtel v0.10.14 — Royal Queendom hero + Phase 1 beta polish.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
@@ -352,6 +353,14 @@ async function hydrateFromSupabase(){
   try{
     api=await import('/shared/flowtel.js?v=0.10.11');
     currentProfile=await api.getCurrentProfile();
+    if(!isPractitionerLevel(currentProfile)){
+      replacePageWithPhaseTwoGate({
+        featureName:'Profile Studio',
+        title:'Opening in Phase 2',
+        copy:'The Profile Studio will open in Phase 2 of beta testing for practitioner-level users. Phase 1 guests are testing check-in, Suite, Lounge, and Flow Map first.',
+      });
+      return;
+    }
     if(accessState) accessState.innerHTML='';
     await loadSavedProfile();
   }catch(error){

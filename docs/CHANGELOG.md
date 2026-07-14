@@ -1,3 +1,12 @@
+
+## v0.10.28 — Phase 2 Access Gates + Queendom Return
+
+- Added Return to the Queendom button inside the Suite and Lounge.
+- Added Phase 2 beta gate for Concierge Desk, Initiation Hall, Profile Studio, Cycle Data Dashboard, and Flow FM rooms.
+- Hid Profile Studio access from guest Lounge view.
+- Added shared practitioner-level access helper.
+- No Supabase migration required.
+
 ## v0.10.27 — Moon Widget Queendom Variant
 
 - Added `/moon-widget-join-queendom/`, a public/free moon calendar version of the Moon Magic widget.

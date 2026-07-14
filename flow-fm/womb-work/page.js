@@ -1,5 +1,6 @@
 import { WOMB_WORK_MODULES, getFlowFmAssignmentForMoon } from '/shared/flowtel.js';
 import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js';
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav = document.getElementById('topNav');
 const moduleGrid = document.getElementById('moduleGrid');

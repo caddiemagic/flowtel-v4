@@ -11,6 +11,7 @@ import {
   assignmentStatusCopy,
 } from '/shared/flowtel.js';
 import {
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
   renderTopNav,
   renderAccessCard,
   requestedMemberId,
@@ -164,6 +165,10 @@ async function init(){
   topNav.innerHTML = renderTopNav('assignments');
   try{
     currentProfile = await getCurrentProfile();
+    if(!isPractitionerLevel(currentProfile)){
+      replacePageWithPhaseTwoGate({ featureName:'Business Assignments', title:'Opening in Phase 2', copy:'Business Assignments will open in Phase 2 of beta testing for practitioner-level users.' });
+      return;
+    }
     accessState.innerHTML = renderAccessCard(currentProfile);
     await refreshAssignments();
   }catch(error){

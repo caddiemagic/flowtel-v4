@@ -8,6 +8,7 @@ import {
 } from '/shared/flowtel.js';
 import { canAccessFlowFmCurriculum } from '/shared/rollout.js';
 import { renderTopNav, escapeHtml, seasonClass, setMessage } from '/flow-fm/ui.js';
+import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');
 const arcCards=document.getElementById('arcCards');
@@ -61,6 +62,10 @@ async function init(){
   topNav.innerHTML=renderTopNav('moons');
   try{
     const profile=await getCurrentProfile();
+    if(!isPractitionerLevel(profile)){
+      replacePageWithPhaseTwoGate({ featureName:'13 Moons Path', title:'Opening in Phase 2', copy:'13 Moons Path will open in Phase 2 of beta testing for practitioner-level users.' });
+      return;
+    }
     renderMoonPath(profile);
   }catch(error){
     console.error(error);
