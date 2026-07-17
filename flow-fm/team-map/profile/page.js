@@ -1,5 +1,5 @@
 import { getCurrentProfile } from '/shared/profiles.js';
-import { getTeamMapProfile } from '/shared/team-map.js?v=0.10.42';
+import { getTeamMapProfile } from '/shared/team-map.js?v=0.10.44';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const profileView=document.getElementById('profileView');
@@ -13,8 +13,9 @@ function escapeHtml(value){
 function safeHref(value){
   const raw=String(value || '').trim();
   if(!raw) return '';
+  const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
   try{
-    const url=new URL(raw,window.location.origin);
+    const url=new URL(candidate);
     return ['http:','https:'].includes(url.protocol) ? url.href : '';
   }catch(error){ return ''; }
 }

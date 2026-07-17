@@ -3,7 +3,7 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.43';
+} from '/shared/team-map.js?v=0.10.44';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -194,19 +194,25 @@ function dialogMarkup(row){
   const traveled=feels && feels!==actual;
   const title=row.priestess_title || 'Flow FM Priestess';
   const website=safeExternalHref(row.website_url);
+  const isSelf=String(currentProfile?.id || '')===String(row.member_id || '');
+  const profileLabel=isSelf ? 'View My Profile' : 'Visit Her Queendom';
+  const intro=row.profile_available && row.profile_intro
+    ? `<p class="dialog-intro">${escapeHtml(shortIntro(row.profile_intro))}</p>`
+    : row.profile_available
+      ? ''
+      : `<p class="dialog-intro quiet">Her Queendom profile is still being prepared.</p>`;
   return `<article class="dialog-profile-card">
     <div class="dialog-profile-photo"><img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(row.priestess_name || 'Flow FM Priestess')}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" /></div>
     <p class="eyebrow">${row.profile_available?'HER QUEENDOM':'FLOW FM PRESENCE'}</p>
     <h2>${escapeHtml(row.priestess_name || 'Flow FM Priestess')}</h2>
     <p class="dialog-title">${escapeHtml(title)}</p>
     <div class="movement-pills">
-      <span>Actual: ${escapeHtml(actual)}</span>
       ${traveled?`<span class="ghost-pill">Feels Like: ${escapeHtml(feels)}</span>`:''}
       ${row.cycle_day?`<span>Cycle Day ${escapeHtml(row.cycle_day)}</span>`:''}
     </div>
-    ${row.profile_available && row.profile_intro ? `<p class="dialog-intro">${escapeHtml(shortIntro(row.profile_intro))}</p>` : `<p class="dialog-intro quiet">Her Queendom profile is still being prepared.</p>`}
+    ${intro}
     ${(row.profile_available || website) ? `<div class="dialog-profile-actions">
-      ${row.profile_available ? `<a class="visit-queendom-button" href="${escapeHtml(profileHref(row))}">Visit Her Queendom</a>` : ''}
+      ${row.profile_available ? `<a class="visit-queendom-button" href="${escapeHtml(profileHref(row))}">${escapeHtml(profileLabel)}</a>` : ''}
       ${website ? `<a class="visit-queendom-button secondary" href="${escapeHtml(website)}" target="_blank" rel="noopener">Visit Her Website</a>` : ''}
     </div>` : ''}
   </article>`;

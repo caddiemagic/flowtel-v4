@@ -11,6 +11,7 @@ export {
   clockOutPractitioner,
   getPreviousVisits,
   markConciergeNotesRead,
+  currentUserHasConciergeAccess,
   getFrontDeskStays,
   witnessStay,
   prepareRoomAfterCheckout,

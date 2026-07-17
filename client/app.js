@@ -412,9 +412,12 @@ const FLOWTEL_ROLLOUT={
   enableClockInForPractitionerRoles:true,
   restrictMentorsToAdminAndOwner:true,
 };
+const PHASE_ONE_CONCIERGE_EMAIL="mm.johnson@icloud.com";
 function canUseClockInFlow(profile={}){
   if(!FLOWTEL_ROLLOUT.enableClockInForPractitionerRoles) return false;
-  return isPractitionerLevel(profile);
+  const email=String(profile?.email || "").trim().toLowerCase();
+  const role=String(profile?.role || "").trim().toLowerCase();
+  return email===PHASE_ONE_CONCIERGE_EMAIL && ["admin","owner"].includes(role);
 }
 
 const BETA_PASSWORD="FlowtelBeta!2026";
@@ -1888,7 +1891,7 @@ function openGuestFields(){
 
 async function handleClockIn(){
   if(!canClockIn(currentProfile)){
-    setMessage("Clocking into the Flowtel is reserved for practitioners and the internal team.");
+    setMessage("The Concierge Desk is reserved for the Flowtel owner during Phase 1.");
     return;
   }
 

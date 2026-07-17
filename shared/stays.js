@@ -428,6 +428,12 @@ export async function markConciergeNotesRead(stayId, signature){
   return data;
 }
 
+export async function currentUserHasConciergeAccess(){
+  const {data,error}=await supabase.rpc("flowtel_current_user_is_concierge");
+  if(error) throw error;
+  return data===true;
+}
+
 export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,

@@ -1,3 +1,14 @@
+## v0.10.44 — Beta Profile Access + Owner-Only Concierge
+
+- Temporarily bypassed Priestess Profile approval for authenticated Queendom and Flow FM Team Map viewers.
+- Added **View My Profile** on a member's own Team Map card and preserved **Visit Her Queendom** for other members.
+- Removed the Actual Season pill from the opened Team Map profile preview.
+- Added an explicit `concierge_access_enabled` profile permission and enabled it only for Megan's owner account during Phase 1.
+- Hardened existing Concierge stay RLS and Turndown actions through the shared owner-only database helper.
+- Redirected unauthorized direct Concierge Desk visits to `/concierge-soon/`.
+- Hid Clock In from all non-owner accounts during Phase 1.
+- Adds Supabase migration 034.
+
 ## v0.10.43 — Team Map Concierge Polish + Mentor Portrait
 
 - Removed the large **The Living Map** title while preserving the scarab and **FLOW FM TEAM MAP** identity.

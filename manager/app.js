@@ -1,7 +1,7 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
-import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient } from "../shared/flowtel.js";
+import { isPractitionerLevel } from "../shared/beta-access.js";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.44";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -931,12 +931,19 @@ async function openDeskFromSession(){
       return;
     }
 
-    if(!isPractitionerLevel(profile)){
-      replacePageWithPhaseTwoGate({
-        featureName:"Concierge Desk",
-        title:"Opening in Phase 2",
-        copy:"The Concierge Desk will open in Phase 2 of beta testing for practitioner-level users. Phase 1 is focused on guest check-in, Suite, Lounge, and Flow Map.",
-      });
+    const phaseOneOwnerEmail="mm.johnson@icloud.com";
+    const profileEmail=String(profile.email || "").trim().toLowerCase();
+    const profileRole=String(profile.role || "").trim().toLowerCase();
+    const isPhaseOneOwner=profileEmail===phaseOneOwnerEmail && ["admin","owner"].includes(profileRole);
+    if(!isPhaseOneOwner){
+      if(managerMessage) managerMessage.textContent="The Concierge Desk is reserved for the Flowtel owner during Phase 1.";
+      window.location.replace("/concierge-soon/");
+      return;
+    }
+
+    const hasConciergeAccess=await currentUserHasConciergeAccess();
+    if(!hasConciergeAccess){
+      if(managerMessage) managerMessage.textContent="Your owner account is recognized, but Concierge permission is not installed yet. Run migration 034.";
       return;
     }
 
