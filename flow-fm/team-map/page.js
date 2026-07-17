@@ -3,7 +3,7 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.42';
+} from '/shared/team-map.js?v=0.10.43';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -19,7 +19,6 @@ const presenceSummary=document.getElementById('presenceSummary');
 const refreshStatus=document.getElementById('refreshStatus');
 const visibilitySetting=document.getElementById('visibilitySetting');
 const visibilityToggle=document.getElementById('visibilityToggle');
-const initiationHallLink=document.getElementById('initiationHallLink');
 const yourPresenceCard=document.getElementById('yourPresenceCard');
 const yourPresencePhoto=document.getElementById('yourPresencePhoto');
 const yourPresenceTitle=document.getElementById('yourPresenceTitle');
@@ -51,16 +50,20 @@ function safeHref(value){
   }catch(error){ return ''; }
 }
 function safeImage(value){ return safeHref(value) || DEFAULT_PROFILE_IMAGE; }
+function safeExternalHref(value){
+  const raw=String(value || '').trim();
+  if(!raw) return '';
+  const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try{
+    const url=new URL(candidate);
+    return ['http:','https:'].includes(url.protocol) ? url.href : '';
+  }catch(error){ return ''; }
+}
 function formatFlowtelDate(value){
   if(!value) return 'Today in Flowtel Time';
   const [year,month,day]=String(value).slice(0,10).split('-').map(Number);
   if(!year||!month||!day) return String(value);
   return new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,month-1,day)));
-}
-function isFlowFmMember(profile){
-  const membership=String(profile?.membership_type || '').toLowerCase().replace(/[^a-z]/g,'');
-  const role=String(profile?.role || '').toLowerCase();
-  return ['flowfm','flowfmmember','council'].includes(membership) || membership.startsWith('flowfm') || ['practitioner','admin','owner'].includes(role) || !!profile?.flowfm_started_at || !!profile?.is_initiated;
 }
 function normalizedSeason(value){
   const clean=String(value || '').trim().toLowerCase().replace(/[^a-z]/g,'');
@@ -104,14 +107,14 @@ function presenceMarkup(presence,index){
   const tilt=((seed % 7)-3)*.35;
   const tiltAlt=tilt*-1;
   const name=row.priestess_name || 'Flow FM Priestess';
-  const kindLabel=presence.kind==='ghost' ? `Feels Like ${presence.season.replace(/^Inner\s+/,'')}` : `Actual ${presence.season.replace(/^Inner\s+/,'')}`;
+  const kindLabel=presence.kind==='ghost' ? `Feels Like ${presence.season.replace(/^Inner\s+/,'')}` : '';
   return `<button class="presence-orb ${presence.kind==='ghost'?'is-ghost':'is-actual'}" type="button" data-member-id="${escapeHtml(row.member_id)}" data-kind="${presence.kind}" style="--float-delay:${delay}s;--float-distance:${distance}px;--tilt:${tilt}deg;--tilt-alt:${tiltAlt}deg;--presence-order:${index}">
     <span class="presence-halo" aria-hidden="true"></span>
     <span class="presence-photo-wrap">
       <img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" />
     </span>
     <strong>${escapeHtml(name)}</strong>
-    <small>${escapeHtml(kindLabel)}</small>
+    ${kindLabel ? `<small>${escapeHtml(kindLabel)}</small>` : ''}
   </button>`;
 }
 
@@ -142,8 +145,8 @@ function renderQuadrants(rows){
 function renderSummary(rows){
   const count=rows.length;
   presenceSummary.textContent=count
-    ? `${count} ${count===1?'woman has':'women have'} checked into the Flowtel today.`
-    : 'The Living Map is quiet right now.';
+    ? `${count} team ${count===1?'member has':'members have'} clocked in to the Flowtel today.`
+    : 'No team members have clocked in to the Flowtel yet today.';
   refreshStatus.textContent=`Last refreshed ${timeLabel()} · Flowtel Time is the source of truth.`;
 }
 
@@ -151,7 +154,6 @@ function renderVisibility(){
   const canAppear=!!viewerState?.can_appear;
   visibilitySetting?.classList.toggle('hidden',!canAppear);
   if(visibilityToggle) visibilityToggle.checked=!!viewerState?.is_visible;
-  initiationHallLink?.classList.toggle('hidden',!isFlowFmMember(currentProfile));
   yourPresenceProfileLink?.classList.toggle('hidden',!canAppear);
 }
 function renderYourPresence(rows){
@@ -191,6 +193,7 @@ function dialogMarkup(row){
   const feels=normalizedSeason(row.feels_like_inner_season).replace(/^Inner\s+/,'');
   const traveled=feels && feels!==actual;
   const title=row.priestess_title || 'Flow FM Priestess';
+  const website=safeExternalHref(row.website_url);
   return `<article class="dialog-profile-card">
     <div class="dialog-profile-photo"><img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(row.priestess_name || 'Flow FM Priestess')}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" /></div>
     <p class="eyebrow">${row.profile_available?'HER QUEENDOM':'FLOW FM PRESENCE'}</p>
@@ -202,7 +205,10 @@ function dialogMarkup(row){
       ${row.cycle_day?`<span>Cycle Day ${escapeHtml(row.cycle_day)}</span>`:''}
     </div>
     ${row.profile_available && row.profile_intro ? `<p class="dialog-intro">${escapeHtml(shortIntro(row.profile_intro))}</p>` : `<p class="dialog-intro quiet">Her Queendom profile is still being prepared.</p>`}
-    ${row.profile_available ? `<a class="visit-queendom-button" href="${escapeHtml(profileHref(row))}">Visit Her Queendom</a>` : ''}
+    ${(row.profile_available || website) ? `<div class="dialog-profile-actions">
+      ${row.profile_available ? `<a class="visit-queendom-button" href="${escapeHtml(profileHref(row))}">Visit Her Queendom</a>` : ''}
+      ${website ? `<a class="visit-queendom-button secondary" href="${escapeHtml(website)}" target="_blank" rel="noopener">Visit Her Website</a>` : ''}
+    </div>` : ''}
   </article>`;
 }
 

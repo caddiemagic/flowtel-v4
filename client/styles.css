@@ -3584,3 +3584,31 @@ body.flowtel-is-loading{overflow:hidden}
     letter-spacing:.1em !important;
   }
 }
+
+
+/* Flowtel v0.10.43 — Mentor Panel profile portrait */
+.mentor-panel-intro{
+  display:grid;
+  grid-template-columns:96px minmax(0,1fr);
+  gap:18px;
+  align-items:center;
+  margin:42px 0 18px;
+}
+.mentor-panel-intro .eyebrow{margin-top:0;margin-bottom:8px;}
+.mentor-panel-intro h3{margin:.15rem 0 .5rem;}
+.mentor-panel-intro p:last-child{margin:0;color:var(--soft-brown);line-height:1.45;}
+.mentor-panel-photo{
+  width:92px;
+  height:92px;
+  padding:5px;
+  border:1px solid rgba(216,168,79,.42);
+  border-radius:50%;
+  background:rgba(255,253,249,.96);
+  box-shadow:0 16px 32px rgba(109,78,65,.1);
+  overflow:hidden;
+}
+.mentor-panel-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+@media(max-width:640px){
+  .mentor-panel-intro{grid-template-columns:72px minmax(0,1fr);gap:14px;margin-top:38px;}
+  .mentor-panel-photo{width:70px;height:70px;padding:4px;}
+}

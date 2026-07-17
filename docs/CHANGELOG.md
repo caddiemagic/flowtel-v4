@@ -1,3 +1,14 @@
+## v0.10.43 — Team Map Concierge Polish + Mentor Portrait
+
+- Removed the large **The Living Map** title while preserving the scarab and **FLOW FM TEAM MAP** identity.
+- Changed the Team Map intro to **See where the concierge team is today.**
+- Moved Team Map navigation to the bottom, changed Return to Lounge to **Return to Suite**, and removed Initiation Hall.
+- Updated the daily status to say team members have **clocked in** to the Flowtel.
+- Removed the Actual Season label beneath solid member portraits while preserving multidimensional Feels Like labels.
+- Added the latest saved Priestess website URL to the Team Map profile card.
+- Added the connected mentor profile photo to the Suite Mentor Panel with the pink rose fallback.
+- Added migration 033 to safely expose saved website URLs to authenticated Team Map viewers.
+
 ## v0.10.42 — Living Map Presence Repair + Priestess Photo Upload
 
 - Added **View Team Map** beside **View Flow Map** beneath the Suite Current Room card.

@@ -1298,12 +1298,19 @@ function openMentorPanel(relationship=currentMentorRelationship){
   const panel=document.getElementById("mentorPanel");
   const title=document.getElementById("mentorPanelTitle");
   const copy=document.getElementById("mentorPanelCopy");
+  const photo=document.getElementById("mentorPanelPhoto");
   const calls=document.getElementById("mentorPanelCalls");
   const notes=document.getElementById("mentorPanelNotes");
   const support=document.getElementById("mentorPanelSupport");
   if(!panel) return;
   const mentor=relationship?.practitioner || null;
   const name=mentorDisplayName(mentor);
+  const photoUrl=mentor?.profile_photo_url || mentor?.mentor_photo_url || "../assets/flowtel-pinkrose.png";
+  if(photo){
+    photo.src=photoUrl;
+    photo.alt=name ? `${name} profile photo` : "Mentor profile photo";
+    photo.onerror=()=>{ photo.onerror=null; photo.src="../assets/flowtel-pinkrose.png"; };
+  }
   if(title) title.textContent=name ? `${name} · Mentor Panel` : "Your Mentor to the Moon";
   if(copy) copy.textContent=name
     ? `${name} is connected to your Flowtel stays. This panel will become the home for calls, notes exchanged, and between-call reflections.`

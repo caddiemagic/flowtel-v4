@@ -4,21 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Living Map</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.42" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.43" />
 </head>
 <body>
   <main class="team-map-shell">
-    <nav class="team-map-nav" aria-label="Living Map navigation">
-      <a href="/client/?suite=1&lounge=1">Return to the Lounge</a>
-      <a id="initiationHallLink" class="hidden" href="/flow-fm/">Initiation Hall</a>
-      <a href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
-    </nav>
-
     <section class="team-map-hero">
       <img src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <p class="eyebrow">FLOW FM TEAM MAP</p>
-      <h1>The Living Map</h1>
-      <p>See where the women of Flow FM are moving today—where their bodies are rooted, and where their energy is traveling.</p>
+      <p class="team-map-tagline">See where the concierge team is today.</p>
       <div class="hero-date" id="flowtelDate">Opening today’s map in Flowtel Time…</div>
     </section>
 
@@ -99,6 +92,11 @@
       </article>
     </section>
 
+    <nav class="team-map-nav team-map-nav--bottom" aria-label="Team Map navigation">
+      <a href="/client/?suite=1">Return to Suite</a>
+      <a href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
+    </nav>
+
     <p id="teamMapMessage" class="message" role="status"></p>
   </main>
 
@@ -107,6 +105,6 @@
     <div id="presenceDialogContent"></div>
   </dialog>
 
-  <script type="module" src="./page.js?v=0.10.42"></script>
+  <script type="module" src="./page.js?v=0.10.43"></script>
 </body>
 </html>

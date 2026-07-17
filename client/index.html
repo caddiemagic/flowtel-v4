@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.42" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.43" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -208,9 +208,14 @@
 
         <section class="mentor-panel hidden" id="mentorPanel" aria-live="polite">
           <button id="closeMentorPanelButton" type="button" class="drawer-close">Close</button>
-          <p class="eyebrow">MENTOR PANEL</p>
-          <h3 id="mentorPanelTitle">Your Mentor to the Moon</h3>
-          <p id="mentorPanelCopy">Your mentor connection details will appear here.</p>
+          <div class="mentor-panel-intro">
+            <div class="mentor-panel-photo"><img id="mentorPanelPhoto" src="../assets/flowtel-pinkrose.png" alt="" /></div>
+            <div>
+              <p class="eyebrow">MENTOR PANEL</p>
+              <h3 id="mentorPanelTitle">Your Mentor to the Moon</h3>
+              <p id="mentorPanelCopy">Your mentor connection details will appear here.</p>
+            </div>
+          </div>
           <div class="mentor-panel-grid">
             <article>
               <span>Upcoming Calls</span>
@@ -310,6 +315,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.42"></script>
+  <script type="module" src="./app.js?v=0.10.43"></script>
 </body>
 </html>
