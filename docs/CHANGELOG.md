@@ -1,3 +1,13 @@
+## Caddie Magic v0.1.1 — Cycle Tracker-Inspired Cosmetic Refinement
+
+- Restyled `/caddie-magic/` to feel much closer to the public Cycle Tracker layout and elegance.
+- Rebalanced the Caddie Magic palette into cream, navy, deep hunter green, and antique gold.
+- Reduced the oversized hero typography and softened the overall page from a loud dark dashboard into a refined card-based tracker.
+- Added the existing scarab/sun-disk mark at the top of the Caddie Magic tracker hero.
+- Kept all Phase 1 score tracker fields, Supabase storage, moon tagging, Player Locker, Moon Scorecard, and Notes Under the Door behavior unchanged.
+- No Supabase migration required.
+
+
 ## Caddie Magic v0.1.0 — Moon Score Tracker Foundation
 
 - Added `/caddie-magic/` as the first Caddie Magic portal inside the Flowtel platform engine.
