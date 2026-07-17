@@ -1,8 +1,15 @@
 // api/beta-request.js
-// Flowtel v0.10.26 — Beta Access Request endpoint with auto-login support.
+// Flowtel v0.10.48 — Canonical beta credential alignment.
 // Creates a Flowtel Auth user + client profile from a controlled beta request form.
 
 const DEFAULT_TEMP_PASSWORD = "FlowtelBeta!2026";
+
+function betaTemporaryPassword() {
+  // Phase 1 uses one browser-visible temporary credential. Environment password
+  // overrides are intentionally ignored because the browser cannot read them and
+  // any differing value would recreate the exact bridge mismatch fixed here.
+  return DEFAULT_TEMP_PASSWORD;
+}
 
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", process.env.FLOWTEL_ALLOWED_ORIGIN || "*");
@@ -126,7 +133,7 @@ async function listAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
 }
 
 async function createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType }) {
-  const password = process.env.FLOWTEL_BETA_TEMP_PASSWORD || process.env.FLOWTEL_BRIDGE_PASSWORD || DEFAULT_TEMP_PASSWORD;
+  const password = betaTemporaryPassword();
   const { firstName, lastName } = splitName(fullName);
 
   try {
@@ -284,7 +291,7 @@ module.exports = async function handler(req, res) {
 
     let user;
     let accountStatus = "existing";
-    let password = process.env.FLOWTEL_BETA_TEMP_PASSWORD || process.env.FLOWTEL_BRIDGE_PASSWORD || DEFAULT_TEMP_PASSWORD;
+    let password = betaTemporaryPassword();
 
     if (existingProfile?.id) {
       user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
@@ -317,7 +324,7 @@ module.exports = async function handler(req, res) {
       autoLoginAvailable: true,
       temporaryPasswordShared: true,
       temporaryPassword: password,
-      temporaryPasswordHint: process.env.FLOWTEL_BETA_TEMP_PASSWORD ? "Using the current beta password for automatic login." : "Using the current Flowtel beta password for automatic login.",
+      temporaryPasswordHint: "Using the canonical Flowtel beta password for automatic login.",
     });
   } catch (error) {
     const status = Number(error.statusCode || error.status || 500);

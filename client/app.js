@@ -59,7 +59,7 @@ function setFlowtelLoading(isLoading, copy="The Flowtel is preparing your room..
 }
 
 const SQUARESPACE_MEMBERSHIP = membershipFromUrl();
-const FLOWTEL_BRIDGE_PASSWORD = "FlowtelMemberBridge!2026";
+const FLOWTEL_BETA_PASSWORD = "FlowtelBeta!2026";
 const FLOWTEL_TRUSTED_DOORWAY_MODE = true;
 
 function urlParam(name){
@@ -295,7 +295,7 @@ function isInvalidCredentialsError(error){
 async function enterWithBridgePassword(email,bridgeData=null){
   await signOut();
   clearCachedSuiteStay();
-  await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+  await signInWithEmail(email,FLOWTEL_BETA_PASSWORD);
   await completeMemberBridgeEntrance(email,bridgeData);
 }
 
@@ -320,13 +320,13 @@ async function createNewMemberBridge(){
 
     if(!bridgeData.supabaseUserPrepared){
       try{
-        await signUpWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+        await signUpWithEmail(email,FLOWTEL_BETA_PASSWORD);
       }catch(signUpError){
         if(!isAlreadyRegisteredError(signUpError)) throw signUpError;
       }
     }
 
-    await signInWithEmail(email,FLOWTEL_BRIDGE_PASSWORD);
+    await signInWithEmail(email,FLOWTEL_BETA_PASSWORD);
     await completeMemberBridgeEntrance(email,bridgeData);
   }catch(error){
     setFlowtelLoading(false);
@@ -340,7 +340,7 @@ async function createNewMemberBridge(){
       }catch(signInError){
         console.error("Existing bridge account could not be opened with the bridge password:", signInError);
         if(isInvalidCredentialsError(signInError)){
-          setMessage("This email already has Flowtel access with a custom password. Choose “I've Stayed Before” and enter that password.");
+          setMessage("This email already has Flowtel access, but its beta credential did not match. Choose “I've Stayed Before” and use FlowtelBeta!2026.");
           openReturningMemberLogin(false);
           return;
         }
@@ -348,6 +348,12 @@ async function createNewMemberBridge(){
         setMessage(`Returning Member Error: ${signInError?.message || "Unknown error"}`);
         return;
       }
+    }
+
+    if(isInvalidCredentialsError(error)){
+      setMessage("Flowtel found this email, but the beta credential did not match. Choose “I've Stayed Before” and use FlowtelBeta!2026.");
+      openReturningMemberLogin(false);
+      return;
     }
 
     setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
@@ -374,7 +380,7 @@ async function openReturningMemberBridge(){
     console.error("Flowtel Returning Member Bridge Error:", error);
 
     if(isInvalidCredentialsError(error)){
-      setMessage("This Flowtel room uses a custom password. Enter your Flowtel password below, then choose Enter the Flowtel.");
+      setMessage("Flowtel recognizes this doorway, but the beta credentials did not match. Enter the exact email on your beta roster and use FlowtelBeta!2026 below.");
       openReturningMemberLogin(false);
       return;
     }
@@ -420,7 +426,7 @@ function canUseClockInFlow(profile={}){
   return email===PHASE_ONE_CONCIERGE_EMAIL && ["admin","owner"].includes(role);
 }
 
-const BETA_PASSWORD="FlowtelBeta!2026";
+const BETA_PASSWORD=FLOWTEL_BETA_PASSWORD;
 const BETA_ACCOUNTS=[
   {label:"Practitioner 1 · Inner Winter",email:"flowtel.practitioner1@test.local",firstName:"Priya",lastName:"Winter",role:"practitioner",cycleDay:2,feelsLike:"Inner Winter"},
   {label:"Practitioner 2 · Inner Spring",email:"flowtel.practitioner2@test.local",firstName:"Sage",lastName:"Spring",role:"practitioner",cycleDay:8,feelsLike:"Inner Spring"},
@@ -1614,7 +1620,7 @@ async function handleSignIn(){
   try{
     setMessage("Entering the Flowtel...");
 
-    const email=document.getElementById("email").value.trim();
+    const email=document.getElementById("email").value.trim().toLowerCase();
     const password=document.getElementById("password").value;
 
     if(!email||!password){
@@ -1650,7 +1656,11 @@ async function handleSignIn(){
     showCheckIn();
   }catch(error){
     setFlowtelLoading(false);
-    setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
+    if(isInvalidCredentialsError(error)){
+      setMessage("Flowtel could not match those beta credentials. Use the exact email on your tester roster and the password FlowtelBeta!2026. If it still does not open, the Front Desk needs to refresh the Auth account.");
+    }else{
+      setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
+    }
     console.error(error);
   }
 }

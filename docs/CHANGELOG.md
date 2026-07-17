@@ -1,3 +1,12 @@
+## v0.10.48 — Beta Login Credential Alignment
+
+- Retired the legacy `FlowtelMemberBridge!2026` browser/API credential.
+- Standardized the client bridge, Squarespace bridge, beta-request endpoint, and test-account helpers on `FlowtelBeta!2026`.
+- Returning and existing bridge users are now refreshed through the Supabase Admin API before browser sign-in when service-role configuration is available.
+- Ignored both password environment overrides during Phase 1 so Vercel cannot use a different credential from the browser.
+- Improved invalid-credential guidance for beta testers.
+- Added migration 037 to reset profile-linked non-admin Auth users to the canonical beta password while preserving admin/owner credentials.
+
 ## v0.10.47 — Team Map Runtime Recovery
 
 - Fixed a Team Map JavaScript runtime error introduced in v0.10.46.

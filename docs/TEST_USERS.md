@@ -1,5 +1,16 @@
 # Flowtel Beta Test Users
 
+
+## Canonical Phase 1 beta credential
+
+As of Flowtel v0.10.48, every non-admin beta account uses one temporary password:
+
+`FlowtelBeta!2026`
+
+Run `database/migration-037-beta-login-credential-alignment.sql` after deployment to align existing profile-linked Auth users. The migration excludes admin and owner accounts. New and returning member bridge requests also refresh eligible Auth users to this password when the Vercel service-role configuration is available.
+
+The legacy `FlowtelMemberBridge!2026` password is retired. `FLOWTEL_BRIDGE_PASSWORD` is intentionally ignored by the beta account endpoints so an old Vercel environment value cannot recreate the mismatch. Both `FLOWTEL_BRIDGE_PASSWORD` and `FLOWTEL_BETA_TEMP_PASSWORD` are intentionally ignored for Phase 1 so Vercel cannot use a different password from the browser.
+
 ## Best practice
 
 For beta testing, create test users directly in Supabase Auth instead of relying on the public/new-member sign-up path.
