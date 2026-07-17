@@ -1,4 +1,4 @@
-// Flowtel v0.10.41 — Flow FM Living Map helpers.
+// Flowtel v0.10.45 — Flow FM Team Map helpers.
 
 import { supabase } from './supabase.js';
 
@@ -44,4 +44,11 @@ export async function getTeamMapProfile(memberId){
   });
   if(error) throw error;
   return firstRow(data);
+}
+
+
+export async function listPublicTeamMapPresences(){
+  const { data, error } = await supabase.rpc('flow_fm_get_public_team_map');
+  if(error) throw error;
+  return data || [];
 }

@@ -196,3 +196,25 @@ h1{margin:0 0 12px;font-size:clamp(2.35rem,5vw,4.2rem);line-height:.96;font-weig
   .dialog-profile-actions{display:grid;}
   .dialog-profile-actions .visit-queendom-button{width:100%;}
 }
+
+
+/* Flowtel v0.10.45 — external Priestess profile cards */
+.dialog-profile-card--external{padding-bottom:34px;}
+.dialog-profile-card--external .dialog-title{
+  margin:8px 0 14px;
+  color:var(--rose);
+  font-family:Arial,sans-serif;
+  font-size:.72rem;
+  font-style:normal;
+  font-weight:700;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+}
+.dialog-profile-card--external .movement-pills{margin-bottom:18px;}
+.dialog-profile-card--external .dialog-profile-actions{margin-top:4px;}
+.dialog-profile-link-missing{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:.98rem;
+  font-style:italic;
+}

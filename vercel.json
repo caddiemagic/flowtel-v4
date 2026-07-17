@@ -81,6 +81,18 @@
     {
       "source": "/flow-fm/review",
       "destination": "/flow-fm/review/index.html"
+    },
+    {
+      "source": "/flow-fm/team-map",
+      "destination": "/flow-fm/team-map/index.html"
+    },
+    {
+      "source": "/flow-fm/team-map/embed",
+      "destination": "/flow-fm/team-map/embed/index.html"
+    },
+    {
+      "source": "/flow-fm/team-map/profile",
+      "destination": "/flow-fm/team-map/profile/index.html"
     }
   ]
 }

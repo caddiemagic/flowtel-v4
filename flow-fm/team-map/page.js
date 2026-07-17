@@ -3,7 +3,7 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.44';
+} from '/shared/team-map.js?v=0.10.45';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -86,13 +86,6 @@ function hashValue(value){
 function selectorEscape(value){
   if(window.CSS?.escape) return window.CSS.escape(String(value));
   return String(value).replace(/[^a-zA-Z0-9_-]/g,char=>'\\'+char);
-}
-function profileHref(row){
-  return `/flow-fm/team-map/profile/?member=${encodeURIComponent(row.member_id)}`;
-}
-function shortIntro(value,limit=170){
-  const clean=String(value || '').trim();
-  return clean.length>limit ? `${clean.slice(0,limit).trim()}…` : clean;
 }
 function setMessage(text=''){ if(message) message.textContent=text; }
 function timeLabel(){
@@ -192,29 +185,21 @@ function dialogMarkup(row){
   const actual=normalizedSeason(row.actual_inner_season).replace(/^Inner\s+/,'') || 'Unknown';
   const feels=normalizedSeason(row.feels_like_inner_season).replace(/^Inner\s+/,'');
   const traveled=feels && feels!==actual;
-  const title=row.priestess_title || 'Flow FM Priestess';
   const website=safeExternalHref(row.website_url);
   const isSelf=String(currentProfile?.id || '')===String(row.member_id || '');
-  const profileLabel=isSelf ? 'View My Profile' : 'Visit Her Queendom';
-  const intro=row.profile_available && row.profile_intro
-    ? `<p class="dialog-intro">${escapeHtml(shortIntro(row.profile_intro))}</p>`
-    : row.profile_available
-      ? ''
-      : `<p class="dialog-intro quiet">Her Queendom profile is still being prepared.</p>`;
-  return `<article class="dialog-profile-card">
+  const profileLabel=isSelf ? 'View My Profile' : 'Visit Her Profile';
+  return `<article class="dialog-profile-card dialog-profile-card--external">
     <div class="dialog-profile-photo"><img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(row.priestess_name || 'Flow FM Priestess')}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" /></div>
-    <p class="eyebrow">${row.profile_available?'HER QUEENDOM':'FLOW FM PRESENCE'}</p>
+    <p class="eyebrow">CONCIERGE TEAM</p>
     <h2>${escapeHtml(row.priestess_name || 'Flow FM Priestess')}</h2>
-    <p class="dialog-title">${escapeHtml(title)}</p>
+    <p class="dialog-title">FLOW FM PRIESTESS</p>
     <div class="movement-pills">
       ${traveled?`<span class="ghost-pill">Feels Like: ${escapeHtml(feels)}</span>`:''}
       ${row.cycle_day?`<span>Cycle Day ${escapeHtml(row.cycle_day)}</span>`:''}
     </div>
-    ${intro}
-    ${(row.profile_available || website) ? `<div class="dialog-profile-actions">
-      ${row.profile_available ? `<a class="visit-queendom-button" href="${escapeHtml(profileHref(row))}">${escapeHtml(profileLabel)}</a>` : ''}
-      ${website ? `<a class="visit-queendom-button secondary" href="${escapeHtml(website)}" target="_blank" rel="noopener">Visit Her Website</a>` : ''}
-    </div>` : ''}
+    ${website ? `<div class="dialog-profile-actions">
+      <a class="visit-queendom-button" href="${escapeHtml(website)}" target="_blank" rel="noopener">${escapeHtml(profileLabel)}</a>
+    </div>` : `<p class="dialog-profile-link-missing">Profile link coming soon.</p>`}
   </article>`;
 }
 

@@ -1,3 +1,15 @@
+## v0.10.45 — Queendom Team Map Embed + External Priestess Profiles
+
+- Standardized Team Map preview cards to **CONCIERGE TEAM** and **FLOW FM PRIESTESS** for every member.
+- Removed profile bio excerpts from Team Map preview cards.
+- Changed Team Map profile buttons to open the latest saved **External Website URL** directly, independent of profile approval.
+- Added `/flow-fm/team-map/embed/` as a public-safe, iframe-friendly Team Map for the Queendom members page.
+- Added page-load, visibility, and 60-second refresh behavior to the embedded map.
+- Added responsive iframe height messaging and a ready-to-copy Squarespace embed snippet.
+- Limited the public embed endpoint to display name, public photo, external profile URL, and today's actual / Feels Like seasonal placement.
+- Preserved Team Map visibility opt-out and the pink rose fallback.
+- Adds Supabase migration 035.
+
 ## v0.10.44 — Beta Profile Access + Owner-Only Concierge
 
 - Temporarily bypassed Priestess Profile approval for authenticated Queendom and Flow FM Team Map viewers.

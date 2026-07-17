@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  <title>Flow FM Team Map</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.45" />
+</head>
+<body>
+  <main class="embed-shell">
+    <header class="embed-header">
+      <img src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <p class="eyebrow">FLOW FM TEAM MAP</p>
+      <p>See where the concierge team is today.</p>
+      <div class="embed-date" id="embedDate">Opening today’s map…</div>
+    </header>
+
+    <section class="embed-summary" aria-live="polite">
+      <strong id="embedSummary">Gathering today’s concierge team…</strong>
+      <small id="embedRefresh">The map refreshes when this page opens.</small>
+    </section>
+
+    <section class="embed-map" id="embedMap" aria-label="Flow FM seasonal team map">
+      <div class="embed-center" aria-hidden="true"><img src="/assets/rose_compass_center.png" alt="" /></div>
+
+      <article class="embed-season season-autumn" data-season="Inner Autumn">
+        <header><p>Half New Moon Phase</p><h2>Inner Autumn</h2><small>Days 20–26</small></header>
+        <div class="embed-presences" id="embedAutumn"></div>
+      </article>
+      <article class="embed-season season-summer" data-season="Inner Summer">
+        <header><p>Full Moon Phase</p><h2>Inner Summer</h2><small>Days 12–19</small></header>
+        <div class="embed-presences" id="embedSummer"></div>
+      </article>
+      <article class="embed-season season-winter" data-season="Inner Winter">
+        <header><p>New Moon Phase</p><h2>Inner Winter</h2><small>Days 27–5</small></header>
+        <div class="embed-presences" id="embedWinter"></div>
+      </article>
+      <article class="embed-season season-spring" data-season="Inner Spring">
+        <header><p>Half Full Moon Phase</p><h2>Inner Spring</h2><small>Days 6–11</small></header>
+        <div class="embed-presences" id="embedSpring"></div>
+      </article>
+    </section>
+
+    <p class="embed-message" id="embedMessage" role="status"></p>
+  </main>
+
+  <dialog class="embed-dialog" id="embedDialog">
+    <button class="embed-dialog-close" id="embedDialogClose" type="button" aria-label="Close profile preview">×</button>
+    <div id="embedDialogContent"></div>
+  </dialog>
+
+  <script type="module" src="./page.js?v=0.10.45"></script>
+</body>
+</html>
