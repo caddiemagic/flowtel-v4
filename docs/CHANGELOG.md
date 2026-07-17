@@ -1,3 +1,12 @@
+## v0.10.47 — Team Map Runtime Recovery
+
+- Fixed a Team Map JavaScript runtime error introduced in v0.10.46.
+- Replaced an undefined `normalizeExternalUrl` call with the Team Map's existing safe external-link normalizer.
+- Restored rendering of today's checked-in team members and the signed-in member's presence diagnostics.
+- Preserved the v0.10.46 external profile-link merge and profile-card buttons.
+- Updated Team Map cache versions so browsers load the repaired script immediately.
+- No Supabase migration required.
+
 ## v0.10.46 — Profile Link Save Repair
 
 - Added a dedicated member-owned save path for the Profile Studio **External Website URL**.

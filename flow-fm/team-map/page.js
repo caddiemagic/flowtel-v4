@@ -3,8 +3,8 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.46';
-import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.46';
+} from '/shared/team-map.js?v=0.10.47';
+import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.47';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -274,7 +274,7 @@ async function refreshMap({quiet=false}={}){
       getPriestessProfile().catch(()=>null),
     ]);
     viewerState=state;
-    const selfWebsite=normalizeExternalUrl(selfProfile?.website_url || '');
+    const selfWebsite=safeExternalHref(selfProfile?.website_url || '');
     currentRows=(rows || []).map(row=>String(row.member_id)===String(currentProfile?.id) && selfWebsite
       ? {...row,website_url:selfWebsite}
       : row);
