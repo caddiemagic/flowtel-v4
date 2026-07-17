@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Magic Portal</title>
+  <link rel="stylesheet" href="./styles.css?v=0.1.0" />
+</head>
+<body>
+  <main class="cm-shell">
+    <section class="cm-hero">
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">CADDIE MAGIC</p>
+        <h1>Playing golf on the moon.</h1>
+        <p class="cm-lead">A private moonlit locker for scores, swing thoughts, and the patterns that reveal themselves over time.</p>
+        <div class="cm-hero-actions" id="heroActions">
+          <button class="cm-button" id="heroLogButton" type="button">Log a Round</button>
+          <button class="cm-button secondary" id="heroLockerButton" type="button">Open Your Locker</button>
+        </div>
+      </div>
+      <div class="cm-moon-card" aria-hidden="true">
+        <span class="cm-moon">◐</span>
+        <p>Moon Score Tracker</p>
+      </div>
+    </section>
+
+    <section class="cm-card cm-auth-card" id="authCard">
+      <p class="cm-eyebrow">ENTER THE CLUBHOUSE</p>
+      <h2>Your private player portal.</h2>
+      <p class="cm-muted">Create your player profile or sign back in to continue tracking your game with the moon.</p>
+      <form id="authForm" class="cm-form">
+        <label>Email
+          <input id="authEmail" type="email" autocomplete="email" required placeholder="player@example.com" />
+        </label>
+        <label>Password
+          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
+        </label>
+        <div class="cm-two-col cm-create-fields">
+          <label>First Name
+            <input id="authFirstName" type="text" autocomplete="given-name" placeholder="First" />
+          </label>
+          <label>Last Name
+            <input id="authLastName" type="text" autocomplete="family-name" placeholder="Last" />
+          </label>
+        </div>
+        <div class="cm-button-row">
+          <button class="cm-button" id="signInButton" type="button">Enter the Clubhouse</button>
+          <button class="cm-button secondary" id="createAccountButton" type="button">Create Player Profile</button>
+        </div>
+      </form>
+      <p class="cm-message" id="authMessage"></p>
+    </section>
+
+    <section class="cm-card cm-profile-card hidden" id="profileCard">
+      <p class="cm-eyebrow">PLAYER LOCKER</p>
+      <h2>Set your brass locker plate.</h2>
+      <p class="cm-muted">This gives every round somewhere to land. Keep it simple; the score tracker is the main event.</p>
+      <form id="profileForm" class="cm-form">
+        <div class="cm-two-col">
+          <label>First Name
+            <input id="profileFirstName" type="text" required />
+          </label>
+          <label>Last Name
+            <input id="profileLastName" type="text" />
+          </label>
+        </div>
+        <label>Home Course
+          <input id="profileHomeCourse" type="text" placeholder="Pebble Beach, Spyglass, your home club..." />
+        </label>
+        <label>Handicap or Typical Score Range
+          <input id="profileScoreRange" type="text" placeholder="8 handicap, 85–92, scratch, still finding it..." />
+        </label>
+        <label>Main Goal
+          <textarea id="profileMainGoal" rows="3" placeholder="What are you trying to see, change, or understand in your game?"></textarea>
+        </label>
+        <label>Biggest Golf Frustration
+          <textarea id="profileFrustration" rows="3" placeholder="Where does the game usually get away from you?"></textarea>
+        </label>
+        <button class="cm-button" type="submit">Save Player Profile</button>
+      </form>
+      <p class="cm-message" id="profileMessage"></p>
+    </section>
+
+    <section class="cm-grid hidden" id="portalGrid">
+      <section class="cm-card cm-log-card" id="roundLogCard">
+        <p class="cm-eyebrow">LOG A ROUND</p>
+        <h2>Moon Score Tracker</h2>
+        <p class="cm-muted">Only the essentials: date, course, score, and the swing thought you want remembered.</p>
+        <form id="roundForm" class="cm-form">
+          <label>Date of Round
+            <input id="roundDate" type="date" required />
+          </label>
+          <label>Course Played
+            <input id="coursePlayed" type="text" required placeholder="Course name" />
+          </label>
+          <label>Score
+            <input id="roundScore" type="number" required min="1" max="300" placeholder="82" />
+          </label>
+          <label>Swing Thoughts
+            <textarea id="swingThoughts" rows="5" required placeholder="What thought, feel, or pattern followed you around the course?"></textarea>
+          </label>
+          <button class="cm-button" type="submit">Log Round</button>
+        </form>
+        <p class="cm-message" id="roundMessage"></p>
+      </section>
+
+      <section class="cm-card cm-locker-card" id="lockerCard">
+        <div class="cm-card-header">
+          <div>
+            <p class="cm-eyebrow">PLAYER LOCKER</p>
+            <h2 id="lockerTitle">Your Locker</h2>
+          </div>
+          <button class="cm-button ghost" id="signOutButton" type="button">Sign Out</button>
+        </div>
+        <div class="cm-stat-grid" id="statGrid"></div>
+        <section class="cm-note-door">
+          <p class="cm-eyebrow">NOTES UNDER THE DOOR</p>
+          <div id="notesUnderDoor"></div>
+        </section>
+      </section>
+    </section>
+
+    <section class="cm-card cm-score-map hidden" id="scoreMapCard">
+      <p class="cm-eyebrow">MOON SCORECARD</p>
+      <h2>Score Flow Map</h2>
+      <p class="cm-muted">Rounds are grouped by moon phase so your score and swing-thought patterns can start speaking back.</p>
+      <div class="cm-phase-grid" id="moonScoreMap"></div>
+    </section>
+
+    <section class="cm-card cm-history-card hidden" id="historyCard">
+      <p class="cm-eyebrow">ROUND HISTORY</p>
+      <h2>Previous rounds</h2>
+      <div id="roundHistory"></div>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.1.0"></script>
+</body>
+</html>

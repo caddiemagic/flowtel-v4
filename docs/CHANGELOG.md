@@ -1,39 +1,13 @@
-## v0.10.40 — Medicine Wheel Finalization + Complete Note History
+## Caddie Magic v0.1.0 — Moon Score Tracker Foundation
 
-- Rebuilt the Suite Medicine Wheel with a new isolated v2 class system so legacy wheel CSS can no longer interfere with current geometry.
-- Restored the larger ring presence from v0.10.38 while keeping a larger compass center and evenly spaced circular day markers.
-- Restored the approved centered two-by-two mobile Powder Room card grid and separated desktop seasonal cards from the number orbit.
-- Stopped the wheel column from stretching Cycle Data, Concierge Card, and other Suite rail cards.
-- Dramatically reduced the Suite welcome header scale and height, aligned it to the full Suite grid width, and gave it a softer distinct background.
-- Returned the Powder Room opt-out link to quiet inline text and rebuilt the expanded sharing control so its checkbox and copy align cleanly on desktop and mobile.
-- Added a dedicated Flow Map RPC that returns every append-only reflection and checkout note instead of collapsing each stay to its latest reflection.
-- Updated Flow Map and Powder Room note cards to show only the actual Day tag and Moon Magic phase tag.
-- Standardized Moon Magic tags to include the word **Phase**.
-- Adds Supabase migration 030.
+- Added `/caddie-magic/` as the first Caddie Magic portal inside the Flowtel platform engine.
+- Created a masculine private-clubhouse design system for Caddie Magic.
+- Added player account entry, Player Locker profile form, Round Log form, Player Locker dashboard, Moon Scorecard view, round history, and Notes Under the Door placeholder.
+- Round Log visible fields are intentionally minimal: Date of Round, Course Played, Score, and Swing Thoughts.
+- Auto-tags each round with moon phase, moon day, moon inner season, last new moon date, and next new moon date behind the scenes.
+- Added Supabase migration 030 for Caddie Magic player profiles, round logs, and player notes.
+- Added `docs/CADDIE_MAGIC_ROADMAP.md` and `docs/RELEASE-CADDIE-MAGIC-0.1.0.md`.
 
-## v0.10.39 — Suite Geometry + Quiet Control Polish
-
-- Softened the Suite welcome header so it takes up less vertical space and feels more subtle.
-- Rebalanced the Suite Medicine Wheel geometry on desktop and mobile with smaller orbit rings, cleaner day markers, and a larger center rose compass.
-- Fixed day markers to render as true circles and repositioned seasonal Powder Room cards into cleaner corner placement.
-- Renamed Suite seasonal cards to explicitly say **Inner [Season] Powder Room**.
-- Refined the Suite Powder Room sharing disclaimer and control box for better desktop and mobile proportion.
-- Changed Flowtel, Entry, and Beta loading cards to use the concierge bell image as the full-card background.
-- Removed the Powder Room switch-view pill and softened the Powder Room hero treatment.
-- Simplified guest/client Flow Map controls to Current Cycle / Last Cycle / All Cycles with a smaller, cleaner header treatment.
-- No Supabase migration required.
-
-## v0.10.38 — Seamless Entry + Responsive Suite Temple Polish
-
-- Added the concierge bell as the full-screen waiting experience during remembered-session checks, first-time beta access creation, login, check-in, and room routing.
-- Added long-load reassurance copy and mobile-safe loading layouts.
-- Rebuilt the Suite Medicine Wheel around one responsive square orbit so the rings, days, star, and center remain proportional across desktop and phones.
-- Removed mobile seasonal-card overflow and moved the cards into a contained two-by-two grid beneath the wheel on phones.
-- Replaced seasonal emojis with New Moon, Half Full Moon, Full Moon, and Half New Moon symbols.
-- Added a soft current-season highlight and a winged-scarab Suite arrival treatment.
-- Added the **Summer Waning Moon 2026** PDF as the featured Planning Room calendar.
-- Updated the Planning Room phase key with the matching Inner Seasons.
-- No Supabase migration required.
 
 ## v0.10.37 — Suite Checkout + Tracker CTA Combined
 

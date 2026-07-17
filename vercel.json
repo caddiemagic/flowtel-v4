@@ -31,6 +31,10 @@
       "destination": "/tracker/index.html"
     },
     {
+      "source": "/caddie-magic",
+      "destination": "/caddie-magic/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },
