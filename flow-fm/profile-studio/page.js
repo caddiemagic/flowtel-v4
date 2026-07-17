@@ -59,14 +59,17 @@ const DEFAULT_PROFILE_PHOTO = '/assets/flowtel-pinkrose.png';
 function escapeHtml(value){
   return String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
 }
-function safeHref(value){
-  const raw = String(value || '').trim();
+function normalizeExternalUrl(value=''){
+  const raw=String(value || '').trim();
   if(!raw) return '';
+  const candidate=/^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
   try{
-    const url = new URL(raw, window.location.origin);
-    if(['http:','https:','mailto:'].includes(url.protocol)) return url.href;
-  }catch(error){ console.warn('Ignoring unsafe URL', error); }
-  return '';
+    const url=new URL(candidate);
+    return ['http:','https:'].includes(url.protocol) ? url.href : '';
+  }catch(error){ return ''; }
+}
+function safeHref(value){
+  return normalizeExternalUrl(value);
 }
 function safeImageSrc(value){
   const raw = String(value || '').trim();
@@ -178,7 +181,7 @@ function valuesFromForm(form){
     offerings,
     priestessName:String(data.get('priestess_name') || '').trim(),
     legalName:String(data.get('legal_name') || '').trim(),
-    websiteUrl:String(data.get('website_url') || '').trim(),
+    websiteUrl:normalizeExternalUrl(data.get('website_url') || ''),
     location,
     displayLocation:displayLocationValue,
     timezone:String(data.get('timezone') || 'America/Los_Angeles'),
@@ -354,7 +357,11 @@ function bindProfilePhotoUploader(){
     input.disabled=true;
     removeButton && (removeButton.disabled=true);
     try{
-      setProfilePhotoUploadStatus('Uploading your Priestess photo…','working');
+      setProfilePhotoUploadStatus('Saving your profile details and uploading your Priestess photo…','working');
+      const form=document.getElementById('priestessProfileForm');
+      if(form && api?.savePriestessProfileDraft){
+        await api.savePriestessProfileDraft(profilePayloadFromForm(form));
+      }
       const photoUrl=await api.uploadPriestessProfilePhoto(selectedProfilePhotoFile);
       clearSelectedProfilePhoto();
       currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:photoUrl || ''};
@@ -412,7 +419,7 @@ function renderProfileStudio(record=currentPriestessProfile){
     <fieldset class="offering-fieldset"><legend>Offerings</legend><div class="selection-chip-grid">${renderOfferingOptions(offeringValues)}</div></fieldset>
     <div class="form-grid"><label><span>Location — optional</span><input name="location" value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, CA / Online" /></label><label><span>Your Timezone</span><select name="timezone">${renderTimezoneOptions(timezone)}</select></label></div>
     <label class="checkbox-row checkbox-row--simple"><input type="checkbox" name="display_location" ${displayLocation(profile) ? 'checked' : ''} /><span>Display my location on my Priestess Profile.</span></label>
-    <label><span>External Website URL — optional</span><input name="website_url" type="url" value="${escapeHtml(profile.website_url || '')}" placeholder="https://..." /></label>
+    <label><span>External Website URL — optional</span><input name="website_url" type="text" inputmode="url" autocapitalize="off" autocomplete="url" value="${escapeHtml(profile.website_url || '')}" placeholder="yourpriestessprofile.com" /><small class="field-help">Paste your existing Priestess profile link. Flowtel will add https:// when needed.</small></label>
     ${profilePhotoUploaderMarkup(profile)}
     ${profileReviewNotes(profile)}
     <div class="assignment-actions profile-actions"><button type="button" data-profile-action="preview">Refresh Preview</button><button type="button" data-profile-action="draft">Save Profile Draft</button><button type="button" data-profile-action="submit">Send Profile to be Witnessed</button></div>
@@ -451,14 +458,33 @@ async function handleProfileAction(form,action){
     setPageMessage('Sign in through Flowtel before saving or submitting your Priestess Profile.');
     return;
   }
+  const websiteInput=form.querySelector('[name="website_url"]');
+  const rawWebsite=String(websiteInput?.value || '').trim();
+  const normalizedWebsite=api?.normalizeExternalProfileUrl
+    ? api.normalizeExternalProfileUrl(rawWebsite)
+    : normalizeExternalUrl(rawWebsite);
+  if(rawWebsite && !normalizedWebsite){
+    websiteInput?.focus();
+    setPageMessage('Add a valid website or Priestess profile URL.');
+    return;
+  }
+  if(websiteInput) websiteInput.value=normalizedWebsite;
   const payload=profilePayloadFromForm(form);
   try{
-    setPageMessage(action==='submit' ? 'Sending your Priestess Profile to be witnessed...' : 'Saving your Priestess Profile draft...');
+    setPageMessage(action==='submit' ? 'Saving your profile link and sending your Priestess Profile to be witnessed...' : 'Saving your Priestess Profile and profile link...');
     if(action==='submit') await api.submitPriestessProfile(payload);
     else await api.savePriestessProfileDraft(payload);
     profileDirtyDisplayStatus='';
-    await loadSavedProfile();
-    setPageMessage(action==='submit' ? 'Priestess Profile sent to be witnessed.' : 'Priestess Profile draft saved.');
+    const savedProfile=await loadSavedProfile();
+    const savedWebsite=normalizeExternalUrl(savedProfile?.website_url || currentPriestessProfile?.website_url || '');
+    if(normalizedWebsite && savedWebsite!==normalizedWebsite){
+      throw new Error('Your profile saved, but Flowtel could not confirm the external profile link. Run migration 036, then save once more.');
+    }
+    setPageMessage(action==='submit'
+      ? 'Priestess Profile sent to be witnessed. Your external profile link is saved.'
+      : normalizedWebsite
+        ? 'Priestess Profile draft and external profile link saved.'
+        : 'Priestess Profile draft saved.');
   }catch(error){
     console.error(error);
     setPageMessage(error.message || 'This Priestess Profile could not be tended yet.');
@@ -475,14 +501,16 @@ async function loadSavedProfile(){
     profileDirtyDisplayStatus='';
     currentPriestessProfile={...currentPriestessProfile,...(profile || {}),display_status:''};
     renderProfileStudio(currentPriestessProfile);
+    return currentPriestessProfile;
   }catch(error){
     console.warn('Saved profile could not be loaded; keeping local form visible.', error);
     setPageMessage('The Studio opened, but saved profile data could not be loaded yet. You can still begin choosing your doorway.');
+    return null;
   }
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.42');
+    api=await import('/shared/flowtel.js?v=0.10.46');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({

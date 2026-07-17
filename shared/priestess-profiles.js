@@ -12,6 +12,19 @@ export const PRIESTESS_PROFILE_STATUSES = [
 
 const DEFAULT_STATUS = "draft";
 
+export function normalizeExternalProfileUrl(value = "") {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const candidate = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw) ? raw : `https://${raw}`;
+  try {
+    const url = new URL(candidate);
+    if (!["http:", "https:"].includes(url.protocol)) return "";
+    return url.href;
+  } catch (error) {
+    return "";
+  }
+}
+
 export function normalizePriestessProfileStatus(value) {
   const key = String(value || "").trim().toLowerCase();
   return PRIESTESS_PROFILE_STATUSES.some(item => item.value === key) ? key : DEFAULT_STATUS;
@@ -98,7 +111,7 @@ function profilePayload(profile = {}) {
     p_who_she_serves: profile.whoSheServes || profile.who_she_serves || null,
     p_session_types: profile.sessionTypes || profile.session_types || null,
     p_scheduling_url: profile.schedulingUrl || profile.scheduling_url || null,
-    p_website_url: profile.websiteUrl || profile.website_url || null,
+    p_website_url: normalizeExternalProfileUrl(profile.websiteUrl || profile.website_url || "") || null,
     p_instagram_url: profile.instagramUrl || profile.instagram_url || null,
     p_tiktok_url: profile.tiktokUrl || profile.tiktok_url || null,
     p_podcast_url: profile.podcastUrl || profile.podcast_url || null,
@@ -125,15 +138,31 @@ export async function getPriestessProfile(memberId = null) {
   return mergePriestessProfile(data || [], memberId);
 }
 
-export async function savePriestessProfileDraft(profile = {}) {
-  const { data, error } = await supabase.rpc("flow_fm_save_priestess_profile_draft", profilePayload(profile));
+export async function savePriestessProfileWebsite(websiteUrl = "") {
+  const normalized = normalizeExternalProfileUrl(websiteUrl);
+  if (String(websiteUrl || "").trim() && !normalized) {
+    throw new Error("Add a valid website or Priestess profile URL.");
+  }
+  const { data, error } = await supabase.rpc("flow_fm_set_priestess_profile_website", {
+    p_website_url: normalized || null,
+  });
   if (error) throw error;
+  return data || normalized || null;
+}
+
+export async function savePriestessProfileDraft(profile = {}) {
+  const payload = profilePayload(profile);
+  const { data, error } = await supabase.rpc("flow_fm_save_priestess_profile_draft", payload);
+  if (error) throw error;
+  await savePriestessProfileWebsite(payload.p_website_url || "");
   return data;
 }
 
 export async function submitPriestessProfile(profile = {}) {
-  const { data, error } = await supabase.rpc("flow_fm_submit_priestess_profile", profilePayload(profile));
+  const payload = profilePayload(profile);
+  const { data, error } = await supabase.rpc("flow_fm_submit_priestess_profile", payload);
   if (error) throw error;
+  await savePriestessProfileWebsite(payload.p_website_url || "");
   return data;
 }
 

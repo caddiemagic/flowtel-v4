@@ -3,7 +3,8 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.45';
+} from '/shared/team-map.js?v=0.10.46';
+import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.46';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -199,6 +200,8 @@ function dialogMarkup(row){
     </div>
     ${website ? `<div class="dialog-profile-actions">
       <a class="visit-queendom-button" href="${escapeHtml(website)}" target="_blank" rel="noopener">${escapeHtml(profileLabel)}</a>
+    </div>` : isSelf ? `<div class="dialog-profile-actions">
+      <a class="visit-queendom-button" href="/flow-fm/profile-studio/">Add My Profile Link</a>
     </div>` : `<p class="dialog-profile-link-missing">Profile link coming soon.</p>`}
   </article>`;
 }
@@ -265,17 +268,21 @@ async function refreshMap({quiet=false}={}){
   isRefreshing=true;
   if(!quiet) setMessage('Refreshing the Living Map…');
   try{
-    const [state,rows]=await Promise.all([
+    const [state,rows,selfProfile]=await Promise.all([
       getTeamMapViewerState(),
       listTeamMapPresences(),
+      getPriestessProfile().catch(()=>null),
     ]);
     viewerState=state;
-    currentRows=rows;
+    const selfWebsite=normalizeExternalUrl(selfProfile?.website_url || '');
+    currentRows=(rows || []).map(row=>String(row.member_id)===String(currentProfile?.id) && selfWebsite
+      ? {...row,website_url:selfWebsite}
+      : row);
     flowtelDate.textContent=`${formatFlowtelDate(state.flowtel_date)} · America/Los_Angeles`;
     renderVisibility();
-    renderQuadrants(rows);
-    renderSummary(rows);
-    renderYourPresence(rows);
+    renderQuadrants(currentRows);
+    renderSummary(currentRows);
+    renderYourPresence(currentRows);
     setMessage('');
   }catch(error){
     console.error(error);

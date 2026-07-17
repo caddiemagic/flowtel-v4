@@ -1,3 +1,15 @@
+## v0.10.46 — Profile Link Save Repair
+
+- Added a dedicated member-owned save path for the Profile Studio **External Website URL**.
+- Normalizes links entered with or without `https://` instead of silently discarding bare domains.
+- Saves the external profile link during both **Save Profile Draft** and **Send Profile to be Witnessed**.
+- Saves current Profile Studio form fields before uploading a new profile photo.
+- Verifies the saved profile link after each save and surfaces a clear migration message if it cannot be confirmed.
+- Merges the signed-in member’s latest saved profile link directly into her Team Map card.
+- Adds **Add My Profile Link** to the member’s own Team Map card when no link has been saved yet.
+- Bumped Profile Studio and Team Map cache versions so the repair cannot be hidden behind older browser assets.
+- Adds migration 036.
+
 ## v0.10.45 — Queendom Team Map Embed + External Priestess Profiles
 
 - Standardized Team Map preview cards to **CONCIERGE TEAM** and **FLOW FM PRIESTESS** for every member.
