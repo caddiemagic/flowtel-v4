@@ -1047,3 +1047,34 @@ input,textarea,button{font:inherit;color:inherit}
   .current-moon-calendar{padding:22px 18px !important}
   .current-moon-calendar .calendar-moon-lines{grid-template-columns:1fr}
 }
+
+/* Flowtel v0.10.41 — Living Map support doorway */
+.door-card--living-map{
+  background:
+    radial-gradient(circle at 50% 16%,rgba(216,168,79,.18),transparent 32%),
+    radial-gradient(circle at 18% 88%,rgba(222,203,239,.24),transparent 38%),
+    linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.32));
+}
+.door-card--living-map .support-door-crest::before{
+  content:"✦";
+  inset:0;
+  width:auto;
+  height:auto;
+  display:grid;
+  place-items:center;
+  border-radius:0;
+  background:none;
+  color:var(--gold);
+  font-size:1.55rem;
+}
+.door-card--living-map .support-door-crest::after{
+  content:"";
+  width:24px;
+  height:24px;
+  left:28px;
+  top:25px;
+  border:1px dashed rgba(183,133,47,.62);
+  border-radius:50%;
+  background:rgba(222,203,239,.26);
+  opacity:.68;
+}

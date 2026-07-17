@@ -1729,6 +1729,11 @@ function shouldOpenSuiteFromConcierge(){
   return params.get("suite")==="1" || sessionStorage.getItem("flowtel:openSuiteFromConcierge")==="true";
 }
 
+function requestedGuestScene(){
+  const params=new URLSearchParams(window.location.search);
+  return params.get("lounge")==="1" ? "lounge" : "suite";
+}
+
 function restoreSuiteFromConcierge(){
   const stay=getCachedSuiteStay();
   if(!stay || !isStayForLocalToday(stay) || !stayBelongsToCurrentProfile(stay)){
@@ -1739,7 +1744,7 @@ function restoreSuiteFromConcierge(){
   currentStay=stay;
   pendingArrivalStay=stay;
   renderSuite(stay);
-  showScene("suite");
+  showScene(requestedGuestScene());
   window.scrollTo({top:0,behavior:"smooth"});
   return true;
 }
@@ -1760,7 +1765,7 @@ async function openTodaySuiteIfPresent(){
   pendingArrivalStay=stay;
   cacheSuiteStay(stay);
   renderSuite(stay);
-  showScene("suite");
+  showScene(requestedGuestScene());
   window.scrollTo({top:0,behavior:"smooth"});
   return true;
 }

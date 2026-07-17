@@ -1,3 +1,14 @@
+## v0.10.41 — The Living Map + Multidimensional Presence
+
+- Added `/flow-fm/team-map/` as a daily Team Map for women who checked into Flowtel today.
+- Places solid profile presences in actual Inner Seasons and translucent ghost presences in differing Feels Like seasons.
+- Added stable floating profile placement, desktop astral-thread highlighting, and mobile seasonal chamber stacking.
+- Uses Priestess names with the Flowtel pink rose as the default profile image.
+- Flow FM members are visible by default with a clear Team Map opt-out.
+- Queendom members may view the map and open approved Priestess profiles for booking.
+- Added `/flow-fm/team-map/profile/`, Lounge access, Initiation Hall access, and Vercel routes.
+- Adds Supabase migration 031.
+
 ## Caddie Magic v0.1.1 — Cycle Tracker-Inspired Cosmetic Refinement
 
 - Restyled `/caddie-magic/` to feel much closer to the public Cycle Tracker layout and elegance.
