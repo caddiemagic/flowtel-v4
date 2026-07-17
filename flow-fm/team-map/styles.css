@@ -142,3 +142,32 @@ h1{margin:0 0 12px;font-size:clamp(2.35rem,5vw,4.2rem);line-height:.96;font-weig
   .team-quadrant{border-top:1px solid rgba(234,223,212,.75)!important}
   .quadrant-winter{border-top:0!important}
 }
+
+
+/* Flowtel v0.10.42 — self-presence diagnostics */
+.your-presence-card{
+  grid-column:1/-1;
+  display:grid;
+  grid-template-columns:58px minmax(0,1fr) auto;
+  gap:14px;
+  align-items:center;
+  padding:13px 15px;
+  border:1px solid rgba(216,173,79,.2);
+  border-radius:20px;
+  background:rgba(255,253,250,.72);
+}
+.your-presence-card.is-visible-today{
+  border-color:rgba(201,121,116,.42);
+  background:linear-gradient(145deg,rgba(255,253,250,.94),rgba(248,227,223,.42));
+  box-shadow:0 10px 28px rgba(111,75,64,.06);
+}
+.your-presence-photo{width:54px;height:54px;padding:3px;border:1px solid rgba(216,173,79,.42);border-radius:50%;background:#fff;overflow:hidden}
+.your-presence-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+.your-presence-card .eyebrow{margin-bottom:4px}
+.your-presence-card h3{margin:0 0 3px;font-size:1.05rem;font-weight:400}
+.your-presence-card p:last-child{margin:0;color:var(--muted);font-size:.84rem;line-height:1.4}
+.your-presence-card>a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border:1px solid rgba(216,173,79,.26);border-radius:999px;background:rgba(255,255,255,.62);color:var(--ink);text-decoration:none;font-family:Arial,sans-serif;font-size:.61rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase}
+@media(max-width:640px){
+  .your-presence-card{grid-template-columns:52px minmax(0,1fr);padding:12px}
+  .your-presence-card>a{grid-column:1/-1;width:100%}
+}

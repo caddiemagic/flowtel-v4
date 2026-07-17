@@ -1,5 +1,5 @@
 import { getCurrentProfile } from '/shared/profiles.js';
-import { getTeamMapProfile } from '/shared/team-map.js';
+import { getTeamMapProfile } from '/shared/team-map.js?v=0.10.42';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const profileView=document.getElementById('profileView');

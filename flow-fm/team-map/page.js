@@ -3,7 +3,7 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js';
+} from '/shared/team-map.js?v=0.10.42';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -20,6 +20,11 @@ const refreshStatus=document.getElementById('refreshStatus');
 const visibilitySetting=document.getElementById('visibilitySetting');
 const visibilityToggle=document.getElementById('visibilityToggle');
 const initiationHallLink=document.getElementById('initiationHallLink');
+const yourPresenceCard=document.getElementById('yourPresenceCard');
+const yourPresencePhoto=document.getElementById('yourPresencePhoto');
+const yourPresenceTitle=document.getElementById('yourPresenceTitle');
+const yourPresenceCopy=document.getElementById('yourPresenceCopy');
+const yourPresenceProfileLink=document.getElementById('yourPresenceProfileLink');
 const canvas=document.getElementById('teamMapCanvas');
 const threadLayer=document.getElementById('astralThreadLayer');
 const message=document.getElementById('teamMapMessage');
@@ -55,11 +60,17 @@ function formatFlowtelDate(value){
 function isFlowFmMember(profile){
   const membership=String(profile?.membership_type || '').toLowerCase().replace(/[^a-z]/g,'');
   const role=String(profile?.role || '').toLowerCase();
-  return ['flowfm','flowfmmember','council'].includes(membership) || ['admin','owner'].includes(role) || !!profile?.flowfm_started_at || !!profile?.is_initiated;
+  return ['flowfm','flowfmmember','council'].includes(membership) || membership.startsWith('flowfm') || ['practitioner','admin','owner'].includes(role) || !!profile?.flowfm_started_at || !!profile?.is_initiated;
 }
 function normalizedSeason(value){
-  const clean=String(value || '').trim().toLowerCase();
-  return SEASONS.find(season=>season.toLowerCase()===clean) || '';
+  const clean=String(value || '').trim().toLowerCase().replace(/[^a-z]/g,'');
+  return {
+    winter:'Inner Winter',innerwinter:'Inner Winter',
+    spring:'Inner Spring',innerspring:'Inner Spring',
+    summer:'Inner Summer',innersummer:'Inner Summer',
+    autumn:'Inner Autumn',innerautumn:'Inner Autumn',
+    fall:'Inner Autumn',innerfall:'Inner Autumn',
+  }[clean] || '';
 }
 function hashValue(value){
   let hash=2166136261;
@@ -141,6 +152,38 @@ function renderVisibility(){
   visibilitySetting?.classList.toggle('hidden',!canAppear);
   if(visibilityToggle) visibilityToggle.checked=!!viewerState?.is_visible;
   initiationHallLink?.classList.toggle('hidden',!isFlowFmMember(currentProfile));
+  yourPresenceProfileLink?.classList.toggle('hidden',!canAppear);
+}
+function renderYourPresence(rows){
+  if(!yourPresenceCard || !viewerState) return;
+  const actual=normalizedSeason(viewerState.actual_inner_season);
+  const feels=normalizedSeason(viewerState.feels_like_inner_season);
+  const mapHasSelf=rows.some(row=>String(row.member_id)===String(currentProfile?.id));
+  const visible=!!viewerState.appears_today && mapHasSelf;
+  const fallbackStatus=viewerState.presence_status || 'Flowtel is checking your presence.';
+  const eligibleButMissing=!!viewerState.appears_today && !mapHasSelf;
+  yourPresenceCard.classList.toggle('is-visible-today',visible);
+  if(yourPresencePhoto){
+    yourPresencePhoto.src=safeImage(viewerState.profile_photo_url);
+    yourPresencePhoto.onerror=()=>{ yourPresencePhoto.onerror=null; yourPresencePhoto.src=DEFAULT_PROFILE_IMAGE; };
+  }
+  if(yourPresenceTitle){
+    yourPresenceTitle.textContent=visible
+      ? 'You are on the Living Map.'
+      : eligibleButMissing
+        ? 'Your check-in is eligible, but your portrait has not loaded yet.'
+        : fallbackStatus;
+  }
+  if(yourPresenceCopy){
+    const details=[];
+    if(viewerState.checked_in_today) details.push('Checked in today');
+    if(actual) details.push(actual);
+    if(viewerState.cycle_day) details.push(`Cycle Day ${viewerState.cycle_day}`);
+    if(feels && feels!==actual) details.push(`Feels Like ${feels.replace(/^Inner\s+/,'')}`);
+    if(!viewerState.profile_photo_url) details.push('Using the rose until you upload a photo');
+    if(eligibleButMissing) details.push('Refresh after migration 032 is installed');
+    yourPresenceCopy.textContent=details.length ? details.join(' · ') : fallbackStatus;
+  }
 }
 
 function dialogMarkup(row){
@@ -235,6 +278,7 @@ async function refreshMap({quiet=false}={}){
     renderVisibility();
     renderQuadrants(rows);
     renderSummary(rows);
+    renderYourPresence(rows);
     setMessage('');
   }catch(error){
     console.error(error);

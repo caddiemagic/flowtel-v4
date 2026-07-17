@@ -22,7 +22,7 @@ export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./se
 export { getFlowFmInitiationStatus, getPersonalizedMoonPath, getPersonalizedMoonPortal, FLOW_FM_MOONS, FLOW_FM_ASSIGNMENTS, FLOW_FM_ARCS, getFlowFmAssignmentForMoon, getFlowFmArcForMoon, getMoonDatesForPortal } from "./initiation.js";
 export { FLOW_FM_ASSIGNMENT_STATUSES, normalizeAssignmentStatus, labelForAssignmentStatus, toneForAssignmentStatus, assignmentStatusCopy, emptyAssignmentRecord, mergeAssignmentRecords, assignmentProgress, listFlowFmAssignmentStatuses, saveFlowFmAssignmentDraft, submitFlowFmAssignment, listFlowFmAssignmentReviewQueue, reviewFlowFmAssignment } from "./assignments.js";
 
-export { PRIESTESS_PROFILE_STATUSES, normalizePriestessProfileStatus, labelForPriestessProfileStatus, toneForPriestessProfileStatus, priestessProfileStatusCopy, emptyPriestessProfile, mergePriestessProfile, getPriestessProfile, savePriestessProfileDraft, submitPriestessProfile, listPriestessProfileReviewQueue, reviewPriestessProfile } from "./priestess-profiles.js";
+export { PRIESTESS_PROFILE_STATUSES, normalizePriestessProfileStatus, labelForPriestessProfileStatus, toneForPriestessProfileStatus, priestessProfileStatusCopy, emptyPriestessProfile, mergePriestessProfile, getPriestessProfile, savePriestessProfileDraft, submitPriestessProfile, listPriestessProfileReviewQueue, reviewPriestessProfile, PRIESTESS_PROFILE_PHOTO_BUCKET, PRIESTESS_PROFILE_PHOTO_MAX_BYTES, PRIESTESS_PROFILE_PHOTO_TYPES, uploadPriestessProfilePhoto, removePriestessProfilePhoto } from "./priestess-profiles.js?v=0.10.42";
 
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
 
@@ -32,3 +32,5 @@ export { WOMB_WORK_MODULES, getWombWorkModule } from './womb-work.js';
 export { MOON_PHASE_KEY, MOON_CALENDARS, WEEKLY_PLANNING_PROMPTS } from './moon-calendars.js';
 
 export { PRIESTESS_TITLE_OPTIONS, PRIESTESS_BIO_TEMPLATES, PRIESTESS_OFFERING_OPTIONS, FLOWTEL_TIMEZONE_OPTIONS, labelForPriestessTitle, bioTemplatesForTitle, findBioTemplate, offeringLabelsFromValues } from './priestess-profile-options.js';
+
+export { getTeamMapViewerState, listTeamMapPresences, setTeamMapVisibility, getTeamMapProfile } from './team-map.js';

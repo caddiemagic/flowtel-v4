@@ -919,7 +919,8 @@ function setPowderRoomPanelOpen(open){
   const expand=document.getElementById("powderRoomSharingExpandButton");
   if(panel){
     panel.classList.toggle("hidden",!open);
-    panel.setAttribute("aria-expanded", open ? "true" : "false");
+    panel.hidden=!open;
+    panel.setAttribute("aria-hidden", open ? "false" : "true");
   }
   if(expand) expand.setAttribute("aria-expanded", open ? "true" : "false");
 }
@@ -1020,6 +1021,7 @@ function renderSuite(stay){
 
   document.getElementById("reflectionInput").value="";
   renderPowderRoomSharingSetting();
+  setPowderRoomPanelOpen(false);
 
   renderConciergeCare(stay);
   renderPractitionerConnection();

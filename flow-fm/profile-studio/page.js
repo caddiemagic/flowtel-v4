@@ -52,6 +52,9 @@ let currentProfile = null;
 let currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
 let profileDirtyDisplayStatus = '';
 let api = null;
+let selectedProfilePhotoFile = null;
+let selectedProfilePhotoPreviewUrl = '';
+const DEFAULT_PROFILE_PHOTO = '/assets/flowtel-pinkrose.png';
 
 function escapeHtml(value){
   return String(value ?? '').replace(/[&<>'"]/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
@@ -77,6 +80,16 @@ function safeImageSrc(value){
 }
 function setPageMessage(text=''){
   if(message) message.textContent = text;
+}
+function canUseProfileStudio(profile){
+  const membership=String(profile?.membership_type || '').toLowerCase().replace(/[^a-z]/g,'');
+  return isPractitionerLevel(profile)
+    || membership==='flowfm'
+    || membership==='flowfmmember'
+    || membership==='council'
+    || membership.startsWith('flowfm')
+    || !!profile?.flowfm_started_at
+    || !!profile?.is_initiated;
 }
 function labelForPriestessTitle(valueOrLabel=''){
   const value=String(valueOrLabel || '').trim();
@@ -143,7 +156,7 @@ function statusCopy(status='draft'){
   }[String(status || 'draft')] || 'Your profile draft is still in your hands. Save as often as you need.';
 }
 function profilePhotoMarkup(profile={}){
-  const src=safeImageSrc(profile.profile_photo_url || profile.profilePhotoUrl) || '/assets/flowtel-pinkrose.png';
+  const src=safeImageSrc(profile.profile_photo_url || profile.profilePhotoUrl) || DEFAULT_PROFILE_PHOTO;
   return `<div class="profile-photo profile-photo--rose"><img src="${escapeHtml(src)}" alt="" loading="lazy" onerror="this.hidden=true; this.parentElement && this.parentElement.classList.add('photo-fallback');" /></div>`;
 }
 function valuesFromForm(form){
@@ -264,7 +277,124 @@ function refreshPreviewFromForm(form,{ markDirty=true }={}){
   const statusPillNode=form?.querySelector('[data-profile-status-pill]');
   if(statusPillNode) statusPillNode.innerHTML=renderProfileStatusPill(displayStatus);
 }
+function clearSelectedProfilePhoto(){
+  if(selectedProfilePhotoPreviewUrl){
+    URL.revokeObjectURL(selectedProfilePhotoPreviewUrl);
+    selectedProfilePhotoPreviewUrl='';
+  }
+  selectedProfilePhotoFile=null;
+}
+function profilePhotoUploaderMarkup(profile={}){
+  const savedSrc=safeImageSrc(profile.profile_photo_url) || DEFAULT_PROFILE_PHOTO;
+  const hasCustomPhoto=!!safeImageSrc(profile.profile_photo_url);
+  return `<section class="profile-photo-uploader" aria-labelledby="profilePhotoHeading">
+    <div class="profile-photo-upload-preview">
+      <img id="profilePhotoUploadPreview" src="${escapeHtml(savedSrc)}" alt="Your Priestess profile preview" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_PHOTO}'" />
+    </div>
+    <div class="profile-photo-upload-copy">
+      <p class="eyebrow" id="profilePhotoHeading">PROFILE PHOTO</p>
+      <h4>Choose the face of your Queendom.</h4>
+      <p>Upload a clear JPG, PNG, or WebP image up to 5 MB. It will appear in the Living Map, your Priestess profile, and Mentor selection. The rose remains your graceful fallback.</p>
+      <input class="profile-photo-file-input" id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" />
+      <div class="profile-photo-upload-actions">
+        <label class="profile-photo-choose" for="profilePhotoInput">Choose Photo</label>
+        <button type="button" id="uploadProfilePhotoButton" disabled>Upload Photo</button>
+        <button type="button" class="secondary ${hasCustomPhoto?'':'hidden'}" id="removeProfilePhotoButton">Use the Rose</button>
+      </div>
+      <p class="profile-photo-upload-status" id="profilePhotoUploadStatus" role="status">${hasCustomPhoto?'Your uploaded photo is active.':'The Flowtel rose is currently holding your place.'}</p>
+    </div>
+  </section>`;
+}
+function setProfilePhotoUploadStatus(text='',tone=''){
+  const status=document.getElementById('profilePhotoUploadStatus');
+  if(!status) return;
+  status.textContent=text;
+  status.dataset.tone=tone;
+}
+function bindProfilePhotoUploader(){
+  const input=document.getElementById('profilePhotoInput');
+  const preview=document.getElementById('profilePhotoUploadPreview');
+  const uploadButton=document.getElementById('uploadProfilePhotoButton');
+  const removeButton=document.getElementById('removeProfilePhotoButton');
+  if(!input || !preview || !uploadButton) return;
+
+  input.addEventListener('change',()=>{
+    clearSelectedProfilePhoto();
+    const file=input.files?.[0] || null;
+    if(!file){
+      preview.src=safeImageSrc(currentPriestessProfile?.profile_photo_url) || DEFAULT_PROFILE_PHOTO;
+      uploadButton.disabled=true;
+      return;
+    }
+    const allowed=['image/jpeg','image/png','image/webp'];
+    if(!allowed.includes(file.type)){
+      input.value='';
+      setProfilePhotoUploadStatus('Choose a JPG, PNG, or WebP image.','error');
+      return;
+    }
+    if(file.size > 5*1024*1024){
+      input.value='';
+      setProfilePhotoUploadStatus('Choose a photo smaller than 5 MB.','error');
+      return;
+    }
+    selectedProfilePhotoFile=file;
+    selectedProfilePhotoPreviewUrl=URL.createObjectURL(file);
+    preview.src=selectedProfilePhotoPreviewUrl;
+    uploadButton.disabled=false;
+    setProfilePhotoUploadStatus('Your preview is ready. Upload it when it feels true.','ready');
+  });
+
+  uploadButton.addEventListener('click',async()=>{
+    if(!selectedProfilePhotoFile) return;
+    if(!api?.uploadPriestessProfilePhoto){
+      setProfilePhotoUploadStatus('The photo doorway is still loading. Refresh once, then try again.','error');
+      return;
+    }
+    uploadButton.disabled=true;
+    input.disabled=true;
+    removeButton && (removeButton.disabled=true);
+    try{
+      setProfilePhotoUploadStatus('Uploading your Priestess photo…','working');
+      const photoUrl=await api.uploadPriestessProfilePhoto(selectedProfilePhotoFile);
+      clearSelectedProfilePhoto();
+      currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:photoUrl || ''};
+      await loadSavedProfile();
+      setPageMessage('Your Priestess photo is now traveling through the Flowtel.');
+    }catch(error){
+      console.error(error);
+      uploadButton.disabled=false;
+      input.disabled=false;
+      if(removeButton) removeButton.disabled=false;
+      setProfilePhotoUploadStatus(error?.message || 'This photo could not be uploaded yet.','error');
+    }
+  });
+
+  removeButton?.addEventListener('click',async()=>{
+    if(!api?.removePriestessProfilePhoto){
+      setProfilePhotoUploadStatus('The photo doorway is still loading. Refresh once, then try again.','error');
+      return;
+    }
+    uploadButton.disabled=true;
+    input.disabled=true;
+    removeButton.disabled=true;
+    try{
+      setProfilePhotoUploadStatus('Returning your profile to the Flowtel rose…','working');
+      await api.removePriestessProfilePhoto();
+      clearSelectedProfilePhoto();
+      currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:''};
+      await loadSavedProfile();
+      setPageMessage('The rose is holding your place again.');
+    }catch(error){
+      console.error(error);
+      input.disabled=false;
+      removeButton.disabled=false;
+      setProfilePhotoUploadStatus(error?.message || 'The photo could not be removed yet.','error');
+    }
+  });
+}
+
 function renderProfileStudio(record=currentPriestessProfile){
+  clearSelectedProfilePhoto();
   const profile=record || { status:'draft', timezone:'America/Los_Angeles' };
   const titleValue=selectedTitleValue(profile);
   const bioValue=selectedBioValue(profile);
@@ -283,7 +413,7 @@ function renderProfileStudio(record=currentPriestessProfile){
     <div class="form-grid"><label><span>Location — optional</span><input name="location" value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, CA / Online" /></label><label><span>Your Timezone</span><select name="timezone">${renderTimezoneOptions(timezone)}</select></label></div>
     <label class="checkbox-row checkbox-row--simple"><input type="checkbox" name="display_location" ${displayLocation(profile) ? 'checked' : ''} /><span>Display my location on my Priestess Profile.</span></label>
     <label><span>External Website URL — optional</span><input name="website_url" type="url" value="${escapeHtml(profile.website_url || '')}" placeholder="https://..." /></label>
-    <div class="photo-upload-note"><p class="eyebrow">PROFILE PHOTO</p><p>Photo upload can stay inside the Squarespace form/content storage for now. Flowtel will hold this place for the public profile preview.</p></div>
+    ${profilePhotoUploaderMarkup(profile)}
     ${profileReviewNotes(profile)}
     <div class="assignment-actions profile-actions"><button type="button" data-profile-action="preview">Refresh Preview</button><button type="button" data-profile-action="draft">Save Profile Draft</button><button type="button" data-profile-action="submit">Send Profile to be Witnessed</button></div>
   </form>`;
@@ -302,9 +432,10 @@ function bindProfileForm(){
     refreshPreviewFromForm(form,{ markDirty:true });
   });
   bioSelect?.addEventListener('change',()=>{ refreshSelectedBioPreview(); refreshPreviewFromForm(form,{ markDirty:true }); });
-  form.querySelectorAll('input, select').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form,{ markDirty:true })));
+  form.querySelectorAll('input:not([type="file"]), select').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form,{ markDirty:true })));
   form.querySelectorAll('input[type="checkbox"], select').forEach(input=>input.addEventListener('change',()=>refreshPreviewFromForm(form,{ markDirty:true })));
   form.querySelectorAll('[data-profile-action]').forEach(button=>button.addEventListener('click',()=>handleProfileAction(form,button.dataset.profileAction)));
+  bindProfilePhotoUploader();
 }
 async function handleProfileAction(form,action){
   if(action==='preview'){
@@ -351,13 +482,13 @@ async function loadSavedProfile(){
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.11');
+    api=await import('/shared/flowtel.js?v=0.10.42');
     currentProfile=await api.getCurrentProfile();
-    if(!isPractitionerLevel(currentProfile)){
+    if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({
         featureName:'Profile Studio',
-        title:'Opening in Phase 2',
-        copy:'The Profile Studio will open in Phase 2 of beta testing for practitioner-level users. Phase 1 guests are testing check-in, Suite, Lounge, and Flow Map first.',
+        title:'Reserved for Flow FM',
+        copy:'The Profile Studio is available to Flow FM and Council members tending a Priestess profile. Return to the guest flow for the Suite, Lounge, and personal Flow Map.',
       });
       return;
     }

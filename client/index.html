@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.41" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.42" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -137,7 +137,10 @@
                 <p id="suiteSeason"></p>
                 <p id="suiteDayOne" class="suite-day-one"></p>
               </article>
-              <a class="cycle-data-link suite-flow-map-link suite-flow-map-link--below-room" id="suiteCurrentRoomFlowMapLink" href="/flow-map/">View Flow Map</a>
+              <nav class="suite-map-actions" aria-label="Suite map navigation">
+                <a class="cycle-data-link suite-flow-map-link suite-flow-map-link--below-room" id="suiteCurrentRoomFlowMapLink" href="/flow-map/">View Flow Map</a>
+                <a class="cycle-data-link suite-flow-map-link suite-flow-map-link--below-room" id="suiteCurrentRoomTeamMapLink" href="/flow-fm/team-map/">View Team Map</a>
+              </nav>
             </div>
 
           </section>
@@ -171,9 +174,9 @@
           <textarea id="reflectionInput" placeholder="Write what you want the Flowtel to remember from today..."></textarea>
           <p class="powder-share-inline" id="powderRoomSharingInline">
             <span id="powderRoomSharingCopy">Your reflections will be shared anonymously in the Powder Rooms.</span>
-            <button id="powderRoomSharingExpandButton" type="button">Click here to opt out.</button>
+            <button id="powderRoomSharingExpandButton" type="button" aria-controls="powderRoomSharingPanel" aria-expanded="false">Click here to opt out.</button>
           </p>
-          <article class="powder-master-setting powder-master-setting--collapsed hidden" id="powderRoomSharingPanel">
+          <article class="powder-master-setting powder-master-setting--collapsed hidden" id="powderRoomSharingPanel" hidden aria-hidden="true">
             <div>
               <p class="eyebrow">POWDER ROOM SHARING</p>
               <p>Your daily reflection can be witnessed anonymously in the Powder Room for your actual inner season.</p>
@@ -307,6 +310,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.41"></script>
+  <script type="module" src="./app.js?v=0.10.42"></script>
 </body>
 </html>

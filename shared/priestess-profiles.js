@@ -153,3 +153,70 @@ export async function reviewPriestessProfile({ profileId, status, mentorNote = "
   if (error) throw error;
   return data;
 }
+
+
+export const PRIESTESS_PROFILE_PHOTO_BUCKET = "flow-fm-profile-photos";
+export const PRIESTESS_PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
+export const PRIESTESS_PROFILE_PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+
+function validatePriestessProfilePhoto(file) {
+  if (!(file instanceof File)) throw new Error("Choose a photo before uploading.");
+  if (!PRIESTESS_PROFILE_PHOTO_TYPES.includes(file.type)) {
+    throw new Error("Choose a JPG, PNG, or WebP image.");
+  }
+  if (file.size > PRIESTESS_PROFILE_PHOTO_MAX_BYTES) {
+    throw new Error("Choose a photo smaller than 5 MB.");
+  }
+}
+
+async function currentAuthenticatedUser() {
+  const { data, error } = await supabase.auth.getUser();
+  if (error) throw error;
+  if (!data?.user) throw new Error("Sign in through Flowtel before uploading a photo.");
+  return data.user;
+}
+
+export async function uploadPriestessProfilePhoto(file) {
+  validatePriestessProfilePhoto(file);
+  const user = await currentAuthenticatedUser();
+  const objectPath = `${user.id}/profile-photo`;
+  const { error: uploadError } = await supabase.storage
+    .from(PRIESTESS_PROFILE_PHOTO_BUCKET)
+    .upload(objectPath, file, {
+      upsert: true,
+      contentType: file.type,
+      cacheControl: "3600",
+    });
+  if (uploadError) throw uploadError;
+
+  const { data: publicData } = supabase.storage
+    .from(PRIESTESS_PROFILE_PHOTO_BUCKET)
+    .getPublicUrl(objectPath);
+  const publicUrl = publicData?.publicUrl;
+  if (!publicUrl) throw new Error("The photo uploaded, but Flowtel could not prepare its profile URL.");
+  const versionedUrl = `${publicUrl}?v=${Date.now()}`;
+
+  const { data, error } = await supabase.rpc("flow_fm_set_priestess_profile_photo", {
+    p_profile_photo_url: versionedUrl,
+  });
+  if (error) {
+    await supabase.storage.from(PRIESTESS_PROFILE_PHOTO_BUCKET).remove([objectPath]).catch(()=>{});
+    throw error;
+  }
+  return data || versionedUrl;
+}
+
+export async function removePriestessProfilePhoto() {
+  const user = await currentAuthenticatedUser();
+  const objectPath = `${user.id}/profile-photo`;
+  const { error: removeError } = await supabase.storage
+    .from(PRIESTESS_PROFILE_PHOTO_BUCKET)
+    .remove([objectPath]);
+  if (removeError) console.warn("Stored profile photo could not be removed.", removeError);
+
+  const { error } = await supabase.rpc("flow_fm_set_priestess_profile_photo", {
+    p_profile_photo_url: null,
+  });
+  if (error) throw error;
+  return null;
+}

@@ -1,3 +1,16 @@
+## v0.10.42 — Living Map Presence Repair + Priestess Photo Upload
+
+- Added **View Team Map** beside **View Flow Map** beneath the Suite Current Room card.
+- Repaired the Powder Room sharing disclosure so it opens inline and collapses again with **Done**.
+- Removed the underline and loud styling from **Click here to opt out**.
+- Added a Living Map **Your Presence** diagnostic showing today’s check-in, season, cycle day, visibility, photo fallback, and missing-presence reason.
+- Normalized legacy season values and broadened Flow FM/practitioner eligibility for today’s Team Map.
+- Added native JPG/PNG/WebP Priestess photo upload through Supabase Storage with a 5 MB limit.
+- Restored Profile Studio access for recognized Flow FM and Council members whose role is not yet practitioner-level.
+- Synced uploaded photos into Priestess Profile and Mentor-selection photo fields.
+- Preserved the Flowtel pink rose as the default image.
+- Adds Supabase migration 032.
+
 ## v0.10.41 — The Living Map + Multidimensional Presence
 
 - Added `/flow-fm/team-map/` as a daily Team Map for women who checked into Flowtel today.
