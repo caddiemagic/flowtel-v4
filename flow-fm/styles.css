@@ -1137,3 +1137,20 @@ input,textarea,button{font:inherit;color:inherit}
   .profile-photo-upload-actions{justify-content:center;width:100%}
   .profile-photo-choose,.profile-photo-upload-actions button{flex:1 1 130px}
 }
+
+
+/* Flowtel v0.10.52 — private legal identity + canonical Flowtel display name */
+.profile-identity-fields{
+  display:grid;
+  gap:14px;
+  margin:0 0 18px;
+  padding:18px;
+  border:1px solid rgba(216,173,79,.22);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.24));
+  box-shadow:0 14px 36px rgba(109,78,65,.05);
+}
+.profile-identity-heading{display:grid;gap:5px}
+.profile-identity-heading p{margin:0}
+.profile-identity-heading p:not(.eyebrow){color:#8b695d;line-height:1.45}
+.profile-identity-fields .field-help{display:block;margin-top:6px;color:#987267;font-size:.82rem;font-style:italic;line-height:1.4}

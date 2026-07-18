@@ -1,4 +1,4 @@
-import { listPublicTeamMapPresences } from '/shared/team-map.js?v=0.10.50';
+import { listPublicTeamMapPresences } from '/shared/team-map.js?v=0.10.52';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -66,8 +66,10 @@ function presenceMarkup(presence,index){
   const name=row.priestess_name || 'Flow FM Priestess';
   const kindLabel=presence.kind==='ghost' ? `Feels Like ${presence.season.replace(/^Inner\s+/,'')}` : '';
   return `<button class="embed-presence ${presence.kind==='ghost'?'is-ghost':'is-actual'}" type="button" data-presence-key="${escapeHtml(row.presence_key)}" style="--float-delay:${delay}s;--float-distance:${distance}px">
-    <span class="embed-halo" aria-hidden="true"></span>
-    <span class="embed-photo"><img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" /></span>
+    <span class="embed-portrait">
+      <span class="embed-halo" aria-hidden="true"></span>
+      <span class="embed-photo"><img src="${escapeHtml(safeImage(row.profile_photo_url))}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='${DEFAULT_PROFILE_IMAGE}'" /></span>
+    </span>
     <strong>${escapeHtml(name)}</strong>
     ${kindLabel?`<small>${escapeHtml(kindLabel)}</small>`:''}
   </button>`;

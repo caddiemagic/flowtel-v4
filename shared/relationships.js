@@ -2,20 +2,20 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 
-const BASE_MENTOR_SELECT = "id, first_name, last_name, email, role, membership_type, practitioner_level, flowfm_started_at, is_initiated";
+const BASE_MENTOR_SELECT = "id, display_name, first_name, last_name, email, role, membership_type, practitioner_level, flowfm_started_at, is_initiated";
 const EXTENDED_MENTOR_SELECT = `${BASE_MENTOR_SELECT}, mentor_title, mentor_bio, mentor_photo_url, mentor_specialties, mentor_accepting_clients, mentor_sort_order, mentor_scheduling_url, scheduling_url, booking_url, serving_wing`;
 export const MENTOR_DATA_CONSENT_LANGUAGE = "By inviting this mentor, you consent to share your Flowtel cycle data, check-ins, reflections, and stay history with them while you are connected.";
 
 const SELECT_RELATIONSHIP = `
   *,
   practitioner:practitioner_id (${EXTENDED_MENTOR_SELECT}),
-  client:client_id (id, first_name, last_name, email, role, membership_type)
+  client:client_id (id, display_name, first_name, last_name, email, role, membership_type)
 `;
 
 const FALLBACK_SELECT_RELATIONSHIP = `
   *,
   practitioner:practitioner_id (${BASE_MENTOR_SELECT}),
-  client:client_id (id, first_name, last_name, email, role, membership_type)
+  client:client_id (id, display_name, first_name, last_name, email, role, membership_type)
 `;
 
 // Release 0.10.15 login recovery:

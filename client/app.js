@@ -1,6 +1,6 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated } from "../shared/profiles.js?v=0.10.50";
-import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile } from "../shared/profiles.js?v=0.10.52";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.52";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 
@@ -185,12 +185,11 @@ function cleanProfileNameParts(profile={}){
 }
 
 function profileFirstName(profile=currentProfile){
-  return cleanProfileNameParts(profile).firstName || "Guest";
+  return firstNameForProfile(profile, cleanProfileNameParts(profile).firstName || "Guest");
 }
 
 function profileFullName(profile=currentProfile){
-  const parts=cleanProfileNameParts(profile);
-  return [parts.firstName, parts.lastName].filter(Boolean).join(" ") || profile?.email || "Guest";
+  return displayNameForProfile(profile, profile?.email || "Guest");
 }
 
 function directSeasonName(value,{lower=false}={}){
@@ -1389,11 +1388,11 @@ function renderConciergeCare(stay){
 
 
 function mentorDisplayName(profile){
-  return [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") || profile?.email || "Your Mentor";
+  return displayNameForProfile(profile, profile?.email || "Your Mentor");
 }
 
 function mentorFirstName(profile){
-  return profile?.first_name || mentorDisplayName(profile).split(" ")[0] || "Mentor";
+  return firstNameForProfile(profile, "Mentor");
 }
 
 function mentorTitle(profile){

@@ -1,8 +1,8 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.50";
+import { ensureProfile, getCurrentProfile, displayNameForProfile } from "../shared/profiles.js?v=0.10.52";
 import { isPractitionerLevel } from "../shared/beta-access.js";
-import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
+import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.52";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.52";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -338,7 +338,7 @@ function canOpenTurndownRoom(stay){
 function updatePractitionerIdentity(){
   const profile=currentManagerProfile || {};
   const initiation=getFlowFmInitiationStatus(profile);
-  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Concierge";
+  const name=displayNameForProfile(profile, profile.email || "Concierge");
 
   setText("practitionerIdentityName",name);
 
@@ -426,6 +426,9 @@ function nameFromEmail(email){
 
 function guestName(stay){
   const profile=stay.profiles || stay.client || {};
+  const canonical=displayNameForProfile(profile, "");
+  if(canonical) return canonical;
+
   let first=titleCaseNamePart(profile.first_name || "");
   const last=titleCaseNamePart(profile.last_name || "");
   const emailGuess=nameFromEmail(profile.email || stay.client_email || "");
@@ -475,8 +478,8 @@ function isTurndownFulfilled(stay){
 }
 
 function turndownCompletedBy(stay){
-  const witness=[stay.witness_profile?.first_name,stay.witness_profile?.last_name].filter(Boolean).join(" ");
-  return stay.turndown_completed_by_name || stay.witness_note_by || witness || "Your Concierge";
+  const witness=displayNameForProfile(stay.witness_profile || {}, "");
+  return witness || stay.turndown_completed_by_name || stay.witness_note_by || "Your Concierge";
 }
 
 function turndownTime(stay){
@@ -661,7 +664,7 @@ async function goToSuite(){
 function practitionerCareLabel(){
   const profile=currentManagerProfile || {};
   const initiation=getFlowFmInitiationStatus(profile);
-  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Your concierge";
+  const name=displayNameForProfile(profile, profile.email || "Your concierge");
   return `${initiation.level || "Concierge"} ${name}`;
 }
 
@@ -839,7 +842,7 @@ function bindTeamMembershipButtons(scope=document){
 
 function relationshipGuestName(row){
   const client=row?.client || {};
-  return [client.first_name, client.last_name].filter(Boolean).join(" ") || client.email || "Guest";
+  return displayNameForProfile(client, client.email || "Guest");
 }
 
 function bindConnectionButtons(scope=document){

@@ -4,6 +4,31 @@ import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
 
+
+export function displayNameForProfile(profile = {}, fallback = "Guest") {
+  const displayName = String(
+    profile?.display_name ||
+    profile?.priestess_name ||
+    profile?.displayName ||
+    ""
+  ).trim();
+
+  if (displayName) return displayName;
+
+  const legalName = [profile?.first_name, profile?.last_name]
+    .map(value => String(value || "").trim())
+    .filter(Boolean)
+    .join(" ");
+
+  const emailPrefix = String(profile?.email || "").trim().split("@")[0];
+  return legalName || emailPrefix || fallback;
+}
+
+export function firstNameForProfile(profile = {}, fallback = "Guest") {
+  const displayName = displayNameForProfile(profile, "");
+  return displayName.split(/\s+/).filter(Boolean)[0] || fallback;
+}
+
 export async function getCurrentProfile() {
   const user = await getCurrentUser();
 
@@ -47,14 +72,23 @@ export async function ensureProfile(profile = {}) {
     id: user.id,
     email: user.email,
     first_name:
-      profile.firstName ||
       existing?.first_name ||
+      profile.firstName ||
       user.user_metadata?.first_name ||
       null,
     last_name:
-      profile.lastName ||
       existing?.last_name ||
+      profile.lastName ||
       user.user_metadata?.last_name ||
+      null,
+    display_name:
+      existing?.display_name ||
+      profile.displayName ||
+      user.user_metadata?.display_name ||
+      [
+        profile.firstName || existing?.first_name || user.user_metadata?.first_name,
+        profile.lastName || existing?.last_name || user.user_metadata?.last_name,
+      ].filter(Boolean).join(" ") ||
       null,
     role: resolvedRole,
     membership_type: resolvedMembership || existing?.membership_type || null,
@@ -111,6 +145,51 @@ export async function ensureProfile(profile = {}) {
   if (error) throw error;
 
   return data;
+}
+
+export async function updateMyFlowtelIdentity({ firstName = "", lastName = "", displayName = "" } = {}) {
+  const user = await getCurrentUser();
+
+  if (!user) throw new Error("No authenticated user.");
+
+  const legalFirstName = String(firstName || "").trim();
+  const legalLastName = String(lastName || "").trim();
+  const flowtelDisplayName = String(displayName || "").trim();
+
+  if (!legalFirstName) throw new Error("Add your legal first name.");
+  if (!legalLastName) throw new Error("Add your legal last name.");
+  if (!flowtelDisplayName) throw new Error("Add the display name you want to use inside the Flowtel.");
+
+  const { data, error } = await supabase.rpc("flowtel_update_my_identity", {
+    p_first_name: legalFirstName,
+    p_last_name: legalLastName,
+    p_display_name: flowtelDisplayName,
+  });
+
+  if (error) {
+    const message = String(error?.message || "");
+    if (message.toLowerCase().includes("function") && message.toLowerCase().includes("flowtel_update_my_identity")) {
+      throw new Error("The Flowtel identity helper is not installed yet. Run migration 040, then save your profile again.");
+    }
+    throw error;
+  }
+
+  // Refresh the active browser session metadata so identity changes are reflected
+  // immediately without requiring a sign-out/sign-in cycle.
+  const metadataUpdate = await supabase.auth.updateUser({
+    data: {
+      first_name: legalFirstName,
+      last_name: legalLastName,
+      display_name: flowtelDisplayName,
+      full_name: flowtelDisplayName,
+      name: flowtelDisplayName,
+    },
+  });
+  if (metadataUpdate.error) {
+    console.warn("Flowtel identity saved, but browser Auth metadata could not be refreshed yet.", metadataUpdate.error);
+  }
+
+  return Array.isArray(data) ? data[0] || null : data;
 }
 
 export async function updatePowderRoomSharing(enabled = true) {

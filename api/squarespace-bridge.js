@@ -219,7 +219,7 @@ async function readSupabaseJson(url, options = {}) {
 
 
 async function findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email }) {
-  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,display_name,first_name,last_name,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
   const data = await readSupabaseJson(url, {
     method: "GET",
     headers: supabaseAdminHeaders(serviceKey),
@@ -242,8 +242,26 @@ async function refreshSupabaseBetaUserMetadata({ supabaseUrl, serviceKey, userId
     email_confirm: true,
     user_metadata: {
       ...(existingMetadata || {}),
-      first_name: contact?.firstName || existingMetadata?.first_name || null,
-      last_name: contact?.lastName || existingMetadata?.last_name || null,
+      first_name: existingMetadata?.first_name || contact?.firstName || null,
+      last_name: existingMetadata?.last_name || contact?.lastName || null,
+      display_name:
+        existingMetadata?.display_name ||
+        existingMetadata?.full_name ||
+        existingMetadata?.name ||
+        [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") ||
+        null,
+      full_name:
+        existingMetadata?.display_name ||
+        existingMetadata?.full_name ||
+        existingMetadata?.name ||
+        [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") ||
+        null,
+      name:
+        existingMetadata?.display_name ||
+        existingMetadata?.full_name ||
+        existingMetadata?.name ||
+        [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") ||
+        null,
       squarespace_contact_id: contact?.id || existingMetadata?.squarespace_contact_id || null,
       membership_type: membershipType,
       membership_rank: membershipRank(membershipType),
@@ -277,6 +295,9 @@ async function createSupabaseBetaUser({ supabaseUrl, serviceKey, email, password
       user_metadata: {
         first_name: contact?.firstName || null,
         last_name: contact?.lastName || null,
+        display_name: [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") || null,
+        full_name: [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") || null,
+        name: [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") || null,
         squarespace_contact_id: contact?.id || null,
         membership_type: membershipType,
         membership_rank: membershipRank(membershipType),

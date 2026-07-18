@@ -1,5 +1,5 @@
-import { getCurrentProfile } from "../shared/profiles.js";
-import { listMyClients } from "../shared/flowtel.js";
+import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.52";
+import { listMyClients } from "../shared/flowtel.js?v=0.10.52";
 import { supabase } from "../shared/supabase.js";
 
 const intro=document.getElementById("flowMapIntro");
@@ -42,7 +42,7 @@ function escapeHtml(value){
   return String(value ?? "").replace(/[&<>'"]/g, char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#039;",'"':"&quot;"}[char]));
 }
 function fullName(profile){
-  return [profile?.first_name,profile?.last_name].filter(Boolean).join(" ") || profile?.email || "Flowtel Guest";
+  return displayNameForProfile(profile, "Flowtel Guest");
 }
 function formatDate(value){
   if(!value) return "—";

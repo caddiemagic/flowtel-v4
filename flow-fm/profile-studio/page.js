@@ -110,7 +110,7 @@ function offeringLabelsFromValues(values=[]){
   return list.map(value => PRIESTESS_OFFERING_OPTIONS.find(item => item.value === value || item.label === value)?.label || value).filter(Boolean);
 }
 function normalizeMembership(value){ return String(value || '').toLowerCase().replace(/[^a-z]/g,''); }
-function canTendOwnProfile(profile){ return !!profile?.id; }
+function canTendOwnProfile(profile){ return !!profile?.id && !isViewingAnotherMember(profile); }
 function requestedMemberId(){ return new URLSearchParams(window.location.search).get('member') || new URLSearchParams(window.location.search).get('client') || null; }
 function isViewingAnotherMember(profile){ return !!requestedMemberId() && requestedMemberId() !== profile?.id; }
 function selectedTitleValue(record={}){
@@ -179,8 +179,9 @@ function valuesFromForm(form){
     bio,
     offeringValues,
     offerings,
-    priestessName:String(data.get('priestess_name') || '').trim(),
-    legalName:String(data.get('legal_name') || '').trim(),
+    displayName:String(data.get('display_name') || '').trim(),
+    legalFirstName:String(data.get('legal_first_name') || '').trim(),
+    legalLastName:String(data.get('legal_last_name') || '').trim(),
     websiteUrl:normalizeExternalUrl(data.get('website_url') || ''),
     location,
     displayLocation:displayLocationValue,
@@ -189,8 +190,11 @@ function valuesFromForm(form){
 }
 function payloadFromValues(values){
   return {
-    priestessName: values.priestessName,
-    legalName: values.legalName,
+    priestessName: values.displayName,
+    displayName: values.displayName,
+    legalFirstName: values.legalFirstName,
+    legalLastName: values.legalLastName,
+    legalName: [values.legalFirstName, values.legalLastName].filter(Boolean).join(' '),
     profileEmail: currentProfile?.email || currentPriestessProfile?.profile_email || '',
     profilePhotoUrl: currentPriestessProfile?.profile_photo_url || '',
     bio: values.bio,
@@ -202,7 +206,7 @@ function payloadFromValues(values){
     instagramUrl: currentPriestessProfile?.instagram_url || '',
     tiktokUrl: currentPriestessProfile?.tiktok_url || '',
     podcastUrl: currentPriestessProfile?.podcast_url || '',
-    queendomName: values.priestessName ? `${values.priestessName}'s Queendom` : 'Your Queendom',
+    queendomName: values.displayName ? `${values.displayName}'s Queendom` : 'Your Queendom',
     offerings: values.offerings,
     location: values.displayLocation ? values.location : '',
     timezone: values.timezone,
@@ -222,7 +226,7 @@ function profileReviewNotes(profile){
   return `<div class="witness-note profile-note"><p class="eyebrow">PROFILE NOTE${escapeHtml(reviewer)}</p>${mentor ? `<p>${escapeHtml(mentor)}</p>` : ''}${admin ? `<p class="admin-note">Admin note: ${escapeHtml(admin)}</p>` : ''}</div>`;
 }
 function renderDisplayProfile(profile={}){
-  const name=profile.priestess_name || profile.member_name || 'Priestess Profile';
+  const name=profile.display_name || profile.priestess_name || profile.member_name || 'Priestess Profile';
   const title=labelForPriestessTitle(profile.priestess_title || profile.modalities || 'rose-priestess');
   const locationLine=String(profile.location || '').trim();
   const timezoneLine=String(profile.timezone || '').trim();
@@ -254,7 +258,10 @@ function renderProfileFromRecord(record={}){
   const titleValue=selectedTitleValue(record);
   return {
     ...record,
-    priestess_name: record.priestess_name || '',
+    display_name: record.display_name || record.priestess_name || '',
+    priestess_name: record.display_name || record.priestess_name || '',
+    legal_first_name: record.legal_first_name || record.first_name || '',
+    legal_last_name: record.legal_last_name || record.last_name || '',
     modalities: labelForPriestessTitle(titleValue),
     bio: record.bio || findBioTemplate('').copy,
     offerings: record.offerings || '',
@@ -273,7 +280,21 @@ function refreshPreviewFromForm(form,{ markDirty=true }={}){
   const payload=profilePayloadFromForm(form);
   const displayStatus=markDirty ? dirtyDisplayStatusFor(currentPriestessProfile?.status) : displayStatusForProfile(currentPriestessProfile || {});
   profileDirtyDisplayStatus = displayStatus !== (currentPriestessProfile?.status || 'draft') ? displayStatus : '';
-  currentPriestessProfile={...(currentPriestessProfile || {}),display_status:displayStatus,priestess_name:payload.priestessName,legal_name:payload.legalName,bio:payload.bio,modalities:payload.modalities,website_url:payload.websiteUrl,offerings:payload.offerings,location:payload.location,timezone:payload.timezone};
+  currentPriestessProfile={
+    ...(currentPriestessProfile || {}),
+    display_status:displayStatus,
+    display_name:payload.displayName,
+    priestess_name:payload.displayName,
+    legal_first_name:payload.legalFirstName,
+    legal_last_name:payload.legalLastName,
+    legal_name:payload.legalName,
+    bio:payload.bio,
+    modalities:payload.modalities,
+    website_url:payload.websiteUrl,
+    offerings:payload.offerings,
+    location:payload.location,
+    timezone:payload.timezone
+  };
   profileStudioPreview.innerHTML=renderDisplayProfile(currentPriestessProfile);
   const statusCopyNode=form?.querySelector('[data-profile-status-copy]');
   if(statusCopyNode) statusCopyNode.textContent=statusCopy(displayStatus);
@@ -412,7 +433,13 @@ function renderProfileStudio(record=currentPriestessProfile){
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
     <div class="profile-form-heading"><div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>
-    <div class="form-grid"><label><span>Profile Name</span><input name="priestess_name" value="${escapeHtml(profile.priestess_name || '')}" placeholder="First name or priestess name" /></label><label><span>Legal Name — private</span><input name="legal_name" value="${escapeHtml(profile.legal_name || '')}" placeholder="For future network documents" /></label></div>
+    ${isViewingAnotherMember(currentProfile)
+      ? `<section class="profile-identity-fields profile-identity-fields--private"><div class="profile-identity-heading"><p class="eyebrow" id="profileIdentityHeading">FLOWTEL IDENTITY</p><p>This member privately manages her legal name and Flowtel display name from her own Profile Studio.</p></div><input type="hidden" name="display_name" value="${escapeHtml(profile.display_name || profile.priestess_name || '')}" /><input type="hidden" name="legal_first_name" value="" /><input type="hidden" name="legal_last_name" value="" /></section>`
+      : `<section class="profile-identity-fields" aria-labelledby="profileIdentityHeading">
+        <div class="profile-identity-heading"><p class="eyebrow" id="profileIdentityHeading">YOUR FLOWTEL IDENTITY</p><p>Your legal name stays private. Your Priestess Display Name is the name guests and team members see throughout the Flowtel.</p></div>
+        <div class="form-grid"><label><span>Legal First Name — private</span><input name="legal_first_name" autocomplete="given-name" required value="${escapeHtml(profile.legal_first_name || profile.first_name || '')}" placeholder="Megan" /></label><label><span>Legal Last Name — private</span><input name="legal_last_name" autocomplete="family-name" required value="${escapeHtml(profile.legal_last_name || profile.last_name || '')}" placeholder="Johnson" /></label></div>
+        <label><span>Priestess Display Name</span><input name="display_name" autocomplete="nickname" required value="${escapeHtml(profile.display_name || profile.priestess_name || '')}" placeholder="Megan Michele" /><small class="field-help">This is the name shown in your Suite, Team Map, Concierge Desk, mentor spaces, and Priestess profile.</small></label>
+      </section>`}
     <label><span>Title</span><select name="title_value">${renderTitleOptions(titleValue)}</select></label>
     <label><span>Bio Template</span><select name="bio_template">${renderBioOptions(titleValue,bioValue)}</select></label>
     <div class="selected-bio-preview" data-selected-bio-preview></div>
@@ -420,9 +447,9 @@ function renderProfileStudio(record=currentPriestessProfile){
     <div class="form-grid"><label><span>Location — optional</span><input name="location" value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, CA / Online" /></label><label><span>Your Timezone</span><select name="timezone">${renderTimezoneOptions(timezone)}</select></label></div>
     <label class="checkbox-row checkbox-row--simple"><input type="checkbox" name="display_location" ${displayLocation(profile) ? 'checked' : ''} /><span>Display my location on my Priestess Profile.</span></label>
     <label><span>External Website URL — optional</span><input name="website_url" type="text" inputmode="url" autocapitalize="off" autocomplete="url" value="${escapeHtml(profile.website_url || '')}" placeholder="yourpriestessprofile.com" /><small class="field-help">Paste your existing Priestess profile link. Flowtel will add https:// when needed.</small></label>
-    ${profilePhotoUploaderMarkup(profile)}
+    ${isViewingAnotherMember(currentProfile) ? '' : profilePhotoUploaderMarkup(profile)}
     ${profileReviewNotes(profile)}
-    <div class="assignment-actions profile-actions"><button type="button" data-profile-action="preview">Refresh Preview</button><button type="button" data-profile-action="draft">Save Profile Draft</button><button type="button" data-profile-action="submit">Send Profile to be Witnessed</button></div>
+    ${isViewingAnotherMember(currentProfile) ? '' : '<div class="assignment-actions profile-actions"><button type="button" data-profile-action="preview">Refresh Preview</button><button type="button" data-profile-action="draft">Save Profile Draft</button><button type="button" data-profile-action="submit">Send Profile to be Witnessed</button></div>'}
   </form>`;
   bindProfileForm();
   refreshSelectedBioPreview();
@@ -458,6 +485,24 @@ async function handleProfileAction(form,action){
     setPageMessage('Sign in through Flowtel before saving or submitting your Priestess Profile.');
     return;
   }
+  const legalFirstInput=form.querySelector('[name="legal_first_name"]');
+  const legalLastInput=form.querySelector('[name="legal_last_name"]');
+  const displayNameInput=form.querySelector('[name="display_name"]');
+  if(!String(legalFirstInput?.value || '').trim()){
+    legalFirstInput?.focus();
+    setPageMessage('Add your legal first name. It stays private inside your account.');
+    return;
+  }
+  if(!String(legalLastInput?.value || '').trim()){
+    legalLastInput?.focus();
+    setPageMessage('Add your legal last name. It stays private inside your account.');
+    return;
+  }
+  if(!String(displayNameInput?.value || '').trim()){
+    displayNameInput?.focus();
+    setPageMessage('Add the Priestess Display Name you want to use throughout the Flowtel.');
+    return;
+  }
   const websiteInput=form.querySelector('[name="website_url"]');
   const rawWebsite=String(websiteInput?.value || '').trim();
   const normalizedWebsite=api?.normalizeExternalProfileUrl
@@ -471,7 +516,7 @@ async function handleProfileAction(form,action){
   if(websiteInput) websiteInput.value=normalizedWebsite;
   const payload=profilePayloadFromForm(form);
   try{
-    setPageMessage(action==='submit' ? 'Saving your profile link and sending your Priestess Profile to be witnessed...' : 'Saving your Priestess Profile and profile link...');
+    setPageMessage(action==='submit' ? 'Saving your Flowtel identity, profile link, and Priestess Profile for witnessing...' : 'Saving your Flowtel identity and Priestess Profile...');
     if(action==='submit') await api.submitPriestessProfile(payload);
     else await api.savePriestessProfileDraft(payload);
     profileDirtyDisplayStatus='';
@@ -481,10 +526,10 @@ async function handleProfileAction(form,action){
       throw new Error('Your profile saved, but Flowtel could not confirm the external profile link. Run migration 036, then save once more.');
     }
     setPageMessage(action==='submit'
-      ? 'Priestess Profile sent to be witnessed. Your external profile link is saved.'
+      ? 'Priestess Profile sent to be witnessed. Your legal name is private and your Flowtel display name is now live.'
       : normalizedWebsite
-        ? 'Priestess Profile draft and external profile link saved.'
-        : 'Priestess Profile draft saved.');
+        ? 'Priestess Profile, Flowtel display name, and external profile link saved.'
+        : 'Priestess Profile and Flowtel display name saved.');
   }catch(error){
     console.error(error);
     setPageMessage(error.message || 'This Priestess Profile could not be tended yet.');
@@ -499,7 +544,21 @@ async function loadSavedProfile(){
   try{
     const profile=await api.getPriestessProfile(requestedMemberId());
     profileDirtyDisplayStatus='';
-    currentPriestessProfile={...currentPriestessProfile,...(profile || {}),display_status:''};
+    currentPriestessProfile={
+      ...currentPriestessProfile,
+      ...(profile || {}),
+      display_name: isViewingAnotherMember(currentProfile)
+        ? (profile?.priestess_name || profile?.member_name || '')
+        : (currentProfile?.display_name || profile?.priestess_name || currentPriestessProfile?.display_name || ''),
+      priestess_name: isViewingAnotherMember(currentProfile)
+        ? (profile?.priestess_name || profile?.member_name || '')
+        : (currentProfile?.display_name || profile?.priestess_name || currentPriestessProfile?.priestess_name || ''),
+      legal_first_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.first_name || currentPriestessProfile?.legal_first_name || ''),
+      legal_last_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.last_name || currentPriestessProfile?.legal_last_name || ''),
+      first_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.first_name || ''),
+      last_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.last_name || ''),
+      display_status:''
+    };
     renderProfileStudio(currentPriestessProfile);
     return currentPriestessProfile;
   }catch(error){
@@ -510,7 +569,7 @@ async function loadSavedProfile(){
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.46');
+    api=await import('/shared/flowtel.js?v=0.10.52');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({

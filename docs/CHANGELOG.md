@@ -1,15 +1,15 @@
-## Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
+## v0.10.52 — Priestess Identity + Display Name Sync
 
-- Rebuilt `/caddie-magic/` as a velvety navy, hunter green, antique gold, moon-silver private golf locker room.
-- Kept the Round Log limited to Date, Course, Score, and Swing Thoughts.
-- Added the Moon Score Data snapshot with Moon Day, Moon Phase, placeholder theme, Last New Moon, and Next New Moon.
-- Added a clickable 28-position golf-club medicine wheel with temporary North, East, South, and West Club labels.
-- Added day-level score and swing-thought review directly from the wheel.
-- Refined the Player Locker around latest score, moon data, latest swing thought, Notes Under the Door, and previous rounds.
-- Added `/caddie-magic/score-map/` with Current Moon, Last Moon, and All views using the Flowtel Flow Map framework.
-- Replaced the Flowtel seasonal quadrants with West Club, South Club, East Club, and North Club placeholders.
-- Added `/caddie-magic/score-map/printable/` as the downloadable / Save PDF Moon Score Map exercise.
-- No Supabase migration required.
+- Added separate **Legal First Name**, **Legal Last Name**, and **Priestess Display Name** fields to Profile Studio.
+- Stores legal names privately in `profiles.first_name` and `profiles.last_name`.
+- Adds `profiles.display_name` as the canonical name shown throughout the Flowtel.
+- Synchronizes the chosen display name with the Priestess Profile record and Supabase Auth metadata.
+- Updates Suite greetings, Team Map, Concierge Desk, mentor/client cards, Flow Map data, review queues, and future Turndown attribution to resolve the display name first.
+- Preserves existing member passwords, sessions, stays, profile photos, external links, and Priestess Profile content.
+- Backfills display names from the existing Priestess Profile name before falling back to legal names or email.
+- Keeps legal-name values out of another member's Profile Studio view.
+- Straightened the embedded Team Map portrait rings with a fixed concentric portrait frame.
+- Adds Supabase migration 040.
 
 ## v0.10.51 — Lounge Profile Pill Polish
 

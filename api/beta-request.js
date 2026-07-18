@@ -136,7 +136,7 @@ async function fetchJson(url, options = {}) {
 }
 
 async function findProfileByEmail({ supabaseUrl, serviceKey, email }) {
-  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,mentor_accepting_clients,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,mentor_accepting_clients,display_name,first_name,last_name,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
   const data = await fetchJson(url, {
     method: "GET",
     headers: supabaseHeaders(serviceKey),
@@ -157,11 +157,14 @@ async function listAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
 
 function authMetadata(fullName, membershipType, existingMetadata = {}) {
   const { firstName, lastName } = splitName(fullName);
+  const preservedDisplayName = existingMetadata?.display_name || existingMetadata?.full_name || existingMetadata?.name || fullName || null;
   return {
     ...(existingMetadata || {}),
-    full_name: fullName || existingMetadata?.full_name || null,
-    first_name: firstName || existingMetadata?.first_name || null,
-    last_name: lastName || existingMetadata?.last_name || null,
+    display_name: preservedDisplayName,
+    full_name: preservedDisplayName,
+    name: preservedDisplayName,
+    first_name: existingMetadata?.first_name || firstName || null,
+    last_name: existingMetadata?.last_name || lastName || null,
     membership_type: membershipType,
     membership_rank: membershipRank(membershipType),
     flowtel_beta_access: true,
@@ -213,8 +216,9 @@ async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, m
     email,
     role: existingProfile?.role || "client",
     mentor_accepting_clients: existingProfile?.mentor_accepting_clients ?? false,
-    first_name: firstName,
-    last_name: lastName,
+    first_name: existingProfile?.first_name || firstName,
+    last_name: existingProfile?.last_name || lastName,
+    display_name: existingProfile?.display_name || fullName || [firstName,lastName].filter(Boolean).join(" ") || null,
     membership_type: membershipType,
     membership_rank: membershipRank(membershipType),
     squarespace_source: "flowtel_beta_request",
@@ -234,8 +238,9 @@ async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, m
       id: user.id,
       email,
       role: existingProfile?.role || "client",
-      first_name: firstName,
-      last_name: lastName,
+      first_name: existingProfile?.first_name || firstName,
+      last_name: existingProfile?.last_name || lastName,
+      display_name: existingProfile?.display_name || fullName || [firstName,lastName].filter(Boolean).join(" ") || null,
     };
 
     const data = await fetchJson(`${supabaseUrl}/rest/v1/profiles?on_conflict=id`, {

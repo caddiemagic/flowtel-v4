@@ -437,7 +437,7 @@ export async function currentUserHasConciergeAccess(){
 export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,
-    profiles:client_id (first_name,last_name,email,role,membership_type,membership_rank,flowfm_started_at,is_initiated), witness_profile:witnessed_by (first_name,last_name,email,role)
+    profiles:client_id (display_name,first_name,last_name,email,role,membership_type,membership_rank,flowfm_started_at,is_initiated), witness_profile:witnessed_by (display_name,first_name,last_name,email,role)
   `).order("checked_in_at",{ascending:false}).limit(500);
   if(error) throw error;
   return data||[];
