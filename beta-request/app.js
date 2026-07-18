@@ -102,9 +102,10 @@ form?.addEventListener("submit", async (event) => {
       throw new Error(result.error || "Could not create this Flowtel access.");
     }
 
+    const resolvedMembership = result.membershipType || payload.membershipType;
     form.classList.add("hidden");
     successPanel.classList.remove("hidden");
-    loginLink.href = clientUrl(payload.membershipType, payload.email);
+    loginLink.href = clientUrl(resolvedMembership, payload.email);
 
     if (result.accountStatus === "created" && result.autoLoginAvailable && result.temporaryPassword) {
       if (successTitle) successTitle.textContent = "Your Flowtel access is ready.";
@@ -112,12 +113,12 @@ form?.addEventListener("submit", async (event) => {
       setMessage("Your access is ready. We’re logging you in.");
       button.textContent = "Logging you in...";
       setBetaLoading(true, "Your access is ready. Logging you in and preparing your private room key...");
-      await autoLoginAndEnter(payload.email, result.temporaryPassword, payload.membershipType);
+      await autoLoginAndEnter(payload.email, result.temporaryPassword, resolvedMembership);
       return;
     }
 
     setBetaLoading(false);
-    loginLink.href = clientUrl(payload.membershipType, payload.email, true);
+    loginLink.href = clientUrl(resolvedMembership, payload.email, true);
     if (successTitle) successTitle.textContent = "Your Flowtel access already exists.";
     if (successCopy) successCopy.textContent = "Your personal password was preserved. Enter the Flowtel with the private password you already created. On your first visit, use FlowtelBeta!2026.";
     loginLink.textContent = "Enter the Flowtel";

@@ -1,5 +1,5 @@
 // api/beta-request.js
-// Flowtel v0.10.49 — Personal Room Keys + Secure Remembered Entry.
+// Flowtel v0.10.50 — Team Map Membership + Owner Turndown Routing Repair.
 // Creates missing beta Auth users with the temporary password, but never resets
 // an existing member's personal password.
 
@@ -56,6 +56,33 @@ function normalizeMembership(value) {
   return "queendom";
 }
 
+function membershipRank(value) {
+  return { queendom: 1, flowfm: 2, council: 3 }[normalizeMembership(value)] || 0;
+}
+
+function membershipFromRank(rank, fallback = "queendom") {
+  const value = Number(rank || 0);
+  if (value >= 3) return "council";
+  if (value >= 2) return "flowfm";
+  if (value >= 1) return "queendom";
+  return normalizeMembership(fallback);
+}
+
+function resolveMembership(requestedMembership, existingProfile = null, authUser = null) {
+  const requested = normalizeMembership(requestedMembership);
+  const authMembership = normalizeMembership(
+    authUser?.user_metadata?.membership_type || authUser?.raw_user_meta_data?.membership_type || ""
+  );
+  const existingRank = Math.max(
+    Number(existingProfile?.membership_rank || 0),
+    membershipRank(existingProfile?.membership_type),
+    membershipRank(authMembership),
+    ["practitioner", "admin", "owner"].includes(String(existingProfile?.role || "").toLowerCase()) ? 2 : 0,
+    existingProfile?.flowfm_started_at || existingProfile?.is_initiated ? 2 : 0,
+  );
+  return membershipFromRank(Math.max(existingRank, membershipRank(requested)), requested);
+}
+
 function splitName(fullName) {
   const parts = String(fullName || "").trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return { firstName: null, lastName: null };
@@ -109,7 +136,7 @@ async function fetchJson(url, options = {}) {
 }
 
 async function findProfileByEmail({ supabaseUrl, serviceKey, email }) {
-  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,mentor_accepting_clients&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,mentor_accepting_clients,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
   const data = await fetchJson(url, {
     method: "GET",
     headers: supabaseHeaders(serviceKey),
@@ -128,13 +155,15 @@ async function listAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   return users.find((user) => normalizeEmail(user.email) === email) || null;
 }
 
-function authMetadata(fullName, membershipType) {
+function authMetadata(fullName, membershipType, existingMetadata = {}) {
   const { firstName, lastName } = splitName(fullName);
   return {
-    full_name: fullName || null,
-    first_name: firstName,
-    last_name: lastName,
+    ...(existingMetadata || {}),
+    full_name: fullName || existingMetadata?.full_name || null,
+    first_name: firstName || existingMetadata?.first_name || null,
+    last_name: lastName || existingMetadata?.last_name || null,
     membership_type: membershipType,
+    membership_rank: membershipRank(membershipType),
     flowtel_beta_access: true,
   };
 }
@@ -155,11 +184,11 @@ async function createAuthUser({ supabaseUrl, serviceKey, email, fullName, member
   return { user: data.user || data, password };
 }
 
-async function updateAuthUserMetadata({ supabaseUrl, serviceKey, userId, fullName, membershipType }) {
+async function updateAuthUserMetadata({ supabaseUrl, serviceKey, userId, fullName, membershipType, existingMetadata = {} }) {
   if (!userId) return null;
   const payload = {
     email_confirm: true,
-    user_metadata: authMetadata(fullName, membershipType),
+    user_metadata: authMetadata(fullName, membershipType, existingMetadata),
   };
 
   try {
@@ -187,6 +216,7 @@ async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, m
     first_name: firstName,
     last_name: lastName,
     membership_type: membershipType,
+    membership_rank: membershipRank(membershipType),
     squarespace_source: "flowtel_beta_request",
     source_updated_at: new Date().toISOString(),
   };
@@ -235,7 +265,7 @@ module.exports = async function handler(req, res) {
     const body = await readRequestBody(req);
     const email = normalizeEmail(body.email);
     const fullName = String(body.name || body.fullName || "").trim();
-    const membershipType = normalizeMembership(body.membershipType || body.membership || "queendom");
+    const requestedMembership = normalizeMembership(body.membershipType || body.membership || "queendom");
     const betaCode = String(body.betaCode || body.accessCode || "").trim();
     const requiredCode = String(process.env.FLOWTEL_BETA_REQUEST_CODE || "").trim();
 
@@ -257,11 +287,12 @@ module.exports = async function handler(req, res) {
     const { supabaseUrl, serviceKey } = requireServerConfig();
     const existingProfile = await findProfileByEmail({ supabaseUrl, serviceKey, email });
     let user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
+    const membershipType = resolveMembership(requestedMembership, existingProfile, user);
     let accountStatus = "existing";
     let temporaryPassword = null;
 
     if (user?.id) {
-      await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType });
+      await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType, existingMetadata: user.user_metadata || user.raw_user_meta_data || {} });
     } else {
       try {
         const created = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
@@ -274,7 +305,7 @@ module.exports = async function handler(req, res) {
 
         user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
         if (!user?.id) throw error;
-        await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType });
+        await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType, existingMetadata: user.user_metadata || user.raw_user_meta_data || {} });
       }
     }
 

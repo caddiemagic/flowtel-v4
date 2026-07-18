@@ -1,4 +1,4 @@
-import { listPublicTeamMapPresences } from '/shared/team-map.js?v=0.10.45';
+import { listPublicTeamMapPresences } from '/shared/team-map.js?v=0.10.50';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];

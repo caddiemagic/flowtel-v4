@@ -33,7 +33,12 @@ export async function ensureProfile(profile = {}) {
   const existing = await getCurrentProfile();
 
   const incomingMembership = normalizeMembership(profile.membershipType || profile.membership || profile.source);
-  const resolvedMembership = resolveMembership(existing?.membership_type, incomingMembership);
+  const existingMembership = Number(existing?.membership_rank || 0) >= 3
+    ? "council"
+    : Number(existing?.membership_rank || 0) >= 2
+      ? "flowfm"
+      : existing?.membership_type || user.user_metadata?.membership_type;
+  const resolvedMembership = resolveMembership(existingMembership, incomingMembership);
   const resolvedRole = (user.email?.endsWith("@test.local") && profile.forceBetaRole)
     ? (profile.role || "client")
     : roleFromResolvedMembership(resolvedMembership, existing?.role || profile.role || "client");

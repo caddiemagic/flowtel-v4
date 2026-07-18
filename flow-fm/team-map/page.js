@@ -3,8 +3,8 @@ import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
-} from '/shared/team-map.js?v=0.10.47';
-import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.47';
+} from '/shared/team-map.js?v=0.10.50';
+import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.50';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
@@ -177,7 +177,7 @@ function renderYourPresence(rows){
     if(viewerState.cycle_day) details.push(`Cycle Day ${viewerState.cycle_day}`);
     if(feels && feels!==actual) details.push(`Feels Like ${feels.replace(/^Inner\s+/,'')}`);
     if(!viewerState.profile_photo_url) details.push('Using the rose until you upload a photo');
-    if(eligibleButMissing) details.push('Refresh after migration 032 is installed');
+    if(eligibleButMissing) details.push('Refresh after migration 039 is installed');
     yourPresenceCopy.textContent=details.length ? details.join(' · ') : fallbackStatus;
   }
 }

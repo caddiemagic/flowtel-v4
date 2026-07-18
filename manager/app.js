@@ -1,7 +1,8 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.50";
 import { isPractitionerLevel } from "../shared/beta-access.js";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.44";
+import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -11,7 +12,11 @@ let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
 let currentManagerProfile=null;
+let deskRefreshTimer=null;
+let deskRefreshInFlight=false;
+const DESK_REFRESH_INTERVAL_MS=45000;
 const boundConnectionButtons=new WeakSet();
+const boundTeamMembershipButtons=new WeakSet();
 
 function isOwnerOrAdmin(profile=currentManagerProfile){
   return ["owner","admin"].includes(String(profile?.role || "").toLowerCase());
@@ -282,6 +287,7 @@ async function handleBetaManagerLogin(email){
     updateSuiteReturn();
     updateTodayFlow();
     await loadDesk();
+    startDeskAutoRefresh();
   }catch(error){
     managerMessage.textContent="This beta practitioner could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.";
     console.error(error);
@@ -295,7 +301,31 @@ function isClientOfCurrentPractitioner(stay){
   return (BETA_CLIENT_RELATIONSHIPS[practitionerEmail]||[]).includes(guestEmail);
 }
 
+
+function normalizedMembership(value){
+  return String(value || "").trim().toLowerCase().replace(/[^a-z]/g,"");
+}
+
+function isRecognizedConciergeTeamProfile(profile={}){
+  const membership=normalizedMembership(profile.membership_type);
+  const role=String(profile.role || "").trim().toLowerCase();
+  return Number(profile.membership_rank || 0)>=2
+    || membership==="council"
+    || membership==="flowfm"
+    || membership.startsWith("flowfm")
+    || ["practitioner","admin","owner"].includes(role)
+    || !!profile.flowfm_started_at
+    || profile.is_initiated===true;
+}
+
+function ownerReceivesAllTurndownRequests(){
+  return isOwnerOrAdmin(currentManagerProfile);
+}
+
 function assignedWingForQueue(){
+  // Phase 1 owner routing: the owner Concierge receives every active request.
+  // Future practitioner access keeps the established opposite-wing assignment.
+  if(ownerReceivesAllTurndownRequests()) return null;
   return assignedWingForPractitioner();
 }
 
@@ -460,7 +490,11 @@ function isAssignedToPractitioner(stay){
 }
 
 function isAwaitingTurndown(stay){
-  return isOpenStay(stay) && hasTurndownRequest(stay) && !isTurndownFulfilled(stay) && isAssignedToPractitioner(stay);
+  return isOpenStay(stay)
+    && stayFlowtelDate(stay)===currentFlowtelDate()
+    && hasTurndownRequest(stay)
+    && !isTurndownFulfilled(stay)
+    && isAssignedToPractitioner(stay);
 }
 
 function isCompletedTurndown(stay){
@@ -567,7 +601,9 @@ function setFilter(filter){
   document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
   updateStats();
   const titles={
-    "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service","These guests are in your assigned wing and have requested extra care."],
+    "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service",ownerReceivesAllTurndownRequests()
+      ? "Every active request from today’s Flowtel is routed to the owner Concierge."
+      : "These guests are in your assigned wing and have requested extra care."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
@@ -653,6 +689,7 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
         <p>${cycleDayDetail(stay)}</p>
         <p>Actual Inner Season: ${stay.inner_season||"Inner season not recorded"}</p>
         <p>Feels Like: ${feelsLike}</p>
+        <p>Wing: ${stay.wing||"Not assigned"}</p>
       `
     : `
         <p>Today's Room: ${room}</p>
@@ -668,7 +705,13 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
         ${statusLine}
         ${detailLines}
       </div>
-      ${showAction ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>` : (mode==="completed" ? `<span class="completed-pill">Completed</span>` : "")}
+      ${showAction
+        ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>`
+        : mode==="completed"
+          ? `<span class="completed-pill">Completed</span>`
+          : mode==="in-house" && ownerReceivesAllTurndownRequests() && !isRecognizedConciergeTeamProfile(stay.profiles || {})
+            ? `<button type="button" data-recognize-team-member="${stay.client_id}">Add to Concierge Team</button>`
+            : ""}
     </article>
   `;
 }
@@ -763,6 +806,35 @@ function renderQueue(){
   if(!stays.length){queue.innerHTML="<p>No guests in this category right now.</p>";return;}
   queue.innerHTML=stays.map(stay=>renderGuestStayRow(stay,{mode:activeFilter})).join("");
   bindQueueActions();
+  bindTeamMembershipButtons(queue);
+}
+
+
+function bindTeamMembershipButtons(scope=document){
+  scope.querySelectorAll("[data-recognize-team-member]").forEach(button=>{
+    if(boundTeamMembershipButtons.has(button)) return;
+    boundTeamMembershipButtons.add(button);
+    button.addEventListener("click",async()=>{
+      const memberId=button.dataset.recognizeTeamMember;
+      const originalText=button.textContent;
+      button.disabled=true;
+      button.textContent="Adding...";
+      try{
+        await ownerRecognizeTeamMember(memberId);
+        if(managerMessage) managerMessage.textContent="This guest is now recognized as a Flow FM Concierge Team member.";
+        await loadDesk({silent:true});
+      }catch(error){
+        console.error("Team membership recognition failed.",error);
+        button.disabled=false;
+        button.textContent=originalText;
+        if(managerMessage){
+          managerMessage.textContent=error?.message
+            ? `Team membership could not be saved: ${error.message}`
+            : "Team membership could not be saved. Run migration 039 and try again.";
+        }
+      }
+    });
+  });
 }
 
 function relationshipGuestName(row){
@@ -881,12 +953,35 @@ async function renderMyClients(){
 }
 
 
-async function loadDesk(){
-  allStays=await getFrontDeskStays();
-  await renderConnectionRequests();
-  await renderMyClients();
-  updateStats();
-  renderQueue();
+async function loadDesk({silent=false}={}){
+  if(deskRefreshInFlight) return;
+  deskRefreshInFlight=true;
+  try{
+    allStays=await getFrontDeskStays();
+    await renderConnectionRequests();
+    await renderMyClients();
+    updateStats();
+    renderQueue();
+  }catch(error){
+    console.error("Concierge Desk refresh failed.",error);
+    if(!silent && managerMessage){
+      managerMessage.textContent=error?.message
+        ? `The Concierge Desk could not refresh: ${error.message}`
+        : "The Concierge Desk could not refresh just now.";
+    }
+  }finally{
+    deskRefreshInFlight=false;
+  }
+}
+
+function refreshDeskWhenVisible(){
+  if(document.visibilityState && document.visibilityState!=="visible") return;
+  loadDesk({silent:true});
+}
+
+function startDeskAutoRefresh(){
+  window.clearInterval(deskRefreshTimer);
+  deskRefreshTimer=window.setInterval(refreshDeskWhenVisible,DESK_REFRESH_INTERVAL_MS);
 }
 function showConciergeAccessPrompt(){
   if(!loginCard) return;
@@ -955,6 +1050,7 @@ async function openDeskFromSession(){
     updateSuiteReturn();
     updateTodayFlow();
     await loadDesk();
+    startDeskAutoRefresh();
   }catch(error){
     console.warn("Concierge session gate failed.",error);
     if(managerMessage){
@@ -973,3 +1069,5 @@ document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListen
 
 if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);
 if(initiationHallButton) initiationHallButton.addEventListener("click",markInitiationHallClockIn);
+document.addEventListener("visibilitychange",refreshDeskWhenVisible);
+window.addEventListener("focus",refreshDeskWhenVisible);

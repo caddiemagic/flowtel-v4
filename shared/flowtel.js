@@ -1,5 +1,5 @@
 // shared/flowtel.js
-export { getCurrentProfile, ensureProfile } from "./profiles.js";
+export { getCurrentProfile, ensureProfile } from "./profiles.js?v=0.10.50";
 export {
   createStay,
   getCycleDayConfirmationContext,
@@ -15,7 +15,7 @@ export {
   getFrontDeskStays,
   witnessStay,
   prepareRoomAfterCheckout,
-} from "./stays.js";
+} from "./stays.js?v=0.10.50";
 export { getMoonMagic } from "./moon.js";
 export { getDayContent } from "./content.js";
 export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./seasons.js";
@@ -34,4 +34,4 @@ export { MOON_PHASE_KEY, MOON_CALENDARS, WEEKLY_PLANNING_PROMPTS } from './moon-
 
 export { PRIESTESS_TITLE_OPTIONS, PRIESTESS_BIO_TEMPLATES, PRIESTESS_OFFERING_OPTIONS, FLOWTEL_TIMEZONE_OPTIONS, labelForPriestessTitle, bioTemplatesForTitle, findBioTemplate, offeringLabelsFromValues } from './priestess-profile-options.js';
 
-export { getTeamMapViewerState, listTeamMapPresences, setTeamMapVisibility, getTeamMapProfile } from './team-map.js';
+export { getTeamMapViewerState, listTeamMapPresences, setTeamMapVisibility, getTeamMapProfile } from './team-map.js?v=0.10.50';

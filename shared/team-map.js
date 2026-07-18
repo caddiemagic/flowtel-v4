@@ -1,4 +1,4 @@
-// Flowtel v0.10.46 — Flow FM Team Map helpers.
+// Flowtel v0.10.50 — Flow FM Team Map helpers.
 
 import { supabase } from './supabase.js';
 
@@ -51,4 +51,13 @@ export async function listPublicTeamMapPresences(){
   const { data, error } = await supabase.rpc('flow_fm_get_public_team_map');
   if(error) throw error;
   return data || [];
+}
+
+export async function ownerRecognizeTeamMember(memberId){
+  if(!memberId) throw new Error('Choose a Flowtel guest to add to the Concierge Team.');
+  const { data, error } = await supabase.rpc('flow_fm_owner_recognize_team_member', {
+    p_member_id: memberId,
+  });
+  if(error) throw error;
+  return firstRow(data);
 }

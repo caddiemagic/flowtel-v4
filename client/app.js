@@ -1,5 +1,5 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated } from "../shared/profiles.js?v=0.10.49";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated } from "../shared/profiles.js?v=0.10.50";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";

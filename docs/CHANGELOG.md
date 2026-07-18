@@ -1,3 +1,18 @@
+## v0.10.50 — Team Map Membership + Owner Turndown Routing Repair
+
+- Repaired Flow FM Team Map eligibility after lower Queendom doorway values overwrote visible membership types.
+- Added effective membership recognition across profile type/rank, Auth metadata, role/initiation, and Profile Studio presence.
+- Backfills eligible Flow FM/Council profiles through migration 039.
+- Prevents `/api/beta-request`, `/api/squarespace-bridge`, and browser profile upserts from downgrading a higher membership.
+- Applies the repaired eligibility to both authenticated and public-safe embedded Team Maps.
+- Adds an owner-only **Add to Concierge Team** control for ambiguous legacy beta profiles.
+- Adds an owner-only daily Team Map diagnostic with exact inclusion/exclusion reasons.
+- Routes every active Turndown request from the current Flowtel Day to Megan's owner Concierge queue regardless of wing.
+- Preserves opposite-wing routing for future practitioner Concierge access.
+- Adds automatic Concierge Desk refresh every 45 seconds, on tab visibility, and on window focus.
+- Keeps guest wing visible on open and completed Turndown request cards.
+- Does not alter passwords or require migration 037 to be rerun.
+
 ## v0.10.49 — Personal Room Keys + Secure Remembered Entry
 
 - Turned `FlowtelBeta!2026` into a one-time beta entrance credential for non-admin members.

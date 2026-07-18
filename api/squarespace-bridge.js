@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.49 — Personal Room Keys + Secure Remembered Entry.
+// Flowtel v0.10.50 — Team Map Membership + Owner Turndown Routing Repair.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -30,6 +30,33 @@ function normalizeMembership(value) {
   if (cleaned === "flow" || cleaned === "flowfm" || cleaned === "flowfmmember") return "flowfm";
   if (cleaned === "council") return "council";
   return "queendom";
+}
+
+function membershipRank(value) {
+  return { queendom: 1, flowfm: 2, council: 3 }[normalizeMembership(value)] || 0;
+}
+
+function membershipFromRank(rank, fallback = "queendom") {
+  const value = Number(rank || 0);
+  if (value >= 3) return "council";
+  if (value >= 2) return "flowfm";
+  if (value >= 1) return "queendom";
+  return normalizeMembership(fallback);
+}
+
+function resolveMembership(requestedMembership, existingProfile = null, authUser = null) {
+  const requested = normalizeMembership(requestedMembership);
+  const authMembership = normalizeMembership(
+    authUser?.user_metadata?.membership_type || authUser?.raw_user_meta_data?.membership_type || ""
+  );
+  const existingRank = Math.max(
+    Number(existingProfile?.membership_rank || 0),
+    membershipRank(existingProfile?.membership_type),
+    membershipRank(authMembership),
+    ["practitioner", "admin", "owner"].includes(String(existingProfile?.role || "").toLowerCase()) ? 2 : 0,
+    existingProfile?.flowfm_started_at || existingProfile?.is_initiated ? 2 : 0,
+  );
+  return membershipFromRank(Math.max(existingRank, membershipRank(requested)), requested);
 }
 
 function normalizeEmail(value) {
@@ -190,6 +217,16 @@ async function readSupabaseJson(url, options = {}) {
   return data;
 }
 
+
+async function findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email }) {
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const data = await readSupabaseJson(url, {
+    method: "GET",
+    headers: supabaseAdminHeaders(serviceKey),
+  });
+  return Array.isArray(data) ? data[0] || null : null;
+}
+
 async function findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   const data = await readSupabaseJson(`${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
     method: "GET",
@@ -199,15 +236,17 @@ async function findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   return users.find((user) => normalizeEmail(user?.email) === email) || null;
 }
 
-async function refreshSupabaseBetaUserMetadata({ supabaseUrl, serviceKey, userId, contact, membershipType }) {
+async function refreshSupabaseBetaUserMetadata({ supabaseUrl, serviceKey, userId, contact, membershipType, existingMetadata = {} }) {
   if (!userId) return null;
   const payload = {
     email_confirm: true,
     user_metadata: {
-      first_name: contact?.firstName || null,
-      last_name: contact?.lastName || null,
-      squarespace_contact_id: contact?.id || null,
+      ...(existingMetadata || {}),
+      first_name: contact?.firstName || existingMetadata?.first_name || null,
+      last_name: contact?.lastName || existingMetadata?.last_name || null,
+      squarespace_contact_id: contact?.id || existingMetadata?.squarespace_contact_id || null,
       membership_type: membershipType,
+      membership_rank: membershipRank(membershipType),
       flowtel_beta_access: true,
     },
   };
@@ -240,13 +279,14 @@ async function createSupabaseBetaUser({ supabaseUrl, serviceKey, email, password
         last_name: contact?.lastName || null,
         squarespace_contact_id: contact?.id || null,
         membership_type: membershipType,
+        membership_rank: membershipRank(membershipType),
         flowtel_beta_access: true,
       },
     }),
   });
 }
 
-async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, trustedDoorway }) {
+async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, trustedDoorway, existingProfile = null }) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
 
@@ -259,22 +299,26 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
   }
 
   const password = betaTemporaryPassword();
+  let resolvedMembership = resolveMembership(membershipType, existingProfile, null);
 
   try {
     const existingUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email });
+    resolvedMembership = resolveMembership(membershipType, existingProfile, existingUser);
     if (existingUser?.id) {
       await refreshSupabaseBetaUserMetadata({
         supabaseUrl,
         serviceKey,
         userId: existingUser.id,
         contact,
-        membershipType,
+        membershipType: resolvedMembership,
+        existingMetadata: existingUser.user_metadata || existingUser.raw_user_meta_data || {},
       });
       return {
         prepared: true,
         userId: existingUser.id,
         accountStatus: "existing",
         temporaryPasswordCreated: false,
+        membershipType: resolvedMembership,
         reason: intent === "returning"
           ? "Existing member account found. Personal password preserved."
           : "Existing beta account found. Personal password preserved.",
@@ -287,13 +331,14 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
       email,
       password,
       contact,
-      membershipType,
+      membershipType: resolvedMembership,
     });
     return {
       prepared: true,
       userId: data.id || data.user?.id || null,
       accountStatus: "created",
       temporaryPasswordCreated: true,
+      membershipType: resolvedMembership,
       reason: "Beta Auth user created with the temporary Flowtel password.",
     };
   } catch (error) {
@@ -307,13 +352,15 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
             serviceKey,
             userId: existingUser.id,
             contact,
-            membershipType,
+            membershipType: resolvedMembership,
+            existingMetadata: existingUser.user_metadata || existingUser.raw_user_meta_data || {},
           });
           return {
             prepared: true,
             userId: existingUser.id,
             accountStatus: "existing",
             temporaryPasswordCreated: false,
+            membershipType: resolvedMembership,
             reason: "Existing beta account found after duplicate-user response. Personal password preserved.",
           };
         }
@@ -360,18 +407,25 @@ module.exports = async function handler(req, res) {
 
     const trustedDoorway = canUseTrustedDoorway(body);
     const contact = await querySquarespaceContact(email, { trustedDoorway });
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
+    const existingProfile = serviceKey && supabaseUrl
+      ? await findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email })
+      : null;
     const authResult = await ensureSupabaseAuthUser({
       email,
       contact,
       membershipType,
       intent,
       trustedDoorway,
+      existingProfile,
     });
+    const resolvedMembership = authResult.membershipType || membershipType;
 
     res.status(200).json({
       ok: true,
-      membershipType,
-      membershipLabel: MEMBERSHIP_LABEL[membershipType] || "Flowtel",
+      membershipType: resolvedMembership,
+      membershipLabel: MEMBERSHIP_LABEL[resolvedMembership] || "Flowtel",
       contact,
       verified: !contact?.unverified,
       bridgeMode: contact?.unverified ? "trusted-doorway" : "squarespace-contacts",
