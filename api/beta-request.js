@@ -1,13 +1,11 @@
 // api/beta-request.js
-// Flowtel v0.10.48 — Canonical beta credential alignment.
-// Creates a Flowtel Auth user + client profile from a controlled beta request form.
+// Flowtel v0.10.49 — Personal Room Keys + Secure Remembered Entry.
+// Creates missing beta Auth users with the temporary password, but never resets
+// an existing member's personal password.
 
 const DEFAULT_TEMP_PASSWORD = "FlowtelBeta!2026";
 
 function betaTemporaryPassword() {
-  // Phase 1 uses one browser-visible temporary credential. Environment password
-  // overrides are intentionally ignored because the browser cannot read them and
-  // any differing value would recreate the exact bridge mismatch fixed here.
   return DEFAULT_TEMP_PASSWORD;
 }
 
@@ -111,7 +109,7 @@ async function fetchJson(url, options = {}) {
 }
 
 async function findProfileByEmail({ supabaseUrl, serviceKey, email }) {
-  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,mentor_accepting_clients&email=eq.${encodeURIComponent(email)}&limit=1`;
   const data = await fetchJson(url, {
     method: "GET",
     headers: supabaseHeaders(serviceKey),
@@ -121,8 +119,6 @@ async function findProfileByEmail({ supabaseUrl, serviceKey, email }) {
 }
 
 async function listAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
-  // Supabase Auth Admin does not consistently expose a simple email filter across versions.
-  // For beta-scale rosters, list a reasonable page and match locally.
   const data = await fetchJson(`${supabaseUrl}/auth/v1/admin/users?page=1&per_page=1000`, {
     method: "GET",
     headers: supabaseHeaders(serviceKey),
@@ -132,89 +128,62 @@ async function listAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   return users.find((user) => normalizeEmail(user.email) === email) || null;
 }
 
-async function createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType }) {
-  const password = betaTemporaryPassword();
+function authMetadata(fullName, membershipType) {
   const { firstName, lastName } = splitName(fullName);
-
-  try {
-    const data = await fetchJson(`${supabaseUrl}/auth/v1/admin/users`, {
-      method: "POST",
-      headers: supabaseHeaders(serviceKey),
-      body: JSON.stringify({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName || null,
-          first_name: firstName,
-          last_name: lastName,
-          membership_type: membershipType,
-          flowtel_beta_access: true,
-        },
-      }),
-    });
-
-    const user = data.user || data;
-    return { user, created: true, password };
-  } catch (error) {
-    const alreadyExists = /already|registered|exists|duplicate/i.test(error.message || "");
-    if (!alreadyExists) throw error;
-
-    const user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
-    if (!user) throw error;
-
-    await updateAuthUserForBeta({ supabaseUrl, serviceKey, userId: user.id, password, fullName, membershipType });
-    return { user, created: false, password };
-  }
+  return {
+    full_name: fullName || null,
+    first_name: firstName,
+    last_name: lastName,
+    membership_type: membershipType,
+    flowtel_beta_access: true,
+  };
 }
 
-async function updateAuthUserForBeta({ supabaseUrl, serviceKey, userId, password, fullName, membershipType }) {
+async function createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType }) {
+  const password = betaTemporaryPassword();
+  const data = await fetchJson(`${supabaseUrl}/auth/v1/admin/users`, {
+    method: "POST",
+    headers: supabaseHeaders(serviceKey),
+    body: JSON.stringify({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: authMetadata(fullName, membershipType),
+    }),
+  });
+
+  return { user: data.user || data, password };
+}
+
+async function updateAuthUserMetadata({ supabaseUrl, serviceKey, userId, fullName, membershipType }) {
   if (!userId) return null;
-  const { firstName, lastName } = splitName(fullName);
+  const payload = {
+    email_confirm: true,
+    user_metadata: authMetadata(fullName, membershipType),
+  };
 
   try {
     return await fetchJson(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
       method: "PUT",
       headers: supabaseHeaders(serviceKey),
-      body: JSON.stringify({
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName || null,
-          first_name: firstName,
-          last_name: lastName,
-          membership_type: membershipType,
-          flowtel_beta_access: true,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
   } catch (error) {
-    // Some Supabase versions expect PATCH for user updates. Try that before failing.
     return await fetchJson(`${supabaseUrl}/auth/v1/admin/users/${encodeURIComponent(userId)}`, {
       method: "PATCH",
       headers: supabaseHeaders(serviceKey),
-      body: JSON.stringify({
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: fullName || null,
-          first_name: firstName,
-          last_name: lastName,
-          membership_type: membershipType,
-          flowtel_beta_access: true,
-        },
-      }),
+      body: JSON.stringify(payload),
     });
   }
 }
 
-async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType }) {
+async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType, existingProfile = null }) {
   const { firstName, lastName } = splitName(fullName);
   const basePayload = {
     id: user.id,
     email,
-    role: "client",
-    mentor_accepting_clients: false,
+    role: existingProfile?.role || "client",
+    mentor_accepting_clients: existingProfile?.mentor_accepting_clients ?? false,
     first_name: firstName,
     last_name: lastName,
     membership_type: membershipType,
@@ -231,11 +200,10 @@ async function upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, m
 
     return Array.isArray(data) ? data[0] || basePayload : data;
   } catch (error) {
-    // If an older profile table is missing optional bridge/membership columns, fall back to only the stable fields.
     const minimalPayload = {
       id: user.id,
       email,
-      role: "client",
+      role: existingProfile?.role || "client",
       first_name: firstName,
       last_name: lastName,
     };
@@ -288,43 +256,43 @@ module.exports = async function handler(req, res) {
 
     const { supabaseUrl, serviceKey } = requireServerConfig();
     const existingProfile = await findProfileByEmail({ supabaseUrl, serviceKey, email });
-
-    let user;
+    let user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
     let accountStatus = "existing";
-    let password = betaTemporaryPassword();
+    let temporaryPassword = null;
 
-    if (existingProfile?.id) {
-      user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
-
-      if (user?.id) {
-        await updateAuthUserForBeta({ supabaseUrl, serviceKey, userId: user.id, password, fullName, membershipType });
-      } else {
-        const result = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
-        user = result.user;
-        accountStatus = result.created ? "created" : "existing";
-        password = result.password;
-      }
-
-      await upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType });
+    if (user?.id) {
+      await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType });
     } else {
-      const result = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
-      user = result.user;
-      accountStatus = result.created ? "created" : "existing";
-      password = result.password;
-      await upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType });
+      try {
+        const created = await createAuthUser({ supabaseUrl, serviceKey, email, fullName, membershipType });
+        user = created.user;
+        temporaryPassword = created.password;
+        accountStatus = "created";
+      } catch (error) {
+        const alreadyExists = /already|registered|exists|duplicate/i.test(error.message || "");
+        if (!alreadyExists) throw error;
+
+        user = await listAuthUserByEmail({ supabaseUrl, serviceKey, email });
+        if (!user?.id) throw error;
+        await updateAuthUserMetadata({ supabaseUrl, serviceKey, userId: user.id, fullName, membershipType });
+      }
     }
+
+    await upsertProfile({ supabaseUrl, serviceKey, user, email, fullName, membershipType, existingProfile });
 
     res.status(200).json({
       ok: true,
       accountStatus,
       email,
-      role: "client",
+      role: existingProfile?.role || "client",
       membershipType,
       userId: user.id,
-      autoLoginAvailable: true,
-      temporaryPasswordShared: true,
-      temporaryPassword: password,
-      temporaryPasswordHint: "Using the canonical Flowtel beta password for automatic login.",
+      autoLoginAvailable: accountStatus === "created",
+      temporaryPasswordShared: accountStatus === "created",
+      ...(accountStatus === "created" ? { temporaryPassword } : {}),
+      nextStep: accountStatus === "created"
+        ? "Sign in with the temporary beta password, then create a private room key."
+        : "Sign in with the personal Flowtel password already connected to this account.",
     });
   } catch (error) {
     const status = Number(error.statusCode || error.status || 500);

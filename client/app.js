@@ -1,5 +1,5 @@
-import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing } from "../shared/profiles.js";
+import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated } from "../shared/profiles.js?v=0.10.49";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
@@ -19,7 +19,19 @@ const medicineWheel=document.getElementById("medicineWheel");
 const flowtelLoadingOverlay=document.getElementById("flowtelLoadingOverlay");
 const flowtelLoadingCopy=document.getElementById("flowtelLoadingCopy");
 const flowtelLoadingHelper=document.getElementById("flowtelLoadingHelper");
+const switchAccountButton=document.getElementById("switchAccountButton");
+const personalRoomKeyOverlay=document.getElementById("personalRoomKeyOverlay");
+const personalRoomKeyTitle=document.getElementById("personalRoomKeyTitle");
+const personalRoomKeyCopy=document.getElementById("personalRoomKeyCopy");
+const newFlowtelPassword=document.getElementById("newFlowtelPassword");
+const confirmFlowtelPassword=document.getElementById("confirmFlowtelPassword");
+const personalRoomKeyMessage=document.getElementById("personalRoomKeyMessage");
+const savePersonalRoomKeyButton=document.getElementById("savePersonalRoomKeyButton");
+const personalRoomKeySwitchButton=document.getElementById("personalRoomKeySwitchButton");
 let flowtelLoadingTimer=null;
+let personalRoomKeyMode="first-time";
+let passwordRecoveryMode=urlParam("passwordRecovery")==="1";
+let passwordRecoveryHandled=false;
 
 let currentProfile=null;
 let currentMentorRelationship=null;
@@ -210,6 +222,8 @@ function updateDoorwayCopy(){
 
   const detectedEmail=extractSquarespaceEmail();
   if(memberEmail && detectedEmail) memberEmail.value=detectedEmail;
+  const loginEmail=document.getElementById("email");
+  if(loginEmail && detectedEmail) loginEmail.value=detectedEmail;
 }
 
 function memberBridgeEmail(){
@@ -239,49 +253,6 @@ async function verifySquarespaceMember(email,intent="enter"){
   return data;
 }
 
-function bridgeContactNameParts(bridgeData){
-  const contact=bridgeData?.contact || {};
-  const memberName=extractSquarespaceNameParts();
-
-  return {
-    firstName:contact.firstName || memberName.firstName || "",
-    lastName:contact.lastName || memberName.lastName || "",
-  };
-}
-
-async function completeMemberBridgeEntrance(email,bridgeData=null){
-  const memberName=bridgeContactNameParts(bridgeData);
-  const trustedDoorway = bridgeData?.bridgeMode === "trusted-doorway" || bridgeData?.verified === false;
-  currentProfile=await ensureProfile({
-    firstName:memberName.firstName || firstNameFromEmail(email),
-    lastName:memberName.lastName || null,
-    membershipType:bridgeData?.membershipType || SQUARESPACE_MEMBERSHIP || "queendom",
-    squarespaceSource:trustedDoorway ? `${SQUARESPACE_MEMBERSHIP || bridgeData?.membershipType || "squarespace"}-trusted-doorway` : (SQUARESPACE_MEMBERSHIP || bridgeData?.membershipType || "squarespace-api"),
-    squarespaceContactId:bridgeData?.contact?.id || null,
-    squarespaceContactEmail:bridgeData?.contact?.email || email,
-    squarespaceVerifiedAt:trustedDoorway ? null : new Date().toISOString(),
-  });
-
-  clearCachedSuiteStayIfItBelongsToAnotherGuest();
-
-  setMessage("");
-  await prepareDailyStayState();
-
-  if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
-    sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
-    return;
-  }
-
-  if(await openTodaySuiteIfPresent()){
-    return;
-  }
-
-  clearCachedSuiteStay();
-  currentStay=null;
-  pendingArrivalStay=null;
-  showCheckIn();
-}
-
 function isAlreadyRegisteredError(error){
   const message=String(error?.message || "").toLowerCase();
   return message.includes("already") || message.includes("registered") || message.includes("exists");
@@ -292,16 +263,8 @@ function isInvalidCredentialsError(error){
   return message.includes("invalid login") || message.includes("invalid credentials");
 }
 
-async function enterWithBridgePassword(email,bridgeData=null){
-  await signOut();
-  clearCachedSuiteStay();
-  await signInWithEmail(email,FLOWTEL_BETA_PASSWORD);
-  await completeMemberBridgeEntrance(email,bridgeData);
-}
-
 async function createNewMemberBridge(){
   const email=memberBridgeEmail();
-  let bridgeData=null;
 
   if(!email){
     setMessage("Add the email you use for your Idyll Collective membership.");
@@ -311,12 +274,8 @@ async function createNewMemberBridge(){
   try{
     setFlowtelLoading(true,"The Flowtel is preparing your access...");
     setMessage("Finding your Flowtel access...");
-    bridgeData=await verifySquarespaceMember(email,"new");
+    const bridgeData=await verifySquarespaceMember(email,"new");
     try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
-
-    setMessage("Preparing your Flowtel profile...");
-    await signOut();
-    clearCachedSuiteStay();
 
     if(!bridgeData.supabaseUserPrepared){
       try{
@@ -326,36 +285,14 @@ async function createNewMemberBridge(){
       }
     }
 
-    await signInWithEmail(email,FLOWTEL_BETA_PASSWORD);
-    await completeMemberBridgeEntrance(email,bridgeData);
+    setFlowtelLoading(false);
+    openReturningMemberLogin(false,"first-time");
+    setMessage(bridgeData.accountStatus==="created"
+      ? "Your Flowtel access is ready. Enter FlowtelBeta!2026 below. You’ll create your private password before entering your Suite."
+      : "Your Flowtel access is ready. Enter the password connected to this account. On your first visit, use FlowtelBeta!2026.");
   }catch(error){
     setFlowtelLoading(false);
     console.error("Flowtel New Member Bridge Error:", error);
-
-    if(isAlreadyRegisteredError(error)){
-      try{
-        setMessage("This email already has Flowtel access. Opening it through your member doorway...");
-        await enterWithBridgePassword(email,bridgeData);
-        return;
-      }catch(signInError){
-        console.error("Existing bridge account could not be opened with the bridge password:", signInError);
-        if(isInvalidCredentialsError(signInError)){
-          setMessage("This email already has Flowtel access, but its beta credential did not match. Choose “I've Stayed Before” and use FlowtelBeta!2026.");
-          openReturningMemberLogin(false);
-          return;
-        }
-
-        setMessage(`Returning Member Error: ${signInError?.message || "Unknown error"}`);
-        return;
-      }
-    }
-
-    if(isInvalidCredentialsError(error)){
-      setMessage("Flowtel found this email, but the beta credential did not match. Choose “I've Stayed Before” and use FlowtelBeta!2026.");
-      openReturningMemberLogin(false);
-      return;
-    }
-
     setMessage(`Bridge Error: ${error?.message || "Unknown error"}`);
   }
 }
@@ -368,37 +305,29 @@ async function openReturningMemberBridge(){
     return;
   }
 
-  try{
-    setFlowtelLoading(true,"We’re logging you in.");
-    setMessage("Finding your Flowtel access...");
-    const bridgeData=await verifySquarespaceMember(email,"returning");
-    try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
-    setMessage("We’re logging you in.");
-    await enterWithBridgePassword(email,bridgeData);
-  }catch(error){
-    setFlowtelLoading(false);
-    console.error("Flowtel Returning Member Bridge Error:", error);
-
-    if(isInvalidCredentialsError(error)){
-      setMessage("Flowtel recognizes this doorway, but the beta credentials did not match. Enter the exact email on your beta roster and use FlowtelBeta!2026 below.");
-      openReturningMemberLogin(false);
-      return;
-    }
-
-    setMessage(`Returning Member Error: ${error?.message || "Unknown error"}`);
-  }
+  try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
+  openReturningMemberLogin(false,"returning");
+  setMessage("Welcome back. Enter your personal Flowtel password. On your first visit, use FlowtelBeta!2026.");
 }
 
-function openReturningMemberLogin(showMessage=true){
+function openReturningMemberLogin(showMessage=true,mode="returning"){
   const email=memberBridgeEmail();
   const devLoginCard=document.getElementById("devLoginCard");
   const emailField=document.getElementById("email");
+  const guidance=document.getElementById("loginGuidance");
 
   if(emailField && email) emailField.value=email;
   if(devLoginCard) devLoginCard.open=true;
+  if(guidance){
+    guidance.textContent=mode==="first-time"
+      ? "Use the temporary Flowtel beta password for this first entrance. You’ll create a private password next."
+      : "Enter your personal Flowtel password. On your first visit, use the temporary beta password.";
+  }
 
   if(showMessage){
-    setMessage("Welcome back. Enter your Flowtel password, then choose Enter the Flowtel.");
+    setMessage(mode==="first-time"
+      ? "Enter FlowtelBeta!2026, then choose Enter the Flowtel."
+      : "Welcome back. Enter your Flowtel password, then choose Enter the Flowtel.");
   }
 
   setTimeout(()=>document.getElementById("password")?.focus(),100);
@@ -452,6 +381,205 @@ refineLobbyCopy();
 updateDoorwayCopy();
 
 function setMessage(text){ message.textContent=text||""; }
+
+function setAuthenticatedAccountVisible(visible){
+  switchAccountButton?.classList.toggle("hidden", !visible);
+}
+
+function setPersonalRoomKeyMessage(text){
+  if(personalRoomKeyMessage) personalRoomKeyMessage.textContent=text || "";
+}
+
+function showPersonalRoomKeyPanel(mode="first-time"){
+  personalRoomKeyMode=mode;
+  setFlowtelLoading(false);
+  setPersonalRoomKeyMessage("");
+
+  if(personalRoomKeyTitle){
+    personalRoomKeyTitle.textContent=mode==="recovery"
+      ? "Choose a new Flowtel password"
+      : "Create your Flowtel password";
+  }
+
+  if(personalRoomKeyCopy){
+    personalRoomKeyCopy.textContent=mode==="recovery"
+      ? "Choose a new private password for your Flowtel account. You’ll remain logged in on this browser after it is saved."
+      : "Choose the private password you’ll use whenever you return from a new browser or device. Flowtel will remember you on this browser.";
+  }
+
+  if(savePersonalRoomKeyButton){
+    savePersonalRoomKeyButton.textContent=mode==="recovery"
+      ? "Save My New Room Key"
+      : "Create My Private Room Key";
+  }
+
+  personalRoomKeyOverlay?.classList.remove("hidden");
+  personalRoomKeyOverlay?.setAttribute("aria-hidden","false");
+  document.body.classList.add("personal-room-key-is-open");
+  window.setTimeout(()=>newFlowtelPassword?.focus(),80);
+}
+
+function hidePersonalRoomKeyPanel(){
+  personalRoomKeyOverlay?.classList.add("hidden");
+  personalRoomKeyOverlay?.setAttribute("aria-hidden","true");
+  document.body.classList.remove("personal-room-key-is-open");
+  if(newFlowtelPassword) newFlowtelPassword.value="";
+  if(confirmFlowtelPassword) confirmFlowtelPassword.value="";
+  setPersonalRoomKeyMessage("");
+}
+
+function removePasswordRecoveryParams(){
+  const url=new URL(window.location.href);
+  url.searchParams.delete("passwordRecovery");
+  url.searchParams.delete("forceDoorway");
+  window.history.replaceState({},"",`${url.pathname}${url.search}${url.hash}`);
+  passwordRecoveryMode=false;
+}
+
+async function continueAuthenticatedEntrance(){
+  if(!currentProfile?.id) return;
+
+  setAuthenticatedAccountVisible(true);
+  clearCachedSuiteStayIfItBelongsToAnotherGuest();
+  setMessage("");
+  await prepareDailyStayState();
+
+  if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
+    sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
+    return;
+  }
+
+  if(await openTodaySuiteIfPresent()) return;
+
+  clearCachedSuiteStay();
+  currentStay=null;
+  pendingArrivalStay=null;
+  showCheckIn();
+}
+
+function requiresPersonalRoomKey(profile=currentProfile){
+  return profileNeedsPersonalRoomKey(profile);
+}
+
+async function pauseForPersonalRoomKeyIfNeeded(mode="first-time"){
+  if(mode!=="recovery" && !requiresPersonalRoomKey(currentProfile)) return false;
+  setAuthenticatedAccountVisible(true);
+  showPersonalRoomKeyPanel(mode);
+  return true;
+}
+
+async function handleSavePersonalRoomKey(){
+  const password=newFlowtelPassword?.value || "";
+  const confirmation=confirmFlowtelPassword?.value || "";
+
+  if(password.length<10){
+    setPersonalRoomKeyMessage("Choose a password with at least 10 characters.");
+    return;
+  }
+
+  if(password===FLOWTEL_BETA_PASSWORD){
+    setPersonalRoomKeyMessage("Choose a private password instead of the temporary beta password.");
+    return;
+  }
+
+  if(password!==confirmation){
+    setPersonalRoomKeyMessage("Those passwords do not match yet.");
+    return;
+  }
+
+  if(!currentProfile || !Object.prototype.hasOwnProperty.call(currentProfile,"password_setup_completed_at")){
+    setPersonalRoomKeyMessage("The Front Desk needs migration 038 before private room keys can be saved.");
+    return;
+  }
+
+  try{
+    savePersonalRoomKeyButton.disabled=true;
+    personalRoomKeySwitchButton.disabled=true;
+    setPersonalRoomKeyMessage("Creating your private room key...");
+
+    await updateCurrentPassword(password);
+    currentProfile=await markPersonalRoomKeyCreated();
+
+    removePasswordRecoveryParams();
+    hidePersonalRoomKeyPanel();
+    setMessage(personalRoomKeyMode==="recovery"
+      ? "Your new private room key is ready."
+      : "Your private room key is ready. Welcome home.");
+    await continueAuthenticatedEntrance();
+  }catch(error){
+    console.error("Flowtel personal room key could not be saved.",error);
+    setPersonalRoomKeyMessage(error?.message || "Your private room key could not be saved. Please try again.");
+  }finally{
+    savePersonalRoomKeyButton.disabled=false;
+    personalRoomKeySwitchButton.disabled=false;
+  }
+}
+
+async function handleForgotPassword(){
+  const email=(document.getElementById("email")?.value || memberBridgeEmail()).trim().toLowerCase();
+
+  if(!email){
+    setMessage("Add your Flowtel email first, then choose Forgot your password?");
+    openReturningMemberLogin(false);
+    return;
+  }
+
+  try{
+    setFlowtelLoading(true,"Sending your private room key reset...");
+    const redirectTo=`${window.location.origin}/client/?membership=${encodeURIComponent(SQUARESPACE_MEMBERSHIP || "queendom")}&passwordRecovery=1`;
+    await sendPasswordResetEmail(email,redirectTo);
+    setFlowtelLoading(false);
+    setMessage("Check your inbox for a Flowtel password reset link. Open it in this browser to choose a new private room key.");
+  }catch(error){
+    setFlowtelLoading(false);
+    console.error("Flowtel password reset email could not be sent.",error);
+    setMessage(error?.message || "The Front Desk could not send that reset email. Please try again.");
+  }
+}
+
+async function handleSwitchAccount(){
+  try{
+    await signOut();
+  }catch(error){
+    console.warn("Flowtel local sign out could not complete cleanly.",error);
+  }
+
+  clearCachedSuiteStay();
+  try{
+    localStorage.removeItem("flowtel:memberEmail");
+    sessionStorage.clear();
+  }catch(error){}
+
+  hidePersonalRoomKeyPanel();
+  setAuthenticatedAccountVisible(false);
+  window.location.replace(`/client/?membership=${encodeURIComponent(SQUARESPACE_MEMBERSHIP || "queendom")}&forceDoorway=1`);
+}
+
+async function beginPasswordRecovery(user=null){
+  if(passwordRecoveryHandled) return;
+  passwordRecoveryHandled=true;
+
+  try{
+    const recoveredUser=user || await getCurrentUser();
+    if(!recoveredUser){
+      passwordRecoveryHandled=false;
+      setMessage("Open the newest password reset link from your email to choose a new private room key.");
+      showScene("lobby");
+      return;
+    }
+
+    currentProfile=await ensureProfile({
+      membershipType:SQUARESPACE_MEMBERSHIP || undefined,
+      squarespaceSource:"password-recovery",
+    });
+    setAuthenticatedAccountVisible(true);
+    showPersonalRoomKeyPanel("recovery");
+  }catch(error){
+    passwordRecoveryHandled=false;
+    console.error("Flowtel password recovery could not begin.",error);
+    setMessage("That password reset link could not be opened. Request a new one from the Flowtel login.");
+  }
+}
 
 const FLOWTEL_TIME_ZONE = "America/Los_Angeles";
 
@@ -1501,6 +1629,7 @@ async function openRememberedRoomKey(){
       localStorage.removeItem("flowtel:memberEmail");
       sessionStorage.clear();
     }catch(error){}
+    setAuthenticatedAccountVisible(false);
     setMessage("Your Flowtel session has been cleared for testing. You can enter again when you are ready.");
     showScene("lobby");
     return true;
@@ -1508,6 +1637,7 @@ async function openRememberedRoomKey(){
 
   if(urlParam("forceDoorway")==="1"){
     clearCachedSuiteStay();
+    setAuthenticatedAccountVisible(false);
     return false;
   }
 
@@ -1526,23 +1656,8 @@ async function openRememberedRoomKey(){
       try{ localStorage.setItem("flowtel:memberEmail",user.email.toLowerCase()); }catch(error){}
     }
 
-    clearCachedSuiteStayIfItBelongsToAnotherGuest();
-    await prepareDailyStayState();
-
-    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
-      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
-      return true;
-    }
-
-    if(await openTodaySuiteIfPresent()){
-      return true;
-    }
-
-    clearCachedSuiteStay();
-    currentStay=null;
-    pendingArrivalStay=null;
-    setMessage("");
-    showCheckIn();
+    if(await pauseForPersonalRoomKeyIfNeeded()) return true;
+    await continueAuthenticatedEntrance();
     return true;
   }catch(error){
     setFlowtelLoading(false);
@@ -1595,20 +1710,9 @@ async function handleBetaLogin(email){
       forceBetaRole:true,
     });
 
-    clearCachedSuiteStayIfItBelongsToAnotherGuest();
-
     fillArrivalFields(account);
-    setMessage("");
-    await prepareDailyStayState();
-
-    if(await openTodaySuiteIfPresent()){
-      return;
-    }
-
-    clearCachedSuiteStay();
-    currentStay=null;
-    pendingArrivalStay=null;
-    showCheckIn();
+    if(await pauseForPersonalRoomKeyIfNeeded()) return;
+    await continueAuthenticatedEntrance();
   }catch(error){
     setFlowtelLoading(false);
     setMessage("This beta account could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.");
@@ -1629,35 +1733,24 @@ async function handleSignIn(){
     }
 
     setFlowtelLoading(true,"The Flowtel is preparing your room...");
+    await signOut();
+    clearCachedSuiteStay();
     await signInWithEmail(email,password);
+
+    try{ localStorage.setItem("flowtel:memberEmail",email); }catch(error){}
+    document.getElementById("password").value="";
 
     currentProfile=await ensureProfile({
       membershipType:SQUARESPACE_MEMBERSHIP || undefined,
       squarespaceSource:SQUARESPACE_MEMBERSHIP || undefined,
     });
 
-    clearCachedSuiteStayIfItBelongsToAnotherGuest();
-
-    setMessage("");
-    await prepareDailyStayState();
-
-    if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
-      sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
-      return;
-    }
-
-    if(await openTodaySuiteIfPresent()){
-      return;
-    }
-
-    clearCachedSuiteStay();
-    currentStay=null;
-    pendingArrivalStay=null;
-    showCheckIn();
+    if(await pauseForPersonalRoomKeyIfNeeded()) return;
+    await continueAuthenticatedEntrance();
   }catch(error){
     setFlowtelLoading(false);
     if(isInvalidCredentialsError(error)){
-      setMessage("Flowtel could not match those beta credentials. Use the exact email on your tester roster and the password FlowtelBeta!2026. If it still does not open, the Front Desk needs to refresh the Auth account.");
+      setMessage("Flowtel could not match that email and password. Use the private password you created. On your first visit, use FlowtelBeta!2026.");
     }else{
       setMessage("Your Passport could not be opened. Please check your email and password or message the Front Desk.");
     }
@@ -1951,6 +2044,11 @@ if(memberBridgeNewButton) memberBridgeNewButton.addEventListener("click",createN
 const memberBridgeReturningButton=document.getElementById("memberBridgeReturningButton");
 if(memberBridgeReturningButton) memberBridgeReturningButton.addEventListener("click",openReturningMemberBridge);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
+const forgotPasswordButton=document.getElementById("forgotPasswordButton");
+if(forgotPasswordButton) forgotPasswordButton.addEventListener("click",handleForgotPassword);
+if(savePersonalRoomKeyButton) savePersonalRoomKeyButton.addEventListener("click",handleSavePersonalRoomKey);
+if(personalRoomKeySwitchButton) personalRoomKeySwitchButton.addEventListener("click",handleSwitchAccount);
+if(switchAccountButton) switchAccountButton.addEventListener("click",handleSwitchAccount);
 const guestModeButton=document.getElementById("guestModeButton");
 if(guestModeButton) guestModeButton.addEventListener("click",openGuestFields);
 document.getElementById("clockInButton").addEventListener("click",handleClockIn);
@@ -1994,10 +2092,29 @@ if(powderRoomSharingToggle){
   powderRoomSharingToggle.addEventListener("change",handlePowderRoomSharingChange);
 }
 
+// Supabase emits PASSWORD_RECOVERY after a member opens the secure reset link.
+// Keep this listener active before the normal remembered-session boot runs.
+onAuthStateChange((event,session)=>{
+  if(event!=="PASSWORD_RECOVERY") return;
+  passwordRecoveryMode=true;
+  window.setTimeout(()=>beginPasswordRecovery(session?.user || null),0);
+});
+
 // Auto-enter remains opt-in for later Squarespace code injection.
-// Remembered Flowtel access is now the primary beta experience:
-// if Supabase already has a session in this browser, bypass the doorway.
+// Remembered Flowtel access is the primary experience after a private room key
+// has been created: an existing Supabase session bypasses the doorway.
 async function bootFlowtelClient(){
+  if(passwordRecoveryMode){
+    const user=await getCurrentUser();
+    if(user){
+      await beginPasswordRecovery(user);
+      return;
+    }
+    setMessage("Open the newest password reset link from your email to choose a new private room key.");
+    showScene("lobby");
+    return;
+  }
+
   const openedRememberedRoom=await openRememberedRoomKey();
   if(openedRememberedRoom) return;
 

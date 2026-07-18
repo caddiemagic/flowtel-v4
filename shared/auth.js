@@ -35,6 +35,31 @@ export async function signUpWithEmail(email, password) {
   return data.user;
 }
 
+export async function updateCurrentPassword(password) {
+  const { data, error } = await supabase.auth.updateUser({ password });
+
+  if (error) throw error;
+
+  return data.user;
+}
+
+export async function sendPasswordResetEmail(email, redirectTo) {
+  const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+
+  if (error) throw error;
+
+  return data;
+}
+
+export function onAuthStateChange(callback) {
+  return supabase.auth.onAuthStateChange(callback);
+}
+
 export async function signOut() {
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut({ scope: "local" });
+  if (error && !/session.*missing|auth session missing/i.test(String(error.message || error))) {
+    throw error;
+  }
 }

@@ -3612,3 +3612,142 @@ body.flowtel-is-loading{overflow:hidden}
   .mentor-panel-intro{grid-template-columns:72px minmax(0,1fr);gap:14px;margin-top:38px;}
   .mentor-panel-photo{width:70px;height:70px;padding:4px;}
 }
+
+/* Flowtel v0.10.49 — Personal Room Keys + Secure Remembered Entry */
+.switch-account-button{
+  position:absolute;
+  top:28px;
+  left:28px;
+  z-index:18;
+  width:auto;
+  margin:0;
+  padding:9px 14px;
+  border-color:rgba(109,78,65,.12);
+  background:rgba(255,253,249,.82);
+  color:var(--soft-brown);
+  font-size:.62rem;
+  letter-spacing:.1em;
+  box-shadow:0 8px 24px rgba(109,78,65,.06);
+}
+
+.text-button{
+  width:auto;
+  margin:12px auto 0;
+  padding:4px 2px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--rose);
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:.88rem;
+  font-weight:400;
+  letter-spacing:0;
+  text-transform:none;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+.personal-room-key-overlay{
+  position:fixed;
+  inset:0;
+  z-index:1200;
+  display:grid;
+  place-items:center;
+  padding:22px;
+  overflow:auto;
+  background:rgba(86,62,52,.44);
+  backdrop-filter:blur(12px);
+}
+
+.personal-room-key-card{
+  width:min(100%,560px);
+  padding:clamp(28px,6vw,48px);
+  border:1px solid rgba(216,168,79,.34);
+  border-radius:32px;
+  background:linear-gradient(145deg,rgba(255,253,249,.99),rgba(248,231,227,.96));
+  box-shadow:0 32px 110px rgba(74,48,39,.24),inset 0 0 0 1px rgba(255,255,255,.76);
+  text-align:center;
+}
+
+.personal-room-key-card .eyebrow{
+  margin:0 0 10px;
+}
+
+.personal-room-key-rose{
+  width:88px;
+  height:88px;
+  margin:0 auto 10px;
+  object-fit:contain;
+}
+
+.personal-room-key-card h2{
+  font-size:clamp(1.65rem,5vw,2.45rem);
+  letter-spacing:.06em;
+}
+
+.personal-room-key-card > p:not(.eyebrow):not(.personal-room-key-message):not(.personal-room-key-requirements){
+  max-width:430px;
+  margin:16px auto 22px;
+  color:var(--soft-brown);
+  line-height:1.55;
+}
+
+.personal-room-key-card label{
+  max-width:430px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+.personal-room-key-card input{
+  display:block;
+  max-width:430px;
+  margin:0 auto;
+  background:rgba(255,255,255,.94);
+}
+
+.personal-room-key-requirements{
+  max-width:430px;
+  margin:12px auto 0;
+  color:var(--soft-brown);
+  font-size:.82rem;
+  line-height:1.45;
+}
+
+.personal-room-key-message{
+  min-height:1.3em;
+  margin:12px auto 0;
+  color:var(--rose);
+  font-family:Arial,sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+
+.personal-room-key-card button{
+  max-width:430px;
+}
+
+body.personal-room-key-is-open{
+  overflow:hidden;
+}
+
+@media(max-width:700px){
+  .switch-account-button{
+    top:16px;
+    left:16px;
+    padding:8px 11px;
+    font-size:.56rem;
+  }
+
+  .personal-room-key-overlay{
+    align-items:start;
+    padding:14px;
+  }
+
+  .personal-room-key-card{
+    margin-top:20px;
+    padding:28px 20px;
+    border-radius:26px;
+  }
+}

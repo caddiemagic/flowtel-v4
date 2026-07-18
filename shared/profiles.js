@@ -126,3 +126,37 @@ export async function updatePowderRoomSharing(enabled = true) {
 
   return data;
 }
+
+export function profileNeedsPersonalRoomKey(profile = {}) {
+  const role = String(profile?.role || "client").trim().toLowerCase();
+  const email = String(profile?.email || "").trim().toLowerCase();
+
+  if (["admin", "owner"].includes(role)) return false;
+  if (email.endsWith("@test.local")) return false;
+
+  return !profile?.password_setup_completed_at;
+}
+
+export async function markPersonalRoomKeyCreated() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    throw new Error("No authenticated user.");
+  }
+
+  const { data, error } = await supabase.rpc("flowtel_complete_password_setup");
+
+  if (!error && data) return Array.isArray(data) ? data[0] || null : data;
+
+  // Compatibility fallback while migration 038 is being deployed.
+  const fallback = await supabase
+    .from("profiles")
+    .update({ password_setup_completed_at: new Date().toISOString() })
+    .eq("id", user.id)
+    .select()
+    .single();
+
+  if (fallback.error) throw error || fallback.error;
+
+  return fallback.data;
+}

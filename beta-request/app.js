@@ -1,9 +1,11 @@
-import { signInWithEmail, signOut } from "../shared/auth.js";
+import { signInWithEmail, signOut } from "../shared/auth.js?v=0.10.49";
 
 const form = document.getElementById("betaRequestForm");
 const message = document.getElementById("message");
 const button = document.getElementById("submitButton");
 const successPanel = document.getElementById("successPanel");
+const successTitle = document.getElementById("successTitle");
+const successCopy = document.getElementById("successCopy");
 const loginLink = document.getElementById("loginLink");
 const membershipSelect = document.getElementById("membershipType");
 const betaLoadingOverlay = document.getElementById("betaLoadingOverlay");
@@ -42,8 +44,11 @@ function membershipFromUrl() {
   return "queendom";
 }
 
-function clientUrl(membership = "queendom") {
-  return `/client/?membership=${encodeURIComponent(membership || "queendom")}`;
+function clientUrl(membership = "queendom", email = "", forceDoorway = false) {
+  const params = new URLSearchParams({ membership: membership || "queendom" });
+  if (email) params.set("email", email);
+  if (forceDoorway) params.set("forceDoorway", "1");
+  return `/client/?${params.toString()}`;
 }
 
 function applyMembershipDefault() {
@@ -59,7 +64,7 @@ async function autoLoginAndEnter(email, password, membershipType) {
 
   await signOut();
   await signInWithEmail(email, password);
-  window.location.href = clientUrl(membershipType);
+  window.location.href = clientUrl(membershipType, email);
 }
 
 applyMembershipDefault();
@@ -81,7 +86,7 @@ form?.addEventListener("submit", async (event) => {
 
   button.disabled = true;
   button.textContent = "Creating access...";
-  setMessage("Creating your Flowtel access. If approved, we’ll log you in automatically.");
+  setMessage("Creating your Flowtel access.");
   setBetaLoading(true, "Creating your Flowtel access...");
 
   try {
@@ -99,17 +104,26 @@ form?.addEventListener("submit", async (event) => {
 
     form.classList.add("hidden");
     successPanel.classList.remove("hidden");
-    setMessage(
-      result.accountStatus === "created"
-        ? "Your Flowtel access has been created. We’re logging you in."
-        : "Your Flowtel access already existed. We refreshed it and we’re logging you in."
-    );
+    loginLink.href = clientUrl(payload.membershipType, payload.email);
 
-    button.textContent = "Logging you in...";
-    setBetaLoading(true, "Your access is ready. Logging you in and preparing your suite...");
-    await autoLoginAndEnter(payload.email, result.temporaryPassword, payload.membershipType);
+    if (result.accountStatus === "created" && result.autoLoginAvailable && result.temporaryPassword) {
+      if (successTitle) successTitle.textContent = "Your Flowtel access is ready.";
+      if (successCopy) successCopy.textContent = "We’re logging you in with the temporary beta password. You’ll create your own private room key before entering your Suite.";
+      setMessage("Your access is ready. We’re logging you in.");
+      button.textContent = "Logging you in...";
+      setBetaLoading(true, "Your access is ready. Logging you in and preparing your private room key...");
+      await autoLoginAndEnter(payload.email, result.temporaryPassword, payload.membershipType);
+      return;
+    }
+
+    setBetaLoading(false);
+    loginLink.href = clientUrl(payload.membershipType, payload.email, true);
+    if (successTitle) successTitle.textContent = "Your Flowtel access already exists.";
+    if (successCopy) successCopy.textContent = "Your personal password was preserved. Enter the Flowtel with the private password you already created. On your first visit, use FlowtelBeta!2026.";
+    loginLink.textContent = "Enter the Flowtel";
+    setMessage("Your existing Flowtel password was preserved.");
   } catch (error) {
-    console.error("Beta request could not complete automatic login:", error);
+    console.error("Beta request could not complete:", error);
     setMessage(error.message || "Something went wrong at the Front Desk.", "error");
     setBetaLoading(false);
     button.disabled = false;

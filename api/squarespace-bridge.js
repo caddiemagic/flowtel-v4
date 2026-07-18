@@ -1,6 +1,6 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.48 — Beta credential alignment + returning-user refresh.
-// Keeps Squarespace and Supabase service keys out of browser code.
+// Flowtel v0.10.49 — Personal Room Keys + Secure Remembered Entry.
+// Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
 const DEFAULT_BETA_PASSWORD = "FlowtelBeta!2026";
@@ -199,10 +199,9 @@ async function findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   return users.find((user) => normalizeEmail(user?.email) === email) || null;
 }
 
-async function refreshSupabaseBetaUser({ supabaseUrl, serviceKey, userId, password, contact, membershipType }) {
+async function refreshSupabaseBetaUserMetadata({ supabaseUrl, serviceKey, userId, contact, membershipType }) {
   if (!userId) return null;
   const payload = {
-    password,
     email_confirm: true,
     user_metadata: {
       first_name: contact?.firstName || null,
@@ -254,8 +253,8 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
   if (!serviceKey || !supabaseUrl) {
     return bridgeNotice(
       !serviceKey
-        ? "SUPABASE_SERVICE_ROLE_KEY not configured; canonical beta credentials could not be refreshed."
-        : "SUPABASE_URL not configured; canonical beta credentials could not be refreshed."
+        ? "SUPABASE_SERVICE_ROLE_KEY not configured; the beta Auth user could not be prepared."
+        : "SUPABASE_URL not configured; the beta Auth user could not be prepared."
     );
   }
 
@@ -264,21 +263,21 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
   try {
     const existingUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email });
     if (existingUser?.id) {
-      await refreshSupabaseBetaUser({
+      await refreshSupabaseBetaUserMetadata({
         supabaseUrl,
         serviceKey,
         userId: existingUser.id,
-        password,
         contact,
         membershipType,
       });
       return {
         prepared: true,
         userId: existingUser.id,
-        passwordAligned: true,
+        accountStatus: "existing",
+        temporaryPasswordCreated: false,
         reason: intent === "returning"
-          ? "Returning beta credentials refreshed."
-          : "Existing beta credentials refreshed.",
+          ? "Existing member account found. Personal password preserved."
+          : "Existing beta account found. Personal password preserved.",
       };
     }
 
@@ -293,8 +292,9 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
     return {
       prepared: true,
       userId: data.id || data.user?.id || null,
-      passwordAligned: true,
-      reason: "Beta Auth user created with canonical credentials.",
+      accountStatus: "created",
+      temporaryPasswordCreated: true,
+      reason: "Beta Auth user created with the temporary Flowtel password.",
     };
   } catch (error) {
     const alreadyExists = /already|registered|exists|duplicate/i.test(error.message || error.responseText || "");
@@ -302,19 +302,19 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
       try {
         const existingUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email });
         if (existingUser?.id) {
-          await refreshSupabaseBetaUser({
+          await refreshSupabaseBetaUserMetadata({
             supabaseUrl,
             serviceKey,
             userId: existingUser.id,
-            password,
             contact,
             membershipType,
           });
           return {
             prepared: true,
             userId: existingUser.id,
-            passwordAligned: true,
-            reason: "Existing beta credentials refreshed after duplicate-user response.",
+            accountStatus: "existing",
+            temporaryPasswordCreated: false,
+            reason: "Existing beta account found after duplicate-user response. Personal password preserved.",
           };
         }
       } catch (refreshError) {
@@ -323,8 +323,8 @@ async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, 
     }
 
     if (trustedDoorway) {
-      console.warn("Flowtel bridge: canonical beta credential preparation failed, but trusted doorway remains available.", error);
-      return bridgeNotice("Canonical beta credential preparation failed; trusted doorway continued for beta.", {
+      console.warn("Flowtel bridge: beta Auth preparation failed, but trusted doorway remains available.", error);
+      return bridgeNotice("Beta Auth preparation failed; trusted doorway continued for beta.", {
         supabaseAdminStatus: error.statusCode || null,
         supabaseAdminMessage: error.message || "Unknown Supabase admin error.",
       });
@@ -378,7 +378,9 @@ module.exports = async function handler(req, res) {
       bridgeNote: contact?.reason || null,
       supabaseUserPrepared: authResult.prepared,
       supabaseUserId: authResult.userId || null,
-      betaCredentialsAligned: Boolean(authResult.passwordAligned),
+      accountStatus: authResult.accountStatus || "unknown",
+      temporaryPasswordCreated: Boolean(authResult.temporaryPasswordCreated),
+      personalPasswordPreserved: authResult.accountStatus === "existing",
       note: authResult.reason || null,
     });
   } catch (error) {

@@ -1,3 +1,16 @@
+## v0.10.49 — Personal Room Keys + Secure Remembered Entry
+
+- Turned `FlowtelBeta!2026` into a one-time beta entrance credential for non-admin members.
+- Added a mandatory **Create My Private Room Key** doorway before first Suite access.
+- Keeps members logged in on the browser where they created their private password.
+- Changed **I've Stayed Before** to require the member's actual email and password instead of silently using the shared beta password.
+- Stopped `/api/squarespace-bridge` and `/api/beta-request` from resetting passwords on existing Auth accounts.
+- Limited automatic Request Access login to Auth accounts created during that same request.
+- Added **Forgot your password?** recovery and a Flowtel password-update screen.
+- Added **Switch Account** with local-session sign-out and Flowtel cache clearing.
+- Added migration 038 with `profiles.password_setup_completed_at` and the authenticated completion RPC.
+- Retired migration 037; it must not be rerun after members create personal passwords.
+
 ## v0.10.48 — Beta Login Credential Alignment
 
 - Retired the legacy `FlowtelMemberBridge!2026` browser/API credential.

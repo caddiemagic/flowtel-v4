@@ -4,13 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.44" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.49" />
 </head>
 <body>
   <main class="flowtel-app">
     <section class="flowtel-shell">
       <div class="progress-ribbon" aria-hidden="true"><span class="active"></span><span></span><span></span></div>
       <img class="rose-corner" src="../assets/flowtel-rose.png" alt="" onerror="this.style.display='none'" />
+      <button id="switchAccountButton" type="button" class="switch-account-button hidden">Switch Account</button>
 
       <section class="scene active" id="lobbyScene">
         <p class="eyebrow">WELCOME HOME</p>
@@ -30,13 +31,13 @@
             <button id="memberBridgeNewButton" type="button">I'm New</button>
             <button id="memberBridgeReturningButton" type="button" class="secondary">I've Stayed Before</button>
             <p class="microcopy">
-              Phase 1 trusted doorway: enter the email connected to your Flowtel access. After your first login, Flowtel can remember you on this device.
+              On your first visit, use the temporary Flowtel beta password. You’ll create your own private password before entering your Suite. Flowtel can then remember you on this browser.
             </p>
           </div>
 
           <details class="dev-login-card" id="devLoginCard">
-            <summary>Developer login</summary>
-            <p class="microcopy">Use only if the Squarespace bridge is unavailable during testing.</p>
+            <summary>Secure Flowtel Login</summary>
+            <p class="microcopy" id="loginGuidance">Enter the password connected to your Flowtel account.</p>
 
             <label for="email">Email</label>
             <input id="email" type="email" autocomplete="email" />
@@ -45,6 +46,7 @@
             <input id="password" type="password" autocomplete="current-password" />
 
             <button id="signInButton" type="button">Enter the Flowtel</button>
+            <button id="forgotPasswordButton" type="button" class="text-button">Forgot your password?</button>
           </details>
 
           <p class="microcopy">
@@ -303,6 +305,27 @@
     </section>
   </main>
 
+  <div class="personal-room-key-overlay hidden" id="personalRoomKeyOverlay" role="dialog" aria-modal="true" aria-labelledby="personalRoomKeyTitle" aria-hidden="true">
+    <section class="personal-room-key-card">
+      <p class="eyebrow">YOUR PRIVATE ROOM KEY</p>
+      <img class="personal-room-key-rose" src="../assets/flowtel-pinkrose.png" alt="" />
+      <h2 id="personalRoomKeyTitle">Create your Flowtel password</h2>
+      <p id="personalRoomKeyCopy">Choose the private password you’ll use whenever you return from a new browser or device. Flowtel will remember you on this browser.</p>
+
+      <label for="newFlowtelPassword">New password</label>
+      <input id="newFlowtelPassword" type="password" autocomplete="new-password" minlength="10" />
+
+      <label for="confirmFlowtelPassword">Confirm new password</label>
+      <input id="confirmFlowtelPassword" type="password" autocomplete="new-password" minlength="10" />
+
+      <p class="personal-room-key-requirements">Use at least 10 characters. Do not reuse the temporary beta password.</p>
+      <p id="personalRoomKeyMessage" class="personal-room-key-message" role="status" aria-live="polite"></p>
+
+      <button id="savePersonalRoomKeyButton" type="button">Create My Private Room Key</button>
+      <button id="personalRoomKeySwitchButton" type="button" class="secondary">Switch Account</button>
+    </section>
+  </div>
+
   <div class="flowtel-loading-overlay hidden" id="flowtelLoadingOverlay" role="status" aria-live="polite" aria-hidden="true">
     <section class="flowtel-loading-card" aria-label="Flowtel is preparing your suite">
       <p class="flowtel-loading-eyebrow">FLOWTEL FRONT DESK</p>
@@ -315,6 +338,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.48"></script>
+  <script type="module" src="./app.js?v=0.10.49"></script>
 </body>
 </html>

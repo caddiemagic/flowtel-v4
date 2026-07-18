@@ -1,107 +1,111 @@
 # Flowtel Beta Test Users
 
+## Personal room keys as of v0.10.49
 
-## Canonical Phase 1 beta credential
+`FlowtelBeta!2026` is now a **temporary first-entry password**, not the permanent password for every beta member.
 
-As of Flowtel v0.10.48, every non-admin beta account uses one temporary password:
+The intended flow is:
 
-`FlowtelBeta!2026`
+1. A missing beta Auth account is created with `FlowtelBeta!2026`.
+2. The member signs in once with that temporary password.
+3. Flowtel requires her to create a private password before entering the Suite.
+4. The browser remembers the Supabase session until she signs out, clears browser storage, or uses a private/incognito session that later closes.
+5. A different browser or device requires the member's private password.
 
-Run `database/migration-037-beta-login-credential-alignment.sql` after deployment to align existing profile-linked Auth users. The migration excludes admin and owner accounts. New and returning member bridge requests also refresh eligible Auth users to this password when the Vercel service-role configuration is available.
+Run `database/migration-038-personal-room-keys.sql` after deploying v0.10.49.
 
-The legacy `FlowtelMemberBridge!2026` password is retired. `FLOWTEL_BRIDGE_PASSWORD` is intentionally ignored by the beta account endpoints so an old Vercel environment value cannot recreate the mismatch. Both `FLOWTEL_BRIDGE_PASSWORD` and `FLOWTEL_BETA_TEMP_PASSWORD` are intentionally ignored for Phase 1 so Vercel cannot use a different password from the browser.
+### Do not rerun migration 037
 
-## Best practice
+`database/migration-037-beta-login-credential-alignment.sql` is retired. It was used once to align beta accounts before personal passwords existed. Rerunning it would reset non-admin beta users back to the shared temporary password.
 
-For beta testing, create test users directly in Supabase Auth instead of relying on the public/new-member sign-up path.
+## New account behavior
 
-The current Flowtel beta bridge signs a user up and then immediately tries to sign that same user in. If Supabase email confirmation is enabled, the sign-up can create the user but no active session is returned yet, so the immediate sign-in can fail until the email is confirmed.
+A missing Auth user may be created through:
 
-## Recommended test account pattern
+- Request Flowtel Access
+- the **I'm New** member doorway
+- the server-side Squarespace bridge
 
-Create a small matrix of clean accounts:
+Only a newly created Auth account receives `FlowtelBeta!2026`. Existing accounts keep their current password.
 
-- 3 guest accounts
+The Request Access page may automatically log in a member only when it created that Auth account during the same request. An existing account must use its personal password.
+
+## Returning account behavior
+
+**I've Stayed Before** must require:
+
+- the exact Flowtel email
+- the private password the member created
+
+The returning path must never silently substitute `FlowtelBeta!2026` and must never reset the Auth password.
+
+## Forgot password test
+
+Before testing recovery, add this production redirect URL in Supabase Auth → URL Configuration:
+
+`https://app.theflowtel.com/client/`
+
+Then:
+
+1. Open the secure Flowtel login.
+2. Enter the member email.
+3. Choose **Forgot your password?**
+4. Open the newest recovery email in the same browser.
+5. Confirm the Flowtel private-room-key screen appears.
+6. Save a new password.
+7. Confirm the member remains logged in and can return later with that password.
+
+## Recommended test matrix
+
+Use real inboxes or email aliases you can access:
+
+- 3 guest/client accounts
 - 2 practitioner accounts
 - 1 admin/owner account
 
-Use a consistent password for temporary beta accounts, such as the current beta password used by the app:
-
-`FlowtelBeta!2026`
-
-Use real inboxes or email aliases you can access. Example pattern:
+Suggested pattern:
 
 - `you+flowtel-guest1@example.com`
 - `you+flowtel-guest2@example.com`
 - `you+flowtel-practitioner1@example.com`
 - `you+flowtel-admin@example.com`
 
-## Supabase Auth setup
+## Supabase Auth and profile requirements
 
-In Supabase, create each test user as a confirmed email user.
+Each Auth user should be confirmed and have a matching `public.profiles` row with the same UUID.
 
-Recommended values:
+Minimum profile fields:
 
-- Email: test email
-- Password: beta password
-- Email confirmed: yes / auto-confirmed
-
-If creating users through Supabase Admin APIs, use `email_confirm: true`.
-
-## Profile setup
-
-After the auth user exists, create or update the matching row in `public.profiles` with the same `id` as the Supabase Auth user id.
-
-Minimum profile fields to confirm:
-
-- `id` = auth user id
+- `id` = Auth user ID
 - `email`
 - `first_name`
 - `last_name`
 - `role`
 - `membership_type`
-- `serving_wing` for practitioners
+- `serving_wing` for practitioners when applicable
 
-Suggested roles:
+Migration 038 adds:
 
-- guest/member: `guest` or existing guest-equivalent role used in the project
-- practitioner: `practitioner`
-- admin: `admin` or `owner`
+- `password_setup_completed_at`
 
-## Why not rely on new random emails in the app?
+The password itself is never stored in `public.profiles`.
 
-The app can still create users when Auth settings allow it, but for controlled beta testing, manual creation is more reliable because:
+## Clean account-switch testing
 
-- you control whether the email is confirmed
-- you can assign the correct role immediately
-- you can create predictable guest/practitioner/admin test flows
-- you avoid hidden email-confirmation failures
-- you avoid accidentally mixing Squarespace bridge behavior with Supabase Auth behavior
+Use the new **Switch Account** control. It signs out only the current browser session and clears the same-day Flowtel Suite handoff.
 
-## Clean beta reset
+For a completely fresh browser test:
 
-For repeat testing:
+1. Choose **Switch Account**.
+2. Close all private/incognito windows when using private mode.
+3. Open a new private window.
+4. Enter with the test account's email and appropriate password.
 
-1. Keep the same auth users.
-2. Clear only the test data rows you want to reset, such as stays, reflections, mentor relationships, or turndown requests.
-3. Avoid deleting auth users unless you need to test first-time signup from scratch.
+## Clean first-arrival testing
 
-## Suggested first beta matrix
+A remembered session and an existing stay are separate things:
 
-- Guest A: daily check-in, no mentor
-- Guest B: pending mentor request
-- Guest C: connected to Practitioner A
-- Practitioner A: multiple connected clients
-- Practitioner B: no connected clients yet
-- Admin/Owner: global dashboard access
+- remembered session = Flowtel knows which Auth user owns the browser session
+- today's stay = the member has already checked in for the current Flowtel Date
 
-## Browser cache note for first-arrival tests
-
-When testing several accounts in the same browser, Flowtel stores a small same-day Suite handoff in session storage so a practitioner can return from the Concierge Desk to her own Suite.
-
-As of v0.9.11, that cached Suite can only reopen when it belongs to the same signed-in profile. If a new test user lands directly in the Suite, check whether that user already has a `flowtel_stays` row for today's Flowtel Date. If they do, Flowtel is correctly treating them as already checked in for the day.
-
-For a clean first-arrival test, use either:
-
-- a fresh confirmed auth user with no `flowtel_stays` row for today, or
-- delete that test user's stay rows for the current Flowtel Date before testing again.
+For a clean first-arrival test, use a confirmed Auth user with no `flowtel_stays` row for today's Flowtel Date, or remove only that test user's stay data for today. Preserve profiles and Auth users unless specifically testing account creation.
