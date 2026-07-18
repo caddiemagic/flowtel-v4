@@ -1,3 +1,11 @@
+## v0.10.51 — Lounge Profile Pill Polish
+
+- Restyled the Lounge **Priestess Profile** card to match the clean white hospitality cards used elsewhere on the Lounge page.
+- Removed the warm gold gradient treatment from the Priestess Profile card.
+- Removed the **Living Map** card from the Lounge.
+- Kept Team Map access available from the Suite only.
+- No Supabase migration required.
+
 ## v0.10.50 — Team Map Membership + Owner Turndown Routing Repair
 
 - Repaired Flow FM Team Map eligibility after lower Queendom doorway values overwrote visible membership types.

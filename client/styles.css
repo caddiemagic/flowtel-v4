@@ -2414,10 +2414,10 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 .profile-lounge-card{
   max-width:760px;
   margin:22px auto 0;
-  padding:22px 20px;
+  padding:20px;
   text-align:left;
-  background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(252,246,239,.82));
-  border:1px solid rgba(216,168,79,.2);
+  background:rgba(255,255,255,.78);
+  border:1px solid var(--line);
   border-radius:24px;
   box-shadow:0 12px 34px rgba(109,78,65,.07);
 }
@@ -3515,17 +3515,6 @@ body.flowtel-is-loading{overflow:hidden}
   .mwv2-season-card{min-height:88px;padding-inline:6px;}
   .mwv2-season-card strong{font-size:.71rem;}
 }
-
-/* Flowtel v0.10.41 — Living Map Lounge doorway */
-.living-map-lounge-card{
-  border-color:rgba(216,168,79,.3);
-  background:
-    radial-gradient(circle at 88% 12%,rgba(216,168,79,.16),transparent 32%),
-    radial-gradient(circle at 12% 90%,rgba(222,203,239,.22),transparent 35%),
-    linear-gradient(145deg,rgba(255,253,249,.96),rgba(248,231,227,.3));
-}
-.living-map-lounge-card h3{font-weight:400;color:var(--brown)}
-
 
 /* Flowtel v0.10.42 — dual map doorway + final Powder Room disclosure repair */
 .suite-map-actions{
