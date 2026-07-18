@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Magic Moon Score Map</title>
+  <link rel="stylesheet" href="../styles.css?v=0.1.2" />
+  <link rel="stylesheet" href="./styles.css?v=0.1.2" />
+</head>
+<body class="cm-map-page">
+  <main class="cm-shell cm-score-map-shell">
+    <section class="cm-hero cm-map-hero">
+      <span class="cm-version">v0.1.2</span>
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">CADDIE MAGIC</p>
+        <h1>Moon Score Map</h1>
+        <p class="cm-lead">Review your scores and swing thoughts across the moon’s phases.</p>
+      </div>
+      <a class="cm-button secondary cm-back-button" href="/caddie-magic/">← Back to Locker</a>
+    </section>
+
+    <section class="cm-card cm-score-map-card">
+      <div class="cm-map-toolbar">
+        <nav class="cm-map-filters" id="mapFilters" aria-label="Moon Score Map range">
+          <button class="cm-filter-button is-active" type="button" data-range="current">Current Moon</button>
+          <button class="cm-filter-button" type="button" data-range="last">Last Moon</button>
+          <button class="cm-filter-button" type="button" data-range="all">All</button>
+        </nav>
+        <span class="cm-player-view" id="playerViewLabel">Player View</span>
+      </div>
+
+      <div class="cm-map-content">
+        <section class="cm-quadrant-map" aria-label="Cardinal club Moon Score Map">
+          <span class="cm-map-axis cm-map-axis-y" aria-hidden="true"></span>
+          <span class="cm-map-axis cm-map-axis-x" aria-hidden="true"></span>
+          <span class="cm-map-marker cm-map-marker-n" aria-hidden="true">◆</span>
+          <span class="cm-map-marker cm-map-marker-e" aria-hidden="true">◆</span>
+          <span class="cm-map-marker cm-map-marker-s" aria-hidden="true">◆</span>
+          <span class="cm-map-marker cm-map-marker-w" aria-hidden="true">◆</span>
+          <div class="cm-map-center" aria-hidden="true"><span>◐</span></div>
+
+          <article class="cm-map-quadrant cm-map-west" data-phase="New Moon Phase">
+            <header>
+              <p>New Moon Phase · Days 27–5</p>
+              <h2>West Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesWest"></div>
+          </article>
+
+          <article class="cm-map-quadrant cm-map-north" data-phase="Half New Moon Phase">
+            <header>
+              <p>Last Quarter · Days 20–26</p>
+              <h2>North Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesNorth"></div>
+          </article>
+
+          <article class="cm-map-quadrant cm-map-south" data-phase="Half Full Moon Phase">
+            <header>
+              <p>First Quarter · Days 6–11</p>
+              <h2>South Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesSouth"></div>
+          </article>
+
+          <article class="cm-map-quadrant cm-map-east" data-phase="Full Moon Phase">
+            <header>
+              <p>Full Moon Phase · Days 12–19</p>
+              <h2>East Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesEast"></div>
+          </article>
+        </section>
+
+        <aside class="cm-map-sidebar">
+          <section class="cm-map-snapshot">
+            <p class="cm-eyebrow">MOON PHASE SNAPSHOT</p>
+            <dl>
+              <div><dt>Moon Day</dt><dd id="mapMoonDay">—</dd></div>
+              <div><dt>Moon Phase</dt><dd id="mapMoonPhase">—</dd></div>
+              <div><dt>Theme</dt><dd id="mapMoonTheme">—</dd></div>
+            </dl>
+          </section>
+          <a class="cm-button cm-gold-button cm-download-button" href="/caddie-magic/score-map/printable/" target="_blank" rel="noopener">Download Score Map Exercise</a>
+          <p class="cm-map-range-copy" id="mapRangeCopy"></p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="cm-card cm-insights-card">
+      <p class="cm-eyebrow">ROUND INSIGHTS</p>
+      <div class="cm-insight-grid" id="roundInsights"></div>
+    </section>
+
+    <p class="cm-message" id="scoreMapMessage"></p>
+  </main>
+  <script type="module" src="./app.js?v=0.1.2"></script>
+</body>
+</html>

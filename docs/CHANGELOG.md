@@ -1,3 +1,16 @@
+## Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
+
+- Rebuilt `/caddie-magic/` as a velvety navy, hunter green, antique gold, moon-silver private golf locker room.
+- Kept the Round Log limited to Date, Course, Score, and Swing Thoughts.
+- Added the Moon Score Data snapshot with Moon Day, Moon Phase, placeholder theme, Last New Moon, and Next New Moon.
+- Added a clickable 28-position golf-club medicine wheel with temporary North, East, South, and West Club labels.
+- Added day-level score and swing-thought review directly from the wheel.
+- Refined the Player Locker around latest score, moon data, latest swing thought, Notes Under the Door, and previous rounds.
+- Added `/caddie-magic/score-map/` with Current Moon, Last Moon, and All views using the Flowtel Flow Map framework.
+- Replaced the Flowtel seasonal quadrants with West Club, South Club, East Club, and North Club placeholders.
+- Added `/caddie-magic/score-map/printable/` as the downloadable / Save PDF Moon Score Map exercise.
+- No Supabase migration required.
+
 ## v0.10.51 — Lounge Profile Pill Polish
 
 - Restyled the Lounge **Priestess Profile** card to match the clean white hospitality cards used elsewhere on the Lounge page.

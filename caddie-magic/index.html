@@ -3,18 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caddie Magic Portal</title>
-  <link rel="stylesheet" href="./styles.css?v=0.1.1" />
+  <title>Caddie Magic Locker</title>
+  <link rel="stylesheet" href="./styles.css?v=0.1.2" />
 </head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
+      <span class="cm-version">v0.1.2</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
         <p class="cm-eyebrow">CADDIE MAGIC</p>
-        <h1>Playing golf on the moon.</h1>
-        <p class="cm-lead">A private moonlit locker for scores, swing thoughts, and the patterns that reveal themselves over time.</p>
+        <h1>My Moon Score Data</h1>
+        <p class="cm-lead">Track your score, swing thoughts, and the moon’s patterns over time.</p>
         <div class="cm-hero-actions" id="heroActions">
           <button class="cm-button" id="heroLogButton" type="button">Log a Round</button>
           <button class="cm-button secondary" id="heroLockerButton" type="button">Open Your Locker</button>
@@ -65,39 +66,112 @@
         <label>Home Course
           <input id="profileHomeCourse" type="text" placeholder="Pebble Beach, Spyglass, your home club..." />
         </label>
-        <label>Handicap or Typical Score Range
-          <input id="profileScoreRange" type="text" placeholder="8 handicap, 85–92, scratch, still finding it..." />
-        </label>
-        <label>Main Goal
-          <textarea id="profileMainGoal" rows="3" placeholder="What are you trying to see, change, or understand in your game?"></textarea>
-        </label>
-        <label>Biggest Golf Frustration
-          <textarea id="profileFrustration" rows="3" placeholder="Where does the game usually get away from you?"></textarea>
-        </label>
+        <details class="cm-profile-extras">
+          <summary>Optional player notes</summary>
+          <div class="cm-profile-extras-grid">
+            <label>Handicap or Typical Score Range
+              <input id="profileScoreRange" type="text" placeholder="8 handicap, 85–92, scratch..." />
+            </label>
+            <label>Main Goal
+              <textarea id="profileMainGoal" rows="3" placeholder="What are you trying to see or understand in your game?"></textarea>
+            </label>
+            <label>Biggest Golf Frustration
+              <textarea id="profileFrustration" rows="3" placeholder="Where does the game usually get away from you?"></textarea>
+            </label>
+          </div>
+        </details>
         <button class="cm-button" type="submit">Save Player Profile</button>
       </form>
       <p class="cm-message" id="profileMessage"></p>
     </section>
 
+    <section class="cm-card cm-moon-dashboard hidden" id="moonDashboardCard">
+      <div class="cm-dashboard-heading">
+        <div>
+          <p class="cm-eyebrow" id="moonSnapshotEyebrow">MOON SCORE DATA</p>
+          <h2 id="moonDashboardTitle">You’re on Moon Day —</h2>
+          <p class="cm-muted" id="moonDashboardCopy">Your scorecard is opening under the current moon.</p>
+        </div>
+        <a class="cm-button secondary cm-map-button" href="/caddie-magic/score-map/">Open Score Map</a>
+      </div>
+
+      <div class="cm-dashboard-layout">
+        <section class="cm-wheel-section" aria-label="Caddie Magic moon medicine wheel">
+          <div class="cm-moon-wheel" id="moonWheel">
+            <div class="cm-wheel-ring cm-wheel-ring-outer" aria-hidden="true"></div>
+            <div class="cm-wheel-ring cm-wheel-ring-inner" aria-hidden="true"></div>
+            <div class="cm-day-ring" id="moonDayRing"></div>
+            <div class="cm-club-label cm-club-north">North Club</div>
+            <div class="cm-club-label cm-club-east">East Club</div>
+            <div class="cm-club-label cm-club-south">South Club</div>
+            <div class="cm-club-label cm-club-west">West Club</div>
+            <div class="cm-wheel-center" aria-hidden="true">
+              <span class="cm-club-line cm-club-line-n"></span>
+              <span class="cm-club-line cm-club-line-e"></span>
+              <span class="cm-club-line cm-club-line-s"></span>
+              <span class="cm-club-line cm-club-line-w"></span>
+              <span class="cm-compass-star">✦</span>
+              <span class="cm-golf-moon">◐</span>
+            </div>
+          </div>
+          <p class="cm-wheel-help">Select a moon day to open the score and swing thought stored there.</p>
+        </section>
+
+        <section class="cm-snapshot-section">
+          <div class="cm-snapshot-grid">
+            <article class="cm-snapshot-card">
+              <span>Last New Moon / Cycle Day 1</span>
+              <strong id="lastNewMoonValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Moon Day</span>
+              <strong id="moonDayValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Moon Phase</span>
+              <strong id="moonPhaseValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Theme</span>
+              <strong id="moonThemeValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Next New Moon</span>
+              <strong id="nextNewMoonValue">—</strong>
+            </article>
+          </div>
+
+          <article class="cm-day-detail" id="moonDayDetail" aria-live="polite">
+            <p class="cm-eyebrow">SELECTED MOON DAY</p>
+            <h3 id="selectedDayTitle">Moon Day —</h3>
+            <div id="selectedDayContent" class="cm-day-detail-content"></div>
+          </article>
+        </section>
+      </div>
+    </section>
+
     <section class="cm-grid hidden" id="portalGrid">
       <section class="cm-card cm-log-card" id="roundLogCard">
+        <div class="cm-section-icon" aria-hidden="true">✎</div>
         <p class="cm-eyebrow">LOG A ROUND</p>
-        <h2>Moon Score Tracker</h2>
+        <h2>Log Your Round</h2>
         <p class="cm-muted">Only the essentials: date, course, score, and the swing thought you want remembered.</p>
-        <form id="roundForm" class="cm-form">
-          <label>Date of Round
-            <input id="roundDate" type="date" required />
-          </label>
-          <label>Course Played
-            <input id="coursePlayed" type="text" required placeholder="Course name" />
-          </label>
-          <label>Score
-            <input id="roundScore" type="number" required min="1" max="300" placeholder="82" />
-          </label>
+        <form id="roundForm" class="cm-form cm-round-form">
+          <div class="cm-round-fields">
+            <label>Date
+              <input id="roundDate" type="date" required />
+            </label>
+            <label>Course
+              <input id="coursePlayed" type="text" required placeholder="Course name" />
+            </label>
+            <label>Score
+              <input id="roundScore" type="number" required min="1" max="300" placeholder="82" />
+            </label>
+          </div>
           <label>Swing Thoughts
-            <textarea id="swingThoughts" rows="5" required placeholder="What thought, feel, or pattern followed you around the course?"></textarea>
+            <textarea id="swingThoughts" rows="4" required placeholder="What was working? What will you remember?"></textarea>
           </label>
-          <button class="cm-button" type="submit">Log Round</button>
+          <button class="cm-button cm-gold-button" type="submit">Log Round</button>
         </form>
         <p class="cm-message" id="roundMessage"></p>
       </section>
@@ -105,11 +179,13 @@
       <section class="cm-card cm-locker-card" id="lockerCard">
         <div class="cm-card-header">
           <div>
+            <div class="cm-section-icon" aria-hidden="true">▥</div>
             <p class="cm-eyebrow">PLAYER LOCKER</p>
             <h2 id="lockerTitle">Your Locker</h2>
           </div>
           <button class="cm-button ghost" id="signOutButton" type="button">Sign Out</button>
         </div>
+        <p class="cm-muted cm-locker-intro">Your private locker for scores, patterns, and notes that unfold over time.</p>
         <div class="cm-stat-grid" id="statGrid"></div>
         <section class="cm-note-door">
           <p class="cm-eyebrow">NOTES UNDER THE DOOR</p>
@@ -118,19 +194,17 @@
       </section>
     </section>
 
-    <section class="cm-card cm-score-map hidden" id="scoreMapCard">
-      <p class="cm-eyebrow">MOON SCORECARD</p>
-      <h2>Score Flow Map</h2>
-      <p class="cm-muted">Rounds are grouped by moon phase so your score and swing-thought patterns can start speaking back.</p>
-      <div class="cm-phase-grid" id="moonScoreMap"></div>
-    </section>
-
     <section class="cm-card cm-history-card hidden" id="historyCard">
-      <p class="cm-eyebrow">ROUND HISTORY</p>
-      <h2>Previous rounds</h2>
+      <div class="cm-history-heading">
+        <div>
+          <p class="cm-eyebrow">ROUND HISTORY</p>
+          <h2>Previous Rounds</h2>
+        </div>
+        <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/score-map/">Open Moon Score Map</a>
+      </div>
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.1.1"></script>
+  <script type="module" src="./app.js?v=0.1.2"></script>
 </body>
 </html>

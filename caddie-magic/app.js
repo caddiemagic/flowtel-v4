@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.0 — Moon Score Tracker Foundation
+// Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
@@ -7,8 +7,8 @@ const $ = (id) => document.getElementById(id);
 
 const authCard = $("authCard");
 const profileCard = $("profileCard");
+const moonDashboardCard = $("moonDashboardCard");
 const portalGrid = $("portalGrid");
-const scoreMapCard = $("scoreMapCard");
 const historyCard = $("historyCard");
 const authMessage = $("authMessage");
 const profileMessage = $("profileMessage");
@@ -18,6 +18,7 @@ let currentUser = null;
 let playerProfile = null;
 let roundLogs = [];
 let playerNotes = [];
+let selectedMoonDayToken = null;
 
 function setMessage(node, message = "", isError = false) {
   if (!node) return;
@@ -42,11 +43,37 @@ function scoreNumber(value) {
 
 function normalizePhase(phase = "") {
   const value = String(phase || "").toLowerCase();
-  if (value.includes("new") && !value.includes("half")) return "New Moon Phase";
+  if (value.includes("new") && !value.includes("half") && !value.includes("quarter")) return "New Moon Phase";
   if (value.includes("half full") || value.includes("first")) return "Half Full Moon Phase";
   if (value.includes("full") && !value.includes("half")) return "Full Moon Phase";
-  if (value.includes("half new") || value.includes("third")) return "Half New Moon Phase";
+  if (value.includes("half new") || value.includes("third") || value.includes("last quarter")) return "Half New Moon Phase";
   return phase || "Moon Phase";
+}
+
+function shortPhase(phase = "") {
+  const normalized = normalizePhase(phase);
+  if (normalized === "New Moon Phase") return "New Moon";
+  if (normalized === "Half Full Moon Phase") return "First Quarter";
+  if (normalized === "Full Moon Phase") return "Full Moon";
+  if (normalized === "Half New Moon Phase") return "Last Quarter";
+  return normalized;
+}
+
+function caddieTheme(phase = "") {
+  const normalized = normalizePhase(phase);
+  if (normalized === "New Moon Phase") return "Reset the swing. Choose one clean thought.";
+  if (normalized === "Half Full Moon Phase") return "Commit to the shot.";
+  if (normalized === "Full Moon Phase") return "Trust what shows up under pressure.";
+  if (normalized === "Half New Moon Phase") return "Review the miss. Keep the lesson.";
+  return "Quiet focus. Let the round reveal the pattern.";
+}
+
+function phaseForMoonDay(day) {
+  const value = Number(day);
+  if (value >= 27 || value <= 5) return "New Moon Phase";
+  if (value <= 11) return "Half Full Moon Phase";
+  if (value <= 19) return "Full Moon Phase";
+  return "Half New Moon Phase";
 }
 
 function displayName(profile = playerProfile) {
@@ -57,8 +84,8 @@ function displayName(profile = playerProfile) {
 function showState(state) {
   authCard?.classList.toggle("hidden", state !== "auth");
   profileCard?.classList.toggle("hidden", state !== "profile");
+  moonDashboardCard?.classList.toggle("hidden", state !== "portal");
   portalGrid?.classList.toggle("hidden", state !== "portal");
-  scoreMapCard?.classList.toggle("hidden", state !== "portal");
   historyCard?.classList.toggle("hidden", state !== "portal");
 }
 
@@ -112,8 +139,10 @@ async function signOut() {
   playerProfile = null;
   roundLogs = [];
   playerNotes = [];
+  selectedMoonDayToken = null;
   showState("auth");
   setMessage(authMessage, "You have left the clubhouse.");
+  authCard?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 async function fetchPlayerProfile() {
@@ -239,33 +268,136 @@ async function logRound(event) {
   $("roundScore").value = "";
   $("swingThoughts").value = "";
   $("roundDate").value = todayISO();
-  setMessage(roundMessage, "Round logged. Your locker has been updated.");
+  setMessage(roundMessage, "Round logged. Your locker and Moon Score Map have been updated.");
   await loadPortalData();
+  const loggedToken = moon.moonDay >= 28 ? "28plus" : String(moon.moonDay);
+  selectedMoonDayToken = loggedToken;
   renderPortal();
-  document.getElementById("lockerCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  moonDashboardCard?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function averageScore(logs = roundLogs) {
-  if (!logs.length) return null;
-  return Math.round((logs.reduce((sum, log) => sum + Number(log.score || 0), 0) / logs.length) * 10) / 10;
+  const scores = logs.map((log) => Number(log.score)).filter(Number.isFinite);
+  if (!scores.length) return null;
+  return Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10;
 }
 
 function bestScore(logs = roundLogs) {
-  if (!logs.length) return null;
-  return Math.min(...logs.map((log) => Number(log.score)).filter(Number.isFinite));
+  const scores = logs.map((log) => Number(log.score)).filter(Number.isFinite);
+  return scores.length ? Math.min(...scores) : null;
+}
+
+function dayTokenForValue(day) {
+  return Number(day) >= 28 ? "28plus" : String(Number(day));
+}
+
+function dayLabelForToken(token) {
+  return token === "28plus" ? "28+" : String(token || "—");
+}
+
+function logsForDayToken(token) {
+  return roundLogs.filter((log) => dayTokenForValue(log.moon_day) === token);
+}
+
+function renderMoonDayDetail(token) {
+  const display = dayLabelForToken(token);
+  const dayForPhase = token === "28plus" ? 28 : Number(token);
+  const phase = phaseForMoonDay(dayForPhase);
+  const matching = logsForDayToken(token).slice(0, 4);
+  $("selectedDayTitle").textContent = `Moon Day ${display} · ${shortPhase(phase)}`;
+  const node = $("selectedDayContent");
+  if (!node) return;
+  if (!matching.length) {
+    node.innerHTML = `<div class="cm-empty">No round has been logged on Moon Day ${escapeHtml(display)} yet.<br>${escapeHtml(caddieTheme(phase))}</div>`;
+    return;
+  }
+  node.innerHTML = matching.map((log) => `
+    <article class="cm-day-round">
+      <div class="cm-day-round-score">
+        <span>${escapeHtml(formatDate(log.round_date))} · ${escapeHtml(log.course_played)}</span>
+        <strong>${escapeHtml(log.score)}</strong>
+      </div>
+      <p>“${escapeHtml(log.swing_thoughts)}”</p>
+    </article>
+  `).join("");
+}
+
+function positionMoonDayButtons() {
+  const buttons = document.querySelectorAll(".cm-day-button");
+  buttons.forEach((button, index) => {
+    const angle = 170 - (index * (360 / 28));
+    const radians = angle * Math.PI / 180;
+    const radius = 44;
+    button.style.left = `${50 + (Math.cos(radians) * radius)}%`;
+    button.style.top = `${50 + (Math.sin(radians) * radius)}%`;
+  });
+}
+
+function renderMoonWheel(currentMoonDay) {
+  const ring = $("moonDayRing");
+  if (!ring) return;
+  const currentToken = dayTokenForValue(currentMoonDay);
+  if (!selectedMoonDayToken) selectedMoonDayToken = currentToken;
+  const tokens = [...Array.from({ length: 27 }, (_, index) => String(index + 1)), "28plus"];
+  ring.innerHTML = tokens.map((token) => {
+    const classes = ["cm-day-button"];
+    if (token === currentToken) classes.push("is-today");
+    if (token === selectedMoonDayToken) classes.push("is-selected");
+    if (logsForDayToken(token).length) classes.push("has-round");
+    const label = dayLabelForToken(token);
+    return `<button class="${classes.join(" ")}" type="button" data-moon-day="${token}" aria-label="Open Moon Day ${label}">${label}</button>`;
+  }).join("");
+  positionMoonDayButtons();
+  ring.querySelectorAll(".cm-day-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      selectedMoonDayToken = button.dataset.moonDay;
+      renderMoonWheel(currentMoonDay);
+      renderMoonDayDetail(selectedMoonDayToken);
+    });
+  });
+  renderMoonDayDetail(selectedMoonDayToken);
+}
+
+function renderMoonDashboard() {
+  const today = todayISO();
+  const moon = getMoonMagic(today);
+  $("moonSnapshotEyebrow").textContent = `MOON SCORE DATA · ${formatDate(today).toUpperCase()}`;
+  $("moonDashboardTitle").textContent = `You’re on Moon Day ${moon.moonDay}`;
+  $("moonDashboardCopy").textContent = roundLogs.length
+    ? "Open a moon day to review the score and swing thought stored there. Over time, the pattern becomes the caddie."
+    : "Log your scores and swing thoughts with the moon. After a few rounds, the pattern will begin to speak back.";
+  $("lastNewMoonValue").textContent = formatDate(moon.lastNewMoonDate);
+  $("moonDayValue").textContent = `Day ${moon.moonDay}`;
+  $("moonPhaseValue").textContent = shortPhase(moon.phase);
+  $("moonThemeValue").textContent = caddieTheme(moon.phase);
+  $("nextNewMoonValue").textContent = formatDate(moon.nextNewMoonDate);
+  renderMoonWheel(moon.moonDay);
 }
 
 function renderStats() {
   const latest = roundLogs[0];
-  const avg = averageScore();
-  const best = bestScore();
   const statGrid = $("statGrid");
   if (!statGrid) return;
+  if (!latest) {
+    statGrid.innerHTML = `<div class="cm-empty">Your first scorecard is waiting. Log a round to begin building the locker.</div>`;
+    return;
+  }
   statGrid.innerHTML = `
-    <article class="cm-stat"><span>Latest Score</span><strong>${latest?.score ?? "—"}</strong><small>${latest ? `${escapeHtml(latest.course_played)} · ${formatDate(latest.round_date)}` : "Log your first round."}</small></article>
-    <article class="cm-stat"><span>Total Rounds</span><strong>${roundLogs.length}</strong><small>Stored in your moon score archive.</small></article>
-    <article class="cm-stat"><span>Best Score</span><strong>${best ?? "—"}</strong><small>${best ? "Lowest number in the locker." : "Waiting on the first card."}</small></article>
-    <article class="cm-stat"><span>Average</span><strong>${avg ?? "—"}</strong><small>Updates as your pattern grows.</small></article>
+    <article class="cm-stat">
+      <span>Latest Score</span>
+      <strong>${escapeHtml(latest.score)}</strong>
+      <small>${escapeHtml(latest.course_played)} · ${escapeHtml(formatDate(latest.round_date))}</small>
+    </article>
+    <article class="cm-stat">
+      <span>Moon Data</span>
+      <strong>Day ${escapeHtml(latest.moon_day || "—")}</strong>
+      <small>${escapeHtml(shortPhase(latest.moon_phase))}</small>
+    </article>
+    <article class="cm-stat is-wide">
+      <span>Latest Swing Thought</span>
+      <strong class="cm-stat-thought">“${escapeHtml(latest.swing_thoughts)}”</strong>
+      <small>${roundLogs.length} round${roundLogs.length === 1 ? "" : "s"} logged · Best ${bestScore() ?? "—"} · Average ${averageScore() ?? "—"}</small>
+    </article>
   `;
 }
 
@@ -285,38 +417,6 @@ function renderNotes() {
   `).join("");
 }
 
-function phaseDefinitions() {
-  return [
-    { phase: "New Moon Phase", label: "New Moon", cue: "Reset. Rebuild. Choose the thought." },
-    { phase: "Half Full Moon Phase", label: "Half Full Moon", cue: "Commit. Test. Trust the line." },
-    { phase: "Full Moon Phase", label: "Full Moon", cue: "Perform. Be seen. Hold the pressure." },
-    { phase: "Half New Moon Phase", label: "Half New Moon", cue: "Review. Release. Stop forcing the fix." },
-  ];
-}
-
-function renderMoonScoreMap() {
-  const node = $("moonScoreMap");
-  if (!node) return;
-  node.innerHTML = phaseDefinitions().map((item) => {
-    const logs = roundLogs.filter((log) => normalizePhase(log.moon_phase) === item.phase);
-    const avg = averageScore(logs);
-    const best = bestScore(logs);
-    const thoughts = logs.slice(0, 3).map((log) => `<div class="cm-thought">“${escapeHtml(log.swing_thoughts)}”<br><span class="cm-tag">${escapeHtml(log.course_played)} · ${log.score}</span></div>`).join("");
-    return `
-      <article class="cm-phase-card">
-        <h3>${item.label}</h3>
-        <p class="cm-muted">${item.cue}</p>
-        <div class="cm-phase-stats">
-          <span>Rounds: ${logs.length}</span>
-          <span>Average: ${avg ?? "—"}</span>
-          <span>Best: ${best ?? "—"}</span>
-        </div>
-        <div class="cm-thought-list">${thoughts || `<div class="cm-empty">No rounds logged here yet.</div>`}</div>
-      </article>
-    `;
-  }).join("");
-}
-
 function renderHistory() {
   const node = $("roundHistory");
   if (!node) return;
@@ -326,15 +426,17 @@ function renderHistory() {
   }
   node.innerHTML = `<div class="cm-history-list">${roundLogs.map((log) => `
     <article class="cm-round-row">
-      <div><span class="cm-tag">${formatDate(log.round_date)}</span></div>
+      <div><span class="cm-tag">${escapeHtml(formatDate(log.round_date))}</span></div>
       <div>
         <h3>${escapeHtml(log.course_played)}</h3>
-        <p>${escapeHtml(log.swing_thoughts)}</p>
+        <p>“${escapeHtml(log.swing_thoughts)}”</p>
       </div>
       <div>
-        <strong>${log.score}</strong>
-        <span class="cm-tag">Moon Day ${log.moon_day || "—"}</span>
-        <span class="cm-tag">${escapeHtml(log.moon_phase || "Moon Phase")}</span>
+        <strong>${escapeHtml(log.score)}</strong>
+        <div class="cm-round-meta">
+          <span class="cm-tag">Moon Day ${escapeHtml(log.moon_day || "—")}</span>
+          <span class="cm-tag">${escapeHtml(shortPhase(log.moon_phase))}</span>
+        </div>
       </div>
     </article>
   `).join("")}</div>`;
@@ -342,9 +444,9 @@ function renderHistory() {
 
 function renderPortal() {
   $("lockerTitle").textContent = `${displayName()}'s Locker`;
+  renderMoonDashboard();
   renderStats();
   renderNotes();
-  renderMoonScoreMap();
   renderHistory();
 }
 
@@ -390,14 +492,19 @@ function escapeHtml(value = "") {
     .replaceAll("'", "&#039;");
 }
 
+function scrollToPortalTarget(targetId) {
+  const target = currentUser && playerProfile ? $(targetId) : (currentUser ? profileCard : authCard);
+  target?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function bindEvents() {
   $("signInButton")?.addEventListener("click", signIn);
   $("createAccountButton")?.addEventListener("click", createAccount);
   $("profileForm")?.addEventListener("submit", savePlayerProfile);
   $("roundForm")?.addEventListener("submit", logRound);
   $("signOutButton")?.addEventListener("click", signOut);
-  $("heroLogButton")?.addEventListener("click", () => $("roundLogCard")?.scrollIntoView({ behavior: "smooth", block: "start" }));
-  $("heroLockerButton")?.addEventListener("click", () => $("lockerCard")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+  $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
+  $("heroLockerButton")?.addEventListener("click", () => scrollToPortalTarget("lockerCard"));
 }
 
 bindEvents();
