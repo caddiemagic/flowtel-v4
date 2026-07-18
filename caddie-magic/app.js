@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
+// Caddie Magic v0.1.3 — Dazzled Cream Pills + Ship Wheel Refinement
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
@@ -268,7 +268,7 @@ async function logRound(event) {
   $("roundScore").value = "";
   $("swingThoughts").value = "";
   $("roundDate").value = todayISO();
-  setMessage(roundMessage, "Round logged. Your locker and Moon Score Map have been updated.");
+  setMessage(roundMessage, "Round logged. Your locker and Score Map have been updated.");
   await loadPortalData();
   const loggedToken = moon.moonDay >= 28 ? "28plus" : String(moon.moonDay);
   selectedMoonDayToken = loggedToken;
@@ -297,6 +297,10 @@ function dayLabelForToken(token) {
 
 function logsForDayToken(token) {
   return roundLogs.filter((log) => dayTokenForValue(log.moon_day) === token);
+}
+
+function latestSwingThought() {
+  return roundLogs[0]?.swing_thoughts || "No round logged yet.";
 }
 
 function renderMoonDayDetail(token) {
@@ -370,7 +374,7 @@ function renderMoonDashboard() {
   $("moonDayValue").textContent = `Day ${moon.moonDay}`;
   $("moonPhaseValue").textContent = shortPhase(moon.phase);
   $("moonThemeValue").textContent = caddieTheme(moon.phase);
-  $("nextNewMoonValue").textContent = formatDate(moon.nextNewMoonDate);
+  $("swingThoughtValue").textContent = latestSwingThought();
   renderMoonWheel(moon.moonDay);
 }
 
@@ -405,12 +409,12 @@ function renderNotes() {
   const node = $("notesUnderDoor");
   if (!node) return;
   if (!playerNotes.length) {
-    node.innerHTML = `<div class="cm-empty">No notes have been left under your door yet. Keep logging rounds; the pattern needs a little moonlight before it speaks.</div>`;
+    node.innerHTML = `<div class="cm-empty">No notes have been left from your Caddie yet, keep logging rounds.</div>`;
     return;
   }
   node.innerHTML = playerNotes.map((note) => `
     <article class="cm-note">
-      <strong>${escapeHtml(note.note_title || "A note under your door")}</strong>
+      <strong>${escapeHtml(note.note_title || "A Caddie Note")}</strong>
       <p>${escapeHtml(note.note_body || "")}</p>
       <small>${formatDate(note.created_at)}</small>
     </article>
@@ -504,7 +508,6 @@ function bindEvents() {
   $("roundForm")?.addEventListener("submit", logRound);
   $("signOutButton")?.addEventListener("click", signOut);
   $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
-  $("heroLockerButton")?.addEventListener("click", () => scrollToPortalTarget("lockerCard"));
 }
 
 bindEvents();
