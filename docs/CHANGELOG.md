@@ -1,3 +1,17 @@
+## Caddie Magic v0.1.6 — Elegant Navy Clubhouse Styling + Clean Wheel Transparency
+
+- Cleaned the Caddie Magic wheel-center asset so the checkerboard background no longer appears in the portal.
+- Kept the provided wooden wheel artwork, but converted it into a clean transparent asset for use inside the wheel and on the Score Map.
+- Removed the circular / gradient-style pill background treatment and simplified the cards into cleaner navy panels.
+- Leveled up the full Caddie Magic portal styling with a more elegant, refined country-club presentation.
+- Updated the typography across the suite to a more elevated, classic club-style serif / UI combination.
+- Reduced the visual footprint of the “My Moon Score Data” hero header so the top pill feels narrower and lighter.
+- Refined the dashboard, snapshot cards, selected-day detail, Mood Swings, Player Locker, Caddie Notes, and round history styling.
+- Increased the Score Map center wheel size slightly.
+- Added inner-corner spacing to Score Map quadrants so the center wheel does not overlap scores or notes.
+- Updated cache versions to `0.1.6`.
+- No Supabase migration required.
+
 ## Caddie Magic v0.1.5 — Flowtel Wheel-Center Styling Alignment
 
 - Rebuilt the Caddie Magic moon wheel center to work like the Flowtel medicine wheel: a centered image inside the existing number ring.

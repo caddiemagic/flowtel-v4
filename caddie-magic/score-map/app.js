@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.5 — First Class Navy Gold Moon Score Map
+// Caddie Magic v0.1.6 — Elegant Navy Clubhouse Styling + Clean Wheel Transparency
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
