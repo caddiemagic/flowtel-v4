@@ -3790,33 +3790,3 @@ body.personal-room-key-is-open{
 .concierge-current-day-state .concierge-note-context{
   margin-bottom:0;
 }
-
-/* Flowtel v0.10.54 — The Moonbox */
-.moonbox-lounge-card{
-  border:1px solid rgba(216,168,79,.28);
-  border-radius:24px;
-  padding:24px;
-  margin-top:18px;
-  background:
-    radial-gradient(circle at 90% 12%,rgba(216,168,79,.14),transparent 28%),
-    linear-gradient(135deg,rgba(255,253,249,.96),rgba(248,231,227,.42));
-  box-shadow:0 16px 38px rgba(109,78,65,.07);
-}
-.moonbox-lounge-card .eyebrow{margin-top:0}
-.moonbox-lounge-card h3{margin:.2rem 0 .55rem}
-.moonbox-lounge-card p{margin:0;color:var(--muted)}
-.lounge-moonbox-link{width:100%;max-width:none;margin-top:18px}
-.moonbox-suite-link{
-  width:100%;
-  margin-top:0!important;
-  background:linear-gradient(135deg,rgba(255,249,232,.96),rgba(242,218,160,.82));
-  border-color:rgba(216,168,79,.58);
-}
-@media(min-width:901px){
-  .suite-actions{
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr))!important;
-  }
-}
-@media(max-width:900px){
-  .suite-actions{grid-template-columns:1fr!important}
-}

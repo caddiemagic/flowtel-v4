@@ -1,173 +1,52 @@
-## Caddie Magic v0.4.0 — Compass Polish + Upcoming Golf Forecast
+## v0.10.55 — Priestess Profile Studio Elevation + Moonbox Beta Hold
 
-- Implemented the 14 requested portal notes from the July 19 Caddie Magic update report.
-- Removed the Caddie Compass hero subtitle and simplified the Compass selection copy.
-- Renamed **The NEWS Method** to **Your Caddie Compass**.
-- Opened the Compass wheel layout, removed the center Putter overlay, and replaced Club 1–4 labels with moon phases.
-- Renamed **Current Initiation** to **Homework** and **Caddie Dispatches** to **The Caddie Shack**.
-- Removed the Caddie Shack dropdown from player and admin messaging.
-- Added Upcoming Golf for rounds, tournaments, and golf trips on the Caddie Compass page.
-- Added a Moon Day and Moon Phase forecast for every day of multi-day events.
-- Added player upcoming events to Caddie Compass administration.
-- Added an Upcoming Golf admin calendar to the Concierge Desk.
-- Changed Moon Score Data copy to **The moon is on day X.** and updated the wheel instructions.
-- Removed the main Swing Thought snapshot and added Next New Moon and Next Full Moon cards.
-- Moved Caddie Notes and Caddie Review into a separate full-width card above Scorecard History.
-- Updated the request action to **Request a Scorecard Review**.
-- Added frontend and database protection against future-dated rounds.
-- Changed **Just a Swing Thought** to **Log a Swing Thought**.
-- Added a master Locker Room sharing setting that hides both scores and swing thoughts when disabled.
-- Expanded the Locker Room to anonymous thoughts + scores and added Scores Only.
-- Left aligned all four Score Map quadrant lists consistently.
-- Added migration 043.
+- Removes the guest-facing **Enter The Moonbox** entrance from the Suite.
+- Removes the Moonbox card and entrance from the Flowtel Lounge while preserving the route, migration 042, privacy boundary, and stored Moonbox data behind the scenes.
+- Removes the oversized **Your Queendom** hero, side pillars, emblem, and mantra from the Priestess Profile Studio.
+- Changes **Choose your doorway.** to **YOUR PRIESTESS PROFILE**.
+- Elevates the editor with a quieter header, refined spacing, cleaner form and preview surfaces, softer shadows, and a sticky desktop preview.
+- Replaces repeated doorway language with **PROFILE DETAILS**, **Shape how you are seen.**, and **Choose your profile photo.**
+- Preserves Profile Studio save/submit/photo/external-link behavior, canonical `display_name`, legal-name privacy, Team Map integration, and all established Flowtel systems.
+- No Supabase migration required. Migration 037 remains retired and must not be rerun.
 
-## Caddie Magic v0.3.0 — Caddie Compass + Moon Assignments
+## v0.10.54 — The Moonbox
 
-- Added `/caddie-magic/compass/` as the player’s personalized Caddie Compass and initiation portal.
-- Added the NEWS setup sequence: Club 1 North, Club 2 East, Club 3 West, Club 4 South, and Putter as the center Staff.
-- Added a personalized five-club compass visual.
-- Kept the compass editable until the first owner-created assignment.
-- Automatically seals the active compass when the first assignment is sent.
-- Added current assignments, in-progress status, completion reflections, and initiation history.
-- Added private two-way **Caddie Dispatches**, optionally connected to an assignment.
-- Added `/caddie-magic/compass/admin/` for owner assignment creation and private messaging.
-- Added a **Caddie Compass** queue to the Flowtel Concierge Desk.
-- The Concierge Desk highlights players whose latest dispatch is waiting for an owner reply.
-- Snapshots the assigned directional club on every assignment so historical initiations remain accurate.
-- Added `database/migration-042-caddie-magic-compass-assignments-dispatches.sql`.
-- Updated Caddie Magic cache versions to `0.3.0`.
+- Adds `/moonbox/` as a separate authenticated Flowtel room for unsent letters to lovers and other masculines.
+- Adds **SEND TO THE MOON** for anonymous collective sharing and **KEEP BETWEEN ME & THE MOON** for private storage.
+- Adds a private **My Moonbox** archive containing both private and collectively shared letters.
+- Adds the authenticated **Collective Moonbox**, which exposes only message text, broad relationship archetype, Flowtel date, moon phase, and Inner Season context.
+- Withholds author IDs, names, emails, profile data, exact timestamps, cycle days, stay IDs, reflections, and relationship data from collective readers.
+- Adds silent **I WITNESS YOU** acknowledgements with one anonymous witness per member and no comments, threads, or direct messages.
+- Blocks collective submission in both the browser and authenticated RPC when phone numbers, emails, links, or social handles are detected, while still allowing the unedited letter to be kept private.
+- Adds direct **Enter The Moonbox** doorways from the Suite and Flowtel Lounge.
+- Keeps the Moonbox separate from the Powder Rooms and Flow Map and does not change their storage, consent, or anonymous-sharing behavior.
+- Adds Supabase migration 042. Migration 037 remains retired and must not be rerun.
 
-## Caddie Magic v0.2.1 — Score Map View Toggle
+## v0.10.53 — Unread Concierge Notes + Profile Button Polish
 
-- Added **Thoughts + Scores** and **Scores Only** display modes to the personal Score Map.
-- Kept **Thoughts + Scores** as the default view.
-- Added the calendar date to each card in the default view.
-- The default view shows swing thought + date on the left and score on the right.
-- The **Scores Only** view hides thought-only reflections and displays only numeric score cards across the map.
-- Score-only number cards remain clickable for the existing full-detail popout.
-- Updated the map count and player-view label to reflect the selected display mode.
-- Updated cache versions to `0.2.1`.
-- No Supabase migration required.
+- Carries unread Concierge notes into the guest’s current Suite across Flowtel Days without copying or moving them from their original stays.
+- Shows multiple historical unread notes oldest-first and keeps their original author/date context.
+- Marks each note received by updating the read signature and timestamp on its original stay.
+- Preserves current-day Concierge-note, available Concierge, and pending Turndown states alongside carried notes.
+- Adds authenticated member-owned RPCs for unread-note retrieval and original-stay receipt updates.
+- Hardens migration 041 to safely create missing Concierge read-signature/read-timestamp columns before its index and RPC definitions.
+- Makes the Lounge **Open Profile View** button full-width and removes its 320px maximum-width treatment.
+- Changes authenticated and embedded Team Map external-profile buttons to **VIEW PROFILE** while preserving **Add My Profile Link** for the signed-in member with no URL.
+- Preserves Flowtel Time, one-stay-per-day behavior, append-only history, passwords, sessions, display-name identity, Concierge permissions/routing, Team Map privacy/membership, mentor logic, Powder Room privacy, Medicine Wheel geometry, and cycle-day logic.
+- Adds Supabase migration 041. Migration 037 remains retired and must not be rerun.
 
-## Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
+## v0.10.52 — Priestess Identity + Display Name Sync
 
-- Renamed the anonymous **Collective Swing Map** experience to **LOCKER ROOM** throughout the player-facing platform.
-- Updated the Locker Room disclosure to: **Anonymous collective view. Names and courses are never shown here.**
-- Moved personal Score Map scores to the right side of note cards.
-- Removed the visible **Reflection** label from thought-only map and history entries.
-- Made Course optional for scored rounds and changed the score placeholder to **69**.
-- Added **Request Caddie Review** to the Player Profile.
-- Added `caddie_magic_review_requests` and secure request/list/complete RPCs.
-- Routed Caddie Review requests to a new **Caddie Reviews** queue in the Flowtel Concierge Desk.
-- Added owner/admin access to requested player Score Maps from the Concierge Desk.
-- Completing a Caddie Review now sends a private note into the player’s **Caddie Notes** section.
-- Added `database/migration-041-caddie-magic-review-service.sql`.
-
-## Caddie Magic v0.1.9 — Gold Number Wheel + Thought Mode Cleanup
-
-- Updated the dashboard medicine wheel number buttons to use gold rings with transparent centers instead of ivory-filled circles.
-- Changed the number text color to match the gold header styling.
-- Kept selected and current moon-day states visible with a softer gold treatment.
-- Removed decorative quotation marks from swing thoughts anywhere they appear in Caddie Magic.
-- Removed the date field when **Just a Swing Thought** mode is selected.
-- Thought-only entries now automatically use today’s date behind the scenes.
-- Updated the thought-mode card heading to **Log Your Thoughts** while reflection mode is selected.
-- Updated the thought-mode submit button to **Log Your Thoughts**.
-- Updated cache versions to `0.1.9`.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.8 — Reflections + Collective Swing Map
-
-- Renamed the main hero to **SCORECARD** and updated its supporting copy.
-- Renamed visible Player Locker language to **Player Profile** while preserving the requested “Your private locker on the moon” copy.
-- Changed the player profile heading to show only the player’s name.
-- Renamed **Moon Score Map** to **SCORE MAP** and removed its subtitle.
-- Made Swing Thoughts optional for scored rounds.
-- Added a **Just a Swing Thought** mode for thought-only reflections with no course or score required.
-- Stored thought-only reflections with moon data so they appear throughout the Scorecard, history, moon-day detail, and maps.
-- Simplified personal Score Map cards to show only score / Reflection and swing thought.
-- Added a click-to-open Score Map detail popout for remaining entry information.
-- Added `/caddie-magic/collective-map/` as an anonymous collective view inspired by the Flowtel Powder Rooms.
-- Collective cards show only Moon Day and swing-thought text and never expose names, courses, scores, dates, or player IDs.
-- Added Current Moon, Last Moon, and All filters to the Collective Swing Map.
-- Added auto-expanding collective quadrants as more thoughts are shared.
-- Added migration 040 for optional round thoughts, thought-only reflections, and the anonymous collective RPC.
-
-## Caddie Magic v0.1.7 — Elevated Clubhouse Fonts + Full Direction Wheel Asset
-
-- Added a more distinct typography pairing across the Caddie Magic suite using a refined club-style display font and cleaner body font.
-- Gave the Locker and Score Map another visible styling pass for a more elegant private-club presentation.
-- Tightened and reduced the visual footprint of the **My Moon Score Data** hero so the top pill takes up less space.
-- Replaced the wheel-center asset with the newly provided updated wheel artwork.
-- Removed the background from the new wheel artwork and saved it as a transparent asset.
-- Preserved all four directions on the wheel artwork so **North / East / South / West** are no longer cut off.
-- Removed the decorative gold ring treatment from the dashboard moon wheel.
-- Increased the Score Map center wheel slightly while preserving extra safety spacing so it does not overlap notes or scores.
-- Updated cache versions to `0.1.7`.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.6 — Elegant Navy Clubhouse Styling + Clean Wheel Transparency
-
-- Cleaned the Caddie Magic wheel-center asset so the checkerboard background no longer appears in the portal.
-- Kept the provided wooden wheel artwork, but converted it into a clean transparent asset for use inside the wheel and on the Score Map.
-- Removed the circular / gradient-style pill background treatment and simplified the cards into cleaner navy panels.
-- Leveled up the full Caddie Magic portal styling with a more elegant, refined country-club presentation.
-- Updated the typography across the suite to a more elevated, classic club-style serif / UI combination.
-- Reduced the visual footprint of the “My Moon Score Data” hero header so the top pill feels narrower and lighter.
-- Refined the dashboard, snapshot cards, selected-day detail, Mood Swings, Player Locker, Caddie Notes, and round history styling.
-- Increased the Score Map center wheel size slightly.
-- Added inner-corner spacing to Score Map quadrants so the center wheel does not overlap scores or notes.
-- Updated cache versions to `0.1.6`.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.5 — Flowtel Wheel-Center Styling Alignment
-
-- Rebuilt the Caddie Magic moon wheel center to work like the Flowtel medicine wheel: a centered image inside the existing number ring.
-- Added the provided wooden ship-wheel artwork as the wheel-center image and bundled it as `assets/caddie-magic-wheel-center.png`.
-- Preserved the existing 28-position number ring and clickable moon-day behavior.
-- Hid the separate DOM club-direction labels so the center image can carry the directional styling cleanly.
-- Upgraded the full Caddie Magic suite styling to more closely match the Flowtel visual language while keeping the Caddie Magic navy / green / gold palette.
-- Refined dashboard, snapshot, locker, notes, and history cards with softer Flowtel-style panel treatment.
-- Updated form inputs, pills, and buttons to align with the refreshed suite styling.
-- Brought the same styling alignment into `/caddie-magic/score-map/` and updated its center marker to use the same Caddie Magic wheel artwork.
-- Updated cache versions to `0.1.5`.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.4 — First Class Navy Gold Country Club Facelift
-
-- Returned Caddie Magic cards, pills, stats, history rows, Caddie Notes, and Score Map entries to navy backgrounds.
-- Added layered navy gradients, refined gold edging, inset highlights, and subtle card shine for a first-class country club finish.
-- Downsized headings across the Caddie Magic Locker and Moon Score Map.
-- Refined buttons into slimmer, quieter actions with lighter typography and gold detailing.
-- Preserved the green primary action, wooden ship wheel, gold rose compass, and existing 28-position number ring.
-- Removed the redundant **Open Score Map** button from the Moon Score Data card while keeping the hero and Round History Score Map actions.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.3 — Dazzled Cream Pills + Ship Wheel Refinement
-
-- Brightened the Caddie Magic locker and Moon Score Map cards / pills to the requested `#f7f6f1` cream treatment.
-- Added the requested `#355e36` green accent to primary actions and highlights.
-- Reduced button bulk across the Caddie Magic UI for a daintier, more elegant feel.
-- Replaced the hero **Open Your Locker** action with **Open Score Map**.
-- Reworked the moon wheel center into a wooden ship-wheel interpretation while preserving the existing 28-day number ring.
-- Added the gold rose compass to the center of the ship wheel.
-- Renamed **Notes Under the Door** to **Caddie Notes** and updated the empty-state copy.
-- Changed the Round Log eyebrow from **Log a Round** to **MOOD SWINGS**.
-- Brought the lighter polish into `/caddie-magic/score-map/` and the printable Score Map exercise.
-- No Supabase migration required.
-
-## Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
-
-- Rebuilt `/caddie-magic/` as a velvety navy, hunter green, antique gold, moon-silver private golf locker room.
-- Kept the Round Log limited to Date, Course, Score, and Swing Thoughts.
-- Added the Moon Score Data snapshot with Moon Day, Moon Phase, placeholder theme, Last New Moon, and Next New Moon.
-- Added a clickable 28-position golf-club medicine wheel with temporary North, East, South, and West Club labels.
-- Added day-level score and swing-thought review directly from the wheel.
-- Refined the Player Locker around latest score, moon data, latest swing thought, Notes Under the Door, and previous rounds.
-- Added `/caddie-magic/score-map/` with Current Moon, Last Moon, and All views using the Flowtel Flow Map framework.
-- Replaced the Flowtel seasonal quadrants with West Club, South Club, East Club, and North Club placeholders.
-- Added `/caddie-magic/score-map/printable/` as the downloadable / Save PDF Moon Score Map exercise.
-- No Supabase migration required.
+- Added separate **Legal First Name**, **Legal Last Name**, and **Priestess Display Name** fields to Profile Studio.
+- Stores legal names privately in `profiles.first_name` and `profiles.last_name`.
+- Adds `profiles.display_name` as the canonical name shown throughout the Flowtel.
+- Synchronizes the chosen display name with the Priestess Profile record and Supabase Auth metadata.
+- Updates Suite greetings, Team Map, Concierge Desk, mentor/client cards, Flow Map data, review queues, and future Turndown attribution to resolve the display name first.
+- Preserves existing member passwords, sessions, stays, profile photos, external links, and Priestess Profile content.
+- Backfills display names from the existing Priestess Profile name before falling back to legal names or email.
+- Keeps legal-name values out of another member's Profile Studio view.
+- Straightened the embedded Team Map portrait rings with a fixed concentric portrait frame.
+- Adds Supabase migration 040.
 
 ## v0.10.51 — Lounge Profile Pill Polish
 

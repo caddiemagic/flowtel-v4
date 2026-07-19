@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.14 — Royal Queendom hero + Phase 1 beta polish.
+// Flowtel v0.10.55 — elevated Priestess Profile Studio + Phase 1 beta polish.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -317,7 +317,7 @@ function profilePhotoUploaderMarkup(profile={}){
     </div>
     <div class="profile-photo-upload-copy">
       <p class="eyebrow" id="profilePhotoHeading">PROFILE PHOTO</p>
-      <h4>Choose the face of your Queendom.</h4>
+      <h4>Choose your profile photo.</h4>
       <p>Upload a clear JPG, PNG, or WebP image up to 5 MB. It will appear in the Living Map, your Priestess profile, and Mentor selection. The rose remains your graceful fallback.</p>
       <input class="profile-photo-file-input" id="profilePhotoInput" type="file" accept="image/jpeg,image/png,image/webp" />
       <div class="profile-photo-upload-actions">
@@ -429,10 +429,10 @@ function renderProfileStudio(record=currentPriestessProfile){
   const offeringValues=selectedOfferingValues(profile);
   const timezone=profile.timezone || 'America/Los_Angeles';
   const displayStatus=displayStatusForProfile(profile);
-  profileStudioIntro.textContent='Choose a prepared title, bio, and offering doorway. Let this first version feel regal, clear, and true enough for now.';
+  profileStudioIntro.textContent='Choose the title, language, offerings, and image that best represent your work right now. You can return and refine this profile as your medicine evolves.';
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
-    <div class="profile-form-heading"><div><p class="eyebrow">YOUR FIRST DOORWAY</p><h3>Pick what is true enough for now.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>
+    <div class="profile-form-heading"><div><p class="eyebrow">PROFILE DETAILS</p><h3>Shape how you are seen.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>
     ${isViewingAnotherMember(currentProfile)
       ? `<section class="profile-identity-fields profile-identity-fields--private"><div class="profile-identity-heading"><p class="eyebrow" id="profileIdentityHeading">FLOWTEL IDENTITY</p><p>This member privately manages her legal name and Flowtel display name from her own Profile Studio.</p></div><input type="hidden" name="display_name" value="${escapeHtml(profile.display_name || profile.priestess_name || '')}" /><input type="hidden" name="legal_first_name" value="" /><input type="hidden" name="legal_last_name" value="" /></section>`
       : `<section class="profile-identity-fields" aria-labelledby="profileIdentityHeading">
