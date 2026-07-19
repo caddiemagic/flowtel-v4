@@ -1,3 +1,16 @@
+## Caddie Magic v0.1.5 — Flowtel Wheel-Center Styling Alignment
+
+- Rebuilt the Caddie Magic moon wheel center to work like the Flowtel medicine wheel: a centered image inside the existing number ring.
+- Added the provided wooden ship-wheel artwork as the wheel-center image and bundled it as `assets/caddie-magic-wheel-center.png`.
+- Preserved the existing 28-position number ring and clickable moon-day behavior.
+- Hid the separate DOM club-direction labels so the center image can carry the directional styling cleanly.
+- Upgraded the full Caddie Magic suite styling to more closely match the Flowtel visual language while keeping the Caddie Magic navy / green / gold palette.
+- Refined dashboard, snapshot, locker, notes, and history cards with softer Flowtel-style panel treatment.
+- Updated form inputs, pills, and buttons to align with the refreshed suite styling.
+- Brought the same styling alignment into `/caddie-magic/score-map/` and updated its center marker to use the same Caddie Magic wheel artwork.
+- Updated cache versions to `0.1.5`.
+- No Supabase migration required.
+
 ## Caddie Magic v0.1.4 — First Class Navy Gold Country Club Facelift
 
 - Returned Caddie Magic cards, pills, stats, history rows, Caddie Notes, and Score Map entries to navy backgrounds.

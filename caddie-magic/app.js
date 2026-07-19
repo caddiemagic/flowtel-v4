@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.4 — First Class Navy Gold Country Club Facelift
+// Caddie Magic v0.1.5 — First Class Navy Gold Country Club Facelift
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
