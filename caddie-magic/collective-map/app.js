@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.9 — Anonymous Collective Swing Map + Quote Cleanup
+// Caddie Magic v0.2.0 — Locker Room
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -113,7 +113,7 @@ async function init() {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session?.user) {
-      throw new Error("Sign in through Caddie Magic to open the Collective Swing Map.");
+      throw new Error("Sign in through Caddie Magic to open the Locker Room.");
     }
     const { data, error } = await supabase.rpc("caddie_magic_get_collective_swing_thoughts", {
       p_moon_cycle_start: null,
@@ -125,7 +125,7 @@ async function init() {
     render();
   } catch (error) {
     console.error(error);
-    $("collectiveMessage").textContent = error?.message || "The Collective Swing Map could not open.";
+    $("collectiveMessage").textContent = error?.message || "The Locker Room could not open.";
     allEntries = [];
     bindFilters();
     render();

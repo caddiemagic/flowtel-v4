@@ -247,7 +247,7 @@ h3{font-size:1.14rem;line-height:1.15}
   .cm-moon-wheel{width:min(100%,470px)}
 }
 
-/* Caddie Magic v0.1.9 — wheel refinement + quote cleanup + thought-only logging */
+/* Caddie Magic v0.2.0 — Locker Room + Caddie Review Service */
 .cm-hero-actions{grid-template-columns:repeat(3,minmax(0,1fr));max-width:720px}
 .cm-hero h1{font-size:clamp(1.55rem,3.1vw,2.25rem);letter-spacing:.08em;text-transform:uppercase}
 .cm-entry-mode{display:flex;align-items:center;gap:8px;margin-top:16px;padding:4px;border:1px solid var(--line-soft);border-radius:999px;background:#071725;width:fit-content;max-width:100%}
@@ -267,4 +267,24 @@ h3{font-size:1.14rem;line-height:1.15}
   .cm-entry-mode-button{padding:0 8px}
   .cm-history-actions{display:grid;justify-content:stretch;width:100%}
   .cm-history-actions .cm-button{min-width:0}
+}
+
+
+/* Caddie Magic v0.2.0 — player-requested Caddie Review */
+.cm-review-service{
+  margin-top:16px;
+  border:1px solid var(--line-soft);
+  border-radius:22px;
+  padding:20px;
+  background:#091a2a;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02);
+}
+.cm-review-service h3{font-size:1.14rem}
+.cm-review-service .cm-muted{max-width:620px;margin:8px 0 16px}
+.cm-review-service .cm-button{min-width:220px}
+.cm-review-service .cm-button:disabled{cursor:default;opacity:.65;transform:none}
+.cm-review-service .cm-message{margin-bottom:0}
+.cm-round-only-field .cm-optional-label{display:inline;margin-left:6px}
+@media(max-width:700px){
+  .cm-review-service .cm-button{min-width:0;width:100%}
 }

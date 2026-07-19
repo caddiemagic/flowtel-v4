@@ -107,7 +107,7 @@
   .cm-map-north{order:4}
 }
 
-/* Caddie Magic v0.1.8 — simplified cards + detail popout */
+/* Caddie Magic v0.2.0 — compact score cards + detail popout */
 .cm-map-hero-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
 .cm-map-hero-actions .cm-button{min-width:190px}
 .cm-back-button{position:static;right:auto;bottom:auto}
@@ -119,12 +119,15 @@
   color:inherit;
   font:inherit;
   display:grid;
-  gap:10px;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
   transition:transform .18s ease,border-color .18s ease,background-color .18s ease;
 }
+.cm-map-note.is-reflection{grid-template-columns:1fr}
 .cm-map-note:hover{transform:translateY(-1px);border-color:rgba(211,173,105,.45);background:#10283d}
-.cm-map-note-score{display:block;color:var(--gold-soft);font:500 1.18rem var(--font-display)}
-.cm-map-note-thought{margin:0;color:var(--ivory);font:500 .9rem/1.5 var(--font-body)}
+.cm-map-note-score{display:block;justify-self:end;color:var(--gold-soft);font:500 1.2rem var(--font-display);line-height:1}
+.cm-map-note-thought{margin:0;color:var(--ivory);font:500 .9rem/1.5 var(--font-body);min-width:0}
 .cm-modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px}
 .cm-modal-backdrop{position:absolute;inset:0;border:0;background:rgba(0,7,13,.78);cursor:pointer}
 .cm-modal-card{position:relative;z-index:1;width:min(620px,100%);border:1px solid var(--line);border-radius:26px;padding:28px;background:#081a2a;box-shadow:0 30px 80px rgba(0,0,0,.48)}

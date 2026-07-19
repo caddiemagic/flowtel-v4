@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.9 — Compact Notes + Quote Cleanup
+// Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -9,6 +9,10 @@ let currentUser = null;
 let playerProfile = null;
 let allLogs = [];
 let activeRange = "current";
+
+const scoreMapParams = new URLSearchParams(window.location.search);
+const requestedPlayerProfileId = scoreMapParams.get("player");
+const openedFromConcierge = scoreMapParams.get("from") === "manager";
 
 function todayISO() {
   const date = new Date();
@@ -64,11 +68,15 @@ function displayName() {
 }
 
 async function fetchProfile() {
-  const { data, error } = await supabase
+  let query = supabase
     .from("caddie_magic_player_profiles")
-    .select("*")
-    .eq("user_id", currentUser.id)
-    .maybeSingle();
+    .select("*");
+
+  query = requestedPlayerProfileId
+    ? query.eq("id", requestedPlayerProfileId)
+    : query.eq("user_id", currentUser.id);
+
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data;
 }
@@ -127,12 +135,11 @@ function phaseDefinitions() {
 
 function noteMarkup(entry) {
   const isReflection = entry.entry_type === "reflection" || entry.score === null;
-  const scoreLabel = isReflection ? "Reflection" : entry.score;
   const thought = String(entry.swing_thoughts || "").trim() || "No swing thought recorded.";
   return `
-    <button class="cm-map-note" type="button" data-entry-id="${escapeHtml(entry.id)}" aria-label="Open scorecard detail">
-      <span class="cm-map-note-score">${escapeHtml(scoreLabel)}</span>
+    <button class="cm-map-note ${isReflection ? "is-reflection" : ""}" type="button" data-entry-id="${escapeHtml(entry.id)}" aria-label="Open scorecard detail">
       <p class="cm-map-note-thought">${escapeHtml(thought)}</p>
+      ${isReflection ? "" : `<span class="cm-map-note-score">${escapeHtml(entry.score)}</span>`}
     </button>
   `;
 }
@@ -265,8 +272,17 @@ async function init() {
     }
     playerProfile = await fetchProfile();
     if (!playerProfile) {
-      throw new Error("Set your Player Profile before opening the Score Map.");
+      throw new Error(requestedPlayerProfileId
+        ? "This player Scorecard could not be opened. Confirm owner access and the Player Profile id."
+        : "Set your Player Profile before opening the Score Map.");
     }
+
+    const backButton = $("scoreMapBackButton");
+    if (backButton && (requestedPlayerProfileId || openedFromConcierge)) {
+      backButton.href = "/manager/";
+      backButton.textContent = "← Back to Concierge Desk";
+    }
+
     allLogs = await fetchLogs();
     bindFilters();
     $("scoreDetailClose")?.addEventListener("click", closeScoreDetail);

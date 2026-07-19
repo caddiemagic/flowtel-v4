@@ -1,13 +1,16 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile, displayNameForProfile } from "../shared/profiles.js?v=0.10.52";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.50";
 import { isPractitionerLevel } from "../shared/beta-access.js";
-import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.52";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.52";
+import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
+import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.2.0";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 const initiationHallButton=document.getElementById("initiationHallButton"), initiationHallNote=document.getElementById("initiationHallNote");
 let allStays=[], activeFilter="queue";
+let caddieReviewRequests=[];
+let caddieReviewServiceAvailable=true;
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
@@ -338,7 +341,7 @@ function canOpenTurndownRoom(stay){
 function updatePractitionerIdentity(){
   const profile=currentManagerProfile || {};
   const initiation=getFlowFmInitiationStatus(profile);
-  const name=displayNameForProfile(profile, profile.email || "Concierge");
+  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Concierge";
 
   setText("practitionerIdentityName",name);
 
@@ -426,9 +429,6 @@ function nameFromEmail(email){
 
 function guestName(stay){
   const profile=stay.profiles || stay.client || {};
-  const canonical=displayNameForProfile(profile, "");
-  if(canonical) return canonical;
-
   let first=titleCaseNamePart(profile.first_name || "");
   const last=titleCaseNamePart(profile.last_name || "");
   const emailGuess=nameFromEmail(profile.email || stay.client_email || "");
@@ -478,8 +478,8 @@ function isTurndownFulfilled(stay){
 }
 
 function turndownCompletedBy(stay){
-  const witness=displayNameForProfile(stay.witness_profile || {}, "");
-  return witness || stay.turndown_completed_by_name || stay.witness_note_by || "Your Concierge";
+  const witness=[stay.witness_profile?.first_name,stay.witness_profile?.last_name].filter(Boolean).join(" ");
+  return stay.turndown_completed_by_name || stay.witness_note_by || witness || "Your Concierge";
 }
 
 function turndownTime(stay){
@@ -568,7 +568,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(activeFilter==="clients") return [];
+  if(activeFilter==="clients" || activeFilter==="caddie-reviews") return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -578,7 +578,10 @@ function updateStats(){
   const inHouse=todayOpenStays().length;
   const extendedCount=allStays.filter(isExtended).length;
 
+  const caddieReviewCount=caddieReviewRequests.filter(request=>request.status==="requested").length;
+
   setText("awaitingTurndownCount",awaitingCount);
+  setText("caddieReviewCount",caddieReviewCount);
   setText("guestsInHouse",inHouse);
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
@@ -589,6 +592,9 @@ function updateStats(){
 
   const turndownCard=document.querySelector('[data-filter="queue"]');
   if(turndownCard) turndownCard.classList.toggle("has-alert",awaitingCount>0);
+
+  const caddieReviewCard=document.querySelector('[data-filter="caddie-reviews"]');
+  if(caddieReviewCard) caddieReviewCard.classList.toggle("has-alert",caddieReviewCount>0);
 
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
@@ -607,6 +613,7 @@ function setFilter(filter){
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service",ownerReceivesAllTurndownRequests()
       ? "Every active request from today’s Flowtel is routed to the owner Concierge."
       : "These guests are in your assigned wing and have requested extra care."],
+    "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Caddie Review","Review their Score Map, study the patterns, and send a private Caddie Note back."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
@@ -664,7 +671,7 @@ async function goToSuite(){
 function practitionerCareLabel(){
   const profile=currentManagerProfile || {};
   const initiation=getFlowFmInitiationStatus(profile);
-  const name=displayNameForProfile(profile, profile.email || "Your concierge");
+  const name=[profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "Your concierge";
   return `${initiation.level || "Concierge"} ${name}`;
 }
 
@@ -779,6 +786,102 @@ function bindQueueActions(){
   }));
 }
 
+function caddieReviewTime(value){
+  if(!value) return "Requested recently";
+  return new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(value));
+}
+
+function caddieReviewPlayerName(request){
+  return request?.player_name || request?.player_email || "Caddie Magic Player";
+}
+
+function renderCaddieReviewRow(request,{completed=false}={}){
+  const scoreMapUrl=`/caddie-magic/score-map/?player=${encodeURIComponent(request.player_profile_id)}&from=manager`;
+  return `
+    <article class="guest-row caddie-review-row ${completed ? "caddie-review-completed" : ""}">
+      <div>
+        <h3>${escapeHtml(caddieReviewPlayerName(request))}</h3>
+        <p>${completed ? "Caddie Review completed" : "Requested a review of scores and swing thoughts"} · ${escapeHtml(caddieReviewTime(completed ? request.completed_at : request.requested_at))}</p>
+        ${request.player_email ? `<p>${escapeHtml(request.player_email)}</p>` : ""}
+      </div>
+      <div class="caddie-review-actions">
+        <a href="${scoreMapUrl}">Open Scorecard</a>
+        ${completed
+          ? `<span class="completed-pill">Note Sent</span>`
+          : `<button type="button" data-complete-caddie-review="${request.request_id}">Send Caddie Note</button>`}
+      </div>
+    </article>
+  `;
+}
+
+function renderCaddieReviewQueue(){
+  if(!caddieReviewServiceAvailable){
+    queue.innerHTML="<p>Caddie Review Service is not installed yet. Run database/migration-041-caddie-magic-review-service.sql.</p>";
+    return;
+  }
+
+  const awaiting=caddieReviewRequests.filter(request=>request.status==="requested");
+  const completed=caddieReviewRequests.filter(request=>request.status==="completed").slice(0,20);
+
+  if(!awaiting.length && !completed.length){
+    queue.innerHTML="<p>No Caddie Review requests yet.</p>";
+    return;
+  }
+
+  queue.innerHTML=`
+    <section class="queue-section active-requests">
+      <p class="queue-section-label">Open Requests</p>
+      ${awaiting.length ? awaiting.map(request=>renderCaddieReviewRow(request)).join("") : "<p>No players are waiting for a review.</p>"}
+    </section>
+    <section class="queue-section completed-requests">
+      <p class="queue-section-label">Completed Reviews</p>
+      ${completed.length ? completed.map(request=>renderCaddieReviewRow(request,{completed:true})).join("") : "<p>No completed Caddie Reviews yet.</p>"}
+    </section>
+  `;
+
+  bindCaddieReviewActions();
+}
+
+function bindCaddieReviewActions(){
+  document.querySelectorAll("[data-complete-caddie-review]").forEach(button=>{
+    button.addEventListener("click",async()=>{
+      const note=window.prompt("Leave a private Caddie Note with the patterns you see in this player’s scores and swing thoughts.");
+      if(note===null) return;
+      if(!String(note).trim()){
+        if(managerMessage) managerMessage.textContent="Leave a Caddie Note before completing the review.";
+        return;
+      }
+
+      const originalText=button.textContent;
+      button.disabled=true;
+      button.textContent="Sending Note...";
+      try{
+        await completeCaddieReviewRequest(button.dataset.completeCaddieReview,note);
+        if(managerMessage) managerMessage.textContent="Caddie Review complete. The private note is waiting in the player’s profile.";
+        await loadCaddieReviews();
+        updateStats();
+        renderQueue();
+      }catch(error){
+        console.error("Caddie Review completion failed.",error);
+        button.disabled=false;
+        button.textContent=originalText;
+        if(managerMessage) managerMessage.textContent=error?.message || "The Caddie Review could not be completed.";
+      }
+    });
+  });
+}
+
+async function loadCaddieReviews(){
+  try{
+    caddieReviewRequests=await listCaddieReviewRequests();
+    caddieReviewServiceAvailable=true;
+  }catch(error){
+    console.warn("Caddie Review requests are not available yet.",error);
+    caddieReviewRequests=[];
+    caddieReviewServiceAvailable=false;
+  }
+}
+
 function renderQueue(){
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
@@ -802,6 +905,11 @@ function renderQueue(){
 
   if(activeFilter==="queue"){
     renderTurndownServiceQueue();
+    return;
+  }
+
+  if(activeFilter==="caddie-reviews"){
+    renderCaddieReviewQueue();
     return;
   }
 
@@ -842,7 +950,7 @@ function bindTeamMembershipButtons(scope=document){
 
 function relationshipGuestName(row){
   const client=row?.client || {};
-  return displayNameForProfile(client, client.email || "Guest");
+  return [client.first_name, client.last_name].filter(Boolean).join(" ") || client.email || "Guest";
 }
 
 function bindConnectionButtons(scope=document){
@@ -963,6 +1071,7 @@ async function loadDesk({silent=false}={}){
     allStays=await getFrontDeskStays();
     await renderConnectionRequests();
     await renderMyClients();
+    await loadCaddieReviews();
     updateStats();
     renderQueue();
   }catch(error){

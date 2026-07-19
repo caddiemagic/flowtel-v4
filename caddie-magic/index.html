@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.1.9" />
+  <link rel="stylesheet" href="./styles.css?v=0.2.0" />
 </head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
-      <span class="cm-version">v0.1.9</span>
+      <span class="cm-version">v0.2.0</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -22,7 +22,7 @@
         <div class="cm-hero-actions" id="heroActions">
           <button class="cm-button" id="heroLogButton" type="button">Log a Round</button>
           <a class="cm-button secondary" id="heroScoreMapButton" href="/caddie-magic/score-map/">Score Map</a>
-          <a class="cm-button secondary" id="heroCollectiveMapButton" href="/caddie-magic/collective-map/">Collective Swing Map</a>
+          <a class="cm-button secondary" id="heroCollectiveMapButton" href="/caddie-magic/collective-map/">Locker Room</a>
         </div>
       </div>
     </section>
@@ -153,7 +153,7 @@
         <div class="cm-section-icon" aria-hidden="true">✎</div>
         <p class="cm-eyebrow">MOOD SWINGS</p>
         <h2 id="entryFormTitle">Log Your Round</h2>
-        <p class="cm-muted" id="entryModeCopy">Only the essentials: date, course, score, and an optional swing thought.</p>
+        <p class="cm-muted" id="entryModeCopy">Only the essentials: date and score, with course and swing thought optional.</p>
         <div class="cm-entry-mode" role="group" aria-label="Choose what to log">
           <button class="cm-entry-mode-button is-active" id="roundModeButton" type="button">Log a Round</button>
           <button class="cm-entry-mode-button" id="reflectionModeButton" type="button">Just a Swing Thought</button>
@@ -163,11 +163,11 @@
             <label class="cm-date-field">Date
               <input id="roundDate" type="date" required />
             </label>
-            <label class="cm-round-only-field">Course
-              <input id="coursePlayed" type="text" required placeholder="Course name" />
+            <label class="cm-round-only-field">Course <span class="cm-optional-label">Optional</span>
+              <input id="coursePlayed" type="text" placeholder="Course name" />
             </label>
             <label class="cm-round-only-field">Score
-              <input id="roundScore" type="number" required min="1" max="300" placeholder="82" />
+              <input id="roundScore" type="number" required min="1" max="300" placeholder="69" />
             </label>
           </div>
           <label>Swing Thoughts <span class="cm-optional-label" id="swingThoughtOptionalLabel">Optional</span>
@@ -193,6 +193,13 @@
           <p class="cm-eyebrow">CADDIE NOTES</p>
           <div id="notesUnderDoor"></div>
         </section>
+        <section class="cm-review-service" id="caddieReviewService">
+          <p class="cm-eyebrow">CADDIE REVIEW</p>
+          <h3>Ask your Caddie to study the pattern.</h3>
+          <p class="cm-muted" id="reviewRequestCopy">Ping your Caddie to review your scores and swing thoughts for patterns you may not see yet.</p>
+          <button class="cm-button secondary" id="requestReviewButton" type="button">Request Caddie Review</button>
+          <p class="cm-message" id="reviewRequestMessage"></p>
+        </section>
       </section>
     </section>
 
@@ -204,12 +211,12 @@
         </div>
         <div class="cm-history-actions">
           <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/score-map/">Score Map</a>
-          <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/collective-map/">Collective Swing Map</a>
+          <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/collective-map/">Locker Room</a>
         </div>
       </div>
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.1.9"></script>
+  <script type="module" src="./app.js?v=0.2.0"></script>
 </body>
 </html>

@@ -30,19 +30,24 @@ Closed in Phase 1:
 - official Caddie Network directory
 - Caddie Master admin note composer
 
-## Phase 2 — Caddie Master Review + Notes Under the Door
+## Phase 2 — Caddie Master Review + Caddie Notes
 
 Goal: Megan can review player scores and swing thoughts, see patterns, and leave private notes.
 
-Future scope:
+Open in v0.2.0:
 
-- Caddie Master Desk
-- player list
-- player detail page
-- round history per player
-- admin note composer
-- private Notes Under the Door delivery
-- pattern flags and review status
+- player-requested Caddie Reviews
+- owner/admin review queue inside the Flowtel Concierge Desk
+- secure player Score Map access from a review request
+- private Caddie Note delivery
+- open/completed review status
+
+Still future:
+
+- dedicated standalone Caddie Master Desk
+- richer player list and profile detail view
+- automated pattern flags
+- structured review templates
 
 ## Phase 3 — Caddie Network Profiles
 

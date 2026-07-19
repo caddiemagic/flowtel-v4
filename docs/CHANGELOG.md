@@ -1,3 +1,17 @@
+## Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
+
+- Renamed the anonymous **Collective Swing Map** experience to **LOCKER ROOM** throughout the player-facing platform.
+- Updated the Locker Room disclosure to: **Anonymous collective view. Names and courses are never shown here.**
+- Moved personal Score Map scores to the right side of note cards.
+- Removed the visible **Reflection** label from thought-only map and history entries.
+- Made Course optional for scored rounds and changed the score placeholder to **69**.
+- Added **Request Caddie Review** to the Player Profile.
+- Added `caddie_magic_review_requests` and secure request/list/complete RPCs.
+- Routed Caddie Review requests to a new **Caddie Reviews** queue in the Flowtel Concierge Desk.
+- Added owner/admin access to requested player Score Maps from the Concierge Desk.
+- Completing a Caddie Review now sends a private note into the player’s **Caddie Notes** section.
+- Added `database/migration-041-caddie-magic-review-service.sql`.
+
 ## Caddie Magic v0.1.9 — Gold Number Wheel + Thought Mode Cleanup
 
 - Updated the dashboard medicine wheel number buttons to use gold rings with transparent centers instead of ivory-filled circles.

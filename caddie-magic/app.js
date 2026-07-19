@@ -1,7 +1,8 @@
-// Caddie Magic v0.1.9 — Wheel Refinement + Quote Cleanup + Thought-Only Toggle
+// Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.2.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -18,6 +19,7 @@ let currentUser = null;
 let playerProfile = null;
 let roundLogs = [];
 let playerNotes = [];
+let reviewRequests = [];
 let selectedMoonDayToken = null;
 let entryMode = "round";
 
@@ -140,6 +142,7 @@ async function signOut() {
   playerProfile = null;
   roundLogs = [];
   playerNotes = [];
+  reviewRequests = [];
   selectedMoonDayToken = null;
   showState("auth");
   setMessage(authMessage, "You have left the clubhouse.");
@@ -224,11 +227,25 @@ async function fetchPlayerNotes() {
   return data || [];
 }
 
+async function fetchReviewRequests() {
+  try {
+    return await getMyCaddieReviewRequests();
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("caddie_magic_review_requests") || message.includes("schema cache")) {
+      console.warn("Caddie Review Service is waiting for migration 041.", error);
+      return [];
+    }
+    throw error;
+  }
+}
+
 async function loadPortalData() {
   if (!playerProfile) return;
-  const [logs, notes] = await Promise.all([fetchRoundLogs(), fetchPlayerNotes()]);
+  const [logs, notes, reviews] = await Promise.all([fetchRoundLogs(), fetchPlayerNotes(), fetchReviewRequests()]);
   roundLogs = logs;
   playerNotes = notes;
+  reviewRequests = reviews;
 }
 
 async function logRound(event) {
@@ -253,8 +270,8 @@ async function logRound(event) {
     setMessage(roundMessage, "Add the swing thought you want to remember.", true);
     return;
   }
-  if (!isReflection && (!coursePlayed || !score)) {
-    setMessage(roundMessage, "Course and score are required for a round. Swing thoughts are optional.", true);
+  if (!isReflection && !score) {
+    setMessage(roundMessage, "Score is required for a round. Course and swing thoughts are optional.", true);
     return;
   }
 
@@ -264,7 +281,7 @@ async function logRound(event) {
     user_id: currentUser.id,
     entry_type: isReflection ? "reflection" : "round",
     round_date: roundDate,
-    course_played: isReflection ? null : coursePlayed,
+    course_played: isReflection ? null : (coursePlayed || null),
     score: isReflection ? null : score,
     swing_thoughts: swingThoughts || null,
     share_anonymously: true,
@@ -285,7 +302,7 @@ async function logRound(event) {
   $("swingThoughts").value = "";
   $("roundDate").value = todayISO();
   setMessage(roundMessage, isReflection
-    ? "Swing thought saved. It now appears in your maps and anonymous Collective Swing Map."
+    ? "Swing thought saved. It now appears in your maps and anonymous Locker Room."
     : "Round logged. Your Scorecard and maps have been updated.");
   await loadPortalData();
   const loggedToken = moon.moonDay >= 28 ? "28plus" : String(moon.moonDay);
@@ -339,7 +356,7 @@ function renderMoonDayDetail(token) {
     const heading = isReflection
       ? `${formatDate(entry.round_date)} · Swing Thought`
       : `${formatDate(entry.round_date)} · ${entry.course_played || "Round"}`;
-    const scoreMarkup = isReflection ? `<span class="cm-entry-kind">Reflection</span>` : `<strong>${escapeHtml(entry.score)}</strong>`;
+    const scoreMarkup = isReflection ? "" : `<strong>${escapeHtml(entry.score)}</strong>`;
     const thought = clean(entry.swing_thoughts)
       ? `<p>${escapeHtml(entry.swing_thoughts)}</p>`
       : `<p class="cm-no-thought">No swing thought recorded.</p>`;
@@ -453,6 +470,64 @@ function renderNotes() {
   `).join("");
 }
 
+function activeReviewRequest() {
+  return reviewRequests.find((request) => request.status === "requested") || null;
+}
+
+function latestCompletedReview() {
+  return reviewRequests.find((request) => request.status === "completed") || null;
+}
+
+function renderReviewService() {
+  const button = $("requestReviewButton");
+  const copy = $("reviewRequestCopy");
+  if (!button || !copy) return;
+
+  const pending = activeReviewRequest();
+  const completed = latestCompletedReview();
+  const hasEntries = roundLogs.length > 0;
+
+  if (pending) {
+    button.disabled = true;
+    button.textContent = "Review Requested";
+    copy.textContent = "Your request is waiting at the Concierge Desk. Your Caddie will review your scores and swing thoughts for patterns.";
+    return;
+  }
+
+  button.disabled = !hasEntries;
+  button.textContent = completed ? "Request Another Review" : "Request Caddie Review";
+  copy.textContent = hasEntries
+    ? (completed
+      ? "Your last review is complete. Read your newest Caddie Note above, or request another pattern review when you are ready."
+      : "Ping your Caddie to review your scores and swing thoughts for patterns you may not see yet.")
+    : "Log at least one score or swing thought before requesting a Caddie Review.";
+}
+
+async function requestScoreReview() {
+  const button = $("requestReviewButton");
+  const message = $("reviewRequestMessage");
+  if (!button || button.disabled) return;
+
+  button.disabled = true;
+  button.textContent = "Sending Request...";
+  setMessage(message, "Sending your Scorecard to the Concierge Desk...");
+
+  try {
+    await requestCaddieReview();
+    reviewRequests = await fetchReviewRequests();
+    renderReviewService();
+    setMessage(message, "Your Caddie Review request is waiting at the Concierge Desk.");
+  } catch (error) {
+    console.error("Caddie Review request failed.", error);
+    button.disabled = false;
+    button.textContent = "Request Caddie Review";
+    const missingMigration = String(error?.message || "").toLowerCase().includes("caddie_magic_request_score_review");
+    setMessage(message, missingMigration
+      ? "Caddie Review Service is not installed yet. Run migration 041 and refresh."
+      : (error?.message || "Your Caddie Review request could not be sent."), true);
+  }
+}
+
 function renderHistory() {
   const node = $("roundHistory");
   if (!node) return;
@@ -474,7 +549,7 @@ function renderHistory() {
           <p>${thought}</p>
         </div>
         <div>
-          <strong>${isReflection ? "Reflection" : escapeHtml(entry.score)}</strong>
+          ${isReflection ? "" : `<strong>${escapeHtml(entry.score)}</strong>`}
           <div class="cm-round-meta">
             <span class="cm-tag">Moon Day ${escapeHtml(entry.moon_day || "—")}</span>
             <span class="cm-tag">${escapeHtml(shortPhase(entry.moon_phase))}</span>
@@ -490,6 +565,7 @@ function renderPortal() {
   renderMoonDashboard();
   renderStats();
   renderNotes();
+  renderReviewService();
   renderHistory();
 }
 
@@ -545,7 +621,7 @@ function setEntryMode(mode) {
   const isReflection = entryMode === "reflection";
   document.querySelectorAll(".cm-round-only-field").forEach((field) => field.classList.toggle("hidden", isReflection));
   document.querySelectorAll(".cm-date-field").forEach((field) => field.classList.toggle("hidden", isReflection));
-  $("coursePlayed").required = !isReflection;
+  $("coursePlayed").required = false;
   $("roundScore").required = !isReflection;
   $("roundDate").required = !isReflection;
   $("roundDate").value = todayISO();
@@ -556,7 +632,7 @@ function setEntryMode(mode) {
   $("entrySubmitButton").textContent = isReflection ? "Log Your Thoughts" : "Log Round";
   $("entryModeCopy").textContent = isReflection
     ? "No round required. Leave the swing thought you want to remember."
-    : "Only the essentials: date, course, score, and an optional swing thought.";
+    : "Only the essentials: date and score, with course and swing thought optional.";
   $("swingThoughtOptionalLabel").textContent = isReflection ? "Required" : "Optional";
   setMessage(roundMessage, "");
 }
@@ -570,6 +646,7 @@ function bindEvents() {
   $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
   $("roundModeButton")?.addEventListener("click", () => setEntryMode("round"));
   $("reflectionModeButton")?.addEventListener("click", () => setEntryMode("reflection"));
+  $("requestReviewButton")?.addEventListener("click", requestScoreReview);
   setEntryMode("round");
 }
 
