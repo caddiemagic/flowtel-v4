@@ -105,7 +105,7 @@ function profileMarkup(row){
     <p class="eyebrow">CONCIERGE TEAM</p>
     <h2>${escapeHtml(row.priestess_name || 'Flow FM Priestess')}</h2>
     <p class="embed-profile-title">FLOW FM PRIESTESS</p>
-    ${website?`<a class="embed-profile-link" href="${escapeHtml(website)}" target="_blank" rel="noopener">Visit Her Profile</a>`:'<p class="embed-profile-missing">Profile link coming soon.</p>'}
+    ${website?`<a class="embed-profile-link" href="${escapeHtml(website)}" target="_blank" rel="noopener">VIEW PROFILE</a>`:'<p class="embed-profile-missing">Profile link coming soon.</p>'}
   </article>`;
 }
 function openProfile(row){

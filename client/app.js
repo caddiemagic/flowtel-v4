@@ -1,6 +1,6 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile } from "../shared/profiles.js?v=0.10.52";
-import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.52";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.53";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 
@@ -36,6 +36,9 @@ let passwordRecoveryHandled=false;
 let currentProfile=null;
 let currentMentorRelationship=null;
 let currentStay=null;
+let unreadConciergeStays=[];
+let unreadConciergeLoadKey="";
+let unreadConciergeLoadToken=0;
 
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
@@ -626,6 +629,9 @@ function clearCachedSuiteStay(){
     sessionStorage.removeItem("flowtel:lastSuiteStay");
     sessionStorage.removeItem("flowtel:openSuiteFromConcierge");
   }catch(error){}
+  unreadConciergeStays=[];
+  unreadConciergeLoadKey="";
+  unreadConciergeLoadToken+=1;
 }
 
 function stayBelongsToCurrentProfile(stay){
@@ -1160,6 +1166,7 @@ function renderSuite(stay){
   setPowderRoomPanelOpen(false);
 
   renderConciergeCare(stay);
+  void loadUnreadConciergeNotes(stay);
   renderPractitionerConnection();
   updatePhaseOneSuiteLinks();
 
@@ -1296,67 +1303,168 @@ function conciergeNotesSignature(notes){
   return notes.map(note=>`${note.id}:${note.at || ""}:${note.note}`).join("|");
 }
 
+function conciergeReadKey(stayId){
+  return `flowtel:conciergeNoteRead:${stayId}`;
+}
+
+function conciergeStaySignature(stay){
+  return conciergeNotesSignature(parseConciergeNotes(stay));
+}
+
+function conciergeStayIsUnread(stay){
+  const signature=conciergeStaySignature(stay);
+  if(!signature) return false;
+  const localSignature=localStorage.getItem(conciergeReadKey(stay.id));
+  return stay.concierge_notes_read_signature!==signature && localSignature!==signature;
+}
+
+function conciergeNoteTime(note,stay){
+  const value=note?.at || stay?.witnessed_at || stay?.updated_at || stay?.checkin_date || "";
+  const parsed=new Date(value).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function earliestConciergeNoteTime(stay){
+  const notes=parseConciergeNotes(stay);
+  return notes.reduce((earliest,note)=>{
+    const value=conciergeNoteTime(note,stay);
+    return earliest===null || value<earliest ? value : earliest;
+  },null) ?? 0;
+}
+
+function compareConciergeStayAge(a,b){
+  const timeDifference=earliestConciergeNoteTime(a)-earliestConciergeNoteTime(b);
+  if(timeDifference) return timeDifference;
+  const dateDifference=String(a?.checkin_date || "").localeCompare(String(b?.checkin_date || ""));
+  if(dateDifference) return dateDifference;
+  return String(a?.id || "").localeCompare(String(b?.id || ""));
+}
+
+async function loadUnreadConciergeNotes(stay){
+  if(!currentProfile?.id || !stay?.id) return;
+  const loadKey=`${currentProfile.id}:${stay.id}`;
+  if(unreadConciergeLoadKey===loadKey) return;
+
+  unreadConciergeLoadKey=loadKey;
+  unreadConciergeStays=[];
+  const loadToken=++unreadConciergeLoadToken;
+
+  try{
+    const rows=await getUnreadConciergeNoteStays();
+    if(loadToken!==unreadConciergeLoadToken || currentProfile?.id!==stay.client_id) return;
+
+    unreadConciergeStays=(rows || [])
+      .filter(row=>row?.id && row.id!==stay.id && conciergeStayIsUnread(row))
+      .sort(compareConciergeStayAge);
+
+    if(currentStay?.id===stay.id) renderConciergeCare(currentStay);
+  }catch(error){
+    if(loadToken!==unreadConciergeLoadToken) return;
+    console.warn("Historical unread Concierge notes could not be loaded.",error);
+    unreadConciergeStays=[];
+  }
+}
+
+function conciergeGroupMarkup(stay,{historical=false}={}){
+  const notes=parseConciergeNotes(stay).slice().sort((a,b)=>conciergeNoteTime(a,stay)-conciergeNoteTime(b,stay));
+  const hasRead=!historical && !conciergeStayIsUnread(stay);
+  const noteWord=notes.length===1 ? "Note" : "Notes";
+  const dateLabel=formatDate(stay.checkin_date || notes[0]?.at || stay.witnessed_at);
+  const heading=historical
+    ? `From your ${dateLabel} stay`
+    : (hasRead ? "Saved with today’s stay" : "Left in your room today");
+  const noteList=notes.map(note=>`
+    <article class="concierge-note-entry">
+      <span class="concierge-note-by">From ${escapeHtml(note.by || stay.witness_note_by || "your mentor")}</span>
+      ${note.at ? `<small>${formatDate(note.at)}</small>` : ""}
+      <p>${escapeHtml(note.note)}</p>
+    </article>
+  `).join("");
+
+  return `
+    <section class="concierge-note-group ${historical ? "concierge-note-group--carried" : "concierge-note-group--current"}" data-concierge-stay-id="${escapeHtml(stay.id)}">
+      <span class="concierge-note-context">${escapeHtml(heading)}</span>
+      <button type="button" class="secondary read-note-button concierge-group-read-button ${hasRead ? "hidden" : ""}">Read ${escapeHtml(noteWord)} →</button>
+      <div class="concierge-notes-scroll ${hasRead ? "" : "hidden"}">${noteList}</div>
+      <button type="button" class="secondary read-note-button concierge-group-received-button ${hasRead ? "hidden" : ""}">Mark as Received</button>
+    </section>
+  `;
+}
 
 function renderConciergeCare(stay){
   const witnessNote=document.getElementById("witnessNote");
   const witnessText=document.getElementById("witnessText");
   if(!witnessNote||!witnessText) return;
 
-  witnessNote.classList.toggle("quiet",!stay?.witness_note && !hasTurndownRequest(stay));
+  const historicalStays=unreadConciergeStays
+    .filter(row=>row?.id && row.id!==stay?.id && conciergeStayIsUnread(row))
+    .sort(compareConciergeStayAge);
+  const currentNotes=parseConciergeNotes(stay);
+  const currentHasNotes=currentNotes.length>0;
+  const currentUnread=currentHasNotes && conciergeStayIsUnread(stay);
+  const turndownRequested=hasTurndownRequest(stay);
+  const historicalNoteCount=historicalStays.reduce((count,row)=>count+parseConciergeNotes(row).length,0);
+  const totalUnreadCount=historicalNoteCount+(currentUnread ? currentNotes.length : 0);
+  const hasAnyNotes=historicalStays.length>0 || currentHasNotes;
+  const wakeupKey=`flowtel:wakeup:${stay?.id || "today"}`;
+  const wakeupRequested=localStorage.getItem(wakeupKey)==="true";
 
-  if(stay?.witness_note){
-    const notes=parseConciergeNotes(stay);
-    const latestNote=notes[notes.length-1];
-    const readKey=`flowtel:conciergeNoteRead:${stay.id}`;
-    const signature=conciergeNotesSignature(notes);
-    const savedSignature=stay.concierge_notes_read_signature || localStorage.getItem(readKey);
-    const hasRead=savedSignature===signature;
-    witnessNote.classList.add("concierge-fulfilled");
-    const latestBy=latestNote?.by || stay.witness_note_by || "your mentor";
-    const noteList=notes.map((note,index)=>`
-      <article class="concierge-note-entry">
-        <span class="concierge-note-by">From ${escapeHtml(note.by || latestBy)}</span>
-        ${note.at ? `<small>${formatDate(note.at)}</small>` : ""}
-        <p>${escapeHtml(note.note)}</p>
-      </article>
-    `).join("");
+  witnessNote.classList.toggle("quiet",!hasAnyNotes && !turndownRequested);
+  witnessNote.classList.toggle("concierge-fulfilled",hasAnyNotes);
+
+  const currentAvailabilityMarkup=`
+    <section class="concierge-current-day-state">
+      <span class="concierge-note-context">Today’s Concierge</span>
+      <strong>Your Concierge is available.</strong>
+      <span>Need a little extra care today?</span>
+      <button type="button" id="requestTurndownButton">Request Turndown Service</button>
+      <small>A concierge will be notified that you've requested a little extra love today.</small>
+      <button type="button" class="secondary wakeup-button" id="requestWakeUpTextButton">${wakeupRequested ? "Wake Up Text Requested" : "Request a Wake Up Text"}</button>
+      <small>${wakeupRequested ? "Your next-day reminder has been noted for this beta." : "Beta preview: SMS delivery will connect after the texting platform is integrated."}</small>
+    </section>
+  `;
+
+  const currentTurndownMarkup=`
+    <section class="concierge-current-day-state concierge-current-day-state--requested">
+      <span class="concierge-note-context">Today’s Concierge</span>
+      <strong>Turndown Service Requested</strong>
+      <span>A concierge has been notified.</span>
+    </section>
+  `;
+
+  if(hasAnyNotes){
+    let headline="Concierge has cleansed your space.";
+    let helper="Your love notes are saved with their original stays.";
+
+    if(historicalNoteCount===1 && !currentUnread){
+      headline="A note from your previous stay is waiting for you.";
+      helper="It will remain here until you mark it received.";
+    }else if(totalUnreadCount>1 && historicalNoteCount>0){
+      headline=`${totalUnreadCount} Concierge notes are waiting for you.`;
+      helper="Notes from previous stays appear oldest first.";
+    }else if(currentUnread){
+      headline="You have a new note.";
+      helper=currentNotes.length>1
+        ? `${currentNotes.length} love notes have been left in your room.`
+        : "A love note has been left in your room.";
+    }
+
+    const historicalMarkup=historicalStays.map(row=>conciergeGroupMarkup(row,{historical:true})).join("");
+    const currentMarkup=currentHasNotes
+      ? conciergeGroupMarkup(stay)
+      : (turndownRequested ? currentTurndownMarkup : currentAvailabilityMarkup);
 
     witnessText.innerHTML=`
-      <strong>${hasRead ? "Concierge has cleansed your space." : "You have a new note."}</strong>
-      ${hasRead ? "<span>Your love notes are saved in this stay.</span>" : `<span>${notes.length>1 ? `${notes.length} love notes have been left in your room.` : "A love note has been left in your room."}</span>`}
-      <button type="button" class="secondary read-note-button ${hasRead ? "hidden" : ""}" id="readConciergeNoteButton">Read Note →</button>
-      <div class="concierge-notes-scroll ${hasRead ? "" : "hidden"}" id="conciergeNoteText">${noteList}</div>
-      <button type="button" class="secondary read-note-button hidden" id="markConciergeNoteReadButton">Mark as Read</button>
+      <strong>${escapeHtml(headline)}</strong>
+      <span>${escapeHtml(helper)}</span>
+      <div class="concierge-note-groups">${historicalMarkup}${currentMarkup}</div>
     `;
-    const readButton=document.getElementById("readConciergeNoteButton");
-    const markButton=document.getElementById("markConciergeNoteReadButton");
-    const noteText=document.getElementById("conciergeNoteText");
-    if(readButton&&noteText&&markButton){
-      readButton.addEventListener("click",()=>{
-        noteText.classList.remove("hidden");
-        readButton.classList.add("hidden");
-        markButton.classList.remove("hidden");
-      });
-    }
-    if(markButton){
-      markButton.addEventListener("click",async()=>{
-        markButton.disabled=true;
-        try{
-          const updatedStay=await markConciergeNotesRead(stay.id,signature);
-          currentStay={...stay,...updatedStay,concierge_notes_read_signature:signature};
-          cacheSuiteStay(currentStay);
-        }catch(error){
-          console.warn("Concierge note read state could not be saved to Supabase; keeping local read state.",error);
-          currentStay={...stay,concierge_notes_read_signature:signature};
-        }
-        localStorage.setItem(readKey,signature);
-        renderConciergeCare(currentStay);
-      });
-    }
+
+    bindConciergeCardActions(witnessText,stay,wakeupRequested);
     return;
   }
 
-  if(hasTurndownRequest(stay)){
+  if(turndownRequested){
     witnessText.innerHTML=`
       <strong>Turndown Service Requested</strong>
       <span>A concierge has been notified.</span>
@@ -1364,8 +1472,6 @@ function renderConciergeCare(stay){
     return;
   }
 
-  const wakeupKey=`flowtel:wakeup:${stay?.id || "today"}`;
-  const wakeupRequested=localStorage.getItem(wakeupKey)==="true";
   witnessText.innerHTML=`
     <strong>Your Concierge is available.</strong>
     <span>Need a little extra care today?</span>
@@ -1375,16 +1481,60 @@ function renderConciergeCare(stay){
     <small>${wakeupRequested ? "Your next-day reminder has been noted for this beta." : "Beta preview: SMS delivery will connect after the texting platform is integrated."}</small>
   `;
 
-  const button=document.getElementById("requestTurndownButton");
-  if(button){
-    button.addEventListener("click",()=>handleTurndownRequest(stay));
+  bindConciergeCardActions(witnessText,stay,wakeupRequested);
+}
+
+function bindConciergeCardActions(witnessText,stay,wakeupRequested){
+  witnessText.querySelectorAll(".concierge-group-read-button").forEach(button=>{
+    button.addEventListener("click",()=>{
+      const group=button.closest(".concierge-note-group");
+      group?.querySelector(".concierge-notes-scroll")?.classList.remove("hidden");
+      group?.querySelector(".concierge-group-received-button")?.classList.remove("hidden");
+      button.classList.add("hidden");
+    });
+  });
+
+  witnessText.querySelectorAll(".concierge-group-received-button").forEach(button=>{
+    button.addEventListener("click",async()=>{
+      const group=button.closest(".concierge-note-group");
+      const stayId=group?.dataset.conciergeStayId || "";
+      const targetStay=stayId===stay?.id ? stay : unreadConciergeStays.find(row=>row.id===stayId);
+      if(!targetStay) return;
+
+      const signature=conciergeStaySignature(targetStay);
+      button.disabled=true;
+
+      try{
+        const updatedStay=await markConciergeNotesRead(stayId,signature);
+        if(stayId===currentStay?.id){
+          currentStay={...currentStay,...updatedStay,concierge_notes_read_signature:signature};
+          cacheSuiteStay(currentStay);
+        }else{
+          unreadConciergeStays=unreadConciergeStays.filter(row=>row.id!==stayId);
+        }
+      }catch(error){
+        console.warn("Concierge note receipt could not be saved to Supabase; keeping local read state for this browser.",error);
+        if(stayId===currentStay?.id){
+          currentStay={...currentStay,concierge_notes_read_signature:signature};
+        }else{
+          unreadConciergeStays=unreadConciergeStays.filter(row=>row.id!==stayId);
+        }
+      }
+
+      localStorage.setItem(conciergeReadKey(stayId),signature);
+      renderConciergeCare(currentStay || stay);
+    });
+  });
+
+  const turndownButton=witnessText.querySelector("#requestTurndownButton");
+  if(turndownButton){
+    turndownButton.addEventListener("click",()=>handleTurndownRequest(stay));
   }
-  const wakeupButton=document.getElementById("requestWakeUpTextButton");
+  const wakeupButton=witnessText.querySelector("#requestWakeUpTextButton");
   if(wakeupButton&&!wakeupRequested){
     wakeupButton.addEventListener("click",()=>requestWakeUpText(stay));
   }
 }
-
 
 
 function mentorDisplayName(profile){

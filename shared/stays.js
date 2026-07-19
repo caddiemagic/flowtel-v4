@@ -416,16 +416,36 @@ export async function getPreviousVisits(clientId, roomNumber=null){
 }
 
 
-export async function markConciergeNotesRead(stayId, signature){
-  const now=new Date().toISOString();
-  const {data,error}=await supabase.from("flowtel_stays").update({
-    concierge_notes_read_signature: signature || "",
-    concierge_notes_read_at: now,
-    updated_at: now,
-  }).eq("id",stayId).select().single();
+export async function getUnreadConciergeNoteStays(){
+  const {data,error}=await supabase.rpc("flowtel_get_my_unread_concierge_notes");
+  if(error){
+    const message=String(error.message || "");
+    const missingFunction=message.toLowerCase().includes("function") && message.toLowerCase().includes("flowtel_get_my_unread_concierge_notes");
+    if(missingFunction){
+      throw new Error("Unread Concierge-note continuity is not installed yet. Run database/migration-041-unread-concierge-note-continuity.sql in Supabase, then refresh Flowtel.");
+    }
+    throw error;
+  }
+  return data || [];
+}
 
-  if(error) throw error;
-  return data;
+
+export async function markConciergeNotesRead(stayId, signature){
+  const {data,error}=await supabase.rpc("flowtel_mark_concierge_note_received",{
+    p_stay_id:stayId,
+    p_signature:signature || "",
+  });
+
+  if(error){
+    const message=String(error.message || "");
+    const missingFunction=message.toLowerCase().includes("function") && message.toLowerCase().includes("flowtel_mark_concierge_note_received");
+    if(missingFunction){
+      throw new Error("Concierge-note receipt is not installed yet. Run database/migration-041-unread-concierge-note-continuity.sql in Supabase, then refresh Flowtel.");
+    }
+    throw error;
+  }
+
+  return Array.isArray(data) ? data[0] : data;
 }
 
 export async function currentUserHasConciergeAccess(){

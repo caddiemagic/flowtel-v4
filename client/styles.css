@@ -2424,7 +2424,7 @@ button,.secondary,.suite-flow-map-link,.mentor-schedule-button{
 .profile-lounge-card .eyebrow{margin-top:0}
 .profile-lounge-card h3{margin:.2rem 0 .55rem}
 .profile-lounge-card p{margin:0; color:var(--muted)}
-.lounge-profile-link{max-width:320px; margin-top:18px}
+.lounge-profile-link{width:100%; max-width:none; margin-top:18px}
 
 
 /* Release 0.10.28 — Queendom return + Phase 1 link cleanup */
@@ -3739,4 +3739,54 @@ body.personal-room-key-is-open{
     padding:28px 20px;
     border-radius:26px;
   }
+}
+
+/* Flowtel v0.10.53 — Unread Concierge Notes + Profile Button Polish */
+.concierge-note-groups{
+  display:grid;
+  gap:12px;
+  margin-top:4px;
+}
+.concierge-note-group{
+  padding:14px;
+  border:1px solid rgba(109,78,65,.10);
+  border-radius:18px;
+  background:rgba(255,253,249,.58);
+}
+.concierge-note-group--carried{
+  background:linear-gradient(135deg,rgba(255,253,249,.9),rgba(248,231,227,.42));
+  border-color:rgba(216,168,79,.22);
+}
+.concierge-note-context{
+  display:block;
+  margin-bottom:8px;
+  font-family:Arial,sans-serif;
+  font-size:.68rem;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--rose);
+}
+.concierge-note-group .concierge-notes-scroll{
+  max-height:260px;
+  margin:10px 0 0;
+}
+.concierge-note-group .concierge-group-read-button,
+.concierge-note-group .concierge-group-received-button{
+  width:100% !important;
+  justify-self:stretch !important;
+}
+.concierge-current-day-state{
+  display:grid;
+  gap:8px;
+  padding:14px;
+  border:1px solid rgba(109,78,65,.10);
+  border-radius:18px;
+  background:rgba(255,253,249,.7);
+}
+.concierge-current-day-state--requested{
+  border-color:rgba(216,168,79,.22);
+}
+.concierge-current-day-state .concierge-note-context{
+  margin-bottom:0;
 }

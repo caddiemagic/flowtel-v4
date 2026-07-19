@@ -1,28 +1,27 @@
-## Caddie Magic v0.1.3 — Dazzled Cream Pills + Ship Wheel Refinement
+## v0.10.53 — Unread Concierge Notes + Profile Button Polish
 
-- Brightened the Caddie Magic locker and Moon Score Map cards / pills to the requested `#f7f6f1` cream treatment.
-- Added the requested `#355e36` green accent to primary actions and highlights.
-- Reduced button bulk across the Caddie Magic UI for a daintier, more elegant feel.
-- Replaced the hero **Open Your Locker** action with **Open Score Map**.
-- Reworked the moon wheel center into a wooden ship-wheel interpretation while preserving the existing 28-day number ring.
-- Added the gold rose compass to the center of the ship wheel.
-- Renamed **Notes Under the Door** to **Caddie Notes** and updated the empty-state copy.
-- Changed the Round Log eyebrow from **Log a Round** to **MOOD SWINGS**.
-- Brought the lighter polish into `/caddie-magic/score-map/` and the printable Score Map exercise.
-- No Supabase migration required.
+- Carries unread Concierge notes into the guest’s current Suite across Flowtel Days without copying or moving them from their original stays.
+- Shows multiple historical unread notes oldest-first and keeps their original author/date context.
+- Marks each note received by updating the read signature and timestamp on its original stay.
+- Preserves current-day Concierge-note, available Concierge, and pending Turndown states alongside carried notes.
+- Adds authenticated member-owned RPCs for unread-note retrieval and original-stay receipt updates.
+- Makes the Lounge **Open Profile View** button full-width and removes its 320px maximum-width treatment.
+- Changes authenticated and embedded Team Map external-profile buttons to **VIEW PROFILE** while preserving **Add My Profile Link** for the signed-in member with no URL.
+- Preserves Flowtel Time, one-stay-per-day behavior, append-only history, passwords, sessions, display-name identity, Concierge permissions/routing, Team Map privacy/membership, mentor logic, Powder Room privacy, Medicine Wheel geometry, and cycle-day logic.
+- Adds Supabase migration 041. Migration 037 remains retired and must not be rerun.
 
-## Caddie Magic v0.1.2 — Velvety Navy Locker + Moon Score Map Refinement
+## v0.10.52 — Priestess Identity + Display Name Sync
 
-- Rebuilt `/caddie-magic/` as a velvety navy, hunter green, antique gold, moon-silver private golf locker room.
-- Kept the Round Log limited to Date, Course, Score, and Swing Thoughts.
-- Added the Moon Score Data snapshot with Moon Day, Moon Phase, placeholder theme, Last New Moon, and Next New Moon.
-- Added a clickable 28-position golf-club medicine wheel with temporary North, East, South, and West Club labels.
-- Added day-level score and swing-thought review directly from the wheel.
-- Refined the Player Locker around latest score, moon data, latest swing thought, Notes Under the Door, and previous rounds.
-- Added `/caddie-magic/score-map/` with Current Moon, Last Moon, and All views using the Flowtel Flow Map framework.
-- Replaced the Flowtel seasonal quadrants with West Club, South Club, East Club, and North Club placeholders.
-- Added `/caddie-magic/score-map/printable/` as the downloadable / Save PDF Moon Score Map exercise.
-- No Supabase migration required.
+- Added separate **Legal First Name**, **Legal Last Name**, and **Priestess Display Name** fields to Profile Studio.
+- Stores legal names privately in `profiles.first_name` and `profiles.last_name`.
+- Adds `profiles.display_name` as the canonical name shown throughout the Flowtel.
+- Synchronizes the chosen display name with the Priestess Profile record and Supabase Auth metadata.
+- Updates Suite greetings, Team Map, Concierge Desk, mentor/client cards, Flow Map data, review queues, and future Turndown attribution to resolve the display name first.
+- Preserves existing member passwords, sessions, stays, profile photos, external links, and Priestess Profile content.
+- Backfills display names from the existing Priestess Profile name before falling back to legal names or email.
+- Keeps legal-name values out of another member's Profile Studio view.
+- Straightened the embedded Team Map portrait rings with a fixed concentric portrait frame.
+- Adds Supabase migration 040.
 
 ## v0.10.51 — Lounge Profile Pill Polish
 
