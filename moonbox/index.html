@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>The Moonbox · Flowtel</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.54" />
+</head>
+<body>
+  <main class="moonbox-shell">
+    <section class="moonbox-hero">
+      <div class="moon-window" aria-hidden="true">
+        <span class="moon-disc"></span>
+        <img src="../assets/queendom-scarab-sundisk-transparent.png" alt="" />
+      </div>
+      <p class="eyebrow">A PRIVATE ROOM INSIDE THE FLOWTEL</p>
+      <h1>THE MOONBOX</h1>
+      <p class="hero-subtitle">Unsent letters to lovers.</p>
+      <p class="hero-copy">Write the message you want to send to him. Let the Moon receive the first wave, return the energy to your Queendom, and hold it until you know what truly belongs in his hands.</p>
+      <blockquote>You do not have to silence yourself. You deserve to be received before you decide where your words belong.</blockquote>
+    </section>
+
+    <section class="composer-card" id="composerCard">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">MESSAGE TO THE MOON</p>
+          <h2 id="composerTitle">What do you want to say to him?</h2>
+        </div>
+        <span class="member-greeting" id="memberGreeting">Opening your Moonbox...</span>
+      </div>
+
+      <label class="archetype-field" for="recipientArchetype">
+        This message is for
+        <select id="recipientArchetype">
+          <option value="">The masculine</option>
+          <option value="lover">A lover</option>
+          <option value="partner">My partner</option>
+          <option value="husband">My husband</option>
+          <option value="ex">An ex</option>
+          <option value="father">My father</option>
+          <option value="brother">My brother</option>
+          <option value="friend">A friend</option>
+          <option value="colleague">A colleague</option>
+          <option value="unknown_masculine">A masculine I do not fully know</option>
+          <option value="the_masculine">The collective masculine</option>
+        </select>
+      </label>
+
+      <label class="message-field" for="moonboxMessage">
+        <span class="sr-only">Your unsent message</span>
+        <textarea id="moonboxMessage" maxlength="4000" placeholder="Write it exactly as you want to send it. Do not make it polite. Do not make it spiritual. Let the first true version arrive here..."></textarea>
+      </label>
+      <div class="composer-meta">
+        <p>His name does not belong here. Your truth does.</p>
+        <span id="characterCount">0 / 4000</span>
+      </div>
+
+      <aside class="privacy-vow">
+        <p class="eyebrow">THE MOONBOX VOW</p>
+        <p>Before sharing with the Collective Moonbox, remove names, phone numbers, email addresses, social handles, links, workplaces, and locations. Private letters remain visible only inside your own Moonbox archive.</p>
+      </aside>
+
+      <div class="send-actions">
+        <button id="sendCollectiveButton" type="button" class="moon-button moon-button--primary">SEND TO THE MOON</button>
+        <button id="sendPrivateButton" type="button" class="moon-button moon-button--quiet">KEEP BETWEEN ME &amp; THE MOON</button>
+      </div>
+      <p class="send-explainer"><strong>Send to the Moon</strong> releases the letter anonymously into the Collective Moonbox. <strong>Keep Between Me &amp; the Moon</strong> saves it only in your private archive.</p>
+      <p class="message-status" id="messageStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="moonbox-library">
+      <div class="library-heading">
+        <div>
+          <p class="eyebrow">LET THE MOON WITNESS IT</p>
+          <h2>The messages we thought only we were writing.</h2>
+        </div>
+        <nav class="view-tabs" aria-label="Moonbox views">
+          <button id="collectiveTab" type="button" class="active" aria-selected="true">COLLECTIVE MOONBOX</button>
+          <button id="myMessagesTab" type="button" aria-selected="false">MY MOONBOX</button>
+        </nav>
+      </div>
+
+      <section id="collectiveView" class="message-view" aria-label="Collective Moonbox">
+        <p class="view-intro">Anonymous letters from women choosing to let the Moon receive the message first. There are no comments here—only witnessing.</p>
+        <div class="moon-message-grid" id="collectiveMessages"></div>
+      </section>
+
+      <section id="myMessagesView" class="message-view hidden" aria-label="My Moonbox">
+        <p class="view-intro">Your private archive remembers both the letters you released into the collective and the ones held only between you and the Moon.</p>
+        <div class="moon-message-grid" id="myMessages"></div>
+      </section>
+
+      <p class="library-status" id="libraryStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <nav class="moonbox-return" aria-label="Moonbox return navigation">
+      <a href="/client/?suite=1">RETURN TO YOUR SUITE</a>
+      <a href="/client/?lounge=1">RETURN TO THE LOUNGE</a>
+      <a href="https://www.theidyllcollective.com/queendomhome">RETURN TO THE QUEENDOM</a>
+    </nav>
+  </main>
+
+  <script type="module" src="./app.js?v=0.10.54"></script>
+</body>
+</html>

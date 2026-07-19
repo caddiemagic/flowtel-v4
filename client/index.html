@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.53" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.54" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -244,8 +244,9 @@
 
         <div class="suite-actions">
           <button id="suiteClockInButton" type="button" class="secondary hidden">Clock Into the Flowtel</button>
+          <a class="suite-button-link moonbox-suite-link" id="suiteMoonboxLink" href="/moonbox/">Enter The Moonbox</a>
           <button id="flowtelLoungeButton" type="button">Go to Flowtel Lounge</button>
-                  </div>
+        </div>
       </section>
 
       <section class="scene lounge-scene" id="loungeScene">
@@ -270,6 +271,12 @@
           <a class="suite-button-link lounge-profile-link" id="loungeProfileViewLink" href="/flow-fm/profile-studio/">Open Profile View</a>
         </section>
 
+        <section class="moonbox-lounge-card">
+          <p class="eyebrow">THE MOONBOX</p>
+          <h3>Unsent letters to lovers.</h3>
+          <p>Write the message you want to send to him. Let the Moon receive it first, hold it privately, or release it anonymously to be witnessed by the collective.</p>
+          <a class="suite-button-link lounge-moonbox-link" id="loungeMoonboxLink" href="/moonbox/">Enter The Moonbox</a>
+        </section>
 
         <section class="checkout-card" id="loungeCheckoutCard">
           <p class="eyebrow">CHECK OUT</p>
@@ -332,6 +339,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.53"></script>
+  <script type="module" src="./app.js?v=0.10.54"></script>
 </body>
 </html>

@@ -47,6 +47,10 @@
       "destination": "/flow-map/index.html"
     },
     {
+      "source": "/moonbox",
+      "destination": "/moonbox/index.html"
+    },
+    {
       "source": "/flow-map/printable",
       "destination": "/flow-map/printable/index.html"
     },
