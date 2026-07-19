@@ -1,3 +1,16 @@
+## Caddie Magic v0.1.9 — Gold Number Wheel + Thought Mode Cleanup
+
+- Updated the dashboard medicine wheel number buttons to use gold rings with transparent centers instead of ivory-filled circles.
+- Changed the number text color to match the gold header styling.
+- Kept selected and current moon-day states visible with a softer gold treatment.
+- Removed decorative quotation marks from swing thoughts anywhere they appear in Caddie Magic.
+- Removed the date field when **Just a Swing Thought** mode is selected.
+- Thought-only entries now automatically use today’s date behind the scenes.
+- Updated the thought-mode card heading to **Log Your Thoughts** while reflection mode is selected.
+- Updated the thought-mode submit button to **Log Your Thoughts**.
+- Updated cache versions to `0.1.9`.
+- No Supabase migration required.
+
 ## Caddie Magic v0.1.8 — Reflections + Collective Swing Map
 
 - Renamed the main hero to **SCORECARD** and updated its supporting copy.

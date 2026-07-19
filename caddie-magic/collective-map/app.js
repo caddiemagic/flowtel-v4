@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.8 — Anonymous Collective Swing Map
+// Caddie Magic v0.1.9 — Anonymous Collective Swing Map + Quote Cleanup
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -79,7 +79,7 @@ function thoughtMarkup(entry) {
   return `
     <article class="cm-collective-note">
       <span>Moon Day ${escapeHtml(entry.moon_day || "—")}</span>
-      <p>“${escapeHtml(entry.swing_thought)}”</p>
+      <p>${escapeHtml(entry.swing_thought)}</p>
     </article>
   `;
 }

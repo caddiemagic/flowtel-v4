@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.8 — Reflections + Collective Swing Map
+// Caddie Magic v0.1.9 — Compact Notes + Quote Cleanup
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -211,7 +211,7 @@ function detailMarkup(entry) {
   `).join("")}
   <div class="cm-modal-detail cm-modal-detail-wide">
     <span>Swing Thought</span>
-    <strong>${thought ? `“${escapeHtml(thought)}”` : "No swing thought recorded."}</strong>
+    <strong>${thought ? escapeHtml(thought) : "No swing thought recorded."}</strong>
   </div>`;
 }
 

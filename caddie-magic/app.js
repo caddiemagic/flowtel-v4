@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.8 — Reflections + Collective Swing Map
+// Caddie Magic v0.1.9 — Wheel Refinement + Quote Cleanup + Thought-Only Toggle
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
@@ -240,12 +240,12 @@ async function logRound(event) {
     return;
   }
 
-  const roundDate = $("roundDate")?.value || todayISO();
+  const roundDate = isReflection ? todayISO() : ($("roundDate")?.value || "");
   const coursePlayed = clean($("coursePlayed")?.value);
   const score = scoreNumber($("roundScore")?.value);
   const swingThoughts = clean($("swingThoughts")?.value);
 
-  if (!roundDate) {
+  if (!isReflection && !roundDate) {
     setMessage(roundMessage, "Choose a date for this entry.", true);
     return;
   }
@@ -341,7 +341,7 @@ function renderMoonDayDetail(token) {
       : `${formatDate(entry.round_date)} · ${entry.course_played || "Round"}`;
     const scoreMarkup = isReflection ? `<span class="cm-entry-kind">Reflection</span>` : `<strong>${escapeHtml(entry.score)}</strong>`;
     const thought = clean(entry.swing_thoughts)
-      ? `<p>“${escapeHtml(entry.swing_thoughts)}”</p>`
+      ? `<p>${escapeHtml(entry.swing_thoughts)}</p>`
       : `<p class="cm-no-thought">No swing thought recorded.</p>`;
     return `
       <article class="cm-day-round">
@@ -431,7 +431,7 @@ function renderStats() {
     </article>
     <article class="cm-stat is-wide">
       <span>Latest Swing Thought</span>
-      <strong class="cm-stat-thought">${latestThoughtEntry ? `“${escapeHtml(latestThoughtEntry.swing_thoughts)}”` : "No swing thought logged yet."}</strong>
+      <strong class="cm-stat-thought">${latestThoughtEntry ? escapeHtml(latestThoughtEntry.swing_thoughts) : "No swing thought logged yet."}</strong>
       <small>${scoredRounds.length} round${scoredRounds.length === 1 ? "" : "s"} logged · Best ${bestScore(scoredRounds) ?? "—"} · Average ${averageScore(scoredRounds) ?? "—"}</small>
     </article>
   `;
@@ -464,7 +464,7 @@ function renderHistory() {
     const isReflection = entry.entry_type === "reflection" || entry.score === null;
     const title = isReflection ? "Swing Thought" : (entry.course_played || "Round");
     const thought = clean(entry.swing_thoughts)
-      ? `“${escapeHtml(entry.swing_thoughts)}”`
+      ? `${escapeHtml(entry.swing_thoughts)}`
       : "No swing thought recorded.";
     return `
       <article class="cm-round-row">
@@ -544,14 +544,18 @@ function setEntryMode(mode) {
   entryMode = mode === "reflection" ? "reflection" : "round";
   const isReflection = entryMode === "reflection";
   document.querySelectorAll(".cm-round-only-field").forEach((field) => field.classList.toggle("hidden", isReflection));
+  document.querySelectorAll(".cm-date-field").forEach((field) => field.classList.toggle("hidden", isReflection));
   $("coursePlayed").required = !isReflection;
   $("roundScore").required = !isReflection;
+  $("roundDate").required = !isReflection;
+  $("roundDate").value = todayISO();
   $("swingThoughts").required = isReflection;
   $("roundModeButton")?.classList.toggle("is-active", !isReflection);
   $("reflectionModeButton")?.classList.toggle("is-active", isReflection);
-  $("entrySubmitButton").textContent = isReflection ? "Save Swing Thought" : "Log Round";
+  $("entryFormTitle").textContent = isReflection ? "Log Your Thoughts" : "Log Your Round";
+  $("entrySubmitButton").textContent = isReflection ? "Log Your Thoughts" : "Log Round";
   $("entryModeCopy").textContent = isReflection
-    ? "No round required. Leave the thought you want to remember."
+    ? "No round required. Leave the swing thought you want to remember."
     : "Only the essentials: date, course, score, and an optional swing thought.";
   $("swingThoughtOptionalLabel").textContent = isReflection ? "Required" : "Optional";
   setMessage(roundMessage, "");

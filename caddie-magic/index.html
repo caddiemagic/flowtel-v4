@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.1.8" />
+  <link rel="stylesheet" href="./styles.css?v=0.1.9" />
 </head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
-      <span class="cm-version">v0.1.8</span>
+      <span class="cm-version">v0.1.9</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -152,7 +152,7 @@
       <section class="cm-card cm-log-card" id="roundLogCard">
         <div class="cm-section-icon" aria-hidden="true">✎</div>
         <p class="cm-eyebrow">MOOD SWINGS</p>
-        <h2>Log Your Round</h2>
+        <h2 id="entryFormTitle">Log Your Round</h2>
         <p class="cm-muted" id="entryModeCopy">Only the essentials: date, course, score, and an optional swing thought.</p>
         <div class="cm-entry-mode" role="group" aria-label="Choose what to log">
           <button class="cm-entry-mode-button is-active" id="roundModeButton" type="button">Log a Round</button>
@@ -160,7 +160,7 @@
         </div>
         <form id="roundForm" class="cm-form cm-round-form">
           <div class="cm-round-fields" id="roundFields">
-            <label>Date
+            <label class="cm-date-field">Date
               <input id="roundDate" type="date" required />
             </label>
             <label class="cm-round-only-field">Course
@@ -210,6 +210,6 @@
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.1.8"></script>
+  <script type="module" src="./app.js?v=0.1.9"></script>
 </body>
 </html>
