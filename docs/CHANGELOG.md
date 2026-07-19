@@ -1,3 +1,11 @@
+## Caddie Magic v0.4.2 — Player Invitation Code Hotfix
+
+- Fixed **Create Player Invite** failing with `function gen_random_bytes(integer) does not exist`.
+- Replaced the invitation-code generator with a schema-independent UUID-based generator.
+- Added migration 045 for Supabase projects where migration 044 was already installed.
+- Corrected migration 044 as well so fresh installations do not reproduce the error.
+- Preserved existing invitations, Player-Only Access, Flowtel access boundaries, and all Caddie Magic data.
+
 ## Caddie Magic v0.4.1 — Player-Only Access + Phase Language
 
 - Added an explicit shared product-access registry with `player`, Flowtel, Caddie Magic, owner, and admin boundaries.

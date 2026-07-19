@@ -10,5 +10,6 @@ Current Caddie Magic sequence:
 4. 042 — Compass + Assignments + Dispatches
 5. 043 — Portal Polish + Upcoming Golf
 6. 044 — Player-Only Access + Private Beta Invitations
+7. 045 — Player Invitation Code Hotfix
 
-The next globally available migration number after this integrated release is **045**. Check the root database directory before assigning it because Flowtel and Caddie Magic share one migration sequence.
+The next globally available migration number after this integrated release is **046**. Check the root database directory before assigning it because Flowtel and Caddie Magic share one migration sequence.

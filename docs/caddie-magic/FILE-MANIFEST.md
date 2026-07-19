@@ -1,6 +1,6 @@
 # Caddie Magic File Manifest
 
-Latest integrated release: **Caddie Magic v0.4.1**
+Latest integrated release: **Caddie Magic v0.4.2**
 
 ## Application files
 
@@ -50,5 +50,6 @@ Latest integrated release: **Caddie Magic v0.4.1**
 - `database/migration-042-caddie-magic-compass-assignments-dispatches.sql`
 - `database/migration-043-caddie-magic-v0.4.0-portal-polish-upcoming-golf.sql`
 - `database/migration-044-caddie-magic-player-only-access-private-beta.sql`
+- `database/migration-045-caddie-magic-player-invite-code-hotfix.sql`
 
 The uploaded `flowtel-v4(36).zip` retained the v0.4.0 page files but was missing migration 043. Migration 043 was restored before v0.4.1 was built.

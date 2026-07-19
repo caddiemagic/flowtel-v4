@@ -21,6 +21,7 @@ const required = [
   "shared/product-access.js",
   "database/migration-043-caddie-magic-v0.4.0-portal-polish-upcoming-golf.sql",
   "database/migration-044-caddie-magic-player-only-access-private-beta.sql",
+  "database/migration-045-caddie-magic-player-invite-code-hotfix.sql",
 ];
 
 const missing = [];

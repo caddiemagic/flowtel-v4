@@ -359,7 +359,7 @@ begin
     v_email,
     nullif(trim(coalesce(p_first_name,'')),''),
     nullif(trim(coalesce(p_last_name,'')),''),
-    encode(gen_random_bytes(18),'hex'),
+    replace(gen_random_uuid()::text,'-','') || left(replace(gen_random_uuid()::text,'-',''),4),
     'invited',
     auth.uid(),
     p_expires_at
