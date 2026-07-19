@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Compass Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=0.3.0" />
+  <link rel="stylesheet" href="../styles.css?v=0.3.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.3.0" />
+</head>
+<body>
+  <main class="cm-shell compass-admin-shell">
+    <section class="cm-hero compass-admin-hero">
+      <span class="cm-version">v0.3.0</span>
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">OWNER CADDIE DESK</p>
+        <h1 id="adminPlayerName">CADDIE COMPASS</h1>
+        <p class="cm-lead">Create moon assignments, study the player’s five-club map, and exchange private Caddie Dispatches.</p>
+      </div>
+      <a class="cm-button secondary compass-admin-back" href="/manager/">← Back to Concierge Desk</a>
+    </section>
+
+    <section class="cm-card" id="adminLoadingCard">
+      <p class="cm-eyebrow">OPENING COMPASS</p>
+      <h2>Loading the player’s initiation map.</h2>
+      <p class="cm-message" id="adminPageMessage">Checking owner access...</p>
+    </section>
+
+    <section class="compass-admin-page hidden" id="adminPage">
+      <section class="cm-card">
+        <div class="compass-section-heading">
+          <div>
+            <p class="cm-eyebrow">PLAYER COMPASS</p>
+            <h2 id="adminCompassTitle">Five-club map</h2>
+          </div>
+          <span class="compass-status" id="adminCompassStatus">Draft</span>
+        </div>
+        <div class="admin-compass-grid">
+          <article><span>North</span><strong id="adminNorthClub">—</strong></article>
+          <article><span>East</span><strong id="adminEastClub">—</strong></article>
+          <article><span>West</span><strong id="adminWestClub">—</strong></article>
+          <article><span>South</span><strong id="adminSouthClub">—</strong></article>
+          <article class="staff"><span>Center Staff</span><strong id="adminStaffClub">Putter</strong></article>
+        </div>
+      </section>
+
+      <section class="cm-card assignment-builder">
+        <p class="cm-eyebrow">CREATE AN INITIATION</p>
+        <h2>Send a personalized assignment.</h2>
+        <form class="cm-form" id="assignmentForm">
+          <div class="admin-two-col">
+            <label>Assignment Title
+              <input id="assignmentTitle" type="text" required placeholder="West Club Initiation" />
+            </label>
+            <label>Moon Phase
+              <select id="assignmentMoonPhase">
+                <option value="">Any Moon Phase</option>
+                <option>New Moon</option>
+                <option>First Quarter</option>
+                <option>Full Moon</option>
+                <option>Last Quarter</option>
+              </select>
+            </label>
+          </div>
+          <div class="admin-two-col">
+            <label>Compass Direction
+              <select id="assignmentDirection">
+                <option value="general">Whole Compass / General</option>
+                <option value="north">North</option>
+                <option value="east">East</option>
+                <option value="west">West</option>
+                <option value="south">South</option>
+                <option value="center">Center Staff</option>
+              </select>
+            </label>
+            <label>Due Date <span class="cm-optional-label">Optional</span>
+              <input id="assignmentDueDate" type="date" />
+            </label>
+          </div>
+          <div class="assigned-club-preview">
+            <span>Assigned Club</span>
+            <strong id="assignedClubPreview">Whole Compass</strong>
+          </div>
+          <label>Instructions
+            <textarea id="assignmentInstructions" rows="6" required placeholder="Take your West Club to the range during the New Moon. Hit 111 balls and record the thought that appeared most often."></textarea>
+          </label>
+          <button class="cm-button" type="submit">Send Assignment</button>
+        </form>
+        <p class="cm-message" id="assignmentFormMessage"></p>
+      </section>
+
+      <section class="cm-card">
+        <div class="compass-section-heading">
+          <div>
+            <p class="cm-eyebrow">ASSIGNMENT LEDGER</p>
+            <h2>Current and completed initiations.</h2>
+          </div>
+        </div>
+        <div class="admin-assignment-list" id="adminAssignments"></div>
+      </section>
+
+      <section class="cm-card">
+        <p class="cm-eyebrow">CADDIE DISPATCHES</p>
+        <h2>Private conversation.</h2>
+        <div class="dispatch-thread" id="adminDispatchThread"></div>
+        <form class="dispatch-form" id="adminDispatchForm">
+          <label>Regarding
+            <select id="adminDispatchAssignment"></select>
+          </label>
+          <label>Your Message
+            <textarea id="adminDispatchMessage" rows="4" required placeholder="Send direction, clarification, or a note about what you see."></textarea>
+          </label>
+          <button class="cm-button" type="submit">Send Dispatch</button>
+        </form>
+        <p class="cm-message" id="adminDispatchStatus"></p>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.3.0"></script>
+</body>
+</html>

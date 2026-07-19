@@ -1,0 +1,39 @@
+.compass-admin-shell{width:min(calc(100% - 30px),1120px)}
+.compass-admin-hero{padding-bottom:34px}
+.compass-admin-hero h1{font-size:clamp(1.75rem,4vw,2.65rem)}
+.compass-admin-back{position:absolute;right:26px;bottom:24px;min-height:36px;font-size:.55rem}
+.compass-admin-page{display:grid;gap:22px}
+.compass-admin-page>.cm-card{margin-top:0}
+.admin-compass-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-top:20px}
+.admin-compass-grid article{border:1px solid var(--line-soft);border-radius:18px;padding:17px;background:#091a2a;text-align:center}
+.admin-compass-grid span,.assigned-club-preview span{display:block;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.admin-compass-grid strong,.assigned-club-preview strong{display:block;margin-top:8px;color:var(--ivory);font:500 1.15rem var(--font-display)}
+.admin-compass-grid .staff{border-color:rgba(211,173,105,.46)}
+.admin-two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.assignment-builder select,.dispatch-form select{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:13px 14px;background:#091a2a;color:var(--ivory);font:500 .92rem var(--font-body)}
+.assigned-club-preview{border:1px solid var(--line-soft);border-radius:16px;padding:15px 17px;background:#091a2a}
+.admin-assignment-list{display:grid;gap:14px;margin-top:18px}
+.admin-assignment-card{border:1px solid var(--line-soft);border-radius:22px;padding:20px;background:#091a2a}
+.admin-assignment-card.is-completed{opacity:.82}
+.admin-assignment-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+.admin-assignment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:9px}
+.admin-assignment-meta span{display:inline-flex;border:1px solid rgba(211,173,105,.24);border-radius:999px;padding:6px 9px;color:var(--gold);background:rgba(211,173,105,.05);font:700 .5rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.admin-assignment-card h3{font-size:1.28rem}
+.admin-assignment-status{color:var(--gold-soft);font:700 .54rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
+.admin-assignment-card p{color:var(--text);line-height:1.65;white-space:pre-wrap}
+.admin-player-response{margin-top:14px;border-left:2px solid var(--green);padding-left:14px}
+.admin-player-response strong{color:var(--gold);font-size:.75rem;text-transform:uppercase;letter-spacing:.1em}
+.admin-assignment-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.admin-assignment-actions .cm-button{min-width:150px}
+@media(max-width:900px){
+  .compass-admin-back{position:static;margin:18px auto 0;width:min(100%,280px)}
+  .admin-compass-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .admin-compass-grid .staff{grid-column:1/-1}
+}
+@media(max-width:700px){
+  .admin-two-col,.admin-compass-grid{grid-template-columns:1fr}
+  .admin-compass-grid .staff{grid-column:auto}
+  .admin-assignment-top{display:grid}
+  .admin-assignment-actions{display:grid}
+  .admin-assignment-actions .cm-button{width:100%;min-width:0}
+}
