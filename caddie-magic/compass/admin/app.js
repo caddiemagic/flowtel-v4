@@ -1,4 +1,4 @@
-// Caddie Magic v0.3.0 — Owner Caddie Compass Administration
+// Caddie Magic v0.4.0 — Owner Compass + Homework + Upcoming Golf
 
 import { supabase } from "../../../shared/supabase.js";
 import {
@@ -9,7 +9,8 @@ import {
   createCompassAssignment,
   sendCompassDispatch,
   adminUpdateCompassAssignment,
-} from "../../../shared/caddie-magic-compass.js?v=0.3.0";
+} from "../../../shared/caddie-magic-compass.js?v=0.4.0";
+import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.4.0";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
@@ -19,6 +20,7 @@ let playerSummary = null;
 let compass = null;
 let assignments = [];
 let dispatches = [];
+let upcomingGolf = [];
 
 function escapeHtml(value = "") {
   return String(value)
@@ -33,6 +35,19 @@ function setMessage(node, text = "", error = false) {
   if (!node) return;
   node.textContent = text;
   node.classList.toggle("error", Boolean(error));
+}
+
+function todayISO() {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 10);
+}
+
+function addDaysISO(iso, days) {
+  const [year, month, day] = String(iso).slice(0, 10).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
 }
 
 function formatDate(value) {
@@ -54,6 +69,12 @@ function formatDateTime(value) {
 
 function titleCase(value = "") {
   return String(value).replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function shortMoonPhase(value = "") {
+  if (value === "Half Full Moon Phase") return "First Quarter";
+  if (value === "Half New Moon Phase") return "Last Quarter";
+  return String(value || "").replace(" Phase", "");
 }
 
 function clubForDirection(direction) {
@@ -108,7 +129,7 @@ function assignmentMarkup(assignment) {
       ${assignment.status !== "completed" ? `
         <div class="admin-assignment-actions">
           <button class="cm-button secondary" type="button" data-admin-complete="${escapeHtml(assignment.id)}">Mark Complete</button>
-          <button class="cm-button secondary" type="button" data-admin-message="${escapeHtml(assignment.id)}">Send Dispatch About This</button>
+          <button class="cm-button secondary" type="button" data-admin-message-title="${escapeHtml(assignment.title)}">Message Player</button>
         </div>
       ` : ""}
     </article>
@@ -135,18 +156,14 @@ function renderAssignments() {
     });
   });
 
-  document.querySelectorAll("[data-admin-message]").forEach((button) => {
+  document.querySelectorAll("[data-admin-message-title]").forEach((button) => {
     button.addEventListener("click", () => {
-      $("adminDispatchAssignment").value = button.dataset.adminMessage;
+      const title = button.dataset.adminMessageTitle || "Assignment";
+      $("adminDispatchMessage").value = `${title}: `;
       $("adminDispatchMessage").focus();
       $("adminDispatchForm").scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
-
-  $("adminDispatchAssignment").innerHTML = [
-    `<option value="">General Compass Dispatch</option>`,
-    ...assignments.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.title)}</option>`),
-  ].join("");
 }
 
 function assignmentTitle(id) {
@@ -163,8 +180,45 @@ function renderDispatches() {
         <small>${escapeHtml(formatDateTime(dispatch.created_at))}</small>
       </article>
     `).join("")
-    : `<div class="cm-empty">No private Caddie Dispatches yet.</div>`;
+    : `<div class="cm-empty">No private messages in The Caddie Shack yet.</div>`;
   thread.scrollTop = thread.scrollHeight;
+}
+
+function eventTypeLabel(value) {
+  return { round: "Round", tournament: "Tournament", golf_trip: "Golf Trip" }[value] || titleCase(value);
+}
+
+function eventDates(event) {
+  return event.date_start === event.date_end
+    ? formatDate(event.date_start)
+    : `${formatDate(event.date_start)} – ${formatDate(event.date_end)}`;
+}
+
+function renderUpcomingGolf() {
+  $("adminUpcomingGolfCount").textContent = `${upcomingGolf.length} upcoming`;
+  const list = $("adminUpcomingGolfList");
+  if (!upcomingGolf.length) {
+    list.innerHTML = `<div class="cm-empty">This player has no upcoming golf on the calendar.</div>`;
+    return;
+  }
+  list.innerHTML = upcomingGolf.map((event) => {
+    const place = [event.course, event.location].filter(Boolean).join(" · ");
+    const forecast = Array.isArray(event.moon_forecast) ? event.moon_forecast : [];
+    return `
+      <article class="admin-golf-event">
+        <div class="golf-event-meta">
+          <span>${escapeHtml(eventTypeLabel(event.event_type))}</span>
+          <span>${escapeHtml(eventDates(event))}</span>
+        </div>
+        <h3>${escapeHtml(event.event_title || event.title)}</h3>
+        ${place ? `<p>${escapeHtml(place)}</p>` : ""}
+        ${event.notes ? `<p>${escapeHtml(event.notes)}</p>` : ""}
+        <div class="admin-golf-forecast">
+          ${forecast.map((day) => `<span>${escapeHtml(formatDate(day.date))} · Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(shortMoonPhase(day.moon_phase))}</span>`).join("")}
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
 function updateClubPreview() {
@@ -201,20 +255,16 @@ async function handleAssignmentSubmit(event) {
 
 async function handleDispatchSubmit(event) {
   event.preventDefault();
-  setMessage($("adminDispatchStatus"), "Sending your dispatch...");
+  setMessage($("adminDispatchStatus"), "Sending your message...");
   try {
-    await sendCompassDispatch(
-      playerProfileId,
-      $("adminDispatchMessage").value,
-      $("adminDispatchAssignment").value || null,
-    );
+    await sendCompassDispatch(playerProfileId, $("adminDispatchMessage").value, null);
     $("adminDispatchMessage").value = "";
     dispatches = await getCompassDispatches(playerProfileId);
     renderDispatches();
-    setMessage($("adminDispatchStatus"), "Dispatch sent.");
+    setMessage($("adminDispatchStatus"), "Message sent.");
   } catch (error) {
     console.error(error);
-    setMessage($("adminDispatchStatus"), error?.message || "The dispatch could not be sent.", true);
+    setMessage($("adminDispatchStatus"), error?.message || "The message could not be sent.", true);
   }
 }
 
@@ -228,16 +278,25 @@ async function init() {
     playerSummary = players.find((item) => String(item.player_profile_id) === String(playerProfileId));
     if (!playerSummary) throw new Error("This player’s active Caddie Compass could not be found.");
 
-    [compass, assignments, dispatches] = await Promise.all([
+    const [loadedCompass, loadedAssignments, loadedDispatches, allUpcoming] = await Promise.all([
       getCompassForPlayer(playerProfileId),
       getCompassAssignments(playerProfileId),
       getCompassDispatches(playerProfileId),
+      listUpcomingGolfEvents(todayISO(), addDaysISO(todayISO(), 365)).catch((error) => {
+        console.warn("Upcoming Golf is waiting for migration 043.", error);
+        return [];
+      }),
     ]);
+    compass = loadedCompass;
+    assignments = loadedAssignments;
+    dispatches = loadedDispatches;
+    upcomingGolf = allUpcoming.filter((event) => String(event.player_profile_id) === String(playerProfileId));
     if (!compass) throw new Error("This player has not saved a Caddie Compass yet.");
 
     $("adminLoadingCard").classList.add("hidden");
     $("adminPage").classList.remove("hidden");
     renderCompass();
+    renderUpcomingGolf();
     renderAssignments();
     renderDispatches();
   } catch (error) {

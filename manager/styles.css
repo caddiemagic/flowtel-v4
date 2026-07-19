@@ -648,3 +648,32 @@
 .caddie-compass-actions a{display:inline-flex;align-items:center;justify-content:center;min-width:150px;border:1px solid var(--line);border-radius:999px;padding:11px 16px;color:var(--brown);text-decoration:none;background:transparent}
 .compass-reply-pill{display:inline-flex;align-items:center;justify-content:center;border:1px solid #d7aa63;border-radius:999px;padding:9px 12px;color:#8c5c22;background:#fff8ea;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
 @media(max-width:900px){.caddie-compass-row{grid-template-columns:1fr}.caddie-compass-actions{display:grid;justify-content:stretch}.caddie-compass-actions a{width:100%;min-width:0}}
+
+/* Caddie Magic v0.4.0 — Upcoming Golf admin calendar */
+.upcoming-golf-calendar{display:grid;gap:14px}
+.golf-calendar-toolbar{display:flex;justify-content:space-between;gap:18px;align-items:center}
+.golf-calendar-toolbar h3{margin:.25rem 0 0;color:var(--brown);font-family:Georgia,"Times New Roman",serif;font-size:1.55rem;font-weight:400}
+.golf-calendar-actions{display:flex;gap:8px}
+.golf-calendar-actions button{min-width:42px;border:1px solid var(--line);border-radius:999px;padding:9px 13px;color:var(--brown);background:transparent;cursor:pointer}
+.golf-calendar-weekdays,.golf-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.golf-calendar-weekdays{border:1px solid var(--line);border-bottom:0;border-radius:18px 18px 0 0;overflow:hidden;background:rgba(255,255,255,.28)}
+.golf-calendar-weekdays span{padding:10px;text-align:center;color:var(--brown);font-size:.68rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.golf-calendar-grid{border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.golf-calendar-day{min-height:132px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;background:rgba(255,255,255,.35)}
+.golf-calendar-day.outside-month{opacity:.42;background:rgba(255,255,255,.12)}
+.golf-calendar-day.is-today{box-shadow:inset 0 0 0 2px rgba(183,129,55,.5)}
+.golf-calendar-date{display:block;margin-bottom:7px;color:var(--brown);font-size:.75rem;font-weight:800}
+.golf-calendar-events{display:grid;gap:5px}
+.golf-calendar-chip{display:grid;gap:2px;border:1px solid rgba(183,129,55,.28);border-radius:10px;padding:6px 7px;color:var(--brown);background:rgba(255,255,255,.72);text-decoration:none;overflow:hidden}
+.golf-calendar-chip strong,.golf-calendar-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.golf-calendar-chip strong{font-size:.63rem}.golf-calendar-chip span{font-size:.58rem;color:var(--muted)}
+.golf-calendar-more{font-size:.58rem;color:var(--muted)}
+.upcoming-golf-list{margin-top:22px}
+.upcoming-golf-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;border:1px solid var(--line);border-radius:18px;padding:16px;margin-top:10px;background:rgba(255,255,255,.45)}
+.upcoming-golf-row span{color:var(--gold);font-size:.64rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.upcoming-golf-row h3{margin:6px 0 0;color:var(--brown);font-family:Georgia,"Times New Roman",serif;font-size:1.18rem;font-weight:400}
+.upcoming-golf-row p{margin:5px 0 0;color:var(--muted)}
+.upcoming-golf-row>a{display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:999px;padding:10px 14px;color:var(--brown);text-decoration:none;white-space:nowrap}
+.upcoming-golf-moons{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.upcoming-golf-moons small{border:1px solid rgba(183,129,55,.18);border-radius:999px;padding:5px 8px;color:var(--muted);background:rgba(255,255,255,.42)}
+@media(max-width:900px){.golf-calendar-grid{overflow-x:auto}.golf-calendar-day{min-width:125px}.golf-calendar-weekdays{display:none}.upcoming-golf-row{grid-template-columns:1fr}.upcoming-golf-row>a{width:100%}}

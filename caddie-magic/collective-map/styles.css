@@ -59,3 +59,13 @@
   .cm-collective-east{border-bottom:0}
   .cm-collective-west{order:1}.cm-collective-south{order:2}.cm-collective-east{order:3}.cm-collective-north{order:4}
 }
+
+/* Caddie Magic v0.4.0 — Locker Room scores + thoughts */
+.cm-collective-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cm-collective-note-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.cm-collective-note-head span{margin-bottom:10px}
+.cm-collective-note-head strong{color:var(--ivory);font:500 1.35rem/1 var(--font-display)}
+.cm-collective-score-entry{color:var(--muted)!important;font-style:italic}
+.cm-collective-note.is-score-only{min-height:92px;display:grid;place-items:center;text-align:center}
+.cm-collective-note.is-score-only strong{color:var(--gold-soft);font:500 2rem/1 var(--font-display)}
+@media(max-width:900px){.cm-collective-controls{display:grid;grid-template-columns:1fr}.cm-collective-filters{width:100%}.cm-collective-filter{flex:1}}

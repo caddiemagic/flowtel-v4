@@ -7,19 +7,19 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.3.0" />
-  <link rel="stylesheet" href="./styles.css?v=0.3.0" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.0" />
 </head>
 <body class="cm-collective-page">
   <main class="cm-shell cm-collective-shell">
     <section class="cm-hero cm-collective-hero">
-      <span class="cm-version">v0.3.0</span>
+      <span class="cm-version">v0.4.0</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
         <p class="cm-eyebrow">CADDIE MAGIC</p>
         <h1>LOCKER ROOM</h1>
-        <p class="cm-lead">Anonymous swing thoughts from players moving through the moon.</p>
+        <p class="cm-lead">Anonymous swing thoughts and scores from players on the moon.</p>
       </div>
       <div class="cm-collective-hero-actions">
         <a class="cm-button secondary" href="/caddie-magic/score-map/">Personal Score Map</a>
@@ -29,18 +29,24 @@
 
     <section class="cm-card cm-collective-card">
       <div class="cm-collective-toolbar">
-        <nav class="cm-collective-filters" id="collectiveFilters" aria-label="Locker Room range">
-          <button class="cm-collective-filter is-active" type="button" data-range="current">Current Moon</button>
-          <button class="cm-collective-filter" type="button" data-range="last">Last Moon</button>
-          <button class="cm-collective-filter" type="button" data-range="all">All</button>
-        </nav>
+        <div class="cm-collective-controls">
+          <nav class="cm-collective-filters" id="collectiveFilters" aria-label="Locker Room range">
+            <button class="cm-collective-filter is-active" type="button" data-range="current">Current Moon</button>
+            <button class="cm-collective-filter" type="button" data-range="last">Last Moon</button>
+            <button class="cm-collective-filter" type="button" data-range="all">All</button>
+          </nav>
+          <nav class="cm-collective-filters" id="collectiveViewFilters" aria-label="Locker Room display">
+            <button class="cm-collective-filter is-active" type="button" data-view="thoughts_scores">Thoughts + Scores</button>
+            <button class="cm-collective-filter" type="button" data-view="scores">Scores Only</button>
+          </nav>
+        </div>
         <div class="cm-anonymous-disclosure">
           <span aria-hidden="true">◐</span>
           <p><strong>Anonymous collective view.</strong> Names and courses are never shown here.</p>
         </div>
       </div>
 
-      <section class="cm-collective-map" id="collectiveMap" aria-label="Anonymous swing thoughts by moon phase">
+      <section class="cm-collective-map" id="collectiveMap" aria-label="Anonymous swing thoughts and scores by moon phase">
         <span class="cm-collective-axis cm-collective-axis-y" aria-hidden="true"></span>
         <span class="cm-collective-axis cm-collective-axis-x" aria-hidden="true"></span>
         <span class="cm-collective-center" aria-hidden="true">✦</span>
@@ -82,6 +88,6 @@
       <p class="cm-message" id="collectiveMessage"></p>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.3.0"></script>
+  <script type="module" src="./app.js?v=0.4.0"></script>
 </body>
 </html>

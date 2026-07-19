@@ -7,20 +7,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../styles.css?v=0.3.0" />
-  <link rel="stylesheet" href="../styles.css?v=0.3.0" />
-  <link rel="stylesheet" href="./styles.css?v=0.3.0" />
+  <link rel="stylesheet" href="../../styles.css?v=0.4.0" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.0" />
 </head>
 <body>
   <main class="cm-shell compass-admin-shell">
     <section class="cm-hero compass-admin-hero">
-      <span class="cm-version">v0.3.0</span>
+      <span class="cm-version">v0.4.0</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
         <p class="cm-eyebrow">OWNER CADDIE DESK</p>
         <h1 id="adminPlayerName">CADDIE COMPASS</h1>
-        <p class="cm-lead">Create moon assignments, study the player’s five-club map, and exchange private Caddie Dispatches.</p>
+        <p class="cm-lead">Create assignments, study the player’s five-club map, and exchange private messages in The Caddie Shack.</p>
       </div>
       <a class="cm-button secondary compass-admin-back" href="/manager/">← Back to Concierge Desk</a>
     </section>
@@ -49,6 +49,17 @@
         </div>
       </section>
 
+
+      <section class="cm-card admin-upcoming-golf-card">
+        <div class="compass-section-heading">
+          <div>
+            <p class="cm-eyebrow">UPCOMING GOLF</p>
+            <h2>Future rounds, tournaments, and trips.</h2>
+          </div>
+          <span class="assignment-count" id="adminUpcomingGolfCount">0 upcoming</span>
+        </div>
+        <div class="admin-upcoming-golf-list" id="adminUpcomingGolfList"></div>
+      </section>
       <section class="cm-card assignment-builder">
         <p class="cm-eyebrow">CREATE AN INITIATION</p>
         <h2>Send a personalized assignment.</h2>
@@ -105,22 +116,19 @@
       </section>
 
       <section class="cm-card">
-        <p class="cm-eyebrow">CADDIE DISPATCHES</p>
+        <p class="cm-eyebrow">THE CADDIE SHACK</p>
         <h2>Private conversation.</h2>
         <div class="dispatch-thread" id="adminDispatchThread"></div>
         <form class="dispatch-form" id="adminDispatchForm">
-          <label>Regarding
-            <select id="adminDispatchAssignment"></select>
-          </label>
           <label>Your Message
             <textarea id="adminDispatchMessage" rows="4" required placeholder="Send direction, clarification, or a note about what you see."></textarea>
           </label>
-          <button class="cm-button" type="submit">Send Dispatch</button>
+          <button class="cm-button" type="submit">Send Message</button>
         </form>
         <p class="cm-message" id="adminDispatchStatus"></p>
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.3.0"></script>
+  <script type="module" src="./app.js?v=0.4.0"></script>
 </body>
 </html>

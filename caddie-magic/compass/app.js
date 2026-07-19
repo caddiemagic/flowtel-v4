@@ -1,4 +1,4 @@
-// Caddie Magic v0.3.0 — Caddie Compass + Moon Assignments
+// Caddie Magic v0.4.0 — Compass Polish + Homework + Upcoming Golf
 
 import { supabase } from "../../shared/supabase.js";
 import {
@@ -9,7 +9,12 @@ import {
   updateMyCompassAssignment,
   getCompassDispatches,
   sendCompassDispatch,
-} from "../../shared/caddie-magic-compass.js?v=0.3.0";
+} from "../../shared/caddie-magic-compass.js?v=0.4.0";
+import {
+  getMyUpcomingGolfEvents,
+  saveUpcomingGolfEvent,
+  deleteUpcomingGolfEvent,
+} from "../../shared/caddie-magic-schedule.js?v=0.4.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,6 +22,8 @@ let playerProfile = null;
 let compass = null;
 let assignments = [];
 let dispatches = [];
+let upcomingGolf = [];
+let scheduleAvailable = true;
 
 function escapeHtml(value = "") {
   return String(value)
@@ -31,6 +38,12 @@ function setMessage(node, text = "", error = false) {
   if (!node) return;
   node.textContent = text;
   node.classList.toggle("error", Boolean(error));
+}
+
+function todayISO() {
+  const date = new Date();
+  date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+  return date.toISOString().slice(0, 10);
 }
 
 function formatDate(value) {
@@ -54,6 +67,13 @@ function titleCase(value = "") {
   return String(value)
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function shortMoonPhase(value = "") {
+  const phase = String(value || "");
+  if (phase === "Half Full Moon Phase") return "First Quarter";
+  if (phase === "Half New Moon Phase") return "Last Quarter";
+  return phase.replace(" Phase", "");
 }
 
 function playerName() {
@@ -95,7 +115,7 @@ function renderCompass() {
   $("compassStatus").textContent = status;
   $("compassMapStatus").textContent = status;
   $("compassSealNote").textContent = sealed
-    ? "This compass is sealed because your initiation has begun. Message your Caddie to request a future compass version."
+    ? "This compass is sealed because your assignments have begun. Message your Caddie to request a future compass version."
     : "Your compass remains editable until your first assignment is sent.";
   $("saveCompassButton").disabled = sealed;
   $("saveCompassButton").textContent = sealed ? "Compass Sealed" : "Update My Caddie Compass";
@@ -143,7 +163,7 @@ function renderAssignments() {
   $("activeAssignmentCount").textContent = `${active.length} active`;
   $("activeAssignments").innerHTML = active.length
     ? active.map((item) => assignmentMarkup(item)).join("")
-    : `<div class="cm-empty">No active assignments yet. Your Caddie will place the next initiation here.</div>`;
+    : `<div class="cm-empty">No active assignments yet. Your Caddie will place the next homework here.</div>`;
   $("completedAssignments").innerHTML = completed.length
     ? completed.map((item) => assignmentMarkup(item, true)).join("")
     : `<div class="cm-empty">Completed assignments will be preserved here.</div>`;
@@ -158,10 +178,6 @@ function renderAssignments() {
       updateAssignment(id, "completed", response);
     });
   });
-
-  const options = [`<option value="">General Compass Dispatch</option>`]
-    .concat(assignments.map((item) => `<option value="${escapeHtml(item.id)}">${escapeHtml(item.title)}</option>`));
-  $("dispatchAssignment").innerHTML = options.join("");
 }
 
 function assignmentTitle(id) {
@@ -171,7 +187,7 @@ function assignmentTitle(id) {
 function renderDispatches() {
   const thread = $("dispatchThread");
   if (!dispatches.length) {
-    thread.innerHTML = `<div class="cm-empty">No Caddie Dispatches yet. Send the first message whenever something in the compass needs witnessing.</div>`;
+    thread.innerHTML = `<div class="cm-empty">No messages in The Caddie Shack yet. Send the first one whenever something needs witnessing.</div>`;
     return;
   }
   thread.innerHTML = dispatches.map((dispatch) => `
@@ -182,6 +198,77 @@ function renderDispatches() {
     </article>
   `).join("");
   thread.scrollTop = thread.scrollHeight;
+}
+
+function eventTypeLabel(value) {
+  return { round: "Round", tournament: "Tournament", golf_trip: "Golf Trip" }[value] || titleCase(value);
+}
+
+function eventDates(event) {
+  return event.date_start === event.date_end
+    ? formatDate(event.date_start)
+    : `${formatDate(event.date_start)} – ${formatDate(event.date_end)}`;
+}
+
+function forecastMarkup(forecast) {
+  const rows = Array.isArray(forecast) ? forecast : [];
+  return rows.map((day) => `
+    <li>
+      <span>${escapeHtml(formatDate(day.date))}</span>
+      <strong>${escapeHtml(day.moon_emoji || "◐")} Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(shortMoonPhase(day.moon_phase))}</strong>
+    </li>
+  `).join("");
+}
+
+function golfEventMarkup(event) {
+  const place = [event.course, event.location].filter(Boolean).join(" · ");
+  return `
+    <article class="golf-event-card" data-golf-event="${escapeHtml(event.id)}">
+      <div class="golf-event-heading">
+        <div>
+          <div class="golf-event-meta">
+            <span>${escapeHtml(eventTypeLabel(event.event_type))}</span>
+            <span>${escapeHtml(eventDates(event))}</span>
+          </div>
+          <h3>${escapeHtml(event.title)}</h3>
+          ${place ? `<p class="golf-event-place">${escapeHtml(place)}</p>` : ""}
+        </div>
+        <button class="golf-event-remove" type="button" data-delete-golf-event="${escapeHtml(event.id)}">Remove</button>
+      </div>
+      ${event.notes ? `<p class="golf-event-notes">${escapeHtml(event.notes)}</p>` : ""}
+      <ol class="golf-moon-forecast">${forecastMarkup(event.moon_forecast)}</ol>
+    </article>
+  `;
+}
+
+function renderUpcomingGolf() {
+  const list = $("golfScheduleList");
+  $("upcomingGolfCount").textContent = `${upcomingGolf.length} upcoming`;
+  if (!scheduleAvailable) {
+    list.innerHTML = `<div class="cm-empty">Upcoming Golf requires migration 043.</div>`;
+    return;
+  }
+  list.innerHTML = upcomingGolf.length
+    ? upcomingGolf.map(golfEventMarkup).join("")
+    : `<div class="cm-empty">No upcoming golf has been added yet.</div>`;
+
+  document.querySelectorAll("[data-delete-golf-event]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const eventId = button.dataset.deleteGolfEvent;
+      button.disabled = true;
+      setMessage($("golfScheduleMessage"), "Removing upcoming golf...");
+      try {
+        await deleteUpcomingGolfEvent(eventId);
+        upcomingGolf = await getMyUpcomingGolfEvents();
+        renderUpcomingGolf();
+        setMessage($("golfScheduleMessage"), "Upcoming golf removed.");
+      } catch (error) {
+        console.error(error);
+        button.disabled = false;
+        setMessage($("golfScheduleMessage"), error?.message || "The event could not be removed.", true);
+      }
+    });
+  });
 }
 
 async function updateAssignment(id, status, response = "") {
@@ -223,17 +310,72 @@ async function handleCompassSave(event) {
 async function handleDispatch(event) {
   event.preventDefault();
   const message = $("dispatchMessage").value;
-  const assignmentId = $("dispatchAssignment").value || null;
-  setMessage($("dispatchMessageStatus"), "Sending your dispatch...");
+  setMessage($("dispatchMessageStatus"), "Sending your message...");
   try {
-    await sendCompassDispatch(playerProfile.id, message, assignmentId);
+    await sendCompassDispatch(playerProfile.id, message, null);
     $("dispatchMessage").value = "";
     dispatches = await getCompassDispatches(playerProfile.id);
     renderDispatches();
-    setMessage($("dispatchMessageStatus"), "Dispatch sent.");
+    setMessage($("dispatchMessageStatus"), "Message sent.");
   } catch (error) {
     console.error(error);
-    setMessage($("dispatchMessageStatus"), error?.message || "The dispatch could not be sent.", true);
+    setMessage($("dispatchMessageStatus"), error?.message || "The message could not be sent.", true);
+  }
+}
+
+async function handleGolfScheduleSubmit(event) {
+  event.preventDefault();
+  const startDate = $("golfEventStart").value;
+  const endDate = $("golfEventEnd").value || startDate;
+  setMessage($("golfScheduleMessage"), "Mapping the moon across your upcoming golf...");
+  try {
+    await saveUpcomingGolfEvent({
+      eventType: $("golfEventType").value,
+      title: $("golfEventTitle").value,
+      dateStart: startDate,
+      dateEnd: endDate,
+      course: $("golfEventCourse").value,
+      location: $("golfEventLocation").value,
+      notes: $("golfEventNotes").value,
+    });
+    $("golfScheduleForm").reset();
+    $("golfEventType").value = "round";
+    $("golfEventStart").value = todayISO();
+    $("golfEventStart").min = todayISO();
+    $("golfEventEnd").min = todayISO();
+    upcomingGolf = await getMyUpcomingGolfEvents();
+    renderUpcomingGolf();
+    setMessage($("golfScheduleMessage"), "Upcoming golf added with a moon forecast for every day.");
+  } catch (error) {
+    console.error(error);
+    const missingMigration = String(error?.message || "").toLowerCase().includes("caddie_magic_save_upcoming_golf_event");
+    setMessage($("golfScheduleMessage"), missingMigration
+      ? "Upcoming Golf requires migration 043."
+      : (error?.message || "The upcoming golf event could not be saved."), true);
+  }
+}
+
+function syncScheduleEndMinimum() {
+  const start = $("golfEventStart").value || todayISO();
+  $("golfEventEnd").min = start;
+  if ($("golfEventEnd").value && $("golfEventEnd").value < start) {
+    $("golfEventEnd").value = start;
+  }
+}
+
+async function loadUpcomingGolf() {
+  try {
+    upcomingGolf = await getMyUpcomingGolfEvents();
+    scheduleAvailable = true;
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("caddie_magic_upcoming_golf_events") || message.includes("schema cache")) {
+      console.warn("Upcoming Golf is waiting for migration 043.", error);
+      upcomingGolf = [];
+      scheduleAvailable = false;
+      return;
+    }
+    throw error;
   }
 }
 
@@ -245,17 +387,22 @@ async function loadCompassPage() {
     playerProfile = await getMyCaddieMagicProfile();
     if (!playerProfile) throw new Error("Create your Player Profile before setting your Caddie Compass.");
 
-    [compass, assignments, dispatches] = await Promise.all([
-      getMyActiveCompass(),
-      getCompassAssignments(playerProfile.id),
-      getCompassDispatches(playerProfile.id),
+    await Promise.all([
+      (async () => { compass = await getMyActiveCompass(); })(),
+      (async () => { assignments = await getCompassAssignments(playerProfile.id); })(),
+      (async () => { dispatches = await getCompassDispatches(playerProfile.id); })(),
+      loadUpcomingGolf(),
     ]);
 
+    $("golfEventStart").value = todayISO();
+    $("golfEventStart").min = todayISO();
+    $("golfEventEnd").min = todayISO();
     $("compassLoadingCard").classList.add("hidden");
     $("compassPage").classList.remove("hidden");
     renderCompass();
     renderAssignments();
     renderDispatches();
+    renderUpcomingGolf();
   } catch (error) {
     console.error(error);
     setMessage($("compassPageMessage"), error?.message || "The Caddie Compass could not open.", true);
@@ -264,4 +411,6 @@ async function loadCompassPage() {
 
 $("compassForm")?.addEventListener("submit", handleCompassSave);
 $("dispatchForm")?.addEventListener("submit", handleDispatch);
+$("golfScheduleForm")?.addEventListener("submit", handleGolfScheduleSubmit);
+$("golfEventStart")?.addEventListener("change", syncScheduleEndMinimum);
 loadCompassPage();

@@ -1,6 +1,6 @@
-.compass-shell{width:min(calc(100% - 30px),1160px)}
-.compass-hero{padding-bottom:34px}
-.compass-hero h1{font-size:clamp(1.85rem,4vw,2.8rem)}
+.compass-shell{width:min(calc(100% - 30px),1220px)}
+.compass-hero{padding-bottom:30px}
+.compass-hero h1{font-size:clamp(1.7rem,3.7vw,2.55rem)}
 .compass-back{position:absolute;right:26px;bottom:24px;min-height:36px;font-size:.55rem}
 .compass-loading{text-align:center}
 .compass-page{display:grid;gap:22px}
@@ -12,20 +12,23 @@
 .compass-staff-field span{color:var(--gold);font:700 .62rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
 .compass-staff-field strong{color:var(--ivory);font:500 1.2rem var(--font-display)}
 .compass-form .cm-button{justify-self:start;min-width:230px}
-.personal-compass{position:relative;width:min(100%,720px);min-height:620px;margin:24px auto 0;display:grid;grid-template-columns:180px minmax(260px,1fr) 180px;grid-template-rows:150px minmax(280px,1fr) 150px;align-items:center;justify-items:center}
-.compass-center{grid-column:2;grid-row:2;position:relative;width:min(100%,390px);aspect-ratio:1;display:grid;place-items:center}
+
+.personal-compass{position:relative;width:min(100%,980px);min-height:760px;margin:26px auto 0;display:grid;grid-template-columns:220px minmax(400px,470px) 220px;grid-template-rows:160px minmax(410px,1fr) 160px;column-gap:38px;row-gap:18px;align-items:center;justify-content:center;justify-items:center}
+.compass-center{grid-column:2;grid-row:2;position:relative;width:min(100%,460px);aspect-ratio:1;display:grid;place-items:center}
 .compass-center img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 26px rgba(0,0,0,.28))}
-.compass-center div{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:110px;height:110px;border:1px solid rgba(211,173,105,.55);border-radius:50%;display:grid;place-content:center;text-align:center;background:rgba(5,18,30,.92);box-shadow:0 12px 24px rgba(0,0,0,.24)}
-.compass-center span,.compass-direction span{color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
-.compass-center strong{margin-top:5px;color:var(--ivory);font:500 1.12rem var(--font-display)}
-.compass-direction{width:100%;min-height:112px;border:1px solid var(--line-soft);border-radius:22px;padding:18px;display:grid;align-content:center;text-align:center;background:#091a2a;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
-.compass-direction strong{margin:7px 0 5px;color:var(--ivory);font:500 1.28rem var(--font-display)}
-.compass-direction small{color:var(--muted);font-size:.72rem}
+.compass-direction{width:100%;min-height:116px;border:1px solid var(--line-soft);border-radius:22px;padding:18px;display:grid;align-content:center;text-align:center;background:#091a2a;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.compass-direction span{color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.compass-direction strong{margin:7px 0 5px;color:var(--ivory);font:500 1.3rem var(--font-display)}
+.compass-direction small{color:var(--gold-soft);font:700 .55rem var(--font-body);letter-spacing:.11em;text-transform:uppercase}
 .compass-direction.north{grid-column:2;grid-row:1;align-self:end}
 .compass-direction.east{grid-column:3;grid-row:2;justify-self:start}
 .compass-direction.west{grid-column:1;grid-row:2;justify-self:end}
 .compass-direction.south{grid-column:2;grid-row:3;align-self:start}
+.compass-staff-summary{width:min(100%,300px);margin:-8px auto 14px;border:1px solid var(--line-soft);border-radius:999px;padding:11px 18px;display:flex;justify-content:center;gap:12px;align-items:center;background:#071725}
+.compass-staff-summary span{color:var(--gold);font:700 .54rem var(--font-body);letter-spacing:.13em;text-transform:uppercase}
+.compass-staff-summary strong{color:var(--ivory);font:500 1rem var(--font-display)}
 .compass-seal-note{max-width:680px;margin:0 auto;text-align:center;color:var(--muted);font-size:.84rem;line-height:1.55}
+
 .assignment-list{display:grid;gap:14px;margin-top:18px}
 .assignment-card{border:1px solid var(--line-soft);border-radius:22px;padding:20px;background:#091a2a}
 .assignment-card.is-completed{opacity:.85}
@@ -41,6 +44,7 @@
 .assignment-actions{display:flex;gap:10px;flex-wrap:wrap}
 .assignment-actions .cm-button{min-width:150px}
 .assignment-completion{margin:16px 0 0;border-left:2px solid var(--green);padding:2px 0 2px 14px;color:var(--text);line-height:1.6;white-space:pre-wrap}
+
 .dispatch-thread{display:grid;gap:10px;max-height:520px;overflow:auto;margin:18px 0;padding:4px}
 .dispatch-bubble{max-width:78%;border:1px solid var(--line-soft);border-radius:20px;padding:14px 16px;background:#091a2a}
 .dispatch-bubble.is-player{justify-self:end;background:#102b43}
@@ -48,15 +52,40 @@
 .dispatch-bubble span{display:block;margin-bottom:7px;color:var(--gold);font:700 .52rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
 .dispatch-bubble p{margin:0;color:var(--text);line-height:1.55;white-space:pre-wrap}
 .dispatch-bubble small{display:block;margin-top:8px;color:var(--muted);font-size:.68rem}
-.dispatch-form{display:grid;grid-template-columns:220px 1fr auto;gap:12px;align-items:end;margin-top:16px}
+.dispatch-form{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:16px}
 .dispatch-form label{display:grid;gap:7px;color:var(--gold);font:700 .6rem var(--font-body);letter-spacing:.13em;text-transform:uppercase}
-.dispatch-form select,.dispatch-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px 13px;background:#071725;color:var(--ivory);font:500 .88rem/1.45 var(--font-body)}
-.dispatch-form textarea{resize:vertical;min-height:76px}
+.dispatch-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px 13px;background:#071725;color:var(--ivory);font:500 .88rem/1.45 var(--font-body);resize:vertical;min-height:86px}
 .dispatch-form .cm-button{min-width:150px;margin-bottom:1px}
+
+.golf-schedule-form select,.golf-schedule-form input,.golf-schedule-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px 13px;background:#071725;color:var(--ivory);font:500 .9rem/1.45 var(--font-body)}
+.golf-schedule-form select{min-height:47px;color-scheme:dark}
+.golf-schedule-primary-fields{display:grid;grid-template-columns:.8fr 1.35fr 1fr 1fr;gap:12px}
+.golf-schedule-secondary-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compass-optional{margin-left:5px;color:var(--muted);font-size:.5rem;letter-spacing:.1em}
+.golf-schedule-form .cm-button{justify-self:start;min-width:210px}
+.golf-schedule-list{display:grid;gap:14px;margin-top:18px}
+.golf-event-card{border:1px solid var(--line-soft);border-radius:22px;padding:20px;background:#091a2a}
+.golf-event-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.golf-event-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+.golf-event-meta span{display:inline-flex;border:1px solid rgba(211,173,105,.24);border-radius:999px;padding:6px 9px;color:var(--gold);background:rgba(211,173,105,.05);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.golf-event-card h3{font-size:1.35rem}
+.golf-event-place,.golf-event-notes{color:var(--text);line-height:1.55}
+.golf-event-place{margin:7px 0 0}.golf-event-notes{margin:14px 0 0}
+.golf-event-remove{border:1px solid var(--line-soft);border-radius:999px;padding:8px 12px;color:var(--muted);background:transparent;cursor:pointer;font:700 .52rem var(--font-body);letter-spacing:.11em;text-transform:uppercase}
+.golf-event-remove:hover{color:var(--gold);border-color:var(--line)}
+.golf-moon-forecast{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+.golf-moon-forecast li{border:1px solid var(--line-soft);border-radius:15px;padding:11px 12px;background:#071725;display:grid;gap:5px}
+.golf-moon-forecast span{color:var(--muted);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.golf-moon-forecast strong{color:var(--ivory);font:600 .82rem var(--font-body)}
+
+@media(max-width:1050px){
+  .personal-compass{grid-template-columns:190px minmax(340px,430px) 190px;column-gap:24px}
+  .golf-schedule-primary-fields{grid-template-columns:1fr 1fr}
+}
 @media(max-width:900px){
   .compass-back{position:static;margin:18px auto 0;width:min(100%,280px)}
-  .personal-compass{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:12px;min-height:0}
-  .compass-center{grid-column:1/-1;grid-row:2;width:min(100%,390px)}
+  .personal-compass{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:16px;min-height:0}
+  .compass-center{grid-column:1/-1;grid-row:2;width:min(100%,430px)}
   .compass-direction.north{grid-column:1;grid-row:1;align-self:auto}
   .compass-direction.east{grid-column:2;grid-row:1;justify-self:auto}
   .compass-direction.west{grid-column:1;grid-row:3;justify-self:auto}
@@ -66,13 +95,14 @@
 }
 @media(max-width:700px){
   .compass-section-heading{display:grid}
-  .compass-club-fields{grid-template-columns:1fr}
-  .compass-form .cm-button{width:100%;min-width:0}
+  .compass-club-fields,.golf-schedule-primary-fields,.golf-schedule-secondary-fields{grid-template-columns:1fr}
+  .compass-form .cm-button,.golf-schedule-form .cm-button{width:100%;min-width:0}
   .personal-compass{grid-template-columns:1fr}
   .compass-center,.compass-direction.north,.compass-direction.east,.compass-direction.west,.compass-direction.south{grid-column:1;grid-row:auto}
   .compass-direction.north{order:1}.compass-direction.east{order:2}.compass-center{order:3}.compass-direction.west{order:4}.compass-direction.south{order:5}
-  .assignment-topline{display:grid}
+  .assignment-topline,.golf-event-heading{display:grid}
   .assignment-actions{display:grid}
   .assignment-actions .cm-button{width:100%;min-width:0}
   .dispatch-bubble{max-width:92%}
+  .golf-moon-forecast{grid-template-columns:1fr}
 }

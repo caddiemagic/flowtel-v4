@@ -1,4 +1,4 @@
-// Caddie Magic v0.3.0 — Locker Room + Caddie Compass Release
+// Caddie Magic v0.4.0 — Locker Room Thoughts + Anonymous Scores
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -7,6 +7,7 @@ const $ = (id) => document.getElementById(id);
 
 let allEntries = [];
 let activeRange = "current";
+let activeView = "thoughts_scores";
 
 function todayISO() {
   const date = new Date();
@@ -56,30 +57,44 @@ function previousMoonStart(currentStart) {
 }
 
 function selectedEntries() {
-  if (activeRange === "all") return allEntries;
-  const currentStart = getMoonMagic(todayISO()).lastNewMoonDate;
-  const targetStart = activeRange === "last" ? previousMoonStart(currentStart) : currentStart;
-  if (!targetStart) return [];
-  return allEntries.filter((entry) => entry.moon_cycle_start_date === targetStart);
+  let entries = allEntries;
+  if (activeRange !== "all") {
+    const currentStart = getMoonMagic(todayISO()).lastNewMoonDate;
+    const targetStart = activeRange === "last" ? previousMoonStart(currentStart) : currentStart;
+    entries = targetStart ? allEntries.filter((entry) => entry.moon_cycle_start_date === targetStart) : [];
+  }
+  if (activeView === "scores") {
+    entries = entries.filter((entry) => entry.score !== null && entry.score !== "");
+  }
+  return entries;
 }
 
 function rangeLabel(entries) {
   const currentStart = getMoonMagic(todayISO()).lastNewMoonDate;
-  if (activeRange === "all") return `All moon cycles · ${entries.length} anonymous thought${entries.length === 1 ? "" : "s"}`;
+  const noun = activeView === "scores" ? "anonymous score" : "anonymous entry";
+  if (activeRange === "all") return `All moon cycles · ${entries.length} ${noun}${entries.length === 1 ? "" : "s"}`;
   if (activeRange === "last") {
     const lastStart = previousMoonStart(currentStart);
     return lastStart
-      ? `Moon cycle beginning ${formatDate(lastStart)} · ${entries.length} anonymous thought${entries.length === 1 ? "" : "s"}`
-      : "No previous moon cycle reflections yet.";
+      ? `Moon cycle beginning ${formatDate(lastStart)} · ${entries.length} ${noun}${entries.length === 1 ? "" : "s"}`
+      : "No previous moon cycle entries yet.";
   }
-  return `Moon cycle beginning ${formatDate(currentStart)} · ${entries.length} anonymous thought${entries.length === 1 ? "" : "s"}`;
+  return `Moon cycle beginning ${formatDate(currentStart)} · ${entries.length} ${noun}${entries.length === 1 ? "" : "s"}`;
 }
 
-function thoughtMarkup(entry) {
+function entryMarkup(entry) {
+  if (activeView === "scores") {
+    return `<article class="cm-collective-note is-score-only"><strong>${escapeHtml(entry.score)}</strong></article>`;
+  }
+  const thought = String(entry.swing_thought || "").trim();
+  const hasScore = entry.score !== null && entry.score !== "";
   return `
     <article class="cm-collective-note">
-      <span>Moon Day ${escapeHtml(entry.moon_day || "—")}</span>
-      <p>${escapeHtml(entry.swing_thought)}</p>
+      <div class="cm-collective-note-head">
+        <span>Moon Day ${escapeHtml(entry.moon_day || "—")}</span>
+        ${hasScore ? `<strong>${escapeHtml(entry.score)}</strong>` : ""}
+      </div>
+      ${thought ? `<p>${escapeHtml(thought)}</p>` : `<p class="cm-collective-score-entry">Score logged without a swing thought.</p>`}
     </article>
   `;
 }
@@ -91,12 +106,15 @@ function render() {
     if (!node) return;
     const phaseEntries = entries.filter((entry) => normalizePhase(entry.moon_phase) === definition.phase);
     node.innerHTML = phaseEntries.length
-      ? phaseEntries.map(thoughtMarkup).join("")
-      : `<div class="cm-collective-empty">No anonymous swing thoughts have landed in ${escapeHtml(definition.club)} for this view.</div>`;
+      ? phaseEntries.map(entryMarkup).join("")
+      : `<div class="cm-collective-empty">No anonymous ${activeView === "scores" ? "scores" : "entries"} have landed in ${escapeHtml(definition.club)} for this view.</div>`;
   });
   $("collectiveRange").textContent = rangeLabel(entries);
-  document.querySelectorAll(".cm-collective-filter").forEach((button) => {
+  document.querySelectorAll(".cm-collective-filter[data-range]").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.range === activeRange);
+  });
+  document.querySelectorAll(".cm-collective-filter[data-view]").forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.view === activeView);
   });
 }
 
@@ -107,15 +125,19 @@ function bindFilters() {
       render();
     });
   });
+  $("collectiveViewFilters")?.querySelectorAll(".cm-collective-filter").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeView = button.dataset.view || "thoughts_scores";
+      render();
+    });
+  });
 }
 
 async function init() {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session?.user) {
-      throw new Error("Sign in through Caddie Magic to open the Locker Room.");
-    }
-    const { data, error } = await supabase.rpc("caddie_magic_get_collective_swing_thoughts", {
+    if (!sessionData.session?.user) throw new Error("Sign in through Caddie Magic to open the Locker Room.");
+    const { data, error } = await supabase.rpc("caddie_magic_get_locker_room_entries", {
       p_moon_cycle_start: null,
       p_moon_phase: null,
     });
@@ -125,7 +147,10 @@ async function init() {
     render();
   } catch (error) {
     console.error(error);
-    $("collectiveMessage").textContent = error?.message || "The Locker Room could not open.";
+    const missingMigration = String(error?.message || "").toLowerCase().includes("caddie_magic_get_locker_room_entries");
+    $("collectiveMessage").textContent = missingMigration
+      ? "The upgraded Locker Room requires migration 043."
+      : (error?.message || "The Locker Room could not open.");
     allEntries = [];
     bindFilters();
     render();
