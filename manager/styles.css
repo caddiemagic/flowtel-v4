@@ -677,3 +677,19 @@
 .upcoming-golf-moons{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
 .upcoming-golf-moons small{border:1px solid rgba(183,129,55,.18);border-radius:999px;padding:5px 8px;color:var(--muted);background:rgba(255,255,255,.42)}
 @media(max-width:900px){.golf-calendar-grid{overflow-x:auto}.golf-calendar-day{min-width:125px}.golf-calendar-weekdays{display:none}.upcoming-golf-row{grid-template-columns:1fr}.upcoming-golf-row>a{width:100%}}
+
+/* Caddie Magic v0.4.1 — player-only beta access */
+.caddie-player-row,.caddie-invite-row{grid-template-columns:minmax(0,1fr) auto}
+.caddie-player-actions{display:flex;gap:10px;align-items:center;justify-content:flex-end;flex-wrap:wrap}
+.caddie-player-actions a,.caddie-player-actions button,.caddie-invite-form button{
+  display:inline-flex;align-items:center;justify-content:center;min-width:132px;border:1px solid var(--line);border-radius:999px;padding:10px 15px;color:var(--brown);background:transparent;text-decoration:none;cursor:pointer
+}
+.caddie-invite-row code{display:block;max-width:720px;margin-top:8px;padding:9px 11px;border-radius:10px;background:rgba(255,255,255,.58);overflow-wrap:anywhere;color:var(--brown);font-size:.76rem}
+.caddie-invite-builder{margin-bottom:24px;padding:20px;border:1px solid var(--line);border-radius:22px;background:rgba(255,255,255,.34)}
+.caddie-invite-form{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr auto;gap:12px;align-items:end}
+.caddie-invite-form label{display:grid;gap:7px;color:var(--brown);font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+.caddie-invite-form label span{font-size:.56rem;opacity:.7}
+.caddie-invite-form input{width:100%;min-height:42px;border:1px solid var(--line);border-radius:12px;padding:9px 11px;background:rgba(255,255,255,.72);color:var(--brown)}
+#caddieInviteMessage{min-height:1.3em;margin:12px 0 0;color:var(--brown)}
+@media(max-width:1050px){.caddie-invite-form{grid-template-columns:1fr 1fr}.caddie-invite-form button{width:100%}}
+@media(max-width:760px){.caddie-player-row,.caddie-invite-row{grid-template-columns:1fr}.caddie-player-actions{display:grid;justify-content:stretch}.caddie-player-actions a,.caddie-player-actions button{width:100%}.caddie-invite-form{grid-template-columns:1fr}}

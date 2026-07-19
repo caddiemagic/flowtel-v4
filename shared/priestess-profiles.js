@@ -2,7 +2,7 @@
 // Flow FM Priestess Profile Studio helpers.
 
 import { supabase } from "./supabase.js";
-import { updateMyFlowtelIdentity } from "./profiles.js?v=0.10.52";
+import { updateMyFlowtelIdentity } from "./profiles.js?v=0.4.1";
 
 export const PRIESTESS_PROFILE_STATUSES = [
   { value: "draft", label: "Draft", tone: "draft" },

@@ -1,6 +1,7 @@
-// Caddie Magic v0.4.0 — Score Map + Caddie Compass Release
+// Caddie Magic v0.4.1 — Score Map + Caddie Compass Release
 
 import { supabase } from "../../shared/supabase.js";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.1";
 import { getMoonMagic } from "../../shared/moon.js";
 
 const $ = (id) => document.getElementById(id);
@@ -32,10 +33,10 @@ function normalizePhase(phase = "") {
 
 function shortPhase(phase = "") {
   const normalized = normalizePhase(phase);
-  if (normalized === "New Moon Phase") return "New Moon";
-  if (normalized === "Half Full Moon Phase") return "First Quarter";
-  if (normalized === "Full Moon Phase") return "Full Moon";
-  if (normalized === "Half New Moon Phase") return "Last Quarter";
+  if (normalized === "New Moon Phase") return "New Moon Phase";
+  if (normalized === "Half Full Moon Phase") return "First Quarter Phase";
+  if (normalized === "Full Moon Phase") return "Full Moon Phase";
+  if (normalized === "Half New Moon Phase") return "Last Quarter Phase";
   return normalized;
 }
 
@@ -295,6 +296,7 @@ function bindFilters() {
 }
 
 async function init() {
+  await requireCaddieMagicAccess();
   try {
     const { data } = await supabase.auth.getSession();
     currentUser = data.session?.user || null;

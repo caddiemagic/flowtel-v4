@@ -60,7 +60,7 @@
   .cm-collective-west{order:1}.cm-collective-south{order:2}.cm-collective-east{order:3}.cm-collective-north{order:4}
 }
 
-/* Caddie Magic v0.4.0 — Locker Room scores + thoughts */
+/* Caddie Magic v0.4.1 — Locker Room scores + thoughts */
 .cm-collective-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
 .cm-collective-note-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
 .cm-collective-note-head span{margin-bottom:10px}

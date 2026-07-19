@@ -109,3 +109,15 @@ A remembered session and an existing stay are separate things:
 - today's stay = the member has already checked in for the current Flowtel Date
 
 For a clean first-arrival test, use a confirmed Auth user with no `flowtel_stays` row for today's Flowtel Date, or remove only that test user's stay data for today. Preserve profiles and Auth users unless specifically testing account creation.
+
+## Caddie Magic player-only testers — v0.4.1+
+
+Do not create new Caddie Magic testers through the Flowtel beta doorway.
+
+1. Sign into `/manager/` as owner/admin.
+2. Open **Caddie Players**.
+3. Create an invitation for the tester's exact email address.
+4. Send the generated private Caddie Magic link.
+5. The tester creates or signs into the account from `/caddie-magic/`.
+
+A player-only tester has Caddie Magic access and no Flowtel access. Opening `/client/`, `/cycle-data/`, `/flow-map/`, `/flow-fm/`, `/manager/`, or other protected Flowtel member routes redirects the session to Caddie Magic.

@@ -1,8 +1,9 @@
-// Caddie Magic v0.4.0 — Portal Polish + Upcoming Golf Awareness
+// Caddie Magic v0.4.1 — Player-Only Access + Phase Language
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.0";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.1";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -68,10 +69,10 @@ function normalizePhase(phase = "") {
 
 function shortPhase(phase = "") {
   const normalized = normalizePhase(phase);
-  if (normalized === "New Moon Phase") return "New Moon";
-  if (normalized === "Half Full Moon Phase") return "First Quarter";
-  if (normalized === "Full Moon Phase") return "Full Moon";
-  if (normalized === "Half New Moon Phase") return "Last Quarter";
+  if (normalized === "New Moon Phase") return "New Moon Phase";
+  if (normalized === "Half Full Moon Phase") return "First Quarter Phase";
+  if (normalized === "Full Moon Phase") return "Full Moon Phase";
+  if (normalized === "Half New Moon Phase") return "Last Quarter Phase";
   return normalized;
 }
 
@@ -120,7 +121,16 @@ async function signIn() {
     return;
   }
   currentUser = data.user;
-  await bootPortal();
+  try {
+    const inviteCode = clean($("authInviteCode")?.value || new URLSearchParams(window.location.search).get("invite"));
+    if (inviteCode) await claimPlayerInvitation(inviteCode);
+    await requireCaddieMagicAccess();
+    await bootPortal();
+  } catch (accessError) {
+    await supabase.auth.signOut();
+    currentUser = null;
+    setMessage(authMessage, accessError?.message || "This account has not been invited into Caddie Magic.", true);
+  }
 }
 
 async function createAccount() {
@@ -129,14 +139,29 @@ async function createAccount() {
   const password = $("authPassword")?.value || "";
   const firstName = clean($("authFirstName")?.value);
   const lastName = clean($("authLastName")?.value);
+  const inviteCode = clean($("authInviteCode")?.value || new URLSearchParams(window.location.search).get("invite"));
   if (!email || !password) {
     setMessage(authMessage, "Enter an email and password first.", true);
+    return;
+  }
+  if (!inviteCode) {
+    setMessage(authMessage, "Caddie Magic is invitation only. Open your personal invitation link or enter its code.", true);
+    return;
+  }
+  try {
+    const validInvite = await validatePlayerInvitation(email, inviteCode);
+    if (!validInvite) {
+      setMessage(authMessage, "That invitation does not match this email or is no longer active.", true);
+      return;
+    }
+  } catch (inviteError) {
+    setMessage(authMessage, inviteError?.message || "The invitation could not be verified.", true);
     return;
   }
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { first_name: firstName, last_name: lastName, source: "caddie_magic" } },
+    options: { data: { first_name: firstName, last_name: lastName, source: "caddie_magic", caddie_invite_code: inviteCode } },
   });
   if (error) {
     setMessage(authMessage, error.message || "This player profile could not be created.", true);
@@ -629,6 +654,7 @@ async function bootPortal(seed = {}) {
       showState("auth");
       return;
     }
+    await requireCaddieMagicAccess();
     $("roundDate").value = todayISO();
     $("roundDate").max = todayISO();
     playerProfile = await fetchPlayerProfile();
@@ -702,6 +728,15 @@ function bindEvents() {
   $("requestReviewButton")?.addEventListener("click", requestScoreReview);
   $("lockerRoomSharingToggle")?.addEventListener("change", updateLockerRoomSharing);
   setEntryMode("round");
+}
+
+const invitationParams = new URLSearchParams(window.location.search);
+const invitationCode = invitationParams.get("invite");
+const invitationEmail = invitationParams.get("email");
+if (invitationCode && $("authInviteCode")) $("authInviteCode").value = invitationCode;
+if (invitationEmail && $("authEmail")) $("authEmail").value = invitationEmail;
+if (new URLSearchParams(window.location.search).get("access") === "player-only") {
+  setMessage(authMessage, "Your player key opens Caddie Magic. Flowtel remains separate from this account.");
 }
 
 bindEvents();

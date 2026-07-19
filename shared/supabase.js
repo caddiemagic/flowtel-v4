@@ -7,3 +7,65 @@ import {
 } from "../config/supabase-config.js";
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const FLOWTEL_PROTECTED_PREFIXES = [
+  "/client/",
+  "/enter/",
+  "/cycle-data/",
+  "/flow-map/",
+  "/flow-fm/",
+  "/manager/",
+  "/moonbox/",
+  "/database/",
+  "/concierge-soon/",
+];
+
+function requiredProductForPath(pathname = window.location.pathname) {
+  const path = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  if (path.startsWith("/caddie-magic/")) return "caddie_magic";
+  if (FLOWTEL_PROTECTED_PREFIXES.some((prefix) => path.startsWith(prefix))) return "flowtel";
+  return null;
+}
+
+async function enforceCurrentPathProductAccess(session) {
+  const product = requiredProductForPath();
+  const user = session?.user;
+  if (!product || !user) return;
+
+  try {
+    const { data, error } = await supabase
+      .from("flowtel_product_access")
+      .select("flowtel_access,caddie_magic_access,access_role")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    // Migration 044 may not be installed yet. Let each page show its normal
+    // installation message instead of trapping the user in a redirect loop.
+    if (error || !data) return;
+
+    const isOwner = ["owner", "admin"].includes(String(data.access_role || "").toLowerCase());
+    const allowed = isOwner || (product === "flowtel" ? data.flowtel_access : data.caddie_magic_access);
+    if (product === "caddie_magic" && new URLSearchParams(window.location.search).has("invite")) return;
+    if (allowed) return;
+
+    const target = product === "flowtel"
+      ? "/caddie-magic/?access=player-only"
+      : "/client/?access=flowtel-only";
+
+    if (window.location.pathname !== target.split("?")[0]) {
+      window.location.replace(target);
+    }
+  } catch (error) {
+    console.warn("Product access guard could not verify this route yet.", error);
+  }
+}
+
+// Check remembered sessions and any sign-in that occurs after page load.
+setTimeout(async () => {
+  const { data } = await supabase.auth.getSession();
+  await enforceCurrentPathProductAccess(data.session);
+}, 0);
+
+supabase.auth.onAuthStateChange((_event, session) => {
+  setTimeout(() => enforceCurrentPathProductAccess(session), 25);
+});

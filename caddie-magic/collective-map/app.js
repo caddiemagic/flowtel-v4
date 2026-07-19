@@ -1,6 +1,7 @@
-// Caddie Magic v0.4.0 — Locker Room Thoughts + Anonymous Scores
+// Caddie Magic v0.4.1 — Locker Room Thoughts + Anonymous Scores
 
 import { supabase } from "../../shared/supabase.js";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.1";
 import { getMoonMagic } from "../../shared/moon.js";
 
 const $ = (id) => document.getElementById(id);
@@ -134,6 +135,7 @@ function bindFilters() {
 }
 
 async function init() {
+  await requireCaddieMagicAccess();
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData.session?.user) throw new Error("Sign in through Caddie Magic to open the Locker Room.");

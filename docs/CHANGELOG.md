@@ -1,3 +1,17 @@
+## Caddie Magic v0.4.1 — Player-Only Access + Phase Language
+
+- Added an explicit shared product-access registry with `player`, Flowtel, Caddie Magic, owner, and admin boundaries.
+- Added true Player-Only Access: Caddie Magic enabled, Flowtel disabled.
+- Added restrictive database policies to the core Flowtel and Caddie Magic tables.
+- Prevented Caddie-only accounts from self-creating a Flowtel profile through the Flowtel doorway.
+- Added private-beta player invitations tied to an email and personal invitation code.
+- Added a **Caddie Players** queue to the Concierge Desk for invitations, activation status, invite revocation, and beta-access management.
+- Added automatic invitation claiming for new auth users and a claim path for existing Flowtel auth users.
+- Updated map and Compass language to **First Quarter Phase** and **Last Quarter Phase** to preserve the distinction between phase spans and exact moon events.
+- Audited `flowtel-v4(36).zip` against v0.4.0; application files were intact, but migration 043 was missing and has been restored.
+- Added Caddie Magic file, migration, and phase-language manifests plus `scripts/validate-caddie-magic.mjs`.
+- Added migration 044.
+
 ## v0.10.55 — Priestess Profile Studio Elevation + Moonbox Beta Hold
 
 - Removes the guest-facing **Enter The Moonbox** entrance from the Suite.

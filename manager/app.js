@@ -1,16 +1,20 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.50";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
-import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.0";
-import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.0";
-import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.0";
+import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.1";
+import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.1";
+import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.1";
+import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.1";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 const initiationHallButton=document.getElementById("initiationHallButton"), initiationHallNote=document.getElementById("initiationHallNote");
 let allStays=[], activeFilter="queue";
+let caddiePlayers=[];
+let caddiePlayerInvitations=[];
+let caddiePlayerAccessAvailable=true;
 let caddieReviewRequests=[];
 let caddieReviewServiceAvailable=true;
 let caddieCompassPlayers=[];
@@ -575,7 +579,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(activeFilter==="clients" || activeFilter==="caddie-reviews" || activeFilter==="caddie-compass" || activeFilter==="upcoming-golf") return [];
+  if(activeFilter==="clients" || activeFilter==="caddie-players" || activeFilter==="caddie-reviews" || activeFilter==="caddie-compass" || activeFilter==="upcoming-golf") return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -586,10 +590,13 @@ function updateStats(){
   const extendedCount=allStays.filter(isExtended).length;
 
   const caddieReviewCount=caddieReviewRequests.filter(request=>request.status==="requested").length;
+  const caddieInviteCount=caddiePlayerInvitations.filter(invite=>invite.status==="invited").length;
   const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO()).length;
 
   setText("awaitingTurndownCount",awaitingCount);
+  setText("caddiePlayerCount",caddiePlayers.filter(player=>player.caddie_magic_access).length);
+  setText("caddieInviteCount",caddieInviteCount);
   setText("caddieReviewCount",caddieReviewCount);
   setText("caddieCompassCount",caddieCompassReplyCount);
   setText("caddieCompassPlayerCount",caddieCompassPlayers.length);
@@ -604,6 +611,9 @@ function updateStats(){
 
   const turndownCard=document.querySelector('[data-filter="queue"]');
   if(turndownCard) turndownCard.classList.toggle("has-alert",awaitingCount>0);
+
+  const caddiePlayersCard=document.querySelector('[data-filter="caddie-players"]');
+  if(caddiePlayersCard) caddiePlayersCard.classList.toggle("has-alert",caddieInviteCount>0);
 
   const caddieReviewCard=document.querySelector('[data-filter="caddie-reviews"]');
   if(caddieReviewCard) caddieReviewCard.classList.toggle("has-alert",caddieReviewCount>0);
@@ -631,6 +641,7 @@ function setFilter(filter){
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service",ownerReceivesAllTurndownRequests()
       ? "Every active request from today’s Flowtel is routed to the owner Concierge."
       : "These guests are in your assigned wing and have requested extra care."],
+    "caddie-players":["CADDIE MAGIC PLAYERS","Private Beta Invitations + Player Access","Invite player-only testers, copy their clubhouse link, and manage Caddie Magic access without opening Flowtel."],
     "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Caddie Review","Review their Score Map, study the patterns, and send a private Caddie Note back."],
     "caddie-compass":["CADDIE COMPASS","Compass Homework + The Caddie Shack","Open each player’s five-club map, create assignments, and answer private messages."],
     "upcoming-golf":["UPCOMING GOLF","Caddie Magic Golf Calendar","See upcoming rounds, tournaments, and trips with daily moon forecasts."],
@@ -806,6 +817,136 @@ function bindQueueActions(){
   }));
 }
 
+
+function caddieAccessDate(value){
+  if(!value) return "—";
+  return new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(new Date(value));
+}
+
+function renderCaddiePlayerRow(player){
+  const name=player.player_name || player.email || "Caddie Magic Player";
+  const enabled=player.caddie_magic_access===true;
+  return `
+    <article class="guest-row caddie-player-row">
+      <div>
+        <h3>${escapeHtml(name)}</h3>
+        <p>${escapeHtml(player.email || "")} · Player-only access ${enabled ? "active" : "paused"}${player.flowtel_access ? " · Also has Flowtel access" : " · Flowtel blocked"}</p>
+      </div>
+      <div class="caddie-player-actions">
+        ${player.player_profile_id ? `<a href="/caddie-magic/score-map/?player=${encodeURIComponent(player.player_profile_id)}&from=manager">Open Score Map</a>` : ""}
+        <button type="button" data-toggle-caddie-player="${player.user_id}" data-enabled="${enabled ? "1" : "0"}">${enabled ? "Pause Access" : "Restore Access"}</button>
+      </div>
+    </article>`;
+}
+
+function renderCaddieInvitationRow(invite){
+  const name=[invite.first_name,invite.last_name].filter(Boolean).join(" ") || invite.email;
+  const isOpen=invite.status==="invited";
+  const inviteUrl=buildPlayerInviteUrl(invite.invite_code, invite.email);
+  return `
+    <article class="guest-row caddie-invite-row ${isOpen ? "is-open" : ""}">
+      <div>
+        <h3>${escapeHtml(name)}</h3>
+        <p>${escapeHtml(invite.email)} · ${escapeHtml(invite.status)} · Invited ${escapeHtml(caddieAccessDate(invite.created_at))}</p>
+        ${isOpen ? `<code>${escapeHtml(inviteUrl)}</code>` : ""}
+      </div>
+      <div class="caddie-player-actions">
+        ${isOpen ? `<button type="button" data-copy-caddie-invite="${escapeHtml(invite.invite_code)}" data-invite-email="${escapeHtml(invite.email)}">Copy Invite Link</button><button type="button" data-revoke-caddie-invite="${invite.invitation_id}">Revoke</button>` : ""}
+      </div>
+    </article>`;
+}
+
+function renderCaddiePlayersQueue(){
+  if(!caddiePlayerAccessAvailable){
+    queue.innerHTML="<p>Player-Only Access is not installed yet. Run database/migration-044-caddie-magic-player-only-access-private-beta.sql.</p>";
+    return;
+  }
+  const openInvites=caddiePlayerInvitations.filter(invite=>invite.status==="invited");
+  queue.innerHTML=`
+    <section class="caddie-invite-builder">
+      <p class="eyebrow">INVITE A PLAYER</p>
+      <form id="caddieInviteForm" class="caddie-invite-form">
+        <label>Email<input id="caddieInviteEmail" type="email" required placeholder="player@example.com"></label>
+        <label>First Name<input id="caddieInviteFirstName" type="text" placeholder="First"></label>
+        <label>Last Name<input id="caddieInviteLastName" type="text" placeholder="Last"></label>
+        <label>Expires <span>Optional</span><input id="caddieInviteExpires" type="date"></label>
+        <button type="submit">Create Player Invite</button>
+      </form>
+      <p id="caddieInviteMessage"></p>
+    </section>
+    <section class="relationship-queue">
+      <section>
+        <p class="eyebrow">ACTIVE PLAYERS</p>
+        ${caddiePlayers.length ? caddiePlayers.map(renderCaddiePlayerRow).join("") : "<p>No Caddie Magic players have activated yet.</p>"}
+      </section>
+      <section>
+        <p class="eyebrow">INVITATIONS · ${openInvites.length} OPEN</p>
+        ${caddiePlayerInvitations.length ? caddiePlayerInvitations.map(renderCaddieInvitationRow).join("") : "<p>No player invitations yet.</p>"}
+      </section>
+    </section>`;
+  bindCaddiePlayerActions();
+}
+
+function bindCaddiePlayerActions(){
+  document.getElementById("caddieInviteForm")?.addEventListener("submit",async(event)=>{
+    event.preventDefault();
+    const message=document.getElementById("caddieInviteMessage");
+    if(message) message.textContent="Creating the player invitation...";
+    try{
+      const expiresValue=document.getElementById("caddieInviteExpires")?.value;
+      const invite=await createPlayerInvitation({
+        email:document.getElementById("caddieInviteEmail")?.value,
+        firstName:document.getElementById("caddieInviteFirstName")?.value,
+        lastName:document.getElementById("caddieInviteLastName")?.value,
+        expiresAt:expiresValue ? `${expiresValue}T23:59:59` : null,
+      });
+      await navigator.clipboard?.writeText(buildPlayerInviteUrl(invite.invite_code, invite.email));
+      if(message) message.textContent="Invitation created. The private player link was copied to your clipboard.";
+      await loadCaddiePlayerAccess();
+      renderCaddiePlayersQueue();
+      updateStats();
+    }catch(error){
+      if(message) message.textContent=error?.message || "The player invitation could not be created.";
+    }
+  });
+
+  document.querySelectorAll("[data-copy-caddie-invite]").forEach(button=>button.addEventListener("click",async()=>{
+    await navigator.clipboard.writeText(buildPlayerInviteUrl(button.dataset.copyCaddieInvite, button.dataset.inviteEmail || ""));
+    button.textContent="Copied";
+  }));
+
+  document.querySelectorAll("[data-revoke-caddie-invite]").forEach(button=>button.addEventListener("click",async()=>{
+    if(!window.confirm("Revoke this Caddie Magic invitation?")) return;
+    await revokePlayerInvitation(button.dataset.revokeCaddieInvite);
+    await loadCaddiePlayerAccess();
+    renderCaddiePlayersQueue();
+    updateStats();
+  }));
+
+  document.querySelectorAll("[data-toggle-caddie-player]").forEach(button=>button.addEventListener("click",async()=>{
+    const currentlyEnabled=button.dataset.enabled==="1";
+    await setCaddieMagicPlayerAccess(button.dataset.toggleCaddiePlayer,!currentlyEnabled);
+    await loadCaddiePlayerAccess();
+    renderCaddiePlayersQueue();
+    updateStats();
+  }));
+}
+
+async function loadCaddiePlayerAccess(){
+  try{
+    [caddiePlayers,caddiePlayerInvitations]=await Promise.all([
+      listCaddieMagicPlayers(),
+      listPlayerInvitations(),
+    ]);
+    caddiePlayerAccessAvailable=true;
+  }catch(error){
+    console.warn("Caddie Magic player access is not available yet.",error);
+    caddiePlayers=[];
+    caddiePlayerInvitations=[];
+    caddiePlayerAccessAvailable=false;
+  }
+}
+
 function caddieReviewTime(value){
   if(!value) return "Requested recently";
   return new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}).format(new Date(value));
@@ -967,8 +1108,8 @@ function managerGolfDate(value){
 }
 function managerGolfType(value){return ({round:"Round",tournament:"Tournament",golf_trip:"Golf Trip"})[value] || String(value||"").replaceAll("_"," ");}
 function managerShortMoonPhase(value){
-  if(value==="Half Full Moon Phase") return "First Quarter";
-  if(value==="Half New Moon Phase") return "Last Quarter";
+  if(value==="Half Full Moon Phase") return "First Quarter Phase";
+  if(value==="Half New Moon Phase") return "Last Quarter Phase";
   return String(value||"").replace(" Phase","");
 }
 function golfEventOccursOn(event,iso){return String(event.date_start)<=iso && String(event.date_end)>=iso;}
@@ -1057,6 +1198,11 @@ function renderQueue(){
 
   if(activeFilter==="queue"){
     renderTurndownServiceQueue();
+    return;
+  }
+
+  if(activeFilter==="caddie-players"){
+    renderCaddiePlayersQueue();
     return;
   }
 
@@ -1233,6 +1379,7 @@ async function loadDesk({silent=false}={}){
     allStays=await getFrontDeskStays();
     await renderConnectionRequests();
     await renderMyClients();
+    await loadCaddiePlayerAccess();
     await loadCaddieReviews();
     await loadCaddieCompassPlayers();
     await loadUpcomingGolfEvents();

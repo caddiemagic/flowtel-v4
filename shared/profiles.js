@@ -3,6 +3,7 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
+import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.4.1";
 
 
 export function displayNameForProfile(profile = {}, fallback = "Guest") {
@@ -29,23 +30,29 @@ export function firstNameForProfile(profile = {}, fallback = "Guest") {
   return displayName.split(/\s+/).filter(Boolean)[0] || fallback;
 }
 
-export async function getCurrentProfile() {
-  const user = await getCurrentUser();
-
-  if (!user) return null;
-
+async function fetchProfileForUser(user) {
   const { data, error } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", user.id)
     .maybeSingle();
 
-  if (error) {
+  if (error) throw error;
+  return data;
+}
+
+export async function getCurrentProfile() {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  try {
+    await requireProductAccess("flowtel");
+    return await fetchProfileForUser(user);
+  } catch (error) {
     console.error("Profile lookup failed:", error);
+    if (isProductAccessError(error)) throw error;
     return null;
   }
-
-  return data;
 }
 
 export async function ensureProfile(profile = {}) {
@@ -55,7 +62,11 @@ export async function ensureProfile(profile = {}) {
     throw new Error("No authenticated user.");
   }
 
-  const existing = await getCurrentProfile();
+  const accessGranted = await claimFlowtelAccess();
+  if (!accessGranted) {
+    await requireProductAccess("flowtel");
+  }
+  const existing = await fetchProfileForUser(user);
 
   const incomingMembership = normalizeMembership(profile.membershipType || profile.membership || profile.source);
   const existingMembership = Number(existing?.membership_rank || 0) >= 3

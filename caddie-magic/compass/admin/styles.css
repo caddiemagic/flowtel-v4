@@ -38,7 +38,7 @@
   .admin-assignment-actions .cm-button{width:100%;min-width:0}
 }
 
-/* Caddie Magic v0.4.0 — admin upcoming golf awareness */
+/* Caddie Magic v0.4.1 — admin upcoming golf awareness */
 .admin-upcoming-golf-list{display:grid;gap:14px;margin-top:18px}
 .admin-golf-event{border:1px solid var(--line-soft);border-radius:20px;padding:18px;background:#091a2a}
 .admin-golf-event h3{font-size:1.2rem;margin-top:8px}

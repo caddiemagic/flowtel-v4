@@ -292,7 +292,7 @@ h3{font-size:1.14rem;line-height:1.15}
 /* Caddie Magic v0.3.0 — Caddie Compass doorway */
 .cm-hero-actions #heroCompassButton{border-color:rgba(211,173,105,.58)}
 
-/* Caddie Magic v0.4.0 — portal hierarchy + sharing controls */
+/* Caddie Magic v0.4.1 — portal hierarchy + sharing controls */
 .cm-snapshot-card:last-child{grid-column:auto}
 .cm-review-card{width:100%}
 .cm-review-layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:22px;align-items:start}
@@ -310,3 +310,6 @@ h3{font-size:1.14rem;line-height:1.15}
 .cm-sharing-setting input:checked::after{transform:translateX(21px);background:var(--gold-soft)}
 @media(max-width:850px){.cm-review-layout{grid-template-columns:1fr}}
 @media(max-width:700px){.cm-sharing-setting{align-items:flex-start}.cm-sharing-setting input{flex:0 0 auto}}
+
+/* v0.4.1 private-beta invitation */
+.cm-invite-field small{color:var(--muted);font:500 .72rem/1.4 var(--font-body);letter-spacing:0;text-transform:none}

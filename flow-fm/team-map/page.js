@@ -1,10 +1,10 @@
-import { getCurrentProfile } from '/shared/profiles.js?v=0.10.52';
+import { getCurrentProfile } from '/shared/profiles.js?v=0.4.1';
 import {
   getTeamMapViewerState,
   listTeamMapPresences,
   setTeamMapVisibility,
 } from '/shared/team-map.js?v=0.10.52';
-import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.10.52';
+import { getPriestessProfile } from '/shared/priestess-profiles.js?v=0.4.1';
 
 const DEFAULT_PROFILE_IMAGE='/assets/flowtel-pinkrose.png';
 const SEASONS=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];

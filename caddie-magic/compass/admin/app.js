@@ -1,6 +1,7 @@
-// Caddie Magic v0.4.0 — Owner Compass + Homework + Upcoming Golf
+// Caddie Magic v0.4.1 — Owner Compass + Homework + Upcoming Golf
 
 import { supabase } from "../../../shared/supabase.js";
+import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.4.1";
 import {
   listCompassPlayers,
   getCompassForPlayer,
@@ -9,8 +10,8 @@ import {
   createCompassAssignment,
   sendCompassDispatch,
   adminUpdateCompassAssignment,
-} from "../../../shared/caddie-magic-compass.js?v=0.4.0";
-import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.4.0";
+} from "../../../shared/caddie-magic-compass.js?v=0.4.1";
+import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.4.1";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
@@ -72,8 +73,8 @@ function titleCase(value = "") {
 }
 
 function shortMoonPhase(value = "") {
-  if (value === "Half Full Moon Phase") return "First Quarter";
-  if (value === "Half New Moon Phase") return "Last Quarter";
+  if (value === "Half Full Moon Phase") return "First Quarter Phase";
+  if (value === "Half New Moon Phase") return "Last Quarter Phase";
   return String(value || "").replace(" Phase", "");
 }
 
@@ -269,6 +270,7 @@ async function handleDispatchSubmit(event) {
 }
 
 async function init() {
+  await requireCaddieMagicAccess();
   try {
     if (!playerProfileId) throw new Error("Choose a Caddie Compass player from the Concierge Desk.");
     const { data } = await supabase.auth.getSession();

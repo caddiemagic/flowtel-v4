@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=caddie-0.4.0" />
+  <link rel="stylesheet" href="./styles.css?v=caddie-0.4.1" />
 </head>
 
 <body>
@@ -61,6 +61,11 @@
           <strong id="awaitingTurndownCount">0</strong>
           <em>Waiting for care</em>
         </button>
+        <button class="stat-card" type="button" data-filter="caddie-players">
+          <span>Caddie Players</span>
+          <strong id="caddiePlayerCount">0</strong>
+          <em><b id="caddieInviteCount">0</b> invitations open</em>
+        </button>
         <button class="stat-card" type="button" data-filter="caddie-reviews">
           <span>Caddie Reviews</span>
           <strong id="caddieReviewCount">0</strong>
@@ -110,6 +115,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=caddie-0.4.0"></script>
+  <script type="module" src="./app.js?v=caddie-0.4.1"></script>
 </body>
 </html>

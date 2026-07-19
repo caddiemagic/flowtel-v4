@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.4.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.1" />
 </head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
-      <span class="cm-version">v0.4.0</span>
+      <span class="cm-version">v0.4.1</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -31,13 +31,17 @@
     <section class="cm-card cm-auth-card" id="authCard">
       <p class="cm-eyebrow">ENTER THE CLUBHOUSE</p>
       <h2>Your private player portal.</h2>
-      <p class="cm-muted">Create your player profile or sign back in to continue tracking your game with the moon.</p>
+      <p class="cm-muted">Caddie Magic is in private beta. Invited players can create a profile or sign back in here.</p>
       <form id="authForm" class="cm-form">
         <label>Email
           <input id="authEmail" type="email" autocomplete="email" required placeholder="player@example.com" />
         </label>
         <label>Password
           <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
+        </label>
+        <label class="cm-invite-field">Player Invitation Code
+          <input id="authInviteCode" type="text" autocomplete="one-time-code" placeholder="Invitation code" />
+          <small>Your invitation link fills this automatically.</small>
         </label>
         <div class="cm-two-col cm-create-fields">
           <label>First Name
@@ -237,6 +241,6 @@
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.0"></script>
+  <script type="module" src="./app.js?v=0.4.1"></script>
 </body>
 </html>

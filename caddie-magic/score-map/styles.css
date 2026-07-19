@@ -166,7 +166,7 @@ body.cm-modal-open{overflow:hidden}
   .cm-display-button{flex:1;padding:0 10px}
 }
 
-/* Caddie Magic v0.4.0 — consistent quadrant alignment */
+/* Caddie Magic v0.4.1 — consistent quadrant alignment */
 .cm-map-quadrant,.cm-map-quadrant header,.cm-map-notes{direction:ltr;text-align:left}
 .cm-map-notes{justify-items:stretch;width:100%}
 .cm-map-note{justify-self:stretch;margin-left:0;margin-right:0}

@@ -1,4 +1,4 @@
-import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.52";
+import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
 import { listMyClients } from "../shared/flowtel.js?v=0.10.52";
 import { supabase } from "../shared/supabase.js";
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
