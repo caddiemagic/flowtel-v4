@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.2 — Moon Score Map
+// Caddie Magic v0.1.4 — First Class Navy Gold Moon Score Map
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";

@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.3 — Dazzled Cream Pills + Ship Wheel Refinement
+// Caddie Magic v0.1.4 — First Class Navy Gold Country Club Facelift
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
