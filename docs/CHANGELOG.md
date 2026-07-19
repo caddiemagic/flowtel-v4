@@ -1,3 +1,15 @@
+## Caddie Magic v0.2.1 — Score Map View Toggle
+
+- Added **Thoughts + Scores** and **Scores Only** display modes to the personal Score Map.
+- Kept **Thoughts + Scores** as the default view.
+- Added the calendar date to each card in the default view.
+- The default view shows swing thought + date on the left and score on the right.
+- The **Scores Only** view hides thought-only reflections and displays only numeric score cards across the map.
+- Score-only number cards remain clickable for the existing full-detail popout.
+- Updated the map count and player-view label to reflect the selected display mode.
+- Updated cache versions to `0.2.1`.
+- No Supabase migration required.
+
 ## Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
 
 - Renamed the anonymous **Collective Swing Map** experience to **LOCKER ROOM** throughout the player-facing platform.

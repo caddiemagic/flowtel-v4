@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.2.0" />
-  <link rel="stylesheet" href="./styles.css?v=0.2.0" />
+  <link rel="stylesheet" href="../styles.css?v=0.2.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.2.1" />
 </head>
 <body class="cm-map-page">
   <main class="cm-shell cm-score-map-shell">
     <section class="cm-hero cm-map-hero">
-      <span class="cm-version">v0.2.0</span>
+      <span class="cm-version">v0.2.1</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -29,11 +29,17 @@
 
     <section class="cm-card cm-score-map-card">
       <div class="cm-map-toolbar">
-        <nav class="cm-map-filters" id="mapFilters" aria-label="Moon Score Map range">
-          <button class="cm-filter-button is-active" type="button" data-range="current">Current Moon</button>
-          <button class="cm-filter-button" type="button" data-range="last">Last Moon</button>
-          <button class="cm-filter-button" type="button" data-range="all">All</button>
-        </nav>
+        <div class="cm-map-toolbar-controls">
+          <nav class="cm-map-filters" id="mapFilters" aria-label="Score Map moon range">
+            <button class="cm-filter-button is-active" type="button" data-range="current">Current Moon</button>
+            <button class="cm-filter-button" type="button" data-range="last">Last Moon</button>
+            <button class="cm-filter-button" type="button" data-range="all">All</button>
+          </nav>
+          <nav class="cm-map-display-toggle" id="mapDisplayModes" aria-label="Score Map card display">
+            <button class="cm-display-button is-active" type="button" data-display="full">Thoughts + Scores</button>
+            <button class="cm-display-button" type="button" data-display="scores">Scores Only</button>
+          </nav>
+        </div>
         <span class="cm-player-view" id="playerViewLabel">Player View</span>
       </div>
 
@@ -112,6 +118,6 @@
 
     <p class="cm-message" id="scoreMapMessage"></p>
   </main>
-  <script type="module" src="./app.js?v=0.2.0"></script>
+  <script type="module" src="./app.js?v=0.2.1"></script>
 </body>
 </html>

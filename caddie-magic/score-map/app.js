@@ -1,4 +1,4 @@
-// Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
+// Caddie Magic v0.2.1 — Score Map Display Toggle
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -9,6 +9,7 @@ let currentUser = null;
 let playerProfile = null;
 let allLogs = [];
 let activeRange = "current";
+let activeDisplayMode = "full";
 
 const scoreMapParams = new URLSearchParams(window.location.search);
 const requestedPlayerProfileId = scoreMapParams.get("player");
@@ -135,25 +136,43 @@ function phaseDefinitions() {
 
 function noteMarkup(entry) {
   const isReflection = entry.entry_type === "reflection" || entry.score === null;
+
+  if (activeDisplayMode === "scores") {
+    return `
+      <button class="cm-map-note cm-score-only-note" type="button" data-entry-id="${escapeHtml(entry.id)}" aria-label="Open score ${escapeHtml(entry.score)} details">
+        <span class="cm-map-note-score">${escapeHtml(entry.score)}</span>
+      </button>
+    `;
+  }
+
   const thought = String(entry.swing_thoughts || "").trim() || "No swing thought recorded.";
   return `
     <button class="cm-map-note ${isReflection ? "is-reflection" : ""}" type="button" data-entry-id="${escapeHtml(entry.id)}" aria-label="Open scorecard detail">
-      <p class="cm-map-note-thought">${escapeHtml(thought)}</p>
+      <span class="cm-map-note-copy">
+        <p class="cm-map-note-thought">${escapeHtml(thought)}</p>
+        <time class="cm-map-note-date" datetime="${escapeHtml(entry.round_date || "")}">${escapeHtml(formatDate(entry.round_date))}</time>
+      </span>
       ${isReflection ? "" : `<span class="cm-map-note-score">${escapeHtml(entry.score)}</span>`}
     </button>
   `;
 }
 
 function renderQuadrants(logs) {
+  const visibleLogs = activeDisplayMode === "scores"
+    ? logs.filter((entry) => entry.score !== null && entry.score !== "" && Number.isFinite(Number(entry.score)))
+    : logs;
+
   phaseDefinitions().forEach((definition) => {
     const node = $(definition.node);
     if (!node) return;
-    const phaseLogs = logs.filter((log) => normalizePhase(log.moon_phase) === definition.phase);
+    const phaseLogs = visibleLogs.filter((log) => normalizePhase(log.moon_phase) === definition.phase);
+    node.classList.toggle("is-scores-only", activeDisplayMode === "scores");
     node.innerHTML = phaseLogs.length
       ? phaseLogs.map(noteMarkup).join("")
-      : `<div class="cm-map-empty">No entries have landed in ${escapeHtml(definition.club)} for this view.</div>`;
+      : `<div class="cm-map-empty">${activeDisplayMode === "scores" ? "No scores" : "No entries"} have landed in ${escapeHtml(definition.club)} for this view.</div>`;
   });
   bindScoreCards();
+  return visibleLogs;
 }
 
 function renderSnapshot() {
@@ -244,13 +263,18 @@ function bindScoreCards() {
 
 function render() {
   const logs = selectedLogs();
-  renderQuadrants(logs);
+  const visibleLogs = renderQuadrants(logs);
   renderSnapshot();
   renderInsights(logs);
-  $("playerViewLabel").textContent = `${displayName()} · Player View`;
-  $("mapRangeCopy").textContent = `${rangeLabel()} · ${logs.length} entr${logs.length === 1 ? "y" : "ies"}`;
+  $("playerViewLabel").textContent = `${displayName()} · ${activeDisplayMode === "scores" ? "Scores Only" : "Player View"}`;
+  $("mapRangeCopy").textContent = `${rangeLabel()} · ${visibleLogs.length} ${activeDisplayMode === "scores" ? `score${visibleLogs.length === 1 ? "" : "s"}` : `entr${visibleLogs.length === 1 ? "y" : "ies"}`}`;
   document.querySelectorAll(".cm-filter-button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.range === activeRange);
+  });
+  document.querySelectorAll(".cm-display-button").forEach((button) => {
+    const isActive = button.dataset.display === activeDisplayMode;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
   });
 }
 
@@ -258,6 +282,13 @@ function bindFilters() {
   $("mapFilters")?.querySelectorAll(".cm-filter-button").forEach((button) => {
     button.addEventListener("click", () => {
       activeRange = button.dataset.range || "current";
+      render();
+    });
+  });
+
+  $("mapDisplayModes")?.querySelectorAll(".cm-display-button").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeDisplayMode = button.dataset.display === "scores" ? "scores" : "full";
       render();
     });
   });

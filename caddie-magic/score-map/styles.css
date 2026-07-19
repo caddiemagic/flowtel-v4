@@ -107,7 +107,7 @@
   .cm-map-north{order:4}
 }
 
-/* Caddie Magic v0.2.0 — compact score cards + detail popout */
+/* Caddie Magic v0.2.1 — compact score cards + detail popout */
 .cm-map-hero-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
 .cm-map-hero-actions .cm-button{min-width:190px}
 .cm-back-button{position:static;right:auto;bottom:auto}
@@ -145,4 +145,23 @@ body.cm-modal-open{overflow:hidden}
   .cm-modal-card{padding:24px 18px}
   .cm-modal-detail-grid{grid-template-columns:1fr}
   .cm-modal-detail-wide{grid-column:auto}
+}
+
+
+/* Caddie Magic v0.2.1 — default thoughts + scores with scores-only toggle */
+.cm-map-toolbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.cm-map-display-toggle{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#091a2a}
+.cm-display-button{min-height:36px;border:0;border-right:1px solid var(--line-soft);padding:0 16px;color:var(--muted);background:transparent;cursor:pointer;font:700 .54rem var(--font-body);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.cm-display-button:last-child{border-right:0}
+.cm-display-button.is-active{color:var(--ivory);background:#10283d;box-shadow:inset 0 0 0 1px rgba(211,173,105,.18)}
+.cm-map-note-copy{display:grid;gap:7px;min-width:0}
+.cm-map-note-date{display:block;margin:0;color:var(--gold);font:700 .49rem/1.2 var(--font-body);letter-spacing:.12em;text-transform:uppercase}
+.cm-map-notes.is-scores-only{display:flex;flex-wrap:wrap;gap:10px;align-content:flex-start}
+.cm-map-note.cm-score-only-note{width:72px;min-height:58px;padding:10px;display:grid;grid-template-columns:1fr;place-items:center;text-align:center;border-color:rgba(211,173,105,.32);background:#0a1d2d}
+.cm-map-note.cm-score-only-note .cm-map-note-score{justify-self:center;color:var(--gold-soft);font:500 1.55rem/1 var(--font-display)}
+.cm-map-note.cm-score-only-note:hover{background:#10283d}
+@media(max-width:900px){
+  .cm-map-toolbar-controls{display:grid;width:100%}
+  .cm-map-display-toggle{width:100%}
+  .cm-display-button{flex:1;padding:0 10px}
 }
