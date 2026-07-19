@@ -3,7 +3,8 @@ import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.5
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
-import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.2.0";
+import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.3.0";
+import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.3.0";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -11,6 +12,8 @@ const initiationHallButton=document.getElementById("initiationHallButton"), init
 let allStays=[], activeFilter="queue";
 let caddieReviewRequests=[];
 let caddieReviewServiceAvailable=true;
+let caddieCompassPlayers=[];
+let caddieCompassServiceAvailable=true;
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
@@ -568,7 +571,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(activeFilter==="clients" || activeFilter==="caddie-reviews") return [];
+  if(activeFilter==="clients" || activeFilter==="caddie-reviews" || activeFilter==="caddie-compass") return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -579,9 +582,12 @@ function updateStats(){
   const extendedCount=allStays.filter(isExtended).length;
 
   const caddieReviewCount=caddieReviewRequests.filter(request=>request.status==="requested").length;
+  const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
 
   setText("awaitingTurndownCount",awaitingCount);
   setText("caddieReviewCount",caddieReviewCount);
+  setText("caddieCompassCount",caddieCompassReplyCount);
+  setText("caddieCompassPlayerCount",caddieCompassPlayers.length);
   setText("guestsInHouse",inHouse);
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
@@ -595,6 +601,9 @@ function updateStats(){
 
   const caddieReviewCard=document.querySelector('[data-filter="caddie-reviews"]');
   if(caddieReviewCard) caddieReviewCard.classList.toggle("has-alert",caddieReviewCount>0);
+
+  const caddieCompassCard=document.querySelector('[data-filter="caddie-compass"]');
+  if(caddieCompassCard) caddieCompassCard.classList.toggle("has-alert",caddieCompassReplyCount>0);
 
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
@@ -614,6 +623,7 @@ function setFilter(filter){
       ? "Every active request from today’s Flowtel is routed to the owner Concierge."
       : "These guests are in your assigned wing and have requested extra care."],
     "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Caddie Review","Review their Score Map, study the patterns, and send a private Caddie Note back."],
+    "caddie-compass":["CADDIE COMPASS","Compass Initiations + Dispatches","Open each player’s five-club map, create moon assignments, and answer private Caddie Dispatches."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
@@ -882,6 +892,52 @@ async function loadCaddieReviews(){
   }
 }
 
+function renderCaddieCompassPlayer(player){
+  const url=`/caddie-magic/compass/admin/?player=${encodeURIComponent(player.player_profile_id)}&from=manager`;
+  const clubs=[player.north_club,player.east_club,player.west_club,player.south_club].filter(Boolean).join(" · ");
+  return `
+    <article class="guest-row caddie-compass-row ${player.needs_reply ? "needs-reply" : ""}">
+      <div>
+        <h3>${escapeHtml(player.player_name || player.player_email || "Caddie Magic Player")}</h3>
+        <p>${escapeHtml(clubs || "Compass saved")}</p>
+        <p>${Number(player.active_assignment_count || 0)} active assignment${Number(player.active_assignment_count || 0)===1?"":"s"} · ${Number(player.completed_assignment_count || 0)} completed</p>
+      </div>
+      <div class="caddie-compass-actions">
+        ${player.needs_reply ? `<span class="compass-reply-pill">Dispatch Waiting</span>` : `<span class="completed-pill">Compass Open</span>`}
+        <a href="${url}">Open Compass</a>
+      </div>
+    </article>
+  `;
+}
+
+function renderCaddieCompassQueue(){
+  if(!caddieCompassServiceAvailable){
+    queue.innerHTML="<p>Caddie Compass is not installed yet. Run database/migration-042-caddie-magic-compass-assignments-dispatches.sql.</p>";
+    return;
+  }
+  if(!caddieCompassPlayers.length){
+    queue.innerHTML="<p>No players have saved a Caddie Compass yet.</p>";
+    return;
+  }
+  queue.innerHTML=`
+    <section class="queue-section active-requests">
+      <p class="queue-section-label">Compass Players</p>
+      ${caddieCompassPlayers.map(renderCaddieCompassPlayer).join("")}
+    </section>
+  `;
+}
+
+async function loadCaddieCompassPlayers(){
+  try{
+    caddieCompassPlayers=await listCompassPlayers();
+    caddieCompassServiceAvailable=true;
+  }catch(error){
+    console.warn("Caddie Compass players are not available yet.",error);
+    caddieCompassPlayers=[];
+    caddieCompassServiceAvailable=false;
+  }
+}
+
 function renderQueue(){
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
@@ -910,6 +966,11 @@ function renderQueue(){
 
   if(activeFilter==="caddie-reviews"){
     renderCaddieReviewQueue();
+    return;
+  }
+
+  if(activeFilter==="caddie-compass"){
+    renderCaddieCompassQueue();
     return;
   }
 
@@ -1072,6 +1133,7 @@ async function loadDesk({silent=false}={}){
     await renderConnectionRequests();
     await renderMyClients();
     await loadCaddieReviews();
+    await loadCaddieCompassPlayers();
     updateStats();
     renderQueue();
   }catch(error){

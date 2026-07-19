@@ -1,8 +1,8 @@
-// Caddie Magic v0.2.0 — Locker Room + Caddie Review Service
+// Caddie Magic v0.3.0 — Scorecard + Caddie Compass Doorway
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.2.0";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.3.0";
 
 const $ = (id) => document.getElementById(id);
 

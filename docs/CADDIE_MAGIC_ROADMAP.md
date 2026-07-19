@@ -49,7 +49,32 @@ Still future:
 - automated pattern flags
 - structured review templates
 
-## Phase 3 — Caddie Network Profiles
+## Phase 3 — Caddie Compass + Moon Initiations
+
+Goal: give each player a personalized five-club initiation pathway.
+
+Open in v0.3.0:
+
+- NEWS compass setup
+- North, East, West, and South club mapping
+- Putter as the center Staff
+- compass sealing after the first assignment
+- personalized moon-phase assignments
+- direction-specific club assignments
+- player completion reflections
+- initiation history
+- private Caddie Dispatches
+- owner/admin Compass queue inside the Concierge Desk
+
+Still future:
+
+- owner-created new compass versions after a sealed compass evolves
+- reusable assignment templates
+- group initiations
+- automated moon-phase release timing
+- assignment media and audio
+
+## Phase 4 — Caddie Network Profiles
 
 Goal: prepare caddies and players for matching.
 
@@ -62,7 +87,7 @@ Future scope:
 - caddie style/personality data
 - player style/personality data
 
-## Phase 4 — Matching + Scheduling
+## Phase 5 — Matching + Scheduling
 
 Goal: reduce caddie options to 2–3 matches.
 
@@ -75,7 +100,7 @@ Future scope:
 - prep call notes
 - confirmed caddie assignment
 
-## Phase 5 — Full Caddie Concierge Platform
+## Phase 6 — Full Caddie Concierge Platform
 
 Goal: full Caddie Network operating layer.
 

@@ -1,4 +1,4 @@
-// Caddie Magic v0.2.1 — Score Map Display Toggle
+// Caddie Magic v0.3.0 — Score Map + Caddie Compass Release
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";

@@ -107,7 +107,7 @@
   .cm-map-north{order:4}
 }
 
-/* Caddie Magic v0.2.1 — compact score cards + detail popout */
+/* Caddie Magic v0.3.0 — compact score cards + detail popout */
 .cm-map-hero-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
 .cm-map-hero-actions .cm-button{min-width:190px}
 .cm-back-button{position:static;right:auto;bottom:auto}
@@ -148,7 +148,7 @@ body.cm-modal-open{overflow:hidden}
 }
 
 
-/* Caddie Magic v0.2.1 — default thoughts + scores with scores-only toggle */
+/* Caddie Magic v0.3.0 — default thoughts + scores with scores-only toggle */
 .cm-map-toolbar-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .cm-map-display-toggle{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#091a2a}
 .cm-display-button{min-height:36px;border:0;border-right:1px solid var(--line-soft);padding:0 16px;color:var(--muted);background:transparent;cursor:pointer;font:700 .54rem var(--font-body);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}

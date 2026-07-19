@@ -1,4 +1,4 @@
-// Caddie Magic v0.2.0 — Locker Room
+// Caddie Magic v0.3.0 — Locker Room + Caddie Compass Release
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";

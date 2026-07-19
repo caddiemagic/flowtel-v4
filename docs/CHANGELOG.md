@@ -1,3 +1,19 @@
+## Caddie Magic v0.3.0 — Caddie Compass + Moon Assignments
+
+- Added `/caddie-magic/compass/` as the player’s personalized Caddie Compass and initiation portal.
+- Added the NEWS setup sequence: Club 1 North, Club 2 East, Club 3 West, Club 4 South, and Putter as the center Staff.
+- Added a personalized five-club compass visual.
+- Kept the compass editable until the first owner-created assignment.
+- Automatically seals the active compass when the first assignment is sent.
+- Added current assignments, in-progress status, completion reflections, and initiation history.
+- Added private two-way **Caddie Dispatches**, optionally connected to an assignment.
+- Added `/caddie-magic/compass/admin/` for owner assignment creation and private messaging.
+- Added a **Caddie Compass** queue to the Flowtel Concierge Desk.
+- The Concierge Desk highlights players whose latest dispatch is waiting for an owner reply.
+- Snapshots the assigned directional club on every assignment so historical initiations remain accurate.
+- Added `database/migration-042-caddie-magic-compass-assignments-dispatches.sql`.
+- Updated Caddie Magic cache versions to `0.3.0`.
+
 ## Caddie Magic v0.2.1 — Score Map View Toggle
 
 - Added **Thoughts + Scores** and **Scores Only** display modes to the personal Score Map.
