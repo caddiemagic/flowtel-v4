@@ -1,3 +1,16 @@
+## Caddie Magic v0.1.7 — Elevated Clubhouse Fonts + Full Direction Wheel Asset
+
+- Added a more distinct typography pairing across the Caddie Magic suite using a refined club-style display font and cleaner body font.
+- Gave the Locker and Score Map another visible styling pass for a more elegant private-club presentation.
+- Tightened and reduced the visual footprint of the **My Moon Score Data** hero so the top pill takes up less space.
+- Replaced the wheel-center asset with the newly provided updated wheel artwork.
+- Removed the background from the new wheel artwork and saved it as a transparent asset.
+- Preserved all four directions on the wheel artwork so **North / East / South / West** are no longer cut off.
+- Removed the decorative gold ring treatment from the dashboard moon wheel.
+- Increased the Score Map center wheel slightly while preserving extra safety spacing so it does not overlap notes or scores.
+- Updated cache versions to `0.1.7`.
+- No Supabase migration required.
+
 ## Caddie Magic v0.1.6 — Elegant Navy Clubhouse Styling + Clean Wheel Transparency
 
 - Cleaned the Caddie Magic wheel-center asset so the checkerboard background no longer appears in the portal.

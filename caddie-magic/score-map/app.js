@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.6 — Elegant Navy Clubhouse Styling + Clean Wheel Transparency
+// Caddie Magic v0.1.7 — Font & Styling Elevation + Full Wheel Center Asset
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
