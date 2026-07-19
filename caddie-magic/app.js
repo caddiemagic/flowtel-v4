@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.7 — Font & Styling Elevation + Full Wheel Center Asset
+// Caddie Magic v0.1.8 — Reflections + Collective Swing Map
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
@@ -19,6 +19,7 @@ let playerProfile = null;
 let roundLogs = [];
 let playerNotes = [];
 let selectedMoonDayToken = null;
+let entryMode = "round";
 
 function setMessage(node, message = "", isError = false) {
   if (!node) return;
@@ -166,7 +167,7 @@ function hydrateProfileForm(seed = {}) {
 
 async function savePlayerProfile(event) {
   event?.preventDefault();
-  setMessage(profileMessage, "Saving your locker plate...");
+  setMessage(profileMessage, "Saving your player profile...");
   if (!currentUser) {
     setMessage(profileMessage, "Sign in before saving your player profile.", true);
     return;
@@ -182,7 +183,7 @@ async function savePlayerProfile(event) {
     biggest_frustration: clean($("profileFrustration")?.value) || null,
   };
   if (!payload.first_name) {
-    setMessage(profileMessage, "Add at least a first name to set your locker plate.", true);
+    setMessage(profileMessage, "Add at least a first name to create your player profile.", true);
     return;
   }
   const { data, error } = await supabase
@@ -195,7 +196,7 @@ async function savePlayerProfile(event) {
     return;
   }
   playerProfile = data;
-  setMessage(profileMessage, "Locker plate set.");
+  setMessage(profileMessage, "Player profile saved.");
   await loadPortalData();
   renderPortal();
   showState("portal");
@@ -232,27 +233,41 @@ async function loadPortalData() {
 
 async function logRound(event) {
   event?.preventDefault();
-  setMessage(roundMessage, "Logging your round with the moon...");
+  const isReflection = entryMode === "reflection";
+  setMessage(roundMessage, isReflection ? "Saving your swing thought..." : "Logging your round with the moon...");
   if (!playerProfile) {
-    setMessage(roundMessage, "Set your Player Locker before logging rounds.", true);
+    setMessage(roundMessage, "Set your Player Profile before adding an entry.", true);
     return;
   }
+
   const roundDate = $("roundDate")?.value || todayISO();
   const coursePlayed = clean($("coursePlayed")?.value);
   const score = scoreNumber($("roundScore")?.value);
   const swingThoughts = clean($("swingThoughts")?.value);
-  if (!roundDate || !coursePlayed || !score || !swingThoughts) {
-    setMessage(roundMessage, "Date, course, score, and swing thoughts are required.", true);
+
+  if (!roundDate) {
+    setMessage(roundMessage, "Choose a date for this entry.", true);
     return;
   }
+  if (isReflection && !swingThoughts) {
+    setMessage(roundMessage, "Add the swing thought you want to remember.", true);
+    return;
+  }
+  if (!isReflection && (!coursePlayed || !score)) {
+    setMessage(roundMessage, "Course and score are required for a round. Swing thoughts are optional.", true);
+    return;
+  }
+
   const moon = getMoonMagic(roundDate);
   const payload = {
     player_profile_id: playerProfile.id,
     user_id: currentUser.id,
+    entry_type: isReflection ? "reflection" : "round",
     round_date: roundDate,
-    course_played: coursePlayed,
-    score,
-    swing_thoughts: swingThoughts,
+    course_played: isReflection ? null : coursePlayed,
+    score: isReflection ? null : score,
+    swing_thoughts: swingThoughts || null,
+    share_anonymously: true,
     moon_day: moon.moonDay,
     moon_phase: normalizePhase(moon.phase),
     moon_inner_season: moon.innerSeason,
@@ -261,14 +276,17 @@ async function logRound(event) {
   };
   const { error } = await supabase.from("caddie_magic_round_logs").insert(payload);
   if (error) {
-    setMessage(roundMessage, error.message || "This round could not be logged.", true);
+    setMessage(roundMessage, error.message || "This entry could not be saved.", true);
     return;
   }
+
   $("coursePlayed").value = "";
   $("roundScore").value = "";
   $("swingThoughts").value = "";
   $("roundDate").value = todayISO();
-  setMessage(roundMessage, "Round logged. Your locker and Score Map have been updated.");
+  setMessage(roundMessage, isReflection
+    ? "Swing thought saved. It now appears in your maps and anonymous Collective Swing Map."
+    : "Round logged. Your Scorecard and maps have been updated.");
   await loadPortalData();
   const loggedToken = moon.moonDay >= 28 ? "28plus" : String(moon.moonDay);
   selectedMoonDayToken = loggedToken;
@@ -277,13 +295,13 @@ async function logRound(event) {
 }
 
 function averageScore(logs = roundLogs) {
-  const scores = logs.map((log) => Number(log.score)).filter(Number.isFinite);
+  const scores = logs.filter((log) => log.score !== null && log.score !== "").map((log) => Number(log.score)).filter(Number.isFinite);
   if (!scores.length) return null;
   return Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10;
 }
 
 function bestScore(logs = roundLogs) {
-  const scores = logs.map((log) => Number(log.score)).filter(Number.isFinite);
+  const scores = logs.filter((log) => log.score !== null && log.score !== "").map((log) => Number(log.score)).filter(Number.isFinite);
   return scores.length ? Math.min(...scores) : null;
 }
 
@@ -300,30 +318,41 @@ function logsForDayToken(token) {
 }
 
 function latestSwingThought() {
-  return roundLogs[0]?.swing_thoughts || "No round logged yet.";
+  const latest = roundLogs.find((entry) => clean(entry.swing_thoughts));
+  return latest?.swing_thoughts || "No swing thought logged yet.";
 }
 
 function renderMoonDayDetail(token) {
   const display = dayLabelForToken(token);
   const dayForPhase = token === "28plus" ? 28 : Number(token);
   const phase = phaseForMoonDay(dayForPhase);
-  const matching = logsForDayToken(token).slice(0, 4);
+  const matching = logsForDayToken(token).slice(0, 6);
   $("selectedDayTitle").textContent = `Moon Day ${display} · ${shortPhase(phase)}`;
   const node = $("selectedDayContent");
   if (!node) return;
   if (!matching.length) {
-    node.innerHTML = `<div class="cm-empty">No round has been logged on Moon Day ${escapeHtml(display)} yet.<br>${escapeHtml(caddieTheme(phase))}</div>`;
+    node.innerHTML = `<div class="cm-empty">Nothing has been logged on Moon Day ${escapeHtml(display)} yet.<br>${escapeHtml(caddieTheme(phase))}</div>`;
     return;
   }
-  node.innerHTML = matching.map((log) => `
-    <article class="cm-day-round">
-      <div class="cm-day-round-score">
-        <span>${escapeHtml(formatDate(log.round_date))} · ${escapeHtml(log.course_played)}</span>
-        <strong>${escapeHtml(log.score)}</strong>
-      </div>
-      <p>“${escapeHtml(log.swing_thoughts)}”</p>
-    </article>
-  `).join("");
+  node.innerHTML = matching.map((entry) => {
+    const isReflection = entry.entry_type === "reflection" || entry.score === null;
+    const heading = isReflection
+      ? `${formatDate(entry.round_date)} · Swing Thought`
+      : `${formatDate(entry.round_date)} · ${entry.course_played || "Round"}`;
+    const scoreMarkup = isReflection ? `<span class="cm-entry-kind">Reflection</span>` : `<strong>${escapeHtml(entry.score)}</strong>`;
+    const thought = clean(entry.swing_thoughts)
+      ? `<p>“${escapeHtml(entry.swing_thoughts)}”</p>`
+      : `<p class="cm-no-thought">No swing thought recorded.</p>`;
+    return `
+      <article class="cm-day-round">
+        <div class="cm-day-round-score">
+          <span>${escapeHtml(heading)}</span>
+          ${scoreMarkup}
+        </div>
+        ${thought}
+      </article>
+    `;
+  }).join("");
 }
 
 function positionMoonDayButtons() {
@@ -379,28 +408,31 @@ function renderMoonDashboard() {
 }
 
 function renderStats() {
-  const latest = roundLogs[0];
+  const scoredRounds = roundLogs.filter((entry) => entry.score !== null && entry.score !== "" && Number.isFinite(Number(entry.score)));
+  const latestRound = scoredRounds[0] || null;
+  const latestThoughtEntry = roundLogs.find((entry) => clean(entry.swing_thoughts)) || null;
+  const latestEntry = roundLogs[0] || null;
   const statGrid = $("statGrid");
   if (!statGrid) return;
-  if (!latest) {
-    statGrid.innerHTML = `<div class="cm-empty">Your first scorecard is waiting. Log a round to begin building the locker.</div>`;
+  if (!latestEntry) {
+    statGrid.innerHTML = `<div class="cm-empty">Your first score or swing thought is waiting.</div>`;
     return;
   }
   statGrid.innerHTML = `
     <article class="cm-stat">
       <span>Latest Score</span>
-      <strong>${escapeHtml(latest.score)}</strong>
-      <small>${escapeHtml(latest.course_played)} · ${escapeHtml(formatDate(latest.round_date))}</small>
+      <strong>${latestRound ? escapeHtml(latestRound.score) : "—"}</strong>
+      <small>${latestRound ? `${escapeHtml(latestRound.course_played || "Round")} · ${escapeHtml(formatDate(latestRound.round_date))}` : "No scored round yet"}</small>
     </article>
     <article class="cm-stat">
       <span>Moon Data</span>
-      <strong>Day ${escapeHtml(latest.moon_day || "—")}</strong>
-      <small>${escapeHtml(shortPhase(latest.moon_phase))}</small>
+      <strong>Day ${escapeHtml(latestEntry.moon_day || "—")}</strong>
+      <small>${escapeHtml(shortPhase(latestEntry.moon_phase))}</small>
     </article>
     <article class="cm-stat is-wide">
       <span>Latest Swing Thought</span>
-      <strong class="cm-stat-thought">“${escapeHtml(latest.swing_thoughts)}”</strong>
-      <small>${roundLogs.length} round${roundLogs.length === 1 ? "" : "s"} logged · Best ${bestScore() ?? "—"} · Average ${averageScore() ?? "—"}</small>
+      <strong class="cm-stat-thought">${latestThoughtEntry ? `“${escapeHtml(latestThoughtEntry.swing_thoughts)}”` : "No swing thought logged yet."}</strong>
+      <small>${scoredRounds.length} round${scoredRounds.length === 1 ? "" : "s"} logged · Best ${bestScore(scoredRounds) ?? "—"} · Average ${averageScore(scoredRounds) ?? "—"}</small>
     </article>
   `;
 }
@@ -425,29 +457,36 @@ function renderHistory() {
   const node = $("roundHistory");
   if (!node) return;
   if (!roundLogs.length) {
-    node.innerHTML = `<div class="cm-empty">Your first scorecard is waiting. Log a round to begin collecting the pattern.</div>`;
+    node.innerHTML = `<div class="cm-empty">Your first score or swing thought is waiting.</div>`;
     return;
   }
-  node.innerHTML = `<div class="cm-history-list">${roundLogs.map((log) => `
-    <article class="cm-round-row">
-      <div><span class="cm-tag">${escapeHtml(formatDate(log.round_date))}</span></div>
-      <div>
-        <h3>${escapeHtml(log.course_played)}</h3>
-        <p>“${escapeHtml(log.swing_thoughts)}”</p>
-      </div>
-      <div>
-        <strong>${escapeHtml(log.score)}</strong>
-        <div class="cm-round-meta">
-          <span class="cm-tag">Moon Day ${escapeHtml(log.moon_day || "—")}</span>
-          <span class="cm-tag">${escapeHtml(shortPhase(log.moon_phase))}</span>
+  node.innerHTML = `<div class="cm-history-list">${roundLogs.map((entry) => {
+    const isReflection = entry.entry_type === "reflection" || entry.score === null;
+    const title = isReflection ? "Swing Thought" : (entry.course_played || "Round");
+    const thought = clean(entry.swing_thoughts)
+      ? `“${escapeHtml(entry.swing_thoughts)}”`
+      : "No swing thought recorded.";
+    return `
+      <article class="cm-round-row">
+        <div><span class="cm-tag">${escapeHtml(formatDate(entry.round_date))}</span></div>
+        <div>
+          <h3>${escapeHtml(title)}</h3>
+          <p>${thought}</p>
         </div>
-      </div>
-    </article>
-  `).join("")}</div>`;
+        <div>
+          <strong>${isReflection ? "Reflection" : escapeHtml(entry.score)}</strong>
+          <div class="cm-round-meta">
+            <span class="cm-tag">Moon Day ${escapeHtml(entry.moon_day || "—")}</span>
+            <span class="cm-tag">${escapeHtml(shortPhase(entry.moon_phase))}</span>
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("")}</div>`;
 }
 
 function renderPortal() {
-  $("lockerTitle").textContent = `${displayName()}'s Locker`;
+  $("lockerTitle").textContent = displayName();
   renderMoonDashboard();
   renderStats();
   renderNotes();
@@ -467,7 +506,7 @@ async function bootPortal(seed = {}) {
     if (!playerProfile) {
       hydrateProfileForm(seed);
       showState("profile");
-      setMessage(profileMessage, "Set your Player Locker once. Then every round has somewhere to land.");
+      setMessage(profileMessage, "Set your Player Profile once. Then every score and reflection has somewhere to land.");
       return;
     }
     hydrateProfileForm();
@@ -501,6 +540,23 @@ function scrollToPortalTarget(targetId) {
   target?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function setEntryMode(mode) {
+  entryMode = mode === "reflection" ? "reflection" : "round";
+  const isReflection = entryMode === "reflection";
+  document.querySelectorAll(".cm-round-only-field").forEach((field) => field.classList.toggle("hidden", isReflection));
+  $("coursePlayed").required = !isReflection;
+  $("roundScore").required = !isReflection;
+  $("swingThoughts").required = isReflection;
+  $("roundModeButton")?.classList.toggle("is-active", !isReflection);
+  $("reflectionModeButton")?.classList.toggle("is-active", isReflection);
+  $("entrySubmitButton").textContent = isReflection ? "Save Swing Thought" : "Log Round";
+  $("entryModeCopy").textContent = isReflection
+    ? "No round required. Leave the thought you want to remember."
+    : "Only the essentials: date, course, score, and an optional swing thought.";
+  $("swingThoughtOptionalLabel").textContent = isReflection ? "Required" : "Optional";
+  setMessage(roundMessage, "");
+}
+
 function bindEvents() {
   $("signInButton")?.addEventListener("click", signIn);
   $("createAccountButton")?.addEventListener("click", createAccount);
@@ -508,6 +564,9 @@ function bindEvents() {
   $("roundForm")?.addEventListener("submit", logRound);
   $("signOutButton")?.addEventListener("click", signOut);
   $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
+  $("roundModeButton")?.addEventListener("click", () => setEntryMode("round"));
+  $("reflectionModeButton")?.addEventListener("click", () => setEntryMode("reflection"));
+  setEntryMode("round");
 }
 
 bindEvents();

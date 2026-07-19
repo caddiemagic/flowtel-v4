@@ -1,0 +1,61 @@
+.cm-collective-shell{width:min(calc(100% - 34px),1260px)}
+.cm-collective-hero{padding-bottom:32px}
+.cm-collective-hero h1{font-size:clamp(1.75rem,4vw,2.7rem)}
+.cm-collective-hero-actions{display:flex;justify-content:center;gap:12px;margin-top:20px}
+.cm-collective-hero-actions .cm-button{min-width:210px}
+.cm-collective-card{padding:20px}
+.cm-collective-toolbar{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;padding:2px 6px 16px}
+.cm-collective-filters{display:flex;align-items:center;border:1px solid var(--line);border-radius:999px;overflow:hidden;background:#091a2a}
+.cm-collective-filter{min-height:38px;border:0;border-right:1px solid var(--line-soft);padding:0 18px;color:var(--gold);background:transparent;cursor:pointer;font:700 .56rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.cm-collective-filter:last-child{border-right:0}
+.cm-collective-filter.is-active{color:var(--ivory);background:linear-gradient(180deg,var(--green),var(--green-2))}
+.cm-anonymous-disclosure{justify-self:end;display:flex;gap:10px;align-items:center;max-width:520px;color:var(--muted);font:.78rem/1.5 var(--font-body);text-align:right}
+.cm-anonymous-disclosure span{flex:0 0 34px;width:34px;height:34px;border:1px solid var(--line-soft);border-radius:50%;display:grid;place-items:center;color:var(--gold);background:#091a2a}
+.cm-anonymous-disclosure p{margin:0}.cm-anonymous-disclosure strong{color:var(--ivory)}
+.cm-collective-map{
+  --collective-gap:1px;
+  position:relative;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  grid-template-rows:repeat(2,minmax(340px,1fr));
+  align-items:stretch;
+  border:1px solid var(--line);
+  border-radius:26px;
+  overflow:hidden;
+  background:#091a2a;
+}
+.cm-collective-axis{position:absolute;z-index:3;background:rgba(211,173,105,.55);pointer-events:none}
+.cm-collective-axis-y{top:0;bottom:0;left:50%;width:1px}
+.cm-collective-axis-x{left:0;right:0;top:50%;height:1px}
+.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:56px;height:56px;transform:translate(-50%,-50%);border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--gold);background:#071725;box-shadow:0 0 0 10px rgba(7,23,37,.95)}
+.cm-collective-quadrant{position:relative;z-index:2;min-height:340px;padding:24px 28px;transition:min-height .2s ease}
+.cm-collective-west,.cm-collective-north{border-bottom:1px solid var(--line-soft)}
+.cm-collective-west,.cm-collective-south{border-right:1px solid var(--line-soft)}
+.cm-collective-quadrant header{margin-bottom:16px}
+.cm-collective-quadrant header p{margin:0 0 6px;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.cm-collective-quadrant h2{font:500 1.1rem var(--font-display);letter-spacing:.08em;text-transform:uppercase}
+.cm-collective-notes{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;align-content:start}
+.cm-collective-note{border:1px solid var(--line-soft);border-radius:18px;padding:15px;background:#0b2033;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+.cm-collective-note span{display:block;margin-bottom:10px;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
+.cm-collective-note p{margin:0;color:var(--ivory);font:500 .96rem/1.55 var(--font-body)}
+.cm-collective-empty{border:1px dashed rgba(211,173,105,.20);border-radius:16px;padding:16px;color:var(--muted);font:.82rem/1.55 var(--font-body);background:rgba(7,23,37,.38)}
+.cm-collective-range{margin:15px 0 0;color:var(--muted);font:.76rem/1.5 var(--font-body);text-align:center}
+@media(max-width:900px){
+  .cm-collective-toolbar{grid-template-columns:1fr}
+  .cm-anonymous-disclosure{justify-self:start;text-align:left}
+  .cm-collective-quadrant{padding:22px 20px}
+  .cm-collective-notes{grid-template-columns:1fr}
+}
+@media(max-width:700px){
+  .cm-collective-shell{width:min(calc(100% - 18px),1260px)}
+  .cm-collective-hero-actions{display:grid}
+  .cm-collective-hero-actions .cm-button{min-width:0;width:100%}
+  .cm-collective-card{padding:10px}
+  .cm-collective-filters{width:100%}
+  .cm-collective-filter{flex:1;padding:0 8px}
+  .cm-collective-map{display:flex;flex-direction:column;overflow:visible}
+  .cm-collective-axis,.cm-collective-center{display:none}
+  .cm-collective-quadrant{min-height:240px;border-right:0!important;border-bottom:1px solid var(--line-soft)}
+  .cm-collective-east{border-bottom:0}
+  .cm-collective-west{order:1}.cm-collective-south{order:2}.cm-collective-east{order:3}.cm-collective-north{order:4}
+}

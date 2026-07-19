@@ -106,3 +106,40 @@
   .cm-map-east{order:3}
   .cm-map-north{order:4}
 }
+
+/* Caddie Magic v0.1.8 — simplified cards + detail popout */
+.cm-map-hero-actions{display:flex;gap:10px;justify-content:center;margin-top:18px}
+.cm-map-hero-actions .cm-button{min-width:190px}
+.cm-back-button{position:static;right:auto;bottom:auto}
+.cm-map-note{
+  width:100%;
+  appearance:none;
+  text-align:left;
+  cursor:pointer;
+  color:inherit;
+  font:inherit;
+  display:grid;
+  gap:10px;
+  transition:transform .18s ease,border-color .18s ease,background-color .18s ease;
+}
+.cm-map-note:hover{transform:translateY(-1px);border-color:rgba(211,173,105,.45);background:#10283d}
+.cm-map-note-score{display:block;color:var(--gold-soft);font:500 1.18rem var(--font-display)}
+.cm-map-note-thought{margin:0;color:var(--ivory);font:500 .9rem/1.5 var(--font-body)}
+.cm-modal{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px}
+.cm-modal-backdrop{position:absolute;inset:0;border:0;background:rgba(0,7,13,.78);cursor:pointer}
+.cm-modal-card{position:relative;z-index:1;width:min(620px,100%);border:1px solid var(--line);border-radius:26px;padding:28px;background:#081a2a;box-shadow:0 30px 80px rgba(0,0,0,.48)}
+.cm-modal-close{position:absolute;top:15px;right:17px;width:36px;height:36px;border:1px solid var(--line-soft);border-radius:50%;color:var(--gold);background:#071725;cursor:pointer;font:400 1.35rem/1 var(--font-body)}
+.cm-modal-detail-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.cm-modal-detail{border:1px solid var(--line-soft);border-radius:16px;padding:15px;background:#0b2033}
+.cm-modal-detail span{display:block;margin-bottom:7px;color:var(--gold);font:700 .54rem var(--font-body);letter-spacing:.13em;text-transform:uppercase}
+.cm-modal-detail strong{display:block;color:var(--ivory);font:500 1rem/1.45 var(--font-display)}
+.cm-modal-detail-wide{grid-column:1/-1}
+body.cm-modal-open{overflow:hidden}
+@media(max-width:700px){
+  .cm-map-hero-actions{display:grid}
+  .cm-map-hero-actions .cm-button{min-width:0;width:100%}
+  .cm-modal{padding:14px}
+  .cm-modal-card{padding:24px 18px}
+  .cm-modal-detail-grid{grid-template-columns:1fr}
+  .cm-modal-detail-wide{grid-column:auto}
+}

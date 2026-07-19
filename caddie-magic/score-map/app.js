@@ -1,4 +1,4 @@
-// Caddie Magic v0.1.7 — Font & Styling Elevation + Full Wheel Center Asset
+// Caddie Magic v0.1.8 — Reflections + Collective Swing Map
 
 import { supabase } from "../../shared/supabase.js";
 import { getMoonMagic } from "../../shared/moon.js";
@@ -111,7 +111,7 @@ function rangeLabel() {
 }
 
 function averageScore(logs) {
-  const scores = logs.map((log) => Number(log.score)).filter(Number.isFinite);
+  const scores = logs.filter((log) => log.score !== null && log.score !== "").map((log) => Number(log.score)).filter(Number.isFinite);
   if (!scores.length) return null;
   return Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10;
 }
@@ -125,17 +125,15 @@ function phaseDefinitions() {
   ];
 }
 
-function noteMarkup(log) {
+function noteMarkup(entry) {
+  const isReflection = entry.entry_type === "reflection" || entry.score === null;
+  const scoreLabel = isReflection ? "Reflection" : entry.score;
+  const thought = String(entry.swing_thoughts || "").trim() || "No swing thought recorded.";
   return `
-    <article class="cm-map-note">
-      <div class="cm-map-note-head">
-        <span>Moon Day ${escapeHtml(log.moon_day || "—")}</span>
-        <span class="cm-map-note-score">${escapeHtml(log.score)}</span>
-      </div>
-      <p class="cm-map-note-course">${escapeHtml(log.course_played)}</p>
-      <p class="cm-map-note-thought">“${escapeHtml(log.swing_thoughts)}”</p>
-      <span class="cm-map-note-date">${escapeHtml(formatDate(log.round_date))}</span>
-    </article>
+    <button class="cm-map-note" type="button" data-entry-id="${escapeHtml(entry.id)}" aria-label="Open scorecard detail">
+      <span class="cm-map-note-score">${escapeHtml(scoreLabel)}</span>
+      <p class="cm-map-note-thought">${escapeHtml(thought)}</p>
+    </button>
   `;
 }
 
@@ -146,8 +144,9 @@ function renderQuadrants(logs) {
     const phaseLogs = logs.filter((log) => normalizePhase(log.moon_phase) === definition.phase);
     node.innerHTML = phaseLogs.length
       ? phaseLogs.map(noteMarkup).join("")
-      : `<div class="cm-map-empty">No rounds have landed in ${escapeHtml(definition.club)} for this view.</div>`;
+      : `<div class="cm-map-empty">No entries have landed in ${escapeHtml(definition.club)} for this view.</div>`;
   });
+  bindScoreCards();
 }
 
 function renderSnapshot() {
@@ -162,27 +161,27 @@ function renderInsights(logs) {
   if (!node) return;
   if (!logs.length) {
     node.innerHTML = `
-      <article class="cm-insight"><span class="cm-insight-icon">◐</span><span><strong>Log a round to begin.</strong><br>The Score Map needs real cards before it can reveal a pattern.</span></article>
+      <article class="cm-insight"><span class="cm-insight-icon">◐</span><span><strong>Log a score or swing thought to begin.</strong><br>The Score Map needs real entries before it can reveal a pattern.</span></article>
       <article class="cm-insight"><span class="cm-insight-icon">✦</span><span><strong>One swing thought is enough.</strong><br>Keep the note simple and memorable.</span></article>
-      <article class="cm-insight"><span class="cm-insight-icon">⌁</span><span><strong>The map grows over time.</strong><br>Each moon phase gives the score a different context.</span></article>
+      <article class="cm-insight"><span class="cm-insight-icon">⌁</span><span><strong>The map grows over time.</strong><br>Each moon phase gives scores and thoughts a different context.</span></article>
     `;
     return;
   }
 
   const groups = phaseDefinitions().map((definition) => {
     const phaseLogs = logs.filter((log) => normalizePhase(log.moon_phase) === definition.phase);
-    return { ...definition, logs: phaseLogs, average: averageScore(phaseLogs) };
+    return { ...definition, logs: phaseLogs, scored: phaseLogs.filter((entry) => entry.score !== null && entry.score !== ""), average: averageScore(phaseLogs) };
   });
   const scoredGroups = groups.filter((group) => group.average !== null);
   const lowest = [...scoredGroups].sort((a, b) => a.average - b.average)[0];
   const busiest = [...groups].sort((a, b) => b.logs.length - a.logs.length)[0];
   const tempoCount = logs.filter((log) => /tempo|rhythm|smooth|patient|trust/i.test(log.swing_thoughts || "")).length;
   const lowestCopy = lowest
-    ? `<strong>${escapeHtml(lowest.club)} holds the lowest average.</strong><br>${escapeHtml(lowest.average)} across ${lowest.logs.length} round${lowest.logs.length === 1 ? "" : "s"}.`
-    : `<strong>The lowest-score pattern is still forming.</strong><br>Keep logging cards across the moon.`;
+    ? `<strong>${escapeHtml(lowest.club)} holds the lowest average.</strong><br>${escapeHtml(lowest.average)} across ${lowest.scored.length} round${lowest.scored.length === 1 ? "" : "s"}.`
+    : `<strong>The lowest-score pattern is still forming.</strong><br>Keep logging scores and thoughts across the moon.`;
   const busiestCopy = busiest?.logs.length
-    ? `<strong>${escapeHtml(busiest.club)} holds the most rounds.</strong><br>${busiest.logs.length} card${busiest.logs.length === 1 ? "" : "s"} in this view.`
-    : `<strong>The club quadrants are still open.</strong><br>Your next round gives the map more shape.`;
+    ? `<strong>${escapeHtml(busiest.club)} holds the most entries.</strong><br>${busiest.logs.length} entr${busiest.logs.length === 1 ? "y" : "ies"} in this view.`
+    : `<strong>The club quadrants are still open.</strong><br>Your next score or thought gives the map more shape.`;
   const tempoCopy = `<strong>${tempoCount} of ${logs.length} swing thought${logs.length === 1 ? "" : "s"} name tempo, rhythm, patience, or trust.</strong><br>Use that language as an early pattern marker.`;
 
   node.innerHTML = `
@@ -192,13 +191,57 @@ function renderInsights(logs) {
   `;
 }
 
+function detailMarkup(entry) {
+  const isReflection = entry.entry_type === "reflection" || entry.score === null;
+  const details = [
+    ["Entry", isReflection ? "Swing Thought" : "Scored Round"],
+    ["Date", formatDate(entry.round_date)],
+    ["Moon Day", entry.moon_day ? `Day ${entry.moon_day}` : "—"],
+    ["Moon Phase", shortPhase(entry.moon_phase)],
+  ];
+  if (!isReflection) {
+    details.splice(2, 0, ["Course", entry.course_played || "—"], ["Score", entry.score ?? "—"]);
+  }
+  const thought = String(entry.swing_thoughts || "").trim();
+  return `${details.map(([label, value]) => `
+    <div class="cm-modal-detail">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join("")}
+  <div class="cm-modal-detail cm-modal-detail-wide">
+    <span>Swing Thought</span>
+    <strong>${thought ? `“${escapeHtml(thought)}”` : "No swing thought recorded."}</strong>
+  </div>`;
+}
+
+function openScoreDetail(entryId) {
+  const entry = allLogs.find((item) => String(item.id) === String(entryId));
+  if (!entry) return;
+  $("scoreDetailTitle").textContent = entry.entry_type === "reflection" || entry.score === null ? "Swing Thought" : "Round Details";
+  $("scoreDetailContent").innerHTML = detailMarkup(entry);
+  $("scoreDetailModal").classList.remove("hidden");
+  document.body.classList.add("cm-modal-open");
+}
+
+function closeScoreDetail() {
+  $("scoreDetailModal")?.classList.add("hidden");
+  document.body.classList.remove("cm-modal-open");
+}
+
+function bindScoreCards() {
+  document.querySelectorAll(".cm-map-note[data-entry-id]").forEach((card) => {
+    card.addEventListener("click", () => openScoreDetail(card.dataset.entryId));
+  });
+}
+
 function render() {
   const logs = selectedLogs();
   renderQuadrants(logs);
   renderSnapshot();
   renderInsights(logs);
   $("playerViewLabel").textContent = `${displayName()} · Player View`;
-  $("mapRangeCopy").textContent = `${rangeLabel()} · ${logs.length} round${logs.length === 1 ? "" : "s"}`;
+  $("mapRangeCopy").textContent = `${rangeLabel()} · ${logs.length} entr${logs.length === 1 ? "y" : "ies"}`;
   document.querySelectorAll(".cm-filter-button").forEach((button) => {
     button.classList.toggle("is-active", button.dataset.range === activeRange);
   });
@@ -218,22 +261,27 @@ async function init() {
     const { data } = await supabase.auth.getSession();
     currentUser = data.session?.user || null;
     if (!currentUser) {
-      throw new Error("Sign in through the Caddie Magic Locker to open your Moon Score Map.");
+      throw new Error("Sign in through Caddie Magic to open your Score Map.");
     }
     playerProfile = await fetchProfile();
     if (!playerProfile) {
-      throw new Error("Set your Player Locker before opening the Moon Score Map.");
+      throw new Error("Set your Player Profile before opening the Score Map.");
     }
     allLogs = await fetchLogs();
     bindFilters();
+    $("scoreDetailClose")?.addEventListener("click", closeScoreDetail);
+    $("scoreDetailBackdrop")?.addEventListener("click", closeScoreDetail);
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeScoreDetail();
+    });
     render();
   } catch (error) {
     console.error(error);
-    $("scoreMapMessage").textContent = error?.message || "The Moon Score Map could not open.";
+    $("scoreMapMessage").textContent = error?.message || "The Score Map could not open.";
     renderQuadrants([]);
     renderSnapshot();
     renderInsights([]);
-    $("mapRangeCopy").textContent = "Return to the Locker to sign in.";
+    $("mapRangeCopy").textContent = "Return to the Player Profile to sign in.";
   }
 }
 

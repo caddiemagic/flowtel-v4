@@ -1,3 +1,20 @@
+## Caddie Magic v0.1.8 — Reflections + Collective Swing Map
+
+- Renamed the main hero to **SCORECARD** and updated its supporting copy.
+- Renamed visible Player Locker language to **Player Profile** while preserving the requested “Your private locker on the moon” copy.
+- Changed the player profile heading to show only the player’s name.
+- Renamed **Moon Score Map** to **SCORE MAP** and removed its subtitle.
+- Made Swing Thoughts optional for scored rounds.
+- Added a **Just a Swing Thought** mode for thought-only reflections with no course or score required.
+- Stored thought-only reflections with moon data so they appear throughout the Scorecard, history, moon-day detail, and maps.
+- Simplified personal Score Map cards to show only score / Reflection and swing thought.
+- Added a click-to-open Score Map detail popout for remaining entry information.
+- Added `/caddie-magic/collective-map/` as an anonymous collective view inspired by the Flowtel Powder Rooms.
+- Collective cards show only Moon Day and swing-thought text and never expose names, courses, scores, dates, or player IDs.
+- Added Current Moon, Last Moon, and All filters to the Collective Swing Map.
+- Added auto-expanding collective quadrants as more thoughts are shared.
+- Added migration 040 for optional round thoughts, thought-only reflections, and the anonymous collective RPC.
+
 ## Caddie Magic v0.1.7 — Elevated Clubhouse Fonts + Full Direction Wheel Asset
 
 - Added a more distinct typography pairing across the Caddie Magic suite using a refined club-style display font and cleaner body font.

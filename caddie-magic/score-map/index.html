@@ -3,25 +3,28 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Caddie Magic Moon Score Map</title>
+  <title>Caddie Magic Score Map</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.1.7" />
-  <link rel="stylesheet" href="./styles.css?v=0.1.7" />
+  <link rel="stylesheet" href="../styles.css?v=0.1.8" />
+  <link rel="stylesheet" href="./styles.css?v=0.1.8" />
 </head>
 <body class="cm-map-page">
   <main class="cm-shell cm-score-map-shell">
     <section class="cm-hero cm-map-hero">
-      <span class="cm-version">v0.1.7</span>
+      <span class="cm-version">v0.1.8</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
         <p class="cm-eyebrow">CADDIE MAGIC</p>
-        <h1>Moon Score Map</h1>
-        <p class="cm-lead">Review your rounds across the moon’s phases and spot the patterns your caddie would notice.</p>
+        <h1>SCORE MAP</h1>
+        
       </div>
-      <a class="cm-button secondary cm-back-button" href="/caddie-magic/">← Back to Locker</a>
+      <div class="cm-map-hero-actions">
+        <a class="cm-button secondary" href="/caddie-magic/collective-map/">Collective Swing Map</a>
+        <a class="cm-button secondary cm-back-button" href="/caddie-magic/">← Back to Player Profile</a>
+      </div>
     </section>
 
     <section class="cm-card cm-score-map-card">
@@ -93,12 +96,22 @@
     </section>
 
     <section class="cm-card cm-insights-card">
-      <p class="cm-eyebrow">ROUND INSIGHTS</p>
+      <p class="cm-eyebrow">PATTERN INSIGHTS</p>
       <div class="cm-insight-grid" id="roundInsights"></div>
     </section>
 
+    <div class="cm-modal hidden" id="scoreDetailModal" role="dialog" aria-modal="true" aria-labelledby="scoreDetailTitle">
+      <button class="cm-modal-backdrop" id="scoreDetailBackdrop" type="button" aria-label="Close score detail"></button>
+      <article class="cm-modal-card">
+        <button class="cm-modal-close" id="scoreDetailClose" type="button" aria-label="Close">×</button>
+        <p class="cm-eyebrow">SCORECARD DETAIL</p>
+        <h2 id="scoreDetailTitle">Entry Details</h2>
+        <div class="cm-modal-detail-grid" id="scoreDetailContent"></div>
+      </article>
+    </div>
+
     <p class="cm-message" id="scoreMapMessage"></p>
   </main>
-  <script type="module" src="./app.js?v=0.1.7"></script>
+  <script type="module" src="./app.js?v=0.1.8"></script>
 </body>
 </html>

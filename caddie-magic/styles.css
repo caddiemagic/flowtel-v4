@@ -246,3 +246,25 @@ h3{font-size:1.14rem;line-height:1.15}
   .cm-day-button{width:28px;height:28px;margin:-14px;font-size:.56rem}
   .cm-moon-wheel{width:min(100%,470px)}
 }
+
+/* Caddie Magic v0.1.8 — scorecard, reflection mode, and collective map doorway */
+.cm-hero-actions{grid-template-columns:repeat(3,minmax(0,1fr));max-width:720px}
+.cm-hero h1{font-size:clamp(1.55rem,3.1vw,2.25rem);letter-spacing:.08em;text-transform:uppercase}
+.cm-entry-mode{display:flex;align-items:center;gap:8px;margin-top:16px;padding:4px;border:1px solid var(--line-soft);border-radius:999px;background:#071725;width:fit-content;max-width:100%}
+.cm-entry-mode-button{min-height:34px;border:0;border-radius:999px;padding:0 15px;color:var(--muted);background:transparent;cursor:pointer;font:700 .56rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
+.cm-entry-mode-button.is-active{color:var(--ivory);background:#102b43;box-shadow:inset 0 0 0 1px rgba(211,173,105,.24)}
+.cm-optional-label{margin-left:7px;color:var(--muted);font-size:.52rem;letter-spacing:.1em}
+.cm-entry-kind{display:inline-flex;border:1px solid var(--line-soft);border-radius:999px;padding:6px 9px;color:var(--gold);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.cm-no-thought{color:var(--muted);font-style:italic}
+.cm-history-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.cm-history-actions .cm-button{min-width:150px}
+.cm-round-row>div:last-child strong{max-width:150px}
+@media(max-width:900px){
+  .cm-hero-actions{grid-template-columns:1fr;max-width:420px}
+}
+@media(max-width:700px){
+  .cm-entry-mode{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .cm-entry-mode-button{padding:0 8px}
+  .cm-history-actions{display:grid;justify-content:stretch;width:100%}
+  .cm-history-actions .cm-button{min-width:0}
+}
