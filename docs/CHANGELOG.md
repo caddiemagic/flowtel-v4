@@ -1,3 +1,21 @@
+## Caddie Magic v0.4.4 — Verified Portal Update + Mobile Route Repair
+
+- Rebuilt the requested update set from the latest integrated `flowtel-v4(38).zip` rather than the older Caddie-only base.
+- Added explicit Vercel rewrites for Compass, Compass Admin, Score Map, Locker Room, and printable Score Map routes to prevent nested-route JSON responses on mobile.
+- Added no-cache beta headers for Caddie Magic and manager routes so deployed HTML and JavaScript do not remain visually stuck on an older release.
+- Corrected the wooden-wheel assets: the Moon Score Data wheel now uses the transparent direction-labeled image, while Score Map, Locker Room, and Compass centers use the transparent unlabeled image.
+- Removed the **Download Score Map Exercise** button.
+- Added the 28-day Pattern Insights gate and daily-tracking encouragement.
+- Added authoritative exact-event language for New Moon, First Quarter Moon, Full Moon, and Last Quarter Moon while preserving multi-day **Phase** labels on all other dates.
+- Rebuilt the owner Upcoming Golf calendar as a moon-to-moon calendar beginning on New Moon and titled with the 13 Moons curriculum name.
+- Added `MON 00` Gregorian date labels, Moon Day numbers, and the four exact lunar-event markers.
+- Added direct **Reply to Message** access from the Concierge Desk and anchored the player admin page directly to Messages.
+- Kept Messages unavailable until a player submits the Caddie Compass and made the sequence explicit.
+- Expanded the Player Profile snapshot with direct Assignments, Messages, and Calendar cards.
+- Added the player’s corresponding cardinal club beneath the current Moon Phase without changing the snapshot-card size.
+- Matched Score Map mobile segmented controls to the Locker Room layout.
+- No Supabase migration required.
+
 ## v0.10.56 — Admin Team Map + Flowtel Honors + Priestess Mailbox
 
 - Adds an owner-only **28-Day Team Map** to the Concierge Desk for eligible team members who checked in during the last 28 Flowtel Days.

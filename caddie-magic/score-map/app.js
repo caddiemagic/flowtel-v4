@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.1 — Score Map + Caddie Compass Release
+// Caddie Magic v0.4.4 — 28-Day Pattern Window + Mobile Controls
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.1";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.4";
 import { getMoonMagic } from "../../shared/moon.js";
 
 const $ = (id) => document.getElementById(id);
@@ -20,6 +20,27 @@ function todayISO() {
   const date = new Date();
   date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
   return date.toISOString().slice(0, 10);
+}
+
+function addDaysISO(iso, days) {
+  const [year, month, day] = String(iso).slice(0, 10).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  date.setUTCDate(date.getUTCDate() + Number(days || 0));
+  return date.toISOString().slice(0, 10);
+}
+
+function daysBetweenISO(start, end) {
+  const startDate = new Date(`${String(start).slice(0, 10)}T12:00:00Z`);
+  const endDate = new Date(`${String(end).slice(0, 10)}T12:00:00Z`);
+  return Math.floor((endDate - startDate) / 86400000);
+}
+
+function firstEntryDate() {
+  const dates = allLogs
+    .map((entry) => String(entry.round_date || entry.created_at || "").slice(0, 10))
+    .filter(Boolean)
+    .sort();
+  return dates[0] || "";
 }
 
 function normalizePhase(phase = "") {
@@ -186,11 +207,28 @@ function renderSnapshot() {
 function renderInsights(logs) {
   const node = $("roundInsights");
   if (!node) return;
-  if (!logs.length) {
+  const firstDate = firstEntryDate();
+
+  if (!firstDate) {
     node.innerHTML = `
-      <article class="cm-insight"><span class="cm-insight-icon">◐</span><span><strong>Log a score or swing thought to begin.</strong><br>The Score Map needs real entries before it can reveal a pattern.</span></article>
-      <article class="cm-insight"><span class="cm-insight-icon">✦</span><span><strong>One swing thought is enough.</strong><br>Keep the note simple and memorable.</span></article>
-      <article class="cm-insight"><span class="cm-insight-icon">⌁</span><span><strong>The map grows over time.</strong><br>Each moon phase gives scores and thoughts a different context.</span></article>
+      <article class="cm-insight is-wide">
+        <span class="cm-insight-icon">◐</span>
+        <span><strong>Insights begin 28 days after your first entry.</strong><br>Track daily to give your Caddie a clear view of one complete moon cycle.</span>
+      </article>
+    `;
+    return;
+  }
+
+  const unlockDate = addDaysISO(firstDate, 28);
+  const remaining = Math.max(0, daysBetweenISO(todayISO(), unlockDate));
+  const trackedDays = Math.min(28, Math.max(1, daysBetweenISO(firstDate, todayISO()) + 1));
+
+  if (remaining > 0) {
+    node.innerHTML = `
+      <article class="cm-insight is-wide">
+        <span class="cm-insight-icon">${trackedDays}</span>
+        <span><strong>${remaining} day${remaining === 1 ? "" : "s"} until your first pattern window opens.</strong><br>Insights begin ${escapeHtml(formatDate(unlockDate))}. Keep tracking daily so the full swing cycle can reveal itself.</span>
+      </article>
     `;
     return;
   }
@@ -209,7 +247,7 @@ function renderInsights(logs) {
   const busiestCopy = busiest?.logs.length
     ? `<strong>${escapeHtml(busiest.club)} holds the most entries.</strong><br>${busiest.logs.length} entr${busiest.logs.length === 1 ? "y" : "ies"} in this view.`
     : `<strong>The club quadrants are still open.</strong><br>Your next score or thought gives the map more shape.`;
-  const tempoCopy = `<strong>${tempoCount} of ${logs.length} swing thought${logs.length === 1 ? "" : "s"} name tempo, rhythm, patience, or trust.</strong><br>Use that language as an early pattern marker.`;
+  const tempoCopy = `<strong>${tempoCount} of ${logs.length} swing thought${logs.length === 1 ? "" : "s"} name tempo, rhythm, patience, or trust.</strong><br>Your first 28-day pattern window is open. Keep tracking daily.`;
 
   node.innerHTML = `
     <article class="cm-insight"><span class="cm-insight-icon">▥</span><span>${lowestCopy}</span></article>

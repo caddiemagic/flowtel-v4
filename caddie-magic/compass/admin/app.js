@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.1 — Owner Compass + Homework + Upcoming Golf
+// Caddie Magic v0.4.4 — Owner Compass + Direct Message Reply
 
 import { supabase } from "../../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.4.1";
+import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.4.4";
 import {
   listCompassPlayers,
   getCompassForPlayer,
@@ -10,8 +10,9 @@ import {
   createCompassAssignment,
   sendCompassDispatch,
   adminUpdateCompassAssignment,
-} from "../../../shared/caddie-magic-compass.js?v=0.4.1";
-import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.4.1";
+} from "../../../shared/caddie-magic-compass.js?v=0.4.4";
+import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.4.4";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../../shared/caddie-magic-moon-calendar.js?v=0.4.4";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
@@ -73,9 +74,7 @@ function titleCase(value = "") {
 }
 
 function shortMoonPhase(value = "") {
-  if (value === "Half Full Moon Phase") return "First Quarter Phase";
-  if (value === "Half New Moon Phase") return "Last Quarter Phase";
-  return String(value || "").replace(" Phase", "");
+  return normalizeCaddieMoonPhase(value);
 }
 
 function clubForDirection(direction) {
@@ -173,6 +172,10 @@ function assignmentTitle(id) {
 
 function renderDispatches() {
   const thread = $("adminDispatchThread");
+  const latestPlayer = [...dispatches].reverse().find((item) => item.sender_role === "player");
+  const latestCaddie = [...dispatches].reverse().find((item) => item.sender_role === "caddie");
+  const waiting = Boolean(latestPlayer) && (!latestCaddie || new Date(latestPlayer.created_at) > new Date(latestCaddie.created_at));
+  $("adminMessageAlert")?.classList.toggle("hidden", !waiting);
   thread.innerHTML = dispatches.length
     ? dispatches.map((dispatch) => `
       <article class="dispatch-bubble ${dispatch.sender_role === "caddie" ? "is-player" : "is-caddie"}">
@@ -215,7 +218,7 @@ function renderUpcomingGolf() {
         ${place ? `<p>${escapeHtml(place)}</p>` : ""}
         ${event.notes ? `<p>${escapeHtml(event.notes)}</p>` : ""}
         <div class="admin-golf-forecast">
-          ${forecast.map((day) => `<span>${escapeHtml(formatDate(day.date))} · Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(shortMoonPhase(day.moon_phase))}</span>`).join("")}
+          ${forecast.map((day) => `<span>${escapeHtml(formatDate(day.date))} · Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(moonLabelForDate(day.date, day.moon_phase))}</span>`).join("")}
         </div>
       </article>
     `;
@@ -269,6 +272,14 @@ async function handleDispatchSubmit(event) {
   }
 }
 
+function openRequestedAdminSection() {
+  if (window.location.hash !== "#messages") return;
+  window.setTimeout(() => {
+    $("messages")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    $("adminDispatchMessage")?.focus();
+  }, 120);
+}
+
 async function init() {
   await requireCaddieMagicAccess();
   try {
@@ -301,6 +312,7 @@ async function init() {
     renderUpcomingGolf();
     renderAssignments();
     renderDispatches();
+    openRequestedAdminSection();
   } catch (error) {
     console.error(error);
     setMessage($("adminPageMessage"), error?.message || "Caddie Compass administration could not open.", true);

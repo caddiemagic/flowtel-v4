@@ -7,20 +7,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../../styles.css?v=0.4.1" />
-  <link rel="stylesheet" href="../styles.css?v=0.4.1" />
-  <link rel="stylesheet" href="./styles.css?v=0.4.1" />
+  <link rel="stylesheet" href="../../styles.css?v=0.4.4" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.4" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.4" />
 </head>
 <body>
   <main class="cm-shell compass-admin-shell">
     <section class="cm-hero compass-admin-hero">
-      <span class="cm-version">v0.4.1</span>
+      <span class="cm-version">v0.4.4</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
         <p class="cm-eyebrow">OWNER CADDIE DESK</p>
         <h1 id="adminPlayerName">CADDIE COMPASS</h1>
-        <p class="cm-lead">Create assignments, study the player’s five-club map, and exchange private messages in The Caddie Shack.</p>
+        <p class="cm-lead">Create assignments, study the player’s five-club map, and exchange private Messages with the player.</p>
       </div>
       <a class="cm-button secondary compass-admin-back" href="/manager/">← Back to Concierge Desk</a>
     </section>
@@ -71,9 +71,9 @@
             <label>Moon Phase
               <select id="assignmentMoonPhase">
                 <option value="">Any Moon Phase</option>
-                <option>New Moon</option>
+                <option>New Moon Phase</option>
                 <option>First Quarter Phase</option>
-                <option>Full Moon</option>
+                <option>Full Moon Phase</option>
                 <option>Last Quarter Phase</option>
               </select>
             </label>
@@ -115,9 +115,10 @@
         <div class="admin-assignment-list" id="adminAssignments"></div>
       </section>
 
-      <section class="cm-card">
-        <p class="cm-eyebrow">THE CADDIE SHACK</p>
+      <section class="cm-card" id="messages">
+        <p class="cm-eyebrow">MESSAGES</p>
         <h2>Private conversation.</h2>
+        <div class="admin-message-alert hidden" id="adminMessageAlert">A player message is waiting for your reply.</div>
         <div class="dispatch-thread" id="adminDispatchThread"></div>
         <form class="dispatch-form" id="adminDispatchForm">
           <label>Your Message
@@ -129,6 +130,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.1"></script>
+  <script type="module" src="./app.js?v=0.4.4"></script>
 </body>
 </html>

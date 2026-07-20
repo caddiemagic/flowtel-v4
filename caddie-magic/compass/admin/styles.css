@@ -45,3 +45,6 @@
 .admin-golf-event p{margin:8px 0 0;color:var(--text);line-height:1.55}
 .admin-golf-forecast{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 .admin-golf-forecast span{display:inline-flex;border:1px solid rgba(211,173,105,.22);border-radius:999px;padding:7px 10px;color:var(--gold-soft);background:#071725;font:700 .52rem var(--font-body);letter-spacing:.08em}
+
+/* Caddie Magic v0.4.4 — direct message reply visibility */
+.admin-message-alert{margin:12px 0 16px;border:1px solid rgba(211,173,105,.5);border-radius:14px;padding:12px 14px;color:var(--gold-soft);background:rgba(211,173,105,.08);font:700 .68rem/1.5 var(--font-body);letter-spacing:.08em;text-transform:uppercase}

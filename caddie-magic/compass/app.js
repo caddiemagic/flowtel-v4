@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.3 — Compass Messaging Guidance + Calendar Labels
+// Caddie Magic v0.4.4 — Verified Compass Messages + Exact Moon Labels
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.3";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.4";
 import {
   getMyCaddieMagicProfile,
   getMyActiveCompass,
@@ -10,12 +10,13 @@ import {
   updateMyCompassAssignment,
   getCompassDispatches,
   sendCompassDispatch,
-} from "../../shared/caddie-magic-compass.js?v=0.4.3";
+} from "../../shared/caddie-magic-compass.js?v=0.4.4";
 import {
   getMyUpcomingGolfEvents,
   saveUpcomingGolfEvent,
   deleteUpcomingGolfEvent,
-} from "../../shared/caddie-magic-schedule.js?v=0.4.3";
+} from "../../shared/caddie-magic-schedule.js?v=0.4.4";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../shared/caddie-magic-moon-calendar.js?v=0.4.4";
 
 const $ = (id) => document.getElementById(id);
 
@@ -71,10 +72,7 @@ function titleCase(value = "") {
 }
 
 function shortMoonPhase(value = "") {
-  const phase = String(value || "");
-  if (phase === "Half Full Moon Phase") return "First Quarter Phase";
-  if (phase === "Half New Moon Phase") return "Last Quarter Phase";
-  return phase.replace(" Phase", "");
+  return normalizeCaddieMoonPhase(value);
 }
 
 function playerName() {
@@ -234,7 +232,7 @@ function forecastMarkup(forecast) {
   return rows.map((day) => `
     <li>
       <span>${escapeHtml(formatDate(day.date))}</span>
-      <strong>${escapeHtml(day.moon_emoji || "◐")} Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(shortMoonPhase(day.moon_phase))}</strong>
+      <strong>${escapeHtml(day.moon_emoji || "◐")} Day ${escapeHtml(day.moon_day || "—")} · ${escapeHtml(moonLabelForDate(day.date, day.moon_phase))}</strong>
     </li>
   `).join("");
 }
@@ -402,6 +400,17 @@ async function loadUpcomingGolf() {
   }
 }
 
+function scrollToRequestedCompassSection() {
+  const targetId = String(window.location.hash || "").replace("#", "");
+  if (!targetId) return;
+  const target = document.getElementById(targetId);
+  if (!target) return;
+  window.setTimeout(() => {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (targetId === "messages" && compass) $("dispatchMessage")?.focus();
+  }, 120);
+}
+
 async function loadCompassPage() {
   await requireCaddieMagicAccess();
   try {
@@ -427,6 +436,7 @@ async function loadCompassPage() {
     renderAssignments();
     renderDispatches();
     renderUpcomingGolf();
+    scrollToRequestedCompassSection();
   } catch (error) {
     console.error(error);
     setMessage($("compassPageMessage"), error?.message || "The Caddie Compass could not open.", true);

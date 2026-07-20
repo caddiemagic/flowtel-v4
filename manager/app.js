@@ -3,10 +3,11 @@ import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1"
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
-import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.1";
-import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.1";
-import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.1";
-import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.1";
+import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.4";
+import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.4";
+import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.4";
+import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, normalizeCaddieMoonPhase, shortCalendarDate } from "../shared/caddie-magic-moon-calendar.js?v=0.4.4";
+import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.4";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
 
@@ -23,7 +24,7 @@ let caddieCompassPlayers=[];
 let caddieCompassServiceAvailable=true;
 let upcomingGolfEvents=[];
 let upcomingGolfServiceAvailable=true;
-let upcomingGolfCalendarMonth=new Date(new Date().getFullYear(),new Date().getMonth(),1);
+let upcomingGolfCalendarCycleStart="";
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
@@ -665,8 +666,8 @@ function setFilter(filter){
       : "These guests are in your assigned wing and have requested extra care."],
     "caddie-players":["CADDIE MAGIC PLAYERS","Private Beta Invitations + Player Access","Invite player-only testers, copy their clubhouse link, and manage Caddie Magic access without opening Flowtel."],
     "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Caddie Review","Review their Score Map, study the patterns, and send a private Caddie Note back."],
-    "caddie-compass":["CADDIE COMPASS","Compass Homework + The Caddie Shack","Open each player’s five-club map, create assignments, and answer private messages."],
-    "upcoming-golf":["UPCOMING GOLF","Caddie Magic Golf Calendar","See upcoming rounds, tournaments, and trips with daily moon forecasts."],
+    "caddie-compass":["CADDIE COMPASS","Assignments + Messages","Open each player’s five-club map, create assignments, and reply to private Messages."],
+    "upcoming-golf":["UPCOMING GOLF","Caddie Magic Moon Calendar","See upcoming rounds, tournaments, and trips across each moon-to-moon cycle."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
     "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
@@ -1069,7 +1070,8 @@ async function loadCaddieReviews(){
 }
 
 function renderCaddieCompassPlayer(player){
-  const url=`/caddie-magic/compass/admin/?player=${encodeURIComponent(player.player_profile_id)}&from=manager`;
+  const baseUrl=`/caddie-magic/compass/admin/?player=${encodeURIComponent(player.player_profile_id)}&from=manager`;
+  const url=player.needs_reply ? `${baseUrl}#messages` : baseUrl;
   const clubs=[player.north_club,player.east_club,player.west_club,player.south_club].filter(Boolean).join(" · ");
   return `
     <article class="guest-row caddie-compass-row ${player.needs_reply ? "needs-reply" : ""}">
@@ -1079,8 +1081,8 @@ function renderCaddieCompassPlayer(player){
         <p>${Number(player.active_assignment_count || 0)} active assignment${Number(player.active_assignment_count || 0)===1?"":"s"} · ${Number(player.completed_assignment_count || 0)} completed</p>
       </div>
       <div class="caddie-compass-actions">
-        ${player.needs_reply ? `<span class="compass-reply-pill">Dispatch Waiting</span>` : `<span class="completed-pill">Compass Open</span>`}
-        <a href="${url}">Open Compass</a>
+        ${player.needs_reply ? `<span class="compass-reply-pill">Message Waiting</span>` : `<span class="completed-pill">Compass Open</span>`}
+        <a href="${url}">${player.needs_reply ? "Reply to Message" : "Open Compass"}</a>
       </div>
     </article>
   `;
@@ -1132,31 +1134,27 @@ function managerGolfDate(value){
   return new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",year:"numeric"}).format(new Date(`${String(value).slice(0,10)}T12:00:00`));
 }
 function managerGolfType(value){return ({round:"Round",tournament:"Tournament",golf_trip:"Golf Trip"})[value] || String(value||"").replaceAll("_"," ");}
-function managerShortMoonPhase(value){
-  if(value==="Half Full Moon Phase") return "First Quarter Phase";
-  if(value==="Half New Moon Phase") return "Last Quarter Phase";
-  return String(value||"").replace(" Phase","");
-}
+function managerShortMoonPhase(value){return normalizeCaddieMoonPhase(value);}
 function golfEventOccursOn(event,iso){return String(event.date_start)<=iso && String(event.date_end)>=iso;}
 function golfEventDateRange(event){return event.date_start===event.date_end ? managerGolfDate(event.date_start) : `${managerGolfDate(event.date_start)} – ${managerGolfDate(event.date_end)}`;}
 function golfEventForecastForDate(event,iso){
   const rows=Array.isArray(event.moon_forecast)?event.moon_forecast:[];
   return rows.find(row=>row.date===iso)||null;
 }
-function renderGolfCalendarDay(date,currentMonth){
-  const iso=managerDateISO(date);
+function renderGolfCalendarDay(day){
+  const iso=day.date;
   const dayEvents=upcomingGolfEvents.filter(event=>golfEventOccursOn(event,iso));
   const classes=["golf-calendar-day"];
-  if(date.getMonth()!==currentMonth) classes.push("outside-month");
   if(iso===managerTodayISO()) classes.push("is-today");
+  const eventBadge=day.exactEvent?`<span class="golf-calendar-moon-event">${escapeHtml(day.exactEvent)}</span>`:"";
   const chips=dayEvents.slice(0,3).map(event=>{
     const forecast=golfEventForecastForDate(event,iso);
     const url=`/caddie-magic/compass/admin/?player=${encodeURIComponent(event.player_profile_id)}&from=manager`;
-    const moon=forecast ? `Day ${forecast.moon_day} · ${managerShortMoonPhase(forecast.moon_phase)}` : "Moon forecast";
+    const moon=forecast ? `Day ${forecast.moon_day} · ${moonLabelForDate(iso,forecast.moon_phase)}` : `Moon Day ${day.moonDay}`;
     return `<a class="golf-calendar-chip" href="${url}" title="${escapeHtml(event.player_name)} · ${escapeHtml(event.event_title)} · ${escapeHtml(moon)}"><strong>${escapeHtml(event.player_name)}</strong><span>${escapeHtml(event.event_title)}</span></a>`;
   }).join("");
   const more=dayEvents.length>3?`<span class="golf-calendar-more">+${dayEvents.length-3} more</span>`:"";
-  return `<div class="${classes.join(" ")}"><span class="golf-calendar-date">${date.getDate()}</span><div class="golf-calendar-events">${chips}${more}</div></div>`;
+  return `<div class="${classes.join(" ")}"><div class="golf-calendar-date-line"><span class="golf-calendar-moon-day">Day ${day.moonDay}</span><span class="golf-calendar-date">${escapeHtml(shortCalendarDate(iso))}</span></div>${eventBadge}<div class="golf-calendar-events">${chips}${more}</div></div>`;
 }
 function renderUpcomingGolfList(){
   const upcoming=[...upcomingGolfEvents].sort((a,b)=>String(a.date_start).localeCompare(String(b.date_start))).slice(0,20);
@@ -1165,28 +1163,30 @@ function renderUpcomingGolfList(){
     const place=[event.course,event.location].filter(Boolean).join(" · ");
     const forecast=Array.isArray(event.moon_forecast)?event.moon_forecast:[];
     const url=`/caddie-magic/compass/admin/?player=${encodeURIComponent(event.player_profile_id)}&from=manager`;
-    return `<article class="upcoming-golf-row"><div><span>${escapeHtml(managerGolfType(event.event_type))} · ${escapeHtml(golfEventDateRange(event))}</span><h3>${escapeHtml(event.event_title)}</h3><p>${escapeHtml(event.player_name)}${place?` · ${escapeHtml(place)}`:""}</p><div class="upcoming-golf-moons">${forecast.map(day=>`<small>${escapeHtml(managerGolfDate(day.date))} · Day ${escapeHtml(day.moon_day)} · ${escapeHtml(managerShortMoonPhase(day.moon_phase))}</small>`).join("")}</div></div><a href="${url}">Open Player Compass</a></article>`;
+    return `<article class="upcoming-golf-row"><div><span>${escapeHtml(managerGolfType(event.event_type))} · ${escapeHtml(golfEventDateRange(event))}</span><h3>${escapeHtml(event.event_title)}</h3><p>${escapeHtml(event.player_name)}${place?` · ${escapeHtml(place)}`:""}</p><div class="upcoming-golf-moons">${forecast.map(day=>`<small>${escapeHtml(shortCalendarDate(day.date))} · Day ${escapeHtml(day.moon_day)} · ${escapeHtml(moonLabelForDate(day.date,day.moon_phase))}</small>`).join("")}</div></div><a href="${url}">Open Player Compass</a></article>`;
   }).join("");
 }
+function currentGolfMoonCycle(){
+  if(!upcomingGolfCalendarCycleStart) upcomingGolfCalendarCycleStart=moonCycleForDate(managerTodayISO()).startDate;
+  return moonCycleForDate(upcomingGolfCalendarCycleStart);
+}
 function bindUpcomingGolfCalendarActions(){
-  document.querySelectorAll("[data-golf-month-step]").forEach(button=>button.addEventListener("click",()=>{
-    const step=Number(button.dataset.golfMonthStep||0);
-    upcomingGolfCalendarMonth=new Date(upcomingGolfCalendarMonth.getFullYear(),upcomingGolfCalendarMonth.getMonth()+step,1);
+  document.querySelectorAll("[data-golf-moon-step]").forEach(button=>button.addEventListener("click",()=>{
+    const cycle=adjacentMoonCycle(currentGolfMoonCycle().startDate,Number(button.dataset.golfMoonStep||0));
+    upcomingGolfCalendarCycleStart=cycle.startDate;
     renderUpcomingGolfCalendar();
   }));
-  document.querySelector("[data-golf-month-today]")?.addEventListener("click",()=>{
-    const now=new Date();upcomingGolfCalendarMonth=new Date(now.getFullYear(),now.getMonth(),1);renderUpcomingGolfCalendar();
+  document.querySelector("[data-golf-moon-today]")?.addEventListener("click",()=>{
+    upcomingGolfCalendarCycleStart=moonCycleForDate(managerTodayISO()).startDate;
+    renderUpcomingGolfCalendar();
   });
 }
 function renderUpcomingGolfCalendar(){
   if(!upcomingGolfServiceAvailable){queue.innerHTML="<p>Upcoming Golf is not installed yet. Run database/migration-043-caddie-magic-v0.4.0-portal-polish-upcoming-golf.sql.</p>";return;}
-  const year=upcomingGolfCalendarMonth.getFullYear();
-  const month=upcomingGolfCalendarMonth.getMonth();
-  const first=new Date(year,month,1);
-  const gridStart=new Date(year,month,1-first.getDay());
-  const cells=Array.from({length:42},(_,index)=>{const date=new Date(gridStart);date.setDate(gridStart.getDate()+index);return renderGolfCalendarDay(date,month);}).join("");
-  const monthLabel=new Intl.DateTimeFormat(undefined,{month:"long",year:"numeric"}).format(first);
-  queue.innerHTML=`<section class="upcoming-golf-calendar"><div class="golf-calendar-toolbar"><div><p class="queue-section-label">Admin Calendar</p><h3>${escapeHtml(monthLabel)}</h3></div><div class="golf-calendar-actions"><button type="button" data-golf-month-step="-1">←</button><button type="button" data-golf-month-today>Today</button><button type="button" data-golf-month-step="1">→</button></div></div><div class="golf-calendar-weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div class="golf-calendar-grid">${cells}</div></section><section class="queue-section upcoming-golf-list"><p class="queue-section-label">Upcoming Events</p>${renderUpcomingGolfList()}</section>`;
+  const cycle=currentGolfMoonCycle();
+  const dayCells=moonCycleDays(cycle).map(renderGolfCalendarDay);
+  while(dayCells.length%7!==0) dayCells.push('<div class="golf-calendar-day is-empty" aria-hidden="true"></div>');
+  queue.innerHTML=`<section class="upcoming-golf-calendar"><div class="golf-calendar-toolbar"><div><p class="queue-section-label">Moon Calendar</p><h3>${escapeHtml(cycle.name)}</h3><p class="golf-calendar-cycle-range">${escapeHtml(shortCalendarDate(cycle.startDate))} – ${escapeHtml(shortCalendarDate(cycle.endDate))} · ${cycle.year}</p></div><div class="golf-calendar-actions"><button type="button" data-golf-moon-step="-1" aria-label="Previous moon">←</button><button type="button" data-golf-moon-today>Current Moon</button><button type="button" data-golf-moon-step="1" aria-label="Next moon">→</button></div></div><div class="golf-calendar-grid">${dayCells.join("")}</div><div class="golf-calendar-key"><span>New Moon</span><span>First Quarter Moon</span><span>Full Moon</span><span>Last Quarter Moon</span></div></section><section class="queue-section upcoming-golf-list"><p class="queue-section-label">Upcoming Events</p>${renderUpcomingGolfList()}</section>`;
   bindUpcomingGolfCalendarActions();
 }
 async function loadUpcomingGolfEvents(){

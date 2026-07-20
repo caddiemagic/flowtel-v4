@@ -18,7 +18,11 @@ const required = [
   "shared/caddie-magic-reviews.js",
   "shared/caddie-magic-compass.js",
   "shared/caddie-magic-schedule.js",
+  "shared/caddie-magic-moon-calendar.js",
   "shared/product-access.js",
+  "assets/caddie-magic-medicine-wheel-directions.png",
+  "assets/caddie-magic-map-wheel.png",
+  "vercel.json",
   "database/migration-043-caddie-magic-v0.4.0-portal-polish-upcoming-golf.sql",
   "database/migration-044-caddie-magic-player-only-access-private-beta.sql",
   "database/migration-045-caddie-magic-player-invite-code-hotfix.sql",
@@ -43,6 +47,15 @@ for (const file of phaseFiles) {
   const text = await readFile(file, "utf8");
   if (/First Quarter(?! Phase)/.test(text)) phaseErrors.push(`${file}: First Quarter missing Phase`);
   if (/Last Quarter(?! Phase)/.test(text)) phaseErrors.push(`${file}: Last Quarter missing Phase`);
+}
+
+const scoreMapHtml = await readFile("caddie-magic/score-map/index.html", "utf8");
+if (/Download Score Map Exercise/i.test(scoreMapHtml)) phaseErrors.push("score-map: exercise button should be removed");
+
+const vercel = JSON.parse(await readFile("vercel.json", "utf8"));
+const rewriteSources = new Set((vercel.rewrites || []).map((item) => item.source));
+for (const route of ["/caddie-magic/compass", "/caddie-magic/compass/admin", "/caddie-magic/score-map", "/caddie-magic/collective-map"]) {
+  if (!rewriteSources.has(route)) phaseErrors.push(`vercel.json: missing explicit rewrite for ${route}`);
 }
 
 if (missing.length || phaseErrors.length) {

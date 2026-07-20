@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.4.3" />
-  <link rel="stylesheet" href="./styles.css?v=0.4.3" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.4" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.4" />
 </head>
 <body>
   <main class="cm-shell compass-shell">
     <section class="cm-hero compass-hero">
-      <span class="cm-version">v0.4.3</span>
+      <span class="cm-version">v0.4.4</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -73,18 +73,18 @@
         </div>
         <div class="personal-compass" aria-label="Personal Caddie Compass">
           <article class="compass-direction north"><span>North</span><strong id="northClubDisplay">—</strong><small>Last Quarter Phase</small></article>
-          <article class="compass-direction east"><span>East</span><strong id="eastClubDisplay">—</strong><small>Full Moon</small></article>
-          <article class="compass-direction west"><span>West</span><strong id="westClubDisplay">—</strong><small>New Moon</small></article>
+          <article class="compass-direction east"><span>East</span><strong id="eastClubDisplay">—</strong><small>Full Moon Phase</small></article>
+          <article class="compass-direction west"><span>West</span><strong id="westClubDisplay">—</strong><small>New Moon Phase</small></article>
           <article class="compass-direction south"><span>South</span><strong id="southClubDisplay">—</strong><small>First Quarter Phase</small></article>
           <div class="compass-center">
-            <img src="/assets/caddie-magic-wheel-center.png" alt="" aria-hidden="true" />
+            <img src="/assets/caddie-magic-map-wheel.png?v=0.4.4" alt="" aria-hidden="true" />
           </div>
         </div>
         <div class="compass-staff-summary"><span>Center Staff</span><strong id="staffClubDisplay">Putter</strong></div>
         <p class="compass-seal-note" id="compassSealNote">Your compass remains editable until your first assignment is sent.</p>
       </section>
 
-      <section class="cm-card compass-schedule-card">
+      <section class="cm-card compass-schedule-card" id="calendar">
         <div class="compass-section-heading">
           <div>
             <p class="cm-eyebrow">CALENDAR</p>
@@ -129,7 +129,7 @@
         <div class="golf-schedule-list" id="golfScheduleList"></div>
       </section>
 
-      <section class="cm-card compass-assignments-card">
+      <section class="cm-card compass-assignments-card" id="homework">
         <div class="compass-section-heading">
           <div>
             <p class="cm-eyebrow">HOMEWORK</p>
@@ -140,7 +140,7 @@
         <div class="assignment-list" id="activeAssignments"></div>
       </section>
 
-      <section class="cm-card compass-dispatch-card">
+      <section class="cm-card compass-dispatch-card" id="messages">
         <div class="compass-section-heading">
           <div>
             <p class="cm-eyebrow">MESSAGES</p>
@@ -165,6 +165,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.3"></script>
+  <script type="module" src="./app.js?v=0.4.4"></script>
 </body>
 </html>

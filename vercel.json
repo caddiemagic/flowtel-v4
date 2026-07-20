@@ -31,6 +31,26 @@
       "destination": "/tracker/index.html"
     },
     {
+      "source": "/caddie-magic/score-map/printable",
+      "destination": "/caddie-magic/score-map/printable/index.html"
+    },
+    {
+      "source": "/caddie-magic/score-map",
+      "destination": "/caddie-magic/score-map/index.html"
+    },
+    {
+      "source": "/caddie-magic/collective-map",
+      "destination": "/caddie-magic/collective-map/index.html"
+    },
+    {
+      "source": "/caddie-magic/compass/admin",
+      "destination": "/caddie-magic/compass/admin/index.html"
+    },
+    {
+      "source": "/caddie-magic/compass",
+      "destination": "/caddie-magic/compass/index.html"
+    },
+    {
       "source": "/caddie-magic",
       "destination": "/caddie-magic/index.html"
     },
@@ -97,6 +117,60 @@
     {
       "source": "/flow-fm/team-map/profile",
       "destination": "/flow-fm/team-map/profile/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/caddie-magic",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Caddie-Magic-Version",
+          "value": "0.4.4"
+        }
+      ]
+    },
+    {
+      "source": "/caddie-magic/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Caddie-Magic-Version",
+          "value": "0.4.4"
+        }
+      ]
+    },
+    {
+      "source": "/manager",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Caddie-Magic-Version",
+          "value": "0.4.4"
+        }
+      ]
+    },
+    {
+      "source": "/manager/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "X-Caddie-Magic-Version",
+          "value": "0.4.4"
+        }
+      ]
     }
   ]
 }

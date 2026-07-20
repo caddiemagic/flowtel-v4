@@ -28,6 +28,7 @@ Latest integrated release: **Caddie Magic v0.4.2**
 - `shared/caddie-magic-reviews.js`
 - `shared/caddie-magic-compass.js`
 - `shared/caddie-magic-schedule.js`
+- `shared/caddie-magic-moon-calendar.js`
 - `shared/product-access.js`
 - `shared/supabase.js`
 

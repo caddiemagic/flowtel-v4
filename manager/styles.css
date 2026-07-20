@@ -786,3 +786,21 @@
   .admin-mailbox-thread>header,.admin-mailbox-file{display:grid;grid-template-columns:1fr}.admin-mailbox-thread>header>strong{justify-self:start}.admin-mailbox-file>div:last-child{justify-items:stretch}.admin-mailbox-file button{width:100%;min-width:0}
   .admin-mailbox-return{grid-template-columns:1fr}.admin-mailbox-return button{grid-column:auto}
 }
+
+/* Caddie Magic v0.4.4 — moon-cycle owner calendar */
+.golf-calendar-cycle-range{margin:5px 0 0;color:var(--muted);font-size:.78rem}
+.golf-calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));border-left:1px solid var(--line);border-top:1px solid var(--line)}
+.golf-calendar-day{position:relative;min-height:144px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;background:rgba(255,255,255,.35)}
+.golf-calendar-day.is-empty{min-height:56px;background:rgba(255,255,255,.12)}
+.golf-calendar-date-line{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+.golf-calendar-moon-day{color:var(--gold);font-size:.6rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.golf-calendar-date{display:block;margin:0;color:var(--brown);font-size:.72rem;font-weight:800;letter-spacing:.04em}
+.golf-calendar-moon-event{display:inline-flex;margin:0 0 8px;border:1px solid rgba(183,129,55,.32);border-radius:999px;padding:4px 7px;color:#8c5c22;background:#fff8ea;font-size:.52rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.golf-calendar-key{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.golf-calendar-key span{border:1px solid rgba(183,129,55,.24);border-radius:999px;padding:6px 9px;color:var(--muted);background:rgba(255,255,255,.4);font-size:.6rem;font-weight:700}
+@media(max-width:900px){
+  .golf-calendar-grid{overflow-x:auto;grid-template-columns:repeat(7,minmax(126px,1fr))}
+  .golf-calendar-day{min-width:126px}
+  .golf-calendar-toolbar{align-items:flex-start}
+  .golf-calendar-actions{flex-wrap:wrap;justify-content:flex-end}
+}
