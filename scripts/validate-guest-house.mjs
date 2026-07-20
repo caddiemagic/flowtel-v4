@@ -76,6 +76,14 @@ assert(files.notifyApi.includes('The recording is never attached'),'Invitation e
 assert(files.notifyApi.includes('RESEND_API_KEY'),'Optional email configuration is not documented in code.');
 assert(files.shared.includes('resumableUpload'),'Large call replay resumable upload is missing.');
 assert(files.shared.includes('chunkSize:6*1024*1024'),'Supabase-compatible 6 MB resumable chunks are missing.');
+
+assert(files.managerJs.includes('guestHouseUploadsInFlight'),'Large replay upload state is not preserved in Concierge.');
+assert(files.managerJs.includes('if(guestHouseUploadActive()) return;'),'Concierge auto-refresh is not suspended during a large replay upload.');
+assert(files.managerJs.includes('if(!guestHouseUploadActive()) renderQueue();'),'An in-flight Desk refresh can still replace the active upload panel.');
+assert(files.managerJs.includes('data-guest-house-finalize-pending'),'Pending Replay Room finalization control is missing.');
+assert(files.shared.includes('.storage.supabase.co'),'Resumable uploads are not using the direct Supabase Storage hostname.');
+assert(files.shared.includes('GUEST_HOUSE_FINALIZE_PENDING'),'Completed Storage transfers are not protected from finalization failures.');
+assert(files.shared.includes('getPendingGuestHouseUpload'),'Pending replay finalization state is not recoverable.');
 assert(files.replayHtml.includes('noindex,nofollow,noarchive'),'Replay Room robots privacy metadata is missing.');
 assert(files.replayJs.includes('sessionStorage.setItem(TOKEN_KEY'),'Replay key is not preserved privately for the browser session.');
 assert(files.replayJs.includes('window.history.replaceState'),'Raw Replay Room key is not removed from the visible URL.');

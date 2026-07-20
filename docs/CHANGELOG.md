@@ -1,3 +1,16 @@
+## v0.10.59 — Guest House Large Replay Upload Continuity Hotfix
+
+- Prevents the Concierge Desk's 45-second background refresh from re-rendering and visually erasing an active Guest House upload.
+- Keeps the selected replay, progress bar, upload status, and finalization message visible for long video uploads such as a 450 MB call recording.
+- Uses Supabase's direct Storage hostname for resumable TUS uploads while preserving 6 MB chunks and retries.
+- Separates Storage transfer from Replay Room registration so a fully uploaded file is no longer deleted when the final database step has a temporary failure.
+- Preserves unfinished upload metadata in the owner browser and adds **Finish Adding to Room** rather than requiring the same large file to be uploaded again.
+- Adds an explicit removal control for an unfinished private upload when the owner intentionally wants to replace it.
+- Surfaces detailed upload errors in the visible Guest House panel and Concierge message area.
+- Adds upload-state validation and browser cache busting for the Concierge Desk.
+- No Supabase migration required. Migration 048 remains the current Guest House migration, and migration 037 remains retired.
+- Preserves Flowtel v0.10.58, Hourly Flow Rate, established Flowtel privacy/access boundaries, and integrated Caddie Magic v0.4.5.
+
 ## v0.10.58 — Guest House Call Replay Room MVP
 
 - Adds the public **Flowtel Guest House** doorway at `/guest-house/` for former 1:1 clients to request their own call replay without joining the Queendom or signing into Flowtel.
