@@ -6,7 +6,7 @@ import {
   getFlowFmAssignmentForMoon,
   getMoonDatesForPortal,
 } from '/shared/flowtel.js';
-import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum } from '/shared/rollout.js';
+import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum, canAccessHourlyFlowRate } from '/shared/rollout.js';
 import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
@@ -28,6 +28,7 @@ const doorGrid=document.getElementById('doorGrid');
 const message=document.getElementById('message');
 
 const SUPPORT_DOORS=[
+  { href:'/flow-fm/hourly-flow-rate/', eyebrow:'BIG VISION', title:'Open Your Hourly Flow Rate', copy:'Choose four seasonal locations, find a home, and watch your receiving standard emerge as the vision expands.', motif:'sunburst' },
   { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
   { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
   { href:'/flow-fm/team-map/', eyebrow:'THE LIVING MAP', title:'Witness the Flow FM field', copy:'See where the women of Flow FM are rooted today—and where their multidimensional selves are traveling.', motif:'living-map' },
@@ -101,7 +102,7 @@ function renderVaultDoor(portal){
   </a>`;
 }
 function renderLockedCurriculumNotice(){
-  const card=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The full temple curriculum is still sealed.</h3><p>For this first round of testing, guests are moving through the Flowtel guest experience and the Profile Studio only. The wider 13 Moon curriculum will open in a later rollout once this path feels solid.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
+  const card=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The full temple curriculum is still sealed.</h3><p>For this round of testing, the guest experience, Profile Studio, and Hourly Flow Rate BIG VISION room are open. The wider 13 Moon curriculum will open in a later rollout once this path feels solid.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
   portalDoorRowOne.innerHTML=card;
   portalDoorRowTwo.innerHTML='';
   portalDoorVaultRow.innerHTML='';
@@ -129,15 +130,21 @@ function renderStatus(profile){
     ? `${escapeHtml(status.monthLine)}<div class="progress-pulse"><span style="width:${Math.min(100, Math.max(5, (Number(currentPortal.portalIndex || 1)/13)*100))}%"></span></div>`
     : 'Previewing Temple Moon until Flow FM start date is set.';
   const curriculumOpen=canAccessFlowFmCurriculum(profile || {});
-  currentPortalLink.href=curriculumOpen ? `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}` : '/flow-fm/profile-studio/';
-  nextDoorTitle.textContent=curriculumOpen ? `Open ${currentPortal.name} Portal` : 'Open Your Profile Studio';
+  const hourlyFlowRateOpen=canAccessHourlyFlowRate(profile || {});
+  currentPortalLink.href=curriculumOpen
+    ? `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}`
+    : hourlyFlowRateOpen ? '/flow-fm/hourly-flow-rate/' : '/flow-fm/profile-studio/';
+  currentPortalLink.textContent=curriculumOpen ? 'Open Current Moon Portal' : hourlyFlowRateOpen ? 'Open Hourly Flow Rate' : 'Open Profile Studio';
+  nextDoorTitle.textContent=curriculumOpen ? `Open ${currentPortal.name} Portal` : hourlyFlowRateOpen ? 'Cultivate Your BIG VISION' : 'Open Your Profile Studio';
   nextDoorCopy.textContent=curriculumOpen
     ? 'Your moon portal gathers the training, womb work practice, business assignment, and next doorway in one place.'
-    : 'Phase 1 beta is focused on the guest journey and your profile submission flow. The rest of the curriculum is staying sealed for now.';
+    : hourlyFlowRateOpen
+      ? 'The Hourly Flow Rate room begins with four future seasonal locations and reveals the revenue capacity required to resource the vision.'
+      : 'Phase 1 beta is focused on the guest journey and your profile submission flow. The rest of the curriculum is staying sealed for now.';
   currentModuleTitle.textContent=curriculumOpen ? (currentModule?.title || 'Womb Work Module') : 'Phase 1 testing focus';
   currentModuleCopy.innerHTML=curriculumOpen
     ? `${escapeHtml(currentModule?.description || 'Your inner curriculum lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#womb-work">Open Current Womb Work</a></div>`
-    : `Guest arrival, check-in rhythm, mentor selection, and Profile Studio submission are the only open testing paths in this phase.<div class="module-cta-row"><a class="pill-link muted" href="/client/">Return to Guest Flow</a></div>`;
+    : `Guest arrival, check-in rhythm, mentor selection, Profile Studio submission, and the Hourly Flow Rate BIG VISION practice are open in this phase.<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/hourly-flow-rate/">Open Hourly Flow Rate</a></div>`;
   currentAssignmentTitle.textContent=curriculumOpen ? (currentAssignment?.title || 'Business Assignment') : 'Profile submission';
   currentAssignmentCopy.innerHTML=curriculumOpen
     ? `${escapeHtml(currentAssignment?.description || 'Your outer build task lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="${Number(currentAssignment?.index || 0)===1 ? '/flow-fm/profile-studio/' : `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#business-assignment`}">Open Current Business Assignment</a></div>`
@@ -162,7 +169,7 @@ async function init(){
     heroCopy.textContent=profile
       ? (canAccessFlowFmCurriculum(profile)
           ? 'Welcome back. Your temple doors are open. Enter your current portal first, then move through the hallway as your body says yes.'
-          : 'Welcome back. Phase 1 beta is focused on your guest journey and Profile Studio. The wider curriculum remains sealed while we localize testing.')
+          : 'Welcome back. The guest journey, Profile Studio, and Hourly Flow Rate BIG VISION room are open. The wider curriculum remains sealed while we localize testing.')
       : 'Preview the Flow FM hallway, then sign in to open your personalized moon portal.';
     setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
   }catch(error){

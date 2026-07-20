@@ -1,3 +1,22 @@
+## v0.10.57 — Hourly Flow Rate MVP
+
+- Adds the private Flow FM **Hourly Flow Rate** experience at `/flow-fm/hourly-flow-rate/`.
+- Begins with one preserved future four-season cycle calculated from Flowtel Time (`America/Los_Angeles`) and highlights the next upcoming season without forcing completion order.
+- Opens with **Your Seasonal Sovereignty Map** and does not show a `$0/hour` judgment before a valid monetary amount is saved.
+- Activates **Your Emerging Hourly Flow Rate** after the first valid seasonal or Home Base cost.
+- Implements the fixed teaching formula: Annual Home Base = monthly Home Base Number × 12; Annual Vision Total = Home Base + seasonal costs; Base Rate = Annual Vision Total ÷ 480; Hourly Flow Rate = Base Rate × 2.
+- Keeps the 480-hour denominator and 2x Flow Multiplier fixed and non-editable.
+- Preserves the current Home Base underneath seasonal freedom rather than netting one life against the other.
+- Adds independent destination, lodging, nourishment, sovereign self-care, seasonal transition, pleasure/support, Home Base, and private witnessing saves.
+- Supports both simple estimates and detailed builds; detailed optional-layer entries carry the calculation while the earlier estimate remains preserved.
+- Uses one locked base currency after money begins flowing and preserves optional original amount/currency pairs without live exchange rates.
+- Adds a meaningful append-only **Receiving Timeline** that records rate-changing saves rather than keystrokes.
+- Adds private member-owned RLS tables and authenticated RPCs through migration 047; no public comparison, booking, scraping, bank connection, tax calculation, or AI pricing behavior is introduced.
+- Adds an Hourly Flow Rate doorway to the Flow FM Initiation Hall and top navigation while keeping the wider 13-Moon curriculum beta seal intact.
+- Restores the missing shared Flow FM rollout module and repairs the malformed Moon Portal import so current Flow FM routes can load without opening sealed curriculum areas.
+- Preserves the newer integrated Caddie Magic v0.4.5 source found in the newest uploaded combined ZIP and passes the canonical Caddie Magic validator.
+- Adds Supabase migration 047. Migration 037 remains retired and must not be rerun.
+
 ## Caddie Magic v0.4.5 — Compass Query + Medicine Wheel Hotfix
 
 - Fixed the Caddie Compass failing for owner/admin sessions with `JSON object requested, multiple (or no) rows returned`.

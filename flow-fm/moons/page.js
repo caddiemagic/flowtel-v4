@@ -25,7 +25,7 @@ function renderMoonPath(profile){
   const status=getFlowFmInitiationStatus(profile || {});
   const path=getPersonalizedMoonPath(profile || {});
   if(!canAccessFlowFmCurriculum(profile || {})){
-    moonPath.innerHTML=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The 13 Moons Path is resting for now.</h3><p>During this first beta, guests are only testing the Flowtel guest journey and Profile Studio submission flow. The moon curriculum will open in a later phase.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
+    moonPath.innerHTML=`<article class="flowfm-beta-lock-card"><p class="eyebrow">PHASE 1 BETA</p><h3>The 13 Moons Path is resting for now.</h3><p>The guest journey, Profile Studio, and Hourly Flow Rate BIG VISION room are open now. The moon curriculum will open in a later phase.</p><div class="module-cta-row"><a class="pill-link" href="/flow-fm/profile-studio/">Open Profile Studio</a></div></article>`;
     return;
   }
   moonPath.innerHTML=path.map(portal=>{
