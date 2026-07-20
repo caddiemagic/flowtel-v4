@@ -1,4 +1,4 @@
-// Flowtel v0.10.58 — token-gated Guest House Replay Room access.
+// Flowtel v0.10.63 — preserved token-gated legacy Guest House Replay Room access.
 
 const {
   fetchJson,hashToken,readRequestBody,sendError,serverConfig,serviceHeaders,setPublicCors,validToken,

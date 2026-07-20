@@ -1,4 +1,4 @@
-import { guestHouseFileSize } from '../../shared/guest-house-core.js?v=0.10.58';
+import { guestHouseFileSize } from '../../shared/guest-house-core.js?v=0.10.63';
 
 const TOKEN_KEY='flowtel:guestHouseReplayKey';
 const room=document.getElementById('replayRoom');

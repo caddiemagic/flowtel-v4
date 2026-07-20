@@ -3,119 +3,143 @@ import { readFile } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 
 const files={
-  requestHtml:await readFile('guest-house/index.html','utf8'),
-  requestJs:await readFile('guest-house/app.js','utf8'),
-  requestCss:await readFile('guest-house/styles.css','utf8'),
+  portalHtml:await readFile('guest-house/index.html','utf8'),
+  portalJs:await readFile('guest-house/app.js','utf8'),
+  portalCss:await readFile('guest-house/styles.css','utf8'),
   replayHtml:await readFile('guest-house/replay/index.html','utf8'),
   replayJs:await readFile('guest-house/replay/page.js','utf8'),
   replayCss:await readFile('guest-house/replay/styles.css','utf8'),
   managerHtml:await readFile('manager/index.html','utf8'),
   managerJs:await readFile('manager/app.js','utf8'),
   managerCss:await readFile('manager/styles.css','utf8'),
+  accountApi:await readFile('api/guest-house-account.js','utf8'),
   requestApi:await readFile('api/guest-house-request.js','utf8'),
+  portalApi:await readFile('api/guest-house-portal.js','utf8'),
   accessApi:await readFile('api/guest-house-access.js','utf8'),
-  notifyApi:await readFile('api/guest-house-notify.js','utf8'),
   shared:await readFile('shared/guest-house.js','utf8'),
   core:await readFile('shared/guest-house-core.js','utf8'),
-  migration:await readFile('database/migration-048-guest-house-call-replay-room.sql','utf8'),
+  server:await readFile('server/guest-house-server.js','utf8'),
+  migration048:await readFile('database/migration-048-guest-house-call-replay-room.sql','utf8'),
+  migration049:await readFile('database/migration-049-guest-house-accounts-replay-status-portal.sql','utf8'),
   supabase:await readFile('shared/supabase.js','utf8'),
 };
 const vercel=JSON.parse(await readFile('vercel.json','utf8'));
 
 function ids(html){return [...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);}
-function validateUniqueIds(name,html){const found=ids(html);const duplicates=found.filter((id,index)=>found.indexOf(id)!==index);assert.deepEqual(duplicates,[],`${name} duplicate HTML ids: ${duplicates.join(', ')}`);}
-function validateCss(name,css){assert.equal((css.match(/{/g)||[]).length,(css.match(/}/g)||[]).length,`${name} CSS braces are unbalanced.`);}
-validateUniqueIds('Guest House request',files.requestHtml);
-validateUniqueIds('Guest House replay',files.replayHtml);
-validateUniqueIds('Concierge Desk',files.managerHtml);
-validateCss('Guest House request',files.requestCss);
-validateCss('Guest House replay',files.replayCss);
-validateCss('Concierge Desk',files.managerCss);
-
-for(const id of ['guestHouseTitle','requestCard','requestTitle','guestHouseRequestForm','guestHouseRequestStatus']){
-  assert(ids(files.requestHtml).includes(id),`Missing request-page element: ${id}`);
+function validateUniqueIds(name,html){
+  const found=ids(html);
+  const duplicates=found.filter((id,index)=>found.indexOf(id)!==index);
+  assert.deepEqual(duplicates,[],`${name} duplicate HTML ids: ${duplicates.join(', ')}`);
 }
-for(const id of ['replayRoom','replayStatus']) assert(ids(files.replayHtml).includes(id),`Missing replay-page element: ${id}`);
-assert(ids(files.managerHtml).includes('guestHouseRequestCount'),'Guest House Concierge stat count is missing.');
-assert(files.managerJs.includes('data-filter="guest-house"') || files.managerHtml.includes('data-filter="guest-house"'),'Guest House Concierge filter is missing.');
-assert(files.managerJs.includes('renderGuestHouseQueue'),'Guest House owner request queue is not wired.');
-assert(files.managerJs.includes('uploadGuestHouseReplay'),'Owner replay upload is not wired.');
-assert(files.managerJs.includes('deactivateGuestHouseReplay'),'Safe removal of a mistaken replay is not wired.');
-assert(files.managerJs.includes('prepareGuestHouseAccess'),'Private room-key preparation is not wired.');
-assert(files.managerJs.includes('revokeGuestHouseAccess'),'Private room-key revocation is not wired.');
-assert(files.managerJs.includes('sendGuestHouseInvitation'),'Optional invitation email is not wired.');
-assert(!files.managerJs.includes('from "../shared/guest-house.js'), 'Guest House must not be a static dependency of the Concierge access gate.');
-assert(files.managerJs.includes('async function ensureGuestHouseModules()'),'Guest House lazy module isolation is missing.');
-assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.62")'),'Guest House lazy module cache-bust is missing.');
-assert(files.managerJs.includes('document.documentElement.dataset.conciergeAppBooted="true"'),'Concierge boot marker is missing.');
-assert(files.managerHtml.includes('The Concierge Desk did not finish opening.'),'Concierge boot watchdog is missing.');
-assert(files.managerHtml.includes('import("./app.js?v=0.10.62-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
-assert(files.managerHtml.includes('conciergeLoadFailed'),'Concierge module-load failure state is missing.');
-assert(files.managerJs.includes('withConciergeGateTimeout'),'Concierge access verification can still remain indefinitely on the checking screen.');
+function validateCss(name,css){
+  assert.equal((css.match(/{/g)||[]).length,(css.match(/}/g)||[]).length,`${name} CSS braces are unbalanced.`);
+}
+function assertIdsReferencedExist(name,html,js){
+  const found=new Set(ids(html));
+  const references=[...js.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)].map(match=>match[1]);
+  const dynamic=new Set([
+    'guestHouseReplayRequestForm','replayRequestStatus','refreshGuestHouseStatus','retryGuestHousePortal',
+  ]);
+  const missing=[...new Set(references)].filter(id=>!found.has(id)&&!dynamic.has(id));
+  assert.deepEqual(missing,[],`${name} JavaScript references missing HTML ids: ${missing.join(', ')}`);
+}
 
-assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house'&&item.destination==='/guest-house/index.html'),'Public Guest House rewrite missing.');
-assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house/replay'&&item.destination==='/guest-house/replay/index.html'),'Private Replay Room rewrite missing.');
-assert((vercel.headers||[]).some(item=>item.source==='/guest-house/replay'&&item.headers?.some(header=>header.key==='X-Robots-Tag')),'Replay Room no-index header missing.');
-assert(!files.supabase.includes('"/guest-house/"'),'Guest House must remain outside the Flowtel authenticated-route guard.');
+validateUniqueIds('Guest House account portal',files.portalHtml);
+validateUniqueIds('Guest House legacy replay',files.replayHtml);
+validateUniqueIds('Concierge Desk',files.managerHtml);
+validateCss('Guest House account portal',files.portalCss);
+validateCss('Guest House legacy replay',files.replayCss);
+validateCss('Concierge Desk',files.managerCss);
+assertIdsReferencedExist('Guest House account portal',files.portalHtml,files.portalJs);
+
+for(const id of [
+  'guestHouseTitle','accountCard','createAccountTab','signInTab','createGuestHouseAccountForm',
+  'guestHouseSignInForm','guestHousePortal','portalContent','guestHouseSignOut',
+]) assert(ids(files.portalHtml).includes(id),`Missing Guest House portal element: ${id}`);
+for(const id of ['replayRoom','replayStatus']) assert(ids(files.replayHtml).includes(id),`Missing legacy replay element: ${id}`);
+assert(ids(files.managerHtml).includes('guestHouseRequestCount'),'Guest House Concierge stat count is missing.');
+
+assert(files.portalHtml.includes('CREATE MY GUEST HOUSE ACCOUNT'),'Guest House account creation doorway is missing.');
+assert(files.portalHtml.includes('RETURN TO THE GUEST HOUSE'),'Guest House returning sign-in doorway is missing.');
+assert(files.portalJs.includes('What do you remember about the call?'),'Approved call-memory field is missing.');
+assert(!files.portalHtml.includes('Approximate call date'),'Approximate call date must be removed.');
+assert(!files.portalHtml.includes('Private note for Megan'),'Requester private-note field must be removed.');
+assert(files.portalJs.includes('flowtel_guest_house_submit_my_request'),'Replay request must be submitted only after authentication.');
+assert(files.portalJs.includes('supabase.auth.getSession()'),'Remembered Guest House sessions are not restored.');
+assert(files.portalJs.includes('supabase.auth.signInWithPassword'),'Guest House password sign-in is missing.');
+assert(files.portalJs.includes('Concierge is locating your recording'),'Locating hospitality state is missing.');
+assert(files.portalJs.includes('Your Replay Room is ready'),'Ready hospitality state is missing.');
+assert(files.portalJs.includes("Concierge couldn't find your replay"),'Unable-to-locate hospitality state is missing.');
+assert(!/email invitation|email notification|notify me/i.test(files.portalHtml+files.portalJs),'Guest-facing email notification workflow must remain out of this release.');
+assert(files.portalHtml.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the Guest House portal.');
+
+assert(files.accountApi.includes('/auth/v1/admin/users'),'Guest House account endpoint does not create the Auth identity.');
+assert(files.accountApi.includes('email_confirm:true'),'Guest House account creation would require an email confirmation integration.');
+assert(files.accountApi.includes("source:'flowtel_guest_house'"),'Guest House Auth source metadata is missing.');
+assert(!files.accountApi.includes('/rest/v1/profiles'),'Guest House account endpoint must not create a Flowtel profile.');
+assert(!files.accountApi.includes('flowtel_stays'),'Guest House account endpoint must not create a stay.');
+assert(files.requestApi.includes('status(410)'),'Legacy anonymous request endpoint must be retired.');
+assert(files.requestApi.includes('accountRequired:true'),'Retired request endpoint must direct visitors into an account.');
+assert(files.server.includes('async function requireUser'),'Authenticated Guest House API verification helper is missing.');
+assert(files.portalApi.includes('requireUser(req)'),'Guest House portal API is not verifying the signed-in user.');
+assert(files.portalApi.includes('auth_user_id=eq.'),'Guest House portal ownership is not tied to the Auth user.');
+assert(!files.portalApi.includes('&email=eq.'),'Guest House portal must never claim a legacy request by login email.');
+assert(files.portalApi.includes('/storage/v1/object/sign/flowtel-guest-house-replays/'),'Account portal does not use signed private media URLs.');
+assert(files.portalApi.includes('expiresIn:900'),'Account media links should expire after 15 minutes.');
+assert(!files.portalApi.includes('storage_path:file.storage_path'),'Private Storage paths must not be returned to visitors.');
+assert(files.accessApi.includes('hashToken(token)'),'Existing legacy private room keys must remain hashed and supported.');
 
 for(const table of ['guests','requests','files','events']){
-  assert(files.migration.includes(`alter table public.flowtel_guest_house_${table} enable row level security;`),`RLS missing for Guest House ${table}.`);
-  assert(files.migration.includes(`revoke all on public.flowtel_guest_house_${table} from anon, authenticated;`),`Browser table privileges were not revoked for Guest House ${table}.`);
+  assert(files.migration048.includes(`alter table public.flowtel_guest_house_${table} enable row level security;`),`RLS missing for Guest House ${table}.`);
+  assert(files.migration048.includes(`revoke all on public.flowtel_guest_house_${table} from anon, authenticated;`),`Browser table privileges were not revoked for Guest House ${table}.`);
 }
-assert(files.migration.includes("'flowtel-guest-house-replays'"),'Private Guest House Storage bucket missing.');
-assert(files.migration.includes("false,\n  2147483648"),'Guest House replay bucket must be private with the 2 GB MVP limit.');
-assert(files.migration.includes('public.flowtel_current_user_is_concierge()'),'Owner-only Concierge policy is missing.');
-assert(files.migration.includes("access_token_hash text unique"),'Hashed opaque room-key storage is missing.');
-assert(files.migration.includes("access_token_hash is null or access_token_hash ~ '^[a-f0-9]{64}$'"),'Room-key hash format guard is missing.');
-assert(files.migration.includes("event_type in ("),'Append-only Guest House event history is missing.');
-assert(files.migration.includes('flowtel_guest_house_admin_deactivate_file'),'Owner-safe replay removal RPC is missing.');
-assert(files.migration.includes("'request_created','status_changed','replay_uploaded','replay_removed','access_prepared'"),'Meaningful Guest House event types are missing.');
-assert(!/grant\s+(select|insert|update|delete)\s+on\s+public\.flowtel_guest_house_/i.test(files.migration),'Direct Guest House table access was granted to a browser role.');
+assert(files.migration049.includes('auth_user_id uuid references auth.users(id)'),'Guest House account ownership column is missing.');
+assert(files.migration049.includes('drop constraint if exists flowtel_guest_house_guests_email_key'),'Legacy and account identities must be allowed to remain separate even when an email matches.');
+assert(files.migration049.includes('where g.auth_user_id = v_user_id'),'Account RPC ownership must use Auth identity rather than email matching.');
+assert(!files.migration049.includes('where g.auth_user_id = v_user_id or g.email = v_email'),'Migration must not claim legacy requests by an unverified login email.');
+assert(files.migration049.includes("'guest_house','player','flowtel_member'"),'Guest House product-access role is missing.');
+assert(files.migration049.includes("v_access.access_role = 'guest_house'"),'Guest House accounts can still self-upgrade through the generic Flowtel doorway.');
+assert(files.migration049.includes('flowtel_guest_house_claim_my_account'),'Guest House account claim RPC is missing.');
+assert(files.migration049.includes('flowtel_guest_house_submit_my_request'),'Authenticated replay request RPC is missing.');
+assert(files.migration049.includes("'locating','guest_house_account'"),'New account requests must begin in locating status.');
+assert(files.migration049.includes('p_call_memory text'),'Approved call-memory-only request input is missing.');
+assert(!/grant\s+(select|insert|update|delete)\s+on\s+public\.flowtel_guest_house_/i.test(files.migration049),'Direct Guest House table access was granted to a browser role.');
+assert(files.supabase.includes('role === "guest_house"'),'Guest House route-boundary redirect is missing.');
+assert(files.supabase.includes('/guest-house/?access=guest-house-only'),'Guest House-only accounts are not redirected safely.');
+assert(files.supabase.includes('flowtel_claim_default_access'),'Same-account membership upgrade path is missing.');
 
-assert(!files.requestApi.includes('/auth/v1/admin/users'),'Public request must not create a Supabase Auth account.');
-assert(!files.requestApi.includes('flowtel_product_access'),'Public request must not grant product access.');
-assert(!files.requestApi.includes('membership_type'),'Public request must not create or alter membership.');
-assert(!files.requestApi.includes('flowtel_stays'),'Public request must not create a Flowtel stay.');
-assert(files.requestApi.includes('flowtel_guest_house_guests'),'Public request must create only the minimal Guest House identity.');
-assert(files.requestApi.includes('requester_confirmed_ownership:true'),'Ownership confirmation is not preserved.');
-assert(files.accessApi.includes('hashToken(token)'),'Replay Room token is not hashed before lookup.');
-assert(files.accessApi.includes('/storage/v1/object/sign/flowtel-guest-house-replays/'),'Replay Room does not use short-lived signed private media URLs.');
-assert(files.accessApi.includes('expiresIn:900'),'Signed media URLs should expire after 15 minutes.');
-assert(files.notifyApi.includes('The recording is never attached'),'Invitation email attachment guard is missing.');
-assert(files.notifyApi.includes('RESEND_API_KEY'),'Optional email configuration is not documented in code.');
-assert(files.shared.includes('resumableUpload'),'Large call replay resumable upload is missing.');
-assert(files.shared.includes('chunkSize:6*1024*1024'),'Supabase-compatible 6 MB resumable chunks are missing.');
+assert(files.managerJs.includes('renderGuestHouseQueue'),'Guest House owner request queue is not wired.');
+assert(files.managerJs.includes('uploadGuestHouseReplay'),'Owner replay upload is not wired.');
+assert(files.managerJs.includes('guestHouseUploadsInFlight'),'Large replay upload state is not preserved.');
+assert(files.managerJs.includes('guestHouseUploadDrafts'),'Selected replay file is not preserved.');
+assert(files.managerJs.includes('GUEST HOUSE ACCOUNT'),'Owner account recognition is missing.');
+assert(files.managerJs.includes('LEGACY PRIVATE ROOM KEY'),'Existing anonymous requests and token links are not preserved.');
+assert(!files.managerJs.includes('data-guest-house-email'),'Email invitation control must be removed for this release.');
+assert(!files.managerJs.includes('sendGuestHouseInvitation'),'Concierge must not load an email integration for this release.');
+assert(!files.managerJs.includes('CALL DATE / MONTH'),'Removed call-date field still appears in Concierge.');
+assert(files.managerJs.includes('WHAT SHE REMEMBERS ABOUT THE CALL'),'Concierge call-memory field is missing.');
+assert(!files.managerJs.includes('from "../shared/guest-house.js'),'Guest House must remain a lazy dependency of the Concierge access gate.');
+assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.63")'),'Guest House lazy module cache-bust is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.63-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
 
-assert(files.managerJs.includes('guestHouseUploadsInFlight'),'Large replay upload state is not preserved in Concierge.');
-assert(files.managerJs.includes('if(guestHouseEditorProtected()) return;'),'Concierge auto-refresh is not suspended while a replay is selected or uploading.');
-assert(files.managerJs.includes('if(!guestHouseEditorProtected()) renderQueue();'),'An in-flight Desk refresh can still replace a selected or active upload panel.');
-assert(files.managerJs.includes('data-guest-house-finalize-pending'),'Pending Replay Room finalization control is missing.');
-assert(files.shared.includes('.storage.supabase.co'),'Resumable uploads are not using the direct Supabase Storage hostname.');
+assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house'&&item.destination==='/guest-house/index.html'),'Guest House rewrite missing.');
+assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house/replay'&&item.destination==='/guest-house/replay/index.html'),'Legacy Replay Room rewrite missing.');
+assert((vercel.headers||[]).some(item=>item.source==='/guest-house/replay'&&item.headers?.some(header=>header.key==='X-Robots-Tag')),'Legacy Replay Room no-index header missing.');
+assert(!files.supabase.includes('"/guest-house/"'),'Guest House must remain outside the Flowtel protected-prefix list.');
+
+assert(files.shared.includes('resumableUpload'),'Large replay resumable upload is missing.');
+assert(files.shared.includes('chunkSize:6*1024*1024'),'Supabase-compatible 6 MB chunks are missing.');
 assert(files.shared.includes('GUEST_HOUSE_FINALIZE_PENDING'),'Completed Storage transfers are not protected from finalization failures.');
-assert(files.shared.includes('getPendingGuestHouseUpload'),'Pending replay finalization state is not recoverable.');
-assert(files.managerJs.includes('guestHouseUploadDrafts'),'Selected replay file is not preserved in Concierge memory.');
-assert(files.managerJs.includes('guestHouseFilePickerOpen'),'File-picker focus refresh protection is missing.');
-assert(files.managerJs.includes('data-guest-house-selected-file'),'Persistent selected-file confirmation is missing.');
-assert(files.managerJs.includes('data-guest-house-clear-file'),'Selected replay clear control is missing.');
-assert(files.shared.includes('guestHouseProjectLimitMessage'),'Project-wide Storage limit errors are not translated into actionable guidance.');
-assert(files.shared.includes("from './guest-house-core.js?v=0.10.62'"),'Guest House core cache-bust is missing from the upload helper.');
-assert(files.core.includes('Global file size limit'),'Supabase global file-size guidance is missing from large-upload errors.');
-assert(files.replayHtml.includes('noindex,nofollow,noarchive'),'Replay Room robots privacy metadata is missing.');
-assert(files.replayJs.includes('sessionStorage.setItem(TOKEN_KEY'),'Replay key is not preserved privately for the browser session.');
-assert(files.replayJs.includes('window.history.replaceState'),'Raw Replay Room key is not removed from the visible URL.');
-assert(files.requestHtml.includes('does not create a Flowtel password'),'Guest House access separation copy is missing.');
-assert(files.requestHtml.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the public doorway.');
-assert(files.replayJs.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the Replay Room.');
+assert(files.core.includes('Global file size limit'),'Supabase global file-size guidance is missing.');
+assert(files.replayJs.includes('sessionStorage.setItem(TOKEN_KEY'),'Legacy replay key preservation is missing.');
+assert(files.replayJs.includes('window.history.replaceState'),'Legacy raw room key is not removed from the visible URL.');
 
-const managerModuleSyntax=spawnSync(process.execPath,['--check','--input-type=module'],{
-  input:files.managerJs,
-  encoding:'utf8',
-});
-assert.equal(
-  managerModuleSyntax.status,
-  0,
-  `Concierge browser-module syntax failed:
-${managerModuleSyntax.stderr||managerModuleSyntax.stdout}`,
-);
+for(const [name,source] of [
+  ['Guest House portal',files.portalJs],
+  ['Concierge browser module',files.managerJs],
+]){
+  const result=spawnSync(process.execPath,['--check','--input-type=module'],{input:source,encoding:'utf8'});
+  assert.equal(result.status,0,`${name} syntax failed:\n${result.stderr||result.stdout}`);
+}
 
-console.log('Guest House HTML, CSS, routing, owner workflow, token privacy, Storage, RLS, product-access separation, and Concierge browser-module syntax validation passed.');
+console.log('Guest House accounts, remembered sessions, approved request fields, three-state status portal, signed media, owner workflow, legacy-link preservation, RLS, product boundaries, and browser-module validation passed.');

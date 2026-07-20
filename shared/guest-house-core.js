@@ -1,4 +1,4 @@
-// Flowtel v0.10.62 — Guest House request, replay-file, and private-room helpers.
+// Flowtel v0.10.63 — Guest House account, replay-file, and private-room helpers.
 
 export const GUEST_HOUSE_REPLAY_BUCKET = 'flowtel-guest-house-replays';
 export const GUEST_HOUSE_MAX_BYTES = 2 * 1024 * 1024 * 1024;
@@ -6,14 +6,14 @@ export const GUEST_HOUSE_REPLAY_EXTENSIONS = ['mp4','mov','m4v','webm','mp3','wa
 export const GUEST_HOUSE_VIDEO_EXTENSIONS = new Set(['mp4','mov','m4v','webm']);
 export const GUEST_HOUSE_AUDIO_EXTENSIONS = new Set(['mp3','wav','m4a','aac','ogg']);
 export const GUEST_HOUSE_STATUS_LABELS = Object.freeze({
-  requested: 'Request received',
-  locating: 'Locating your replay',
-  preparing: 'Preparing your Replay Room',
-  ready: 'Replay Room ready',
-  delivered: 'Private invitation shared',
-  received: 'Replay received',
-  unable_to_locate: 'A personal reply is needed',
-  archived: 'Room archived',
+  requested: 'Concierge is locating her recording',
+  locating: 'Concierge is locating her recording',
+  preparing: 'Concierge is locating her recording',
+  ready: 'Her Replay Room is ready',
+  delivered: 'Her Replay Room is ready',
+  received: 'Her Replay Room is ready',
+  unable_to_locate: "Concierge couldn't find her replay",
+  archived: "Concierge couldn't find her replay",
 });
 
 const SUPPORTED_MIME_TYPES = new Set([
@@ -81,22 +81,19 @@ export function validateGuestHouseRequest(values={}){
   const firstName=String(values.firstName || values.first_name || '').trim();
   const lastName=String(values.lastName || values.last_name || '').trim();
   const email=normalizeGuestHouseEmail(values.email);
-  const callDateHint=String(values.callDateHint || values.call_date_hint || '').trim();
-  const callTopic=String(values.callTopic || values.call_topic || '').trim();
-  const requesterNote=String(values.requesterNote || values.requester_note || '').trim();
+  const callMemory=String(values.callMemory || values.call_memory || values.callTopic || values.call_topic || '').trim();
   const confirmed=values.confirmed===true || values.requester_confirmed_ownership===true || values.confirmed==='true';
 
   if(firstName.length<1 || firstName.length>100) throw new Error('Enter your first name.');
   if(lastName.length<1 || lastName.length>100) throw new Error('Enter your last name.');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length>320){
-    throw new Error('Enter the email address you used for your 1:1 call.');
+  if(email && (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length>320)){
+    throw new Error('Enter a valid email address.');
   }
-  if(callDateHint.length>160) throw new Error('Keep the call date or month under 160 characters.');
-  if(callTopic.length>240) throw new Error('Keep the call description under 240 characters.');
-  if(requesterNote.length>2000) throw new Error('Keep your private note under 2,000 characters.');
+  if(!callMemory) throw new Error('Share what you remember about the call.');
+  if(callMemory.length>2000) throw new Error('Keep your call memory under 2,000 characters.');
   if(!confirmed) throw new Error('Confirm that you are requesting your own private call replay.');
 
-  return { firstName,lastName,email,callDateHint,callTopic,requesterNote,confirmed:true };
+  return { firstName,lastName,email,callMemory,confirmed:true };
 }
 
 export function guestHouseExpirationDate(days=90,fromDate=new Date()){

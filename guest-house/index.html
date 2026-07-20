@@ -4,12 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#f7efe5" />
-  <title>The Flowtel Guest House | Request Your Call Replay</title>
-  <meta name="description" content="Request a private replay of a 1:1 call with Megan inside the Flowtel Guest House." />
+  <title>The Flowtel Guest House | Your Private Call Replay</title>
+  <meta name="description" content="Create a private Guest House account to request and receive the replay of your 1:1 call with Megan." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=0.10.58" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.63" />
 </head>
 <body>
   <main class="guest-house-shell">
@@ -18,62 +18,94 @@
       <img class="guest-house-seal" src="/assets/flowtel-wax-seal.png" alt="" />
       <p class="eyebrow">THE FLOWTEL GUEST HOUSE</p>
       <h1 id="guestHouseTitle">Your conversation has been kept for you.</h1>
-      <p class="hero-copy">If you met with Megan for a private 1:1 session during the past year, you may request that your call replay be prepared inside your own private Replay Room.</p>
+      <p class="hero-copy">If you met with Megan for a private 1:1 session during the past year, create a private Guest House account to request your call replay and return whenever you wish to check on your room.</p>
       <div class="hospitality-note">
         <p>This doorway is open to former 1:1 clients whether or not you are currently a member of the Queendom.</p>
       </div>
     </section>
 
-    <section class="request-card" id="requestCard" aria-labelledby="requestTitle">
-      <header>
-        <p class="eyebrow">REQUEST YOUR REPLAY</p>
-        <h2 id="requestTitle">Let the Concierge know which conversation belongs to you.</h2>
-        <p>Share the name and email you used when we met. An approximate month, date, or memory from the call can help Megan locate the right recording.</p>
+    <section class="account-card" id="accountCard" aria-labelledby="accountTitle">
+      <header class="account-heading">
+        <p class="eyebrow">YOUR PRIVATE DOORWAY</p>
+        <h2 id="accountTitle">Enter the Guest House.</h2>
+        <p>An account remembers your request and Replay Room. It does not open the Flowtel or enroll you in the Queendom.</p>
       </header>
 
-      <form id="guestHouseRequestForm" novalidate>
-        <div class="name-grid">
+      <div class="auth-tabs" role="tablist" aria-label="Guest House account options">
+        <button type="button" class="is-active" id="createAccountTab" role="tab" aria-selected="true" aria-controls="createAccountPanel">CREATE AN ACCOUNT</button>
+        <button type="button" id="signInTab" role="tab" aria-selected="false" aria-controls="signInPanel">RETURN TO THE GUEST HOUSE</button>
+      </div>
+
+      <section id="createAccountPanel" role="tabpanel" aria-labelledby="createAccountTab">
+        <form id="createGuestHouseAccountForm" novalidate>
+          <div class="name-grid">
+            <label>
+              <span>First name</span>
+              <input name="first_name" autocomplete="given-name" maxlength="100" required />
+            </label>
+            <label>
+              <span>Last name</span>
+              <input name="last_name" autocomplete="family-name" maxlength="100" required />
+            </label>
+          </div>
           <label>
-            <span>First name</span>
-            <input name="first_name" autocomplete="given-name" maxlength="100" required />
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" maxlength="320" required />
           </label>
           <label>
-            <span>Last name</span>
-            <input name="last_name" autocomplete="family-name" maxlength="100" required />
+            <span>Create a password</span>
+            <input name="password" type="password" autocomplete="new-password" minlength="8" maxlength="72" required />
+            <small>Use at least 8 characters. Your browser can remember this room key for you.</small>
           </label>
+          <label>
+            <span>Confirm your password</span>
+            <input name="password_confirmation" type="password" autocomplete="new-password" minlength="8" maxlength="72" required />
+          </label>
+          <label class="honeypot" aria-hidden="true">
+            <span>Website</span>
+            <input name="website" tabindex="-1" autocomplete="off" />
+          </label>
+          <div class="privacy-copy">
+            <strong>A Guest House account, not a Flowtel membership.</strong>
+            <p>This account can hold only your Guest House replay request and recording. It does not create a Suite, Flowtel stay, membership, Team Map presence, cycle record, mentor relationship, or access to any member room.</p>
+          </div>
+          <button class="primary-button" type="submit">CREATE MY GUEST HOUSE ACCOUNT</button>
+          <p class="form-status" id="createAccountStatus" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section id="signInPanel" role="tabpanel" aria-labelledby="signInTab" hidden>
+        <form id="guestHouseSignInForm" novalidate>
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" maxlength="320" required />
+          </label>
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" autocomplete="current-password" maxlength="72" required />
+          </label>
+          <button class="primary-button" type="submit">OPEN MY GUEST HOUSE</button>
+          <p class="form-status" id="signInStatus" role="status" aria-live="polite"></p>
+          <p class="quiet-note">Email recovery is resting for now. If your room key is lost, contact Megan for help returning to the Guest House.</p>
+        </form>
+      </section>
+    </section>
+
+    <section class="portal-card" id="guestHousePortal" hidden aria-live="polite">
+      <header class="portal-header">
+        <div>
+          <p class="eyebrow">YOUR FLOWTEL GUEST HOUSE</p>
+          <h2 id="portalGreeting">Welcome back.</h2>
+          <p id="portalEmail"></p>
         </div>
-        <label>
-          <span>Email used for your call</span>
-          <input name="email" type="email" autocomplete="email" maxlength="320" required />
-          <small>This email helps Megan match your request. It does not enroll you in the Flowtel.</small>
-        </label>
-        <label>
-          <span>Approximate call date or month <em>optional</em></span>
-          <input name="call_date_hint" maxlength="160" placeholder="For example: February 2026 or around the spring equinox" />
-        </label>
-        <label>
-          <span>What was the call about? <em>optional</em></span>
-          <input name="call_topic" maxlength="240" placeholder="A word or phrase that will help identify the recording" />
-        </label>
-        <label>
-          <span>Private note for Megan <em>optional</em></span>
-          <textarea name="requester_note" rows="4" maxlength="2000" placeholder="Anything else you remember about the conversation"></textarea>
-        </label>
-        <label class="honeypot" aria-hidden="true">
-          <span>Website</span>
-          <input name="website" tabindex="-1" autocomplete="off" />
-        </label>
-        <label class="confirmation-row">
-          <input name="confirmed" type="checkbox" required />
-          <span>I confirm that I am requesting my own private 1:1 call replay.</span>
-        </label>
-        <div class="privacy-copy">
-          <strong>A Guest House identity, not a Flowtel membership.</strong>
-          <p>Submitting this form creates a minimal private request record so Megan can prepare your replay. It does not create a Flowtel password, open a Suite, or grant access to the Queendom, Flow FM, Team Map, cycle data, or any other member room.</p>
+        <button class="quiet-button" type="button" id="guestHouseSignOut">LEAVE THE GUEST HOUSE</button>
+      </header>
+      <div id="portalContent">
+        <div class="portal-loading">
+          <img src="/assets/flowtel-wax-seal.png" alt="" />
+          <p>Opening your Guest House room…</p>
         </div>
-        <button class="primary-button" type="submit">REQUEST MY CALL REPLAY</button>
-        <p class="form-status" id="guestHouseRequestStatus" role="status" aria-live="polite"></p>
-      </form>
+      </div>
     </section>
 
     <section class="invitation-card" aria-labelledby="queendomInvitationTitle">
@@ -83,6 +115,6 @@
       <a class="secondary-button" href="https://www.theidyllcollective.com/queendomhome">JOIN THE QUEENDOM</a>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.58"></script>
+  <script type="module" src="./app.js?v=0.10.63"></script>
 </body>
 </html>

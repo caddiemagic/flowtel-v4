@@ -1,3 +1,19 @@
+## v0.10.63 — Guest House Accounts + Replay Status Portal
+
+- Replaces the anonymous Guest House request doorway with a remembered email-and-password Guest House account.
+- Requires a woman to sign in before submitting her call replay request and automatically restores her Guest House session on return.
+- Reduces the request to first name, last name, **What do you remember about the call?**, and ownership confirmation.
+- Removes the approximate call date/month and requester private-note fields from the client experience and owner queue.
+- Adds exactly three client hospitality states: **Concierge is locating your recording**, **Your Replay Room is ready**, and **Concierge couldn't find your replay**.
+- Displays ready private audio/video replays directly inside the authenticated Guest House account using 15-minute signed media URLs.
+- Adds an explicit `guest_house` product-access role with no Flowtel or Caddie Magic access and blocks self-upgrade through protected routes.
+- Preserves a safe same-account path for a future legitimate Queendom/Flowtel membership profile to promote access without losing Guest House history.
+- Keeps legacy token-based requests separate from new accounts so an unverified login email cannot claim an older private replay.
+- Removes the Concierge **Email Invitation** workflow and requires no email-provider integration in this release.
+- Preserves existing legacy room-key links, private files, append-only events, and the v0.10.62 resumable large-upload protections.
+- Adds migration 049. Migration 037 remains retired and must never be rerun.
+- Preserves all established Flowtel, Hourly Flow Rate, Honors, Priestess Mailbox, Moonbox, and Caddie Magic boundaries.
+
 ## v0.10.62 — Guest House Replay Selection + Storage Limit Recovery Hotfix
 
 - Prevents the Concierge Desk from discarding a selected Guest House audio/video file when the operating-system file picker returns focus to the browser.

@@ -33,9 +33,9 @@ async function enforceCurrentPathProductAccess(session) {
   if (!product || !user) return;
 
   try {
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("flowtel_product_access")
-      .select("flowtel_access,caddie_magic_access,access_role")
+      .select("flowtel_access,caddie_magic_access,access_role,access_source")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -43,14 +43,44 @@ async function enforceCurrentPathProductAccess(session) {
     // installation message instead of trapping the user in a redirect loop.
     if (error || !data) return;
 
-    const isOwner = ["owner", "admin"].includes(String(data.access_role || "").toLowerCase());
-    const allowed = isOwner || (product === "flowtel" ? data.flowtel_access : data.caddie_magic_access);
+    const role = String(data.access_role || "").toLowerCase();
+    const isOwner = ["owner", "admin"].includes(role);
+    let allowed = isOwner || (product === "flowtel" ? data.flowtel_access : data.caddie_magic_access);
     if (product === "caddie_magic" && new URLSearchParams(window.location.search).has("invite")) return;
+
+    // A Guest House account remains outside the Flowtel unless a trusted
+    // membership doorway has already created a real Flowtel profile for the
+    // same Auth identity. In that case, promote the existing account without
+    // losing its Guest House replay history.
+    if (!allowed && product === "flowtel" && role === "guest_house") {
+      const profileLookup = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", user.id)
+        .maybeSingle();
+      if (!profileLookup.error && profileLookup.data?.id) {
+        const claim = await supabase.rpc("flowtel_claim_default_access");
+        if (!claim.error && claim.data === true) {
+          const refreshed = await supabase
+            .from("flowtel_product_access")
+            .select("flowtel_access,caddie_magic_access,access_role,access_source")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (!refreshed.error && refreshed.data) {
+            data = refreshed.data;
+            allowed = Boolean(refreshed.data.flowtel_access);
+          }
+        }
+      }
+    }
+
     if (allowed) return;
 
-    const target = product === "flowtel"
-      ? "/caddie-magic/?access=player-only"
-      : "/client/?access=flowtel-only";
+    const target = role === "guest_house"
+      ? "/guest-house/?access=guest-house-only"
+      : product === "flowtel"
+        ? "/caddie-magic/?access=player-only"
+        : "/client/?access=flowtel-only";
 
     if (window.location.pathname !== target.split("?")[0]) {
       window.location.replace(target);

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
   GUEST_HOUSE_MAX_BYTES,
+  GUEST_HOUSE_STATUS_LABELS,
   buildGuestHouseReplayUrl,
   createGuestHouseToken,
   guestHouseExpirationDate,
@@ -17,13 +18,16 @@ import {
 assert.equal(normalizeGuestHouseEmail('  Woman@Example.COM '),'woman@example.com');
 assert.deepEqual(validateGuestHouseRequest({
   firstName:'Mara',lastName:'Rose',email:' MARA@EXAMPLE.COM ',confirmed:true,
-  callDateHint:'Spring 2026',callTopic:'Womb wealth',requesterNote:'Private note',
+  callMemory:'I remember talking about womb wealth and receiving.',
 }),{
   firstName:'Mara',lastName:'Rose',email:'mara@example.com',confirmed:true,
-  callDateHint:'Spring 2026',callTopic:'Womb wealth',requesterNote:'Private note',
+  callMemory:'I remember talking about womb wealth and receiving.',
 });
-assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',email:'mara@example.com',confirmed:false}),/requesting your own/);
-assert.throws(()=>validateGuestHouseRequest({firstName:'',lastName:'Rose',email:'mara@example.com',confirmed:true}),/first name/);
+assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',callMemory:'Memory',confirmed:false}),/requesting your own/);
+assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',callMemory:'',confirmed:true}),/what you remember/);
+assert.equal(GUEST_HOUSE_STATUS_LABELS.locating,'Concierge is locating her recording');
+assert.equal(GUEST_HOUSE_STATUS_LABELS.ready,'Her Replay Room is ready');
+assert.equal(GUEST_HOUSE_STATUS_LABELS.unable_to_locate,"Concierge couldn't find her replay");
 
 assert.equal(guestHouseMediaKind('call.mp4','video/mp4'),'video');
 assert.equal(guestHouseMediaKind('call.m4a','audio/mp4'),'audio');
@@ -50,4 +54,4 @@ assert.equal(guestHouseExpirationDate(999,start).toISOString(),'2027-07-21T12:00
 assert.equal(guestHouseFileSize(1024),'1.0 KB');
 assert.equal(guestHouseFileSize(1024*1024*1024),'1.00 GB');
 
-console.log('Guest House request, file, token, expiration, and private-link tests passed.');
+console.log('Guest House account request, status, file, token, expiration, and private-link tests passed.');

@@ -1,4 +1,4 @@
-// Flowtel v0.10.62 — resilient owner Concierge helpers for Guest House replay requests.
+// Flowtel v0.10.63 — resilient owner Concierge helpers for Guest House replay requests.
 
 import { supabase } from './supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
@@ -11,7 +11,7 @@ import {
   hashGuestHouseToken,
   safeGuestHouseFilename,
   validateGuestHouseReplayMetadata,
-} from './guest-house-core.js?v=0.10.62';
+} from './guest-house-core.js?v=0.10.63';
 
 const PENDING_UPLOAD_KEY='flowtel_guest_house_pending_uploads_v1';
 const pendingUploadMemory=new Map();

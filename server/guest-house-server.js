@@ -1,4 +1,4 @@
-// Shared server-only helpers for Flowtel v0.10.58 Guest House endpoints.
+// Shared server-only helpers for Flowtel v0.10.63 Guest House endpoints.
 
 const crypto=require('crypto');
 
@@ -78,6 +78,23 @@ function bearerToken(req){
   return header.toLowerCase().startsWith('bearer ') ? header.slice(7).trim() : '';
 }
 
+async function requireUser(req){
+  const {supabaseUrl,serviceKey}=serverConfig();
+  const token=bearerToken(req);
+  if(!token){
+    const error=new Error('Sign in to open the Flowtel Guest House.');
+    error.statusCode=401;
+    throw error;
+  }
+  const user=await fetchJson(`${supabaseUrl}/auth/v1/user`,{method:'GET',headers:userHeaders(serviceKey,token)});
+  if(!user?.id || !user?.email){
+    const error=new Error('Your Guest House session could not be verified.');
+    error.statusCode=401;
+    throw error;
+  }
+  return {user,token,supabaseUrl,serviceKey};
+}
+
 async function requireOwner(req){
   const {supabaseUrl,serviceKey}=serverConfig();
   const token=bearerToken(req);
@@ -111,5 +128,5 @@ function sendError(res,error,fallback='This Guest House request could not be com
 
 module.exports={
   bearerToken,fetchJson,hashToken,normalizeEmail,publicOrigin,readRequestBody,requireOwner,
-  safeJsonParse,sendError,serverConfig,serviceHeaders,setPublicCors,trimTo,userHeaders,validToken,
+  requireUser,safeJsonParse,sendError,serverConfig,serviceHeaders,setPublicCors,trimTo,userHeaders,validToken,
 };
