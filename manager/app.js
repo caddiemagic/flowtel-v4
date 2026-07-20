@@ -1650,7 +1650,63 @@ function bindGuestHouseControls(){
   queue.querySelectorAll('[data-guest-house-save]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const status=card?.querySelector('[data-guest-house-status]')?.value;const note=card?.querySelector('[data-guest-house-owner-note]')?.value||'';const output=button.parentElement.querySelector('p[role="status"]');const original=button.textContent;button.disabled=true;button.textContent='SAVING…';try{await updateGuestHouseRequest({requestId:button.dataset.guestHouseSave,status,ownerNote:note});await reloadGuestHouse('Guest House care saved.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'This request could not be saved.';}}));
   queue.querySelectorAll('[data-guest-house-finalize-pending]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseFinalizePending;const panel=button.closest('.guest-house-pending-upload');const output=panel?.querySelector('p[role="status"]');const original=button.textContent;beginGuestHouseUpload(requestId);button.disabled=true;button.textContent='FINISHING…';if(output) output.textContent='Finishing the private Replay Room record…';try{await finalizePendingGuestHouseReplay(requestId);endGuestHouseUpload(requestId);await reloadGuestHouse('The preserved replay is now waiting safely in the Guest House.');}catch(error){endGuestHouseUpload(requestId);button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'The preserved replay could not be finished yet.';if(managerMessage) managerMessage.textContent=error?.message||'The preserved replay could not be finished yet.';}}));
   queue.querySelectorAll('[data-guest-house-discard-pending]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseDiscardPending;const panel=button.closest('.guest-house-pending-upload');const output=panel?.querySelector('p[role="status"]');if(!window.confirm('Remove this preserved upload from private Storage? Only use this when you intend to upload a different file.')) return;const original=button.textContent;button.disabled=true;button.textContent='REMOVING…';try{await discardPendingGuestHouseReplay(requestId);renderGuestHouseQueue();if(managerMessage) managerMessage.textContent='The unfinished private upload was removed.';}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'The preserved upload could not be removed.';}}));
-  queue.querySelectorAll('[data-guest-house-upload]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const requestId=button.dataset.guestHouseUpload;const file=card?.querySelector('[data-guest-house-file]')?.files?.[0];const title=card?.querySelector('[data-guest-house-title]')?.value||'';const note=card?.querySelector('[data-guest-house-note]')?.value||'';const progress=button.parentElement.querySelector('.guest-house-progress');const bar=progress?.querySelector('span');const output=button.parentElement.querySelector('p[role="status"]');const original=button.textContent;if(!file){if(output) output.textContent='Choose the audio or video replay first.';return;}beginGuestHouseUpload(requestId);button.disabled=true;button.textContent='UPLOADING…';if(progress) progress.hidden=false;if(bar) bar.style.width='0%';if(output) output.textContent=`Preparing ${file.name} (${guestHouseFileSize(file.size)})… Keep this tab open.`;try{await uploadGuestHouseReplay({requestId,file,displayTitle:title,noteToGuest:note,onProgress:value=>{if(bar) bar.style.width=`${value}%`;if(output) output.textContent=`Uploading privately… ${value}% · Keep this tab open.`;},onStage:stage=>{if(stage==='finalizing'){button.textContent='FINISHING…';if(output) output.textContent='Upload complete. Finishing the private Replay Room record…';}});endGuestHouseUpload(requestId);await reloadGuestHouse('The call replay is waiting safely in the Guest House.');}catch(error){endGuestHouseUpload(requestId);if(error?.code==='GUEST_HOUSE_FINALIZE_PENDING'){renderGuestHouseQueue();if(managerMessage) managerMessage.textContent=error.message;return;}button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'This replay could not be uploaded.';if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be uploaded.';}}));
+  queue.querySelectorAll('[data-guest-house-upload]').forEach(button=>{
+    button.addEventListener('click',async()=>{
+      const card=button.closest('[data-guest-house-request]');
+      const requestId=button.dataset.guestHouseUpload;
+      const file=card?.querySelector('[data-guest-house-file]')?.files?.[0];
+      const title=card?.querySelector('[data-guest-house-title]')?.value||'';
+      const note=card?.querySelector('[data-guest-house-note]')?.value||'';
+      const progress=button.parentElement.querySelector('.guest-house-progress');
+      const bar=progress?.querySelector('span');
+      const output=button.parentElement.querySelector('p[role="status"]');
+      const original=button.textContent;
+
+      if(!file){
+        if(output) output.textContent='Choose the audio or video replay first.';
+        return;
+      }
+
+      beginGuestHouseUpload(requestId);
+      button.disabled=true;
+      button.textContent='UPLOADING…';
+      if(progress) progress.hidden=false;
+      if(bar) bar.style.width='0%';
+      if(output) output.textContent=`Preparing ${file.name} (${guestHouseFileSize(file.size)})… Keep this tab open.`;
+
+      try{
+        await uploadGuestHouseReplay({
+          requestId,
+          file,
+          displayTitle:title,
+          noteToGuest:note,
+          onProgress:value=>{
+            if(bar) bar.style.width=`${value}%`;
+            if(output) output.textContent=`Uploading privately… ${value}% · Keep this tab open.`;
+          },
+          onStage:stage=>{
+            if(stage==='finalizing'){
+              button.textContent='FINISHING…';
+              if(output) output.textContent='Upload complete. Finishing the private Replay Room record…';
+            }
+          },
+        });
+        endGuestHouseUpload(requestId);
+        await reloadGuestHouse('The call replay is waiting safely in the Guest House.');
+      }catch(error){
+        endGuestHouseUpload(requestId);
+        if(error?.code==='GUEST_HOUSE_FINALIZE_PENDING'){
+          renderGuestHouseQueue();
+          if(managerMessage) managerMessage.textContent=error.message;
+          return;
+        }
+        button.disabled=false;
+        button.textContent=original;
+        if(output) output.textContent=error?.message||'This replay could not be uploaded.';
+        if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be uploaded.';
+      }
+    });
+  });
   queue.querySelectorAll('[data-guest-house-prepare]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const days=card?.querySelector('[data-guest-house-expiry]')?.value||90;const output=card?.querySelector('.guest-house-access-status');const original=button.textContent;button.disabled=true;button.textContent='PREPARING…';try{const prepared=await prepareGuestHouseAccess({requestId:button.dataset.guestHousePrepare,days});guestHouseAccessLinks.set(button.dataset.guestHousePrepare,prepared);await loadGuestHouseData();updateStats();renderGuestHouseQueue();if(managerMessage) managerMessage.textContent='A fresh private Replay Room key is ready to share.';}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'The private room key could not be prepared.';}}));
   queue.querySelectorAll('[data-guest-house-copy]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseCopy;const prepared=guestHouseAccessLinks.get(requestId);const panel=button.closest('.guest-house-access-panel');const output=panel?.querySelector('.guest-house-access-status');try{await copyGuestHouseLink(prepared?.url,panel?.querySelector('.guest-house-link-row input'));await updateGuestHouseRequest({requestId,status:'delivered',ownerNote:button.closest('[data-guest-house-request]')?.querySelector('[data-guest-house-owner-note]')?.value||''});await reloadGuestHouse('The private Replay Room link was copied. The recording itself was not placed in the message.');}catch(error){if(output) output.textContent=error?.message||'The private link could not be copied.';}}));
   queue.querySelectorAll('[data-guest-house-email]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseEmail;const prepared=guestHouseAccessLinks.get(requestId);const output=button.closest('.guest-house-access-panel')?.querySelector('.guest-house-access-status');const original=button.textContent;button.disabled=true;button.textContent='SENDING…';try{const result=await sendGuestHouseInvitation({requestId,token:prepared?.token});if(output) output.textContent=result.message||'Private invitation emailed.';await reloadGuestHouse('The private Replay Room invitation was emailed without attaching the recording.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'Email is not configured. Copy the private link instead.';}}));

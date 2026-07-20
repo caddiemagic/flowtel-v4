@@ -140,18 +140,32 @@
     <div id="adminTeamMapDialogContent"></div>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.10.60-caddie-0.4.5"></script>
+  <script type="module">
+    import("./app.js?v=0.10.61-caddie-0.4.5").catch(function(error){
+      document.documentElement.dataset.conciergeLoadFailed="true";
+      var message=document.getElementById("managerMessage");
+      var button=document.getElementById("managerEntryButton");
+      var detail=error && error.message ? error.message : "The Concierge application could not be loaded.";
+      console.error("Concierge application failed to load.",error);
+      if(message) message.textContent="The newest Concierge Desk release could not load: "+detail;
+      if(button){
+        button.textContent="Refresh Concierge Desk";
+        button.onclick=function(){window.location.reload();};
+      }
+    });
+  </script>
   <script>
     window.setTimeout(function(){
       if(document.documentElement.dataset.conciergeAppBooted === "true") return;
+      if(document.documentElement.dataset.conciergeLoadFailed === "true") return;
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");
       if(message) message.textContent="The Concierge Desk did not finish opening. Refresh this page to load the newest Desk release.";
       if(button){
         button.textContent="Refresh Concierge Desk";
-        button.addEventListener("click",function(){window.location.reload();},{once:true});
+        button.onclick=function(){window.location.reload();};
       }
-    },8000);
+    },12000);
   </script>
 </body>
 </html>

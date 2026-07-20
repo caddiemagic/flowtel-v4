@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
 
 const files={
   requestHtml:await readFile('guest-house/index.html','utf8'),
@@ -48,6 +49,8 @@ assert(files.managerJs.includes('async function ensureGuestHouseModules()'),'Gue
 assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.60")'),'Guest House lazy module cache-bust is missing.');
 assert(files.managerJs.includes('document.documentElement.dataset.conciergeAppBooted="true"'),'Concierge boot marker is missing.');
 assert(files.managerHtml.includes('The Concierge Desk did not finish opening.'),'Concierge boot watchdog is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.61-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
+assert(files.managerHtml.includes('conciergeLoadFailed'),'Concierge module-load failure state is missing.');
 assert(files.managerJs.includes('withConciergeGateTimeout'),'Concierge access verification can still remain indefinitely on the checking screen.');
 
 assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house'&&item.destination==='/guest-house/index.html'),'Public Guest House rewrite missing.');
@@ -97,4 +100,15 @@ assert(files.requestHtml.includes('does not create a Flowtel password'),'Guest H
 assert(files.requestHtml.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the public doorway.');
 assert(files.replayJs.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the Replay Room.');
 
-console.log('Guest House HTML, CSS, routing, owner workflow, token privacy, Storage, RLS, and product-access separation validation passed.');
+const managerModuleSyntax=spawnSync(process.execPath,['--check','--input-type=module'],{
+  input:files.managerJs,
+  encoding:'utf8',
+});
+assert.equal(
+  managerModuleSyntax.status,
+  0,
+  `Concierge browser-module syntax failed:
+${managerModuleSyntax.stderr||managerModuleSyntax.stdout}`,
+);
+
+console.log('Guest House HTML, CSS, routing, owner workflow, token privacy, Storage, RLS, product-access separation, and Concierge browser-module syntax validation passed.');

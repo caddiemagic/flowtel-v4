@@ -1,3 +1,13 @@
+## v0.10.61 — Concierge Browser Module Syntax Recovery Hotfix
+
+- Restores the owner Concierge Desk after v0.10.60 still stopped on **Checking your role**.
+- Fixes a malformed Guest House replay-upload event handler that prevented `manager/app.js` from parsing as a browser ES module, so the role check never began.
+- Rewrites the upload handler as a readable, balanced block while preserving resumable 450 MB uploads, progress continuity, finalization, and pending-upload recovery.
+- Loads the Concierge application through a guarded dynamic import and shows the actual module-loading error instead of only a frozen access screen.
+- Adds explicit browser-module syntax validation using `node --check --input-type=module` and verifies the Concierge static module graph links across 29 modules.
+- No Supabase migration required. Migration 048 remains current, and migration 037 remains retired.
+- Preserves all existing Flowtel, Guest House, Hourly Flow Rate, Priestess Mailbox, Honors, and Caddie Magic boundaries.
+
 ## v0.10.60 — Concierge Access Gate Recovery Hotfix
 
 - Restores owner access to the Concierge Desk after the screen could remain frozen on **Checking your role** following the Guest House large-upload release.
