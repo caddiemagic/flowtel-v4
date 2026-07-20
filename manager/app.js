@@ -10,6 +10,8 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.5";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
+import { createGuestHouseOwnerDownloadUrl, deactivateGuestHouseReplay, listGuestHouseRequests, prepareGuestHouseAccess, revokeGuestHouseAccess, sendGuestHouseInvitation, updateGuestHouseRequest, uploadGuestHouseReplay } from "../shared/guest-house.js?v=0.10.58";
+import { guestHouseFileSize, GUEST_HOUSE_STATUS_LABELS } from "../shared/guest-house-core.js?v=0.10.58";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -37,6 +39,9 @@ let honorsLedgerRows=[];
 let honorsServiceAvailable=true;
 let priestessMailboxRows=[];
 let priestessMailboxServiceAvailable=true;
+let guestHouseRequests=[];
+let guestHouseServiceAvailable=true;
+const guestHouseAccessLinks=new Map();
 let deskRefreshTimer=null;
 let deskRefreshInFlight=false;
 const DESK_REFRESH_INTERVAL_MS=45000;
@@ -593,7 +598,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox"].includes(activeFilter)) return [];
+  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -609,6 +614,7 @@ function updateStats(){
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO()).length;
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
   const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
+  const guestHouseAwaiting=guestHouseRequests.filter(row=>["requested","locating","preparing"].includes(String(row.request_status||""))).length;
 
   setText("awaitingTurndownCount",awaitingCount);
   setText("caddiePlayerCount",caddiePlayers.filter(player=>player.caddie_magic_access).length);
@@ -625,6 +631,7 @@ function updateStats(){
   setText("honorsAvailablePoints",formatPoints(honorsAvailable));
   setText("honorsPractitionerCount",honorsDashboardRows.length);
   setText("priestessMailboxCount",mailboxAwaiting);
+  setText("guestHouseRequestCount",guestHouseAwaiting);
 
   const queueCard=document.querySelector(".queue");
   if(queueCard) queueCard.classList.toggle("has-requests",activeFilter==="queue" && awaitingCount>0);
@@ -650,6 +657,9 @@ function updateStats(){
   const mailboxCard=document.querySelector('[data-filter="priestess-mailbox"]');
   if(mailboxCard) mailboxCard.classList.toggle("has-alert",mailboxAwaiting>0);
 
+  const guestHouseCard=document.querySelector('[data-filter="guest-house"]');
+  if(guestHouseCard) guestHouseCard.classList.toggle("has-alert",guestHouseAwaiting>0);
+
   const inHouseCard=document.querySelector('[data-filter="in-house"]');
   if(inHouseCard) inHouseCard.classList.remove("has-alert");
 
@@ -672,6 +682,7 @@ function setFilter(filter){
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
     "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
     "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
+    "guest-house":["FLOWTEL GUEST HOUSE","Call Replay Requests + Private Rooms","Locate former 1:1 calls, upload private audio or video replays, and share revocable Replay Room keys without granting Flowtel access."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -1495,6 +1506,69 @@ async function loadPriestessMailboxData(){
   }
 }
 
+
+function guestHouseStatusOptions(current){
+  return Object.entries(GUEST_HOUSE_STATUS_LABELS).map(([value,label])=>`<option value="${value}" ${value===current?'selected':''}>${escapeHtml(label)}</option>`).join('');
+}
+function guestHouseFileMarkup(file){
+  const active=file.is_active!==false;
+  return `<article class="guest-house-admin-file ${active?'':'is-removed'}"><div><p>${active?escapeHtml(String(file.media_kind||'replay').toUpperCase()):'REMOVED FROM REPLAY ROOM'}</p><h4>${escapeHtml(file.display_title||file.original_filename||'Call replay')}</h4><span>${escapeHtml(guestHouseFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.note_to_guest?`<em>${escapeHtml(file.note_to_guest)}</em>`:''}</div><div><button type="button" data-guest-house-owner-download="${escapeHtml(file.storage_path)}">DOWNLOAD</button>${active?`<button class="quiet" type="button" data-guest-house-deactivate-file="${escapeHtml(file.file_id)}">REMOVE FROM ROOM</button>`:''}</div></article>`;
+}
+function guestHouseAccessMarkup(request){
+  const prepared=guestHouseAccessLinks.get(request.request_id);
+  const active=['ready','delivered','received'].includes(String(request.request_status||'')) && request.access_expires_at && !request.access_revoked_at && new Date(request.access_expires_at)>new Date();
+  const currentLink=prepared?.url || '';
+  return `<section class="guest-house-access-panel"><div><p class="eyebrow">PRIVATE REPLAY ROOM KEY</p><h4>${active?'A room key is active.':'Prepare a private room key.'}</h4><span>${active?`Open through ${escapeHtml(managerDateLabel(request.access_expires_at,{withTime:false}))}. A replacement key closes the prior one.`:'The guest receives no Flowtel membership or password.'}</span></div><div class="guest-house-access-controls"><select data-guest-house-expiry aria-label="Replay Room access length"><option value="30">30 days</option><option value="60">60 days</option><option value="90" selected>90 days</option><option value="180">180 days</option><option value="365">1 year</option></select><button type="button" data-guest-house-prepare="${escapeHtml(request.request_id)}">${active?'PREPARE REPLACEMENT KEY':'PREPARE ROOM KEY'}</button>${active?`<button class="quiet" type="button" data-guest-house-revoke="${escapeHtml(request.request_id)}">CLOSE ROOM</button>`:''}</div>${currentLink?`<div class="guest-house-link-row"><input value="${escapeHtml(currentLink)}" readonly aria-label="Private Replay Room link" /><button type="button" data-guest-house-copy="${escapeHtml(request.request_id)}">COPY LINK</button><button type="button" data-guest-house-email="${escapeHtml(request.request_id)}">EMAIL INVITATION</button></div>`:`${active?'<p class="guest-house-key-hint">For privacy, the raw room key is never stored. Prepare a replacement key whenever you need to copy or resend the link.</p>':''}`}<p class="guest-house-access-status" role="status"></p></section>`;
+}
+function renderGuestHouseQueue(){
+  if(!guestHouseServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>The Guest House is waiting for migration 048.</h3><p>The public doorway can remain unpublished until the private request tables and replay bucket are installed.</p></div>';
+    return;
+  }
+  const awaiting=guestHouseRequests.filter(row=>['requested','locating','preparing'].includes(String(row.request_status||''))).length;
+  queue.innerHTML=`<section class="guest-house-admin-dashboard"><header><div><p class="eyebrow">FORMER 1:1 CLIENTS</p><h3>${awaiting} ${awaiting===1?'request is':'requests are'} waiting for care.</h3><p>Each woman receives a separate Guest House identity and a revocable Replay Room—never automatic access to the Flowtel or Queendom.</p></div><span>${guestHouseRequests.length} REQUESTS</span></header><div class="guest-house-request-list">${guestHouseRequests.length?guestHouseRequests.map(request=>{const files=Array.isArray(request.files)?request.files:[];const activeFiles=files.filter(file=>file.is_active!==false);const fullName=[request.first_name,request.last_name].filter(Boolean).join(' ');return `<article class="guest-house-request-card" data-guest-house-request="${escapeHtml(request.request_id)}"><header><div><p class="eyebrow">${request.member_id?'EXISTING FLOWTEL IDENTITY · MEMBERSHIP PRESERVED':'GUEST HOUSE VISITOR'}</p><h3>${escapeHtml(fullName||'Guest House Visitor')}</h3><a href="mailto:${escapeHtml(request.email)}">${escapeHtml(request.email)}</a></div><strong>${escapeHtml(GUEST_HOUSE_STATUS_LABELS[request.request_status]||request.request_status||'Request received')}</strong></header><div class="guest-house-request-details"><div><span>CALL DATE / MONTH</span><p>${escapeHtml(request.call_date_hint||'Not provided')}</p></div><div><span>CALL MEMORY</span><p>${escapeHtml(request.call_topic||'Not provided')}</p></div></div>${request.requester_note?`<blockquote>${escapeHtml(request.requester_note)}</blockquote>`:''}<div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, verification details, or a private follow-up">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(request.request_id)}">SAVE CONCIERGE CARE</button><p role="status"></p></div><section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in her room`:'No active replay in her room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED · `:''}STREAM + DOWNLOAD</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" data-guest-house-title /></label><label><span>Note inside her room — optional</span><input type="text" maxlength="1000" placeholder="A note she will see above the player" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(request.request_id)}">UPLOAD REPLAY</button><div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>${guestHouseAccessMarkup(request)}<footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Room opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Replay Room not opened yet</span>'}</footer></article>`}).join(''):'<p class="honors-empty">No Guest House replay requests have arrived yet.</p>'}</div></section>`;
+  bindGuestHouseControls();
+}
+async function downloadGuestHouseOwnerFile(button){
+  const popup=window.open('about:blank','_blank');
+  const original=button.textContent;button.disabled=true;button.textContent='PREPARING…';
+  try{
+    const url=await createGuestHouseOwnerDownloadUrl(button.dataset.guestHouseOwnerDownload);
+    if(popup){popup.opener=null;popup.location.href=url;}else{window.open(url,'_blank','noopener');}
+    button.disabled=false;button.textContent=original;
+  }catch(error){popup?.close();button.disabled=false;button.textContent=original;if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be prepared.';}
+}
+async function reloadGuestHouse(message=''){
+  await loadGuestHouseData();updateStats();renderGuestHouseQueue();if(message && managerMessage) managerMessage.textContent=message;
+}
+async function copyGuestHouseLink(value,input){
+  const text=String(value||'');
+  if(!text) throw new Error('Prepare a private Replay Room key first.');
+  if(navigator.clipboard?.writeText){
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  if(input){
+    input.focus();
+    input.select();
+    if(document.execCommand('copy')) return;
+  }
+  throw new Error('Select and copy the private link manually.');
+}
+function bindGuestHouseControls(){
+  queue.querySelectorAll('[data-guest-house-owner-download]').forEach(button=>button.addEventListener('click',()=>downloadGuestHouseOwnerFile(button)));
+  queue.querySelectorAll('[data-guest-house-deactivate-file]').forEach(button=>button.addEventListener('click',async()=>{const original=button.textContent;button.disabled=true;button.textContent='REMOVING…';try{await deactivateGuestHouseReplay(button.dataset.guestHouseDeactivateFile);await reloadGuestHouse('The replay was removed from the guest’s room while its private record was preserved.');}catch(error){button.disabled=false;button.textContent=original;if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be removed from the room.';}}));
+  queue.querySelectorAll('[data-guest-house-save]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const status=card?.querySelector('[data-guest-house-status]')?.value;const note=card?.querySelector('[data-guest-house-owner-note]')?.value||'';const output=button.parentElement.querySelector('p[role="status"]');const original=button.textContent;button.disabled=true;button.textContent='SAVING…';try{await updateGuestHouseRequest({requestId:button.dataset.guestHouseSave,status,ownerNote:note});await reloadGuestHouse('Guest House care saved.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'This request could not be saved.';}}));
+  queue.querySelectorAll('[data-guest-house-upload]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const file=card?.querySelector('[data-guest-house-file]')?.files?.[0];const title=card?.querySelector('[data-guest-house-title]')?.value||'';const note=card?.querySelector('[data-guest-house-note]')?.value||'';const progress=button.parentElement.querySelector('.guest-house-progress');const bar=progress?.querySelector('span');const output=button.parentElement.querySelector('p[role="status"]');const original=button.textContent;button.disabled=true;button.textContent='UPLOADING…';if(progress) progress.hidden=false;if(output) output.textContent='Preparing the private replay upload…';try{await uploadGuestHouseReplay({requestId:button.dataset.guestHouseUpload,file,displayTitle:title,noteToGuest:note,onProgress:value=>{if(bar) bar.style.width=`${value}%`;if(output) output.textContent=`Uploading privately… ${value}%`;}});await reloadGuestHouse('The call replay is waiting safely in the Guest House.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'This replay could not be uploaded.';}}));
+  queue.querySelectorAll('[data-guest-house-prepare]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const days=card?.querySelector('[data-guest-house-expiry]')?.value||90;const output=card?.querySelector('.guest-house-access-status');const original=button.textContent;button.disabled=true;button.textContent='PREPARING…';try{const prepared=await prepareGuestHouseAccess({requestId:button.dataset.guestHousePrepare,days});guestHouseAccessLinks.set(button.dataset.guestHousePrepare,prepared);await loadGuestHouseData();updateStats();renderGuestHouseQueue();if(managerMessage) managerMessage.textContent='A fresh private Replay Room key is ready to share.';}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'The private room key could not be prepared.';}}));
+  queue.querySelectorAll('[data-guest-house-copy]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseCopy;const prepared=guestHouseAccessLinks.get(requestId);const panel=button.closest('.guest-house-access-panel');const output=panel?.querySelector('.guest-house-access-status');try{await copyGuestHouseLink(prepared?.url,panel?.querySelector('.guest-house-link-row input'));await updateGuestHouseRequest({requestId,status:'delivered',ownerNote:button.closest('[data-guest-house-request]')?.querySelector('[data-guest-house-owner-note]')?.value||''});await reloadGuestHouse('The private Replay Room link was copied. The recording itself was not placed in the message.');}catch(error){if(output) output.textContent=error?.message||'The private link could not be copied.';}}));
+  queue.querySelectorAll('[data-guest-house-email]').forEach(button=>button.addEventListener('click',async()=>{const requestId=button.dataset.guestHouseEmail;const prepared=guestHouseAccessLinks.get(requestId);const output=button.closest('.guest-house-access-panel')?.querySelector('.guest-house-access-status');const original=button.textContent;button.disabled=true;button.textContent='SENDING…';try{const result=await sendGuestHouseInvitation({requestId,token:prepared?.token});if(output) output.textContent=result.message||'Private invitation emailed.';await reloadGuestHouse('The private Replay Room invitation was emailed without attaching the recording.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'Email is not configured. Copy the private link instead.';}}));
+  queue.querySelectorAll('[data-guest-house-revoke]').forEach(button=>button.addEventListener('click',async()=>{const output=button.closest('.guest-house-access-panel')?.querySelector('.guest-house-access-status');button.disabled=true;try{await revokeGuestHouseAccess(button.dataset.guestHouseRevoke);guestHouseAccessLinks.delete(button.dataset.guestHouseRevoke);await reloadGuestHouse('The private Replay Room has been closed.');}catch(error){button.disabled=false;if(output) output.textContent=error?.message||'The private room could not be closed.';}}));
+}
+async function loadGuestHouseData(){
+  try{guestHouseRequests=await listGuestHouseRequests();guestHouseServiceAvailable=true;}catch(error){console.warn('Guest House queue is not available yet.',error);guestHouseRequests=[];guestHouseServiceAvailable=false;}
+}
+
 function renderQueue(){
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
@@ -1553,6 +1627,11 @@ function renderQueue(){
 
   if(activeFilter==="priestess-mailbox"){
     renderPriestessMailboxQueue();
+    return;
+  }
+
+  if(activeFilter==="guest-house"){
+    renderGuestHouseQueue();
     return;
   }
 
@@ -1721,6 +1800,7 @@ async function loadDesk({silent=false}={}){
     await loadAdminTeamMap();
     await loadHonorsData();
     await loadPriestessMailboxData();
+    await loadGuestHouseData();
     updateStats();
     renderQueue();
   }catch(error){

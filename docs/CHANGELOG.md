@@ -1,3 +1,20 @@
+## v0.10.58 — Guest House Call Replay Room MVP
+
+- Adds the public **Flowtel Guest House** doorway at `/guest-house/` for former 1:1 clients to request their own call replay without joining the Queendom or signing into Flowtel.
+- Creates a minimal Guest House identity and request record only; no Supabase Auth user, password, profile, membership, stay, or product-access grant is created.
+- Adds the token-gated `/guest-house/replay/` room for signed-out audio/video streaming and private downloads.
+- Stores only a SHA-256 hash of each 256-bit room key and removes the raw key from the visible address bar after entry.
+- Serves replay media through private Storage and 15-minute signed URLs; no Guest House table or bucket access is granted directly to anonymous or authenticated browser roles.
+- Adds an owner-only **Flowtel Guest House** queue to Concierge with request details, private owner notes, statuses, access history, and existing-member recognition without membership changes.
+- Supports private MP4/MOV/M4V/WEBM/MP3/WAV/M4A/AAC/OGG uploads up to 2 GB, with resumable 6 MB chunks for files over 6 MB.
+- Supports multiple replay files, guest-visible titles and notes, owner downloads, and safe removal of a mistaken file from the room without deleting its preserved record.
+- Adds 30-, 60-, 90-, 180-, and 365-day revocable Replay Room keys; replacement keys invalidate prior links.
+- Adds copy-link delivery and optional Resend invitation email while never attaching the recording to email.
+- Invites women into the Queendom from both the request page and Replay Room without making membership a condition of receiving their replay.
+- Adds append-only Guest House delivery events for requests, status changes, uploads, safe removals, room-key changes, room opens, playback, downloads, and invitations.
+- Adds Supabase migration 048 and the private `flowtel-guest-house-replays` bucket. Migration 037 remains retired and must not be rerun.
+- Preserves Flowtel v0.10.57 Hourly Flow Rate, all established Flowtel boundaries, and integrated Caddie Magic v0.4.5.
+
 ## v0.10.57 — Hourly Flow Rate MVP
 
 - Adds the private Flow FM **Hourly Flow Rate** experience at `/flow-fm/hourly-flow-rate/`.

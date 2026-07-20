@@ -1,0 +1,47 @@
+:root{
+  color-scheme:light;
+  --ivory:#fffaf3;
+  --cream:#f7efe5;
+  --rose:#7b4051;
+  --rose-deep:#512a36;
+  --blush:#f2dfe0;
+  --gold:#b89455;
+  --gold-soft:#dfc9a6;
+  --brown:#4a3432;
+  --muted:#786462;
+  --white:rgba(255,255,255,.86);
+  font-family:"Montserrat",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--brown);background:
+  radial-gradient(circle at 12% 8%,rgba(240,208,208,.65),transparent 30rem),
+  radial-gradient(circle at 88% 25%,rgba(217,193,145,.32),transparent 28rem),
+  linear-gradient(180deg,#fffaf4 0%,#f7eee5 54%,#f4e8dc 100%);min-height:100vh}
+body::before,body::after{content:"";position:fixed;top:0;bottom:0;width:9px;background:linear-gradient(180deg,transparent,var(--gold-soft),transparent);opacity:.45;pointer-events:none}
+body::before{left:2.2vw}body::after{right:2.2vw}
+.guest-house-shell{width:min(1080px,calc(100% - 32px));margin:0 auto;padding:64px 0 80px}
+.guest-house-hero{text-align:center;max-width:840px;margin:0 auto 38px;padding:32px 36px 42px;position:relative}
+.temple-line{height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin-bottom:28px}
+.guest-house-seal{width:92px;height:92px;object-fit:contain;filter:drop-shadow(0 9px 14px rgba(91,48,57,.17));margin-bottom:14px}
+.eyebrow{font-size:.72rem;letter-spacing:.22em;font-weight:600;color:var(--rose);margin:0 0 13px;text-transform:uppercase}
+h1,h2{font-family:"Cormorant Garamond",serif;color:var(--rose-deep);font-weight:500;line-height:1.02;margin:0}
+h1{font-size:clamp(3rem,7vw,5.6rem);letter-spacing:-.035em}
+h2{font-size:clamp(2rem,4vw,3.25rem)}
+.hero-copy{font-family:"Cormorant Garamond",serif;font-size:clamp(1.28rem,2.3vw,1.65rem);line-height:1.46;max-width:720px;margin:24px auto 0;color:#5e4543}
+.hospitality-note{display:inline-block;margin-top:24px;padding:12px 22px;border-top:1px solid var(--gold-soft);border-bottom:1px solid var(--gold-soft);font-size:.86rem;line-height:1.55;color:var(--muted)}
+.hospitality-note p{margin:0}
+.request-card,.invitation-card{background:var(--white);border:1px solid rgba(184,148,85,.42);border-radius:34px;box-shadow:0 25px 70px rgba(72,42,42,.10);backdrop-filter:blur(10px)}
+.request-card{padding:clamp(28px,5vw,58px);max-width:860px;margin:0 auto}
+.request-card>header{max-width:690px;margin-bottom:32px}
+.request-card>header p:last-child,.invitation-card>p{line-height:1.7;color:var(--muted)}
+form{display:grid;gap:19px}.name-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px}
+label{display:grid;gap:8px}label>span{font-size:.78rem;text-transform:uppercase;letter-spacing:.1em;font-weight:600;color:#684b49}label em{font-style:normal;font-weight:400;color:#9c8580;text-transform:none;letter-spacing:0}
+input,textarea{width:100%;border:1px solid #dbc7b4;border-radius:15px;background:#fffdf9;color:var(--brown);font:inherit;padding:14px 15px;outline:none;transition:border-color .2s,box-shadow .2s}textarea{resize:vertical;min-height:112px}input:focus,textarea:focus{border-color:var(--gold);box-shadow:0 0 0 4px rgba(184,148,85,.13)}
+small{font-size:.73rem;line-height:1.5;color:#88716c}.confirmation-row{display:flex;align-items:flex-start;gap:11px;padding:13px 0}.confirmation-row input{width:18px;height:18px;flex:0 0 auto;margin-top:1px;accent-color:var(--rose)}.confirmation-row span{text-transform:none;letter-spacing:0;line-height:1.5;font-size:.88rem}
+.privacy-copy{border-left:3px solid var(--gold);background:#fbf3e9;border-radius:0 16px 16px 0;padding:16px 18px}.privacy-copy strong{font-family:"Cormorant Garamond",serif;font-size:1.25rem;color:var(--rose-deep)}.privacy-copy p{font-size:.78rem;line-height:1.65;color:var(--muted);margin:6px 0 0}
+.primary-button,.secondary-button{border:0;border-radius:999px;text-decoration:none;text-align:center;font-family:"Montserrat",sans-serif;font-size:.75rem;font-weight:600;letter-spacing:.14em;cursor:pointer;transition:transform .2s,box-shadow .2s,opacity .2s}.primary-button{padding:16px 24px;background:linear-gradient(135deg,var(--rose),#9b6070);color:white;box-shadow:0 12px 24px rgba(103,51,66,.21)}.primary-button:hover,.secondary-button:hover{transform:translateY(-1px)}.primary-button:disabled{opacity:.62;cursor:wait}
+.secondary-button{display:inline-flex;align-items:center;justify-content:center;padding:14px 22px;border:1px solid var(--gold);color:var(--rose-deep);background:#fffaf2}
+.form-status{min-height:24px;text-align:center;color:#9d3d4b;font-size:.83rem;margin:0}.honeypot{position:absolute!important;left:-10000px!important;width:1px!important;height:1px!important;overflow:hidden!important}
+.invitation-card{max-width:860px;margin:32px auto 0;padding:42px;text-align:center}.invitation-card h2{max-width:690px;margin:0 auto}.invitation-card>p{max-width:650px;margin:18px auto 25px}
+.request-success{text-align:center;padding:8px 0}.request-success img{width:78px;height:78px;object-fit:contain;margin-bottom:14px}.request-success h2{max-width:650px;margin:0 auto}.request-success>p{max-width:660px;line-height:1.7;color:var(--muted);margin:18px auto}.request-success .reference{display:inline-block;padding:10px 18px;border:1px solid var(--gold-soft);border-radius:999px;color:var(--brown)}
+@media(max-width:680px){.guest-house-shell{width:min(100% - 20px,1080px);padding:34px 0 48px}.guest-house-hero{padding:24px 12px 30px}.guest-house-seal{width:74px;height:74px}.name-grid{grid-template-columns:1fr}.request-card{border-radius:24px;padding:28px 20px}.invitation-card{border-radius:24px;padding:32px 20px}h1{font-size:3.1rem}.primary-button{width:100%}}
