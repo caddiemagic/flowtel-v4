@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.4.1" />
-  <link rel="stylesheet" href="./styles.css?v=0.4.1" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.3" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.3" />
 </head>
 <body>
   <main class="cm-shell compass-shell">
     <section class="cm-hero compass-hero">
-      <span class="cm-version">v0.4.1</span>
+      <span class="cm-version">v0.4.3</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -87,7 +87,7 @@
       <section class="cm-card compass-schedule-card">
         <div class="compass-section-heading">
           <div>
-            <p class="cm-eyebrow">UPCOMING GOLF</p>
+            <p class="cm-eyebrow">CALENDAR</p>
             <h2>Your upcoming rounds, tournaments, and trips.</h2>
             <p class="cm-muted">See the moon day and phase for every day you will be playing.</p>
           </div>
@@ -123,7 +123,7 @@
           <label>Notes or Intention <span class="compass-optional">Optional</span>
             <textarea id="golfEventNotes" rows="3" placeholder="What are you preparing for or watching in yourself?"></textarea>
           </label>
-          <button class="cm-button" type="submit">Add Upcoming Golf</button>
+          <button class="cm-button" type="submit">Add to Calendar</button>
         </form>
         <p class="cm-message" id="golfScheduleMessage"></p>
         <div class="golf-schedule-list" id="golfScheduleList"></div>
@@ -143,8 +143,9 @@
       <section class="cm-card compass-dispatch-card">
         <div class="compass-section-heading">
           <div>
-            <p class="cm-eyebrow">THE CADDIE SHACK</p>
+            <p class="cm-eyebrow">MESSAGES</p>
             <h2>Private messages with your Caddie.</h2>
+            <p class="cm-muted" id="dispatchIntro">First submit your Caddie Compass. Then you can send private messages here.</p>
           </div>
         </div>
         <div class="dispatch-thread" id="dispatchThread"></div>
@@ -164,6 +165,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.1"></script>
+  <script type="module" src="./app.js?v=0.4.3"></script>
 </body>
 </html>

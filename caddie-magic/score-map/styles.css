@@ -41,7 +41,7 @@
   content:"";
   position:absolute;
   inset:0;
-  background:url('/assets/caddie-magic-wheel-center.png') center/contain no-repeat;
+  background:url('/assets/caddie-magic-map-center.png') center/contain no-repeat;
   filter:drop-shadow(0 12px 18px rgba(0,0,0,.18));
 }
 .cm-map-center span{display:none}
@@ -139,7 +139,7 @@
 .cm-modal-detail-wide{grid-column:1/-1}
 body.cm-modal-open{overflow:hidden}
 @media(max-width:700px){
-  .cm-map-hero-actions{display:grid}
+  .cm-map-hero-actions{display:grid;gap:10px;width:100%}
   .cm-map-hero-actions .cm-button{min-width:0;width:100%}
   .cm-modal{padding:14px}
   .cm-modal-card{padding:24px 18px}
@@ -162,8 +162,9 @@ body.cm-modal-open{overflow:hidden}
 .cm-map-note.cm-score-only-note:hover{background:#10283d}
 @media(max-width:900px){
   .cm-map-toolbar-controls{display:grid;width:100%}
-  .cm-map-display-toggle{width:100%}
-  .cm-display-button{flex:1;padding:0 10px}
+  .cm-map-display-toggle,.cm-map-filters{width:100%}
+  .cm-display-button,.cm-filter-button{flex:1;padding:0 10px}
+  .cm-player-view{width:100%;justify-self:stretch;text-align:center}
 }
 
 /* Caddie Magic v0.4.1 — consistent quadrant alignment */

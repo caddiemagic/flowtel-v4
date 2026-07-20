@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.1 — Compass Polish + Homework + Upcoming Golf
+// Caddie Magic v0.4.3 — Compass Messaging Guidance + Calendar Labels
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.1";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.3";
 import {
   getMyCaddieMagicProfile,
   getMyActiveCompass,
@@ -10,12 +10,12 @@ import {
   updateMyCompassAssignment,
   getCompassDispatches,
   sendCompassDispatch,
-} from "../../shared/caddie-magic-compass.js?v=0.4.1";
+} from "../../shared/caddie-magic-compass.js?v=0.4.3";
 import {
   getMyUpcomingGolfEvents,
   saveUpcomingGolfEvent,
   deleteUpcomingGolfEvent,
-} from "../../shared/caddie-magic-schedule.js?v=0.4.1";
+} from "../../shared/caddie-magic-schedule.js?v=0.4.3";
 
 const $ = (id) => document.getElementById(id);
 
@@ -121,6 +121,7 @@ function renderCompass() {
   $("saveCompassButton").disabled = sealed;
   $("saveCompassButton").textContent = sealed ? "Compass Sealed" : "Update My Caddie Compass";
   setup?.classList.toggle("hidden", sealed);
+  renderDispatchComposer();
 }
 
 function assignmentMarkup(assignment, completed = false) {
@@ -185,10 +186,26 @@ function assignmentTitle(id) {
   return assignments.find((item) => String(item.id) === String(id))?.title || "Compass Assignment";
 }
 
+function renderDispatchComposer() {
+  const textarea = $("dispatchMessage");
+  const button = $("dispatchForm")?.querySelector('button[type="submit"]');
+  const intro = $("dispatchIntro");
+  const canMessage = Boolean(compass);
+  if (textarea) textarea.disabled = !canMessage;
+  if (button) button.disabled = !canMessage;
+  if (textarea && !canMessage) textarea.value = "";
+  if (intro) {
+    intro.textContent = canMessage
+      ? "Your Compass is in. Use Messages anytime you want to ask a question, share an update, or respond to an assignment."
+      : "First submit your Caddie Compass. Then you can send private messages here.";
+  }
+}
+
 function renderDispatches() {
   const thread = $("dispatchThread");
   if (!dispatches.length) {
-    thread.innerHTML = `<div class="cm-empty">No messages in The Caddie Shack yet. Send the first one whenever something needs witnessing.</div>`;
+    thread.innerHTML = `<div class="cm-empty">${compass ? "No Messages yet. Send the first one whenever something needs witnessing." : "Submit your Compass first. Messages will open here afterward."}</div>`;
+    renderDispatchComposer();
     return;
   }
   thread.innerHTML = dispatches.map((dispatch) => `
@@ -199,6 +216,7 @@ function renderDispatches() {
     </article>
   `).join("");
   thread.scrollTop = thread.scrollHeight;
+  renderDispatchComposer();
 }
 
 function eventTypeLabel(value) {
@@ -310,6 +328,10 @@ async function handleCompassSave(event) {
 
 async function handleDispatch(event) {
   event.preventDefault();
+  if (!compass) {
+    setMessage($("dispatchMessageStatus"), "Submit your Caddie Compass first. Then Messages will open.", true);
+    return;
+  }
   const message = $("dispatchMessage").value;
   setMessage($("dispatchMessageStatus"), "Sending your message...");
   try {

@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./styles.css?v=0.4.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.3" />
 </head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
-      <span class="cm-version">v0.4.1</span>
+      <span class="cm-version">v0.4.3</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -114,7 +114,7 @@
             <div class="cm-club-label cm-club-south">South Club</div>
             <div class="cm-club-label cm-club-west">West Club</div>
             <div class="cm-wheel-center" aria-hidden="true">
-              <img class="cm-wheel-center-image" src="/assets/caddie-magic-wheel-center.png" alt="" />
+              <img class="cm-wheel-center-image" src="/assets/caddie-magic-wheel-directions.png" alt="" />
             </div>
           </div>
           <p class="cm-wheel-help">Click on any day on the moon wheel to view your stored data.</p>
@@ -133,6 +133,7 @@
             <article class="cm-snapshot-card">
               <span>Moon Phase</span>
               <strong id="moonPhaseValue">—</strong>
+              <small id="moonPhaseClubValue" class="cm-snapshot-subcopy"></small>
             </article>
             <article class="cm-snapshot-card">
               <span>Theme</span>
@@ -241,6 +242,6 @@
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.1"></script>
+  <script type="module" src="./app.js?v=0.4.3"></script>
 </body>
 </html>

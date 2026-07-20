@@ -27,10 +27,14 @@
 .cm-collective-axis{position:absolute;z-index:3;background:rgba(211,173,105,.55);pointer-events:none}
 .cm-collective-axis-y{top:0;bottom:0;left:50%;width:1px}
 .cm-collective-axis-x{left:0;right:0;top:50%;height:1px}
-.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:56px;height:56px;transform:translate(-50%,-50%);border:1px solid var(--line);border-radius:50%;display:grid;place-items:center;color:var(--gold);background:#071725;box-shadow:0 0 0 10px rgba(7,23,37,.95)}
+.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);display:grid;place-items:center;color:transparent;background:url('/assets/caddie-magic-map-center.png') center/contain no-repeat;box-shadow:0 0 0 12px rgba(7,23,37,.95)}
 .cm-collective-quadrant{position:relative;z-index:2;min-height:340px;padding:24px 28px;transition:min-height .2s ease}
 .cm-collective-west,.cm-collective-north{border-bottom:1px solid var(--line-soft)}
 .cm-collective-west,.cm-collective-south{border-right:1px solid var(--line-soft)}
+.cm-collective-west,.cm-collective-south{padding-right:76px}
+.cm-collective-east,.cm-collective-north{padding-left:76px}
+.cm-collective-west,.cm-collective-north{padding-bottom:76px}
+.cm-collective-south,.cm-collective-east{padding-top:76px}
 .cm-collective-quadrant header{margin-bottom:16px}
 .cm-collective-quadrant header p{margin:0 0 6px;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
 .cm-collective-quadrant h2{font:500 1.1rem var(--font-display);letter-spacing:.08em;text-transform:uppercase}
@@ -55,7 +59,8 @@
   .cm-collective-filter{flex:1;padding:0 8px}
   .cm-collective-map{display:flex;flex-direction:column;overflow:visible}
   .cm-collective-axis,.cm-collective-center{display:none}
-  .cm-collective-quadrant{min-height:240px;border-right:0!important;border-bottom:1px solid var(--line-soft)}
+  .cm-collective-quadrant{min-height:240px;padding:18px 16px;border-right:0!important;border-bottom:1px solid var(--line-soft)}
+  .cm-collective-west,.cm-collective-east,.cm-collective-south,.cm-collective-north{padding:18px 16px}
   .cm-collective-east{border-bottom:0}
   .cm-collective-west{order:1}.cm-collective-south{order:2}.cm-collective-east{order:3}.cm-collective-north{order:4}
 }

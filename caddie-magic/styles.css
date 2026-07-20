@@ -148,9 +148,9 @@ h3{font-size:1.14rem;line-height:1.15}
 .cm-wheel-section{display:grid;justify-items:center}
 .cm-moon-wheel{position:relative;width:min(100%,525px);aspect-ratio:1;border-radius:50%}
 .cm-wheel-ring{display:none}
-.cm-day-ring{position:absolute;inset:0}
+.cm-day-ring{position:absolute;inset:0;z-index:2}
 .cm-day-button{
-  position:absolute;left:50%;top:50%;width:38px;height:38px;margin:-19px;
+  position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px;
   border:1.5px solid rgba(211,173,105,.84);border-radius:50%;
   background:transparent;color:var(--gold);box-shadow:none;
   cursor:pointer;font:700 .74rem/1 var(--font-body);
@@ -162,10 +162,12 @@ h3{font-size:1.14rem;line-height:1.15}
 .cm-club-label{display:none}
 .cm-wheel-center{
   position:absolute;
-  inset:15.25%;
+  inset:0;
+  z-index:1;
   display:grid;
   place-items:center;
   border-radius:50%;
+  pointer-events:none;
 }
 .cm-wheel-center-image{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 14px 20px rgba(0,0,0,.20))}
 .cm-wheel-help{max-width:470px;margin:12px 0 0;text-align:center;color:var(--muted);font-size:.84rem;line-height:1.5}
@@ -186,6 +188,7 @@ h3{font-size:1.14rem;line-height:1.15}
 .cm-snapshot-card:last-child{grid-column:1/-1}
 .cm-snapshot-card span,.cm-stat span{display:block;margin-bottom:8px;color:var(--gold);font:700 .56rem/1.35 var(--font-body);letter-spacing:.16em;text-transform:uppercase}
 .cm-snapshot-card strong,.cm-stat strong{display:block;color:var(--ivory);font:500 1rem/1.35 var(--font-display)}
+.cm-snapshot-subcopy{display:block;margin-top:8px;color:var(--muted);font:700 .58rem/1.45 var(--font-body);letter-spacing:.1em;text-transform:uppercase}
 .cm-day-detail{padding:18px}
 .cm-day-detail-content{margin-top:12px;color:var(--text);line-height:1.6;font-size:.93rem}
 .cm-day-round{padding-top:12px;margin-top:12px;border-top:1px solid rgba(211,173,105,.14)}
@@ -238,8 +241,7 @@ h3{font-size:1.14rem;line-height:1.15}
   .cm-round-meta{justify-content:flex-start}
   .cm-button{width:100%}
   .cm-button.ghost{width:auto}
-  .cm-day-button{width:31px;height:31px;margin:-15.5px;font-size:.6rem}
-  .cm-wheel-center{inset:14%}
+  .cm-day-button{width:30px;height:30px;margin:-15px;font-size:.58rem}
 }
 @media(max-width:430px){
   h1{font-size:1.72rem}

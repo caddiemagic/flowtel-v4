@@ -1,9 +1,11 @@
-// Caddie Magic v0.4.1 — Player-Only Access + Phase Language
+// Caddie Magic v0.4.3 — Compass Snapshot + Medicine Wheel Assets
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.1";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.1";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.3";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.3";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches } from "../shared/caddie-magic-compass.js?v=0.4.3";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.3";
 
 const $ = (id) => document.getElementById(id);
 
@@ -22,6 +24,10 @@ let playerProfile = null;
 let roundLogs = [];
 let playerNotes = [];
 let reviewRequests = [];
+let activeCompass = null;
+let compassAssignments = [];
+let compassDispatches = [];
+let upcomingGolfEvents = [];
 let selectedMoonDayToken = null;
 let entryMode = "round";
 
@@ -96,6 +102,63 @@ function phaseForMoonDay(day) {
 function displayName(profile = playerProfile) {
   const name = clean(`${profile?.first_name || ""} ${profile?.last_name || ""}`);
   return name || currentUser?.email || "Player";
+}
+
+function compassClubForPhase(phase = "") {
+  if (!activeCompass) return "";
+  const normalized = normalizePhase(phase);
+  if (normalized === "New Moon Phase") return activeCompass.west_club || "";
+  if (normalized === "Half Full Moon Phase") return activeCompass.south_club || "";
+  if (normalized === "Full Moon Phase") return activeCompass.east_club || "";
+  if (normalized === "Half New Moon Phase") return activeCompass.north_club || "";
+  return "";
+}
+
+function activeAssignmentsSummary() {
+  const active = compassAssignments.filter((item) => item.status !== "completed");
+  const completed = compassAssignments.filter((item) => item.status === "completed");
+  return { active, completed };
+}
+
+function latestDispatchPreview() {
+  if (!compassDispatches.length) return null;
+  return compassDispatches[compassDispatches.length - 1];
+}
+
+function nextUpcomingGolfEvent() {
+  return upcomingGolfEvents[0] || null;
+}
+
+async function loadCompassSnapshotData() {
+  try {
+    const [compass, assignments, dispatches] = await Promise.all([
+      getMyActiveCompass().catch(() => null),
+      playerProfile ? getCompassAssignments(playerProfile.id).catch(() => []) : Promise.resolve([]),
+      playerProfile ? getCompassDispatches(playerProfile.id).catch(() => []) : Promise.resolve([]),
+    ]);
+    activeCompass = compass;
+    compassAssignments = assignments;
+    compassDispatches = dispatches;
+  } catch (error) {
+    console.warn("Compass snapshot data could not be loaded.", error);
+    activeCompass = null;
+    compassAssignments = [];
+    compassDispatches = [];
+  }
+}
+
+async function loadUpcomingGolfSnapshotData() {
+  try {
+    upcomingGolfEvents = await getMyUpcomingGolfEvents();
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (message.includes("caddie_magic_upcoming_golf_events") || message.includes("schema cache")) {
+      upcomingGolfEvents = [];
+      return;
+    }
+    console.warn("Upcoming Golf snapshot data could not be loaded.", error);
+    upcomingGolfEvents = [];
+  }
 }
 
 function showState(state) {
@@ -285,6 +348,7 @@ async function loadPortalData() {
   roundLogs = logs;
   playerNotes = notes;
   reviewRequests = reviews;
+  await Promise.all([loadCompassSnapshotData(), loadUpcomingGolfSnapshotData()]);
 }
 
 async function logRound(event) {
@@ -417,10 +481,10 @@ function renderMoonDayDetail(token) {
 
 function positionMoonDayButtons() {
   const buttons = document.querySelectorAll(".cm-day-button");
+  const radius = window.innerWidth <= 430 ? 35 : window.innerWidth <= 760 ? 36 : 37;
   buttons.forEach((button, index) => {
     const angle = 170 - (index * (360 / 28));
     const radians = angle * Math.PI / 180;
-    const radius = 44;
     button.style.left = `${50 + (Math.cos(radians) * radius)}%`;
     button.style.top = `${50 + (Math.sin(radians) * radius)}%`;
   });
@@ -460,6 +524,8 @@ function renderMoonDashboard() {
   $("lastNewMoonValue").textContent = formatDate(moon.lastNewMoonDate);
   $("moonDayValue").textContent = `Day ${moon.moonDay}`;
   $("moonPhaseValue").textContent = shortPhase(moon.phase);
+  const phaseClub = compassClubForPhase(moon.phase);
+  $("moonPhaseClubValue").textContent = phaseClub ? `${shortPhase(moon.phase)} club · ${phaseClub}` : "";
   $("moonThemeValue").textContent = caddieTheme(moon.phase);
   $("nextNewMoonValue").textContent = formatDate(moon.nextNewMoonDate);
   $("nextFullMoonValue").textContent = formatDate(nextFullMoonISO(moon, today));
@@ -473,25 +539,42 @@ function renderStats() {
   const latestEntry = roundLogs[0] || null;
   const statGrid = $("statGrid");
   if (!statGrid) return;
-  if (!latestEntry) {
-    statGrid.innerHTML = `<div class="cm-empty">Your first score or swing thought is waiting.</div>`;
-    return;
-  }
+
+  const assignmentsSummary = activeAssignmentsSummary();
+  const latestDispatch = latestDispatchPreview();
+  const nextEvent = nextUpcomingGolfEvent();
+  const unreadCaddieMessages = compassDispatches.filter((dispatch) => dispatch.sender_role === "caddie").length;
+
   statGrid.innerHTML = `
     <article class="cm-stat">
       <span>Latest Score</span>
       <strong>${latestRound ? escapeHtml(latestRound.score) : "—"}</strong>
-      <small>${latestRound ? `${escapeHtml(latestRound.course_played || "Round")} · ${escapeHtml(formatDate(latestRound.round_date))}` : "No scored round yet"}</small>
+      <small>${latestRound ? `${escapeHtml(latestRound.course_played || "Round")} · ${escapeHtml(formatDate(latestRound.round_date))}` : "No scored round yet."}</small>
     </article>
     <article class="cm-stat">
       <span>Moon Data</span>
-      <strong>Day ${escapeHtml(latestEntry.moon_day || "—")}</strong>
-      <small>${escapeHtml(shortPhase(latestEntry.moon_phase))}</small>
+      <strong>${latestEntry ? `Day ${escapeHtml(latestEntry.moon_day || "—")}` : `Day ${escapeHtml(String(getMoonMagic(todayISO()).moonDay))}`}</strong>
+      <small>${escapeHtml(latestEntry ? shortPhase(latestEntry.moon_phase) : shortPhase(getMoonMagic(todayISO()).phase))}${compassClubForPhase(getMoonMagic(todayISO()).phase) ? ` · ${escapeHtml(compassClubForPhase(getMoonMagic(todayISO()).phase))}` : ""}</small>
+    </article>
+    <article class="cm-stat">
+      <span>Assignments</span>
+      <strong>${activeCompass ? `${assignmentsSummary.active.length} active` : "Submit Compass"}</strong>
+      <small>${activeCompass ? `${assignmentsSummary.completed.length} completed · Open Caddie Compass for your homework.` : "First submit your Caddie Compass. Then your assignments will land here."}</small>
+    </article>
+    <article class="cm-stat">
+      <span>Messages</span>
+      <strong>${activeCompass ? `${compassDispatches.length} total` : "Compass First"}</strong>
+      <small>${activeCompass ? (latestDispatch ? `${latestDispatch.sender_role === "caddie" ? "Latest from your Caddie" : "Latest from you"} · ${escapeHtml(formatDateTime(latestDispatch.created_at))}` : "No Messages yet.") : "Submit your compass first, then you can message your Caddie."}</small>
+    </article>
+    <article class="cm-stat">
+      <span>Calendar</span>
+      <strong>${nextEvent ? escapeHtml(nextEvent.title || nextEvent.event_title || "Upcoming Round") : "No Upcoming Golf"}</strong>
+      <small>${nextEvent ? `${escapeHtml(formatDate(nextEvent.date_start))}${nextEvent.date_end && nextEvent.date_end !== nextEvent.date_start ? ` – ${escapeHtml(formatDate(nextEvent.date_end))}` : ""}${nextEvent.course ? ` · ${escapeHtml(nextEvent.course)}` : ""}` : "Add your next round, tournament, or trip in Calendar."}</small>
     </article>
     <article class="cm-stat is-wide">
       <span>Latest Swing Thought</span>
       <strong class="cm-stat-thought">${latestThoughtEntry ? escapeHtml(latestThoughtEntry.swing_thoughts) : "No swing thought logged yet."}</strong>
-      <small>${scoredRounds.length} round${scoredRounds.length === 1 ? "" : "s"} logged · Best ${bestScore(scoredRounds) ?? "—"} · Average ${averageScore(scoredRounds) ?? "—"}</small>
+      <small>${scoredRounds.length} round${scoredRounds.length === 1 ? "" : "s"} logged · Best ${bestScore(scoredRounds) ?? "—"} · Average ${averageScore(scoredRounds) ?? "—"}${unreadCaddieMessages ? ` · ${unreadCaddieMessages} message${unreadCaddieMessages === 1 ? "" : "s"} from your Caddie` : ""}</small>
     </article>
   `;
 }
