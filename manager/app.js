@@ -44,8 +44,8 @@ async function ensureGuestHouseModules(){
   if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
   if(!guestHouseModulePromise){
     guestHouseModulePromise=Promise.all([
-      import("../shared/guest-house.js?v=0.10.60"),
-      import("../shared/guest-house-core.js?v=0.10.60"),
+      import("../shared/guest-house.js?v=0.10.62"),
+      import("../shared/guest-house-core.js?v=0.10.62"),
     ]).then(([api,core])=>{
       const required=[
         "createGuestHouseOwnerDownloadUrl",
@@ -118,6 +118,9 @@ let deskRefreshTimer=null;
 let deskRefreshInFlight=false;
 const DESK_REFRESH_INTERVAL_MS=45000;
 const guestHouseUploadsInFlight=new Set();
+const guestHouseUploadDrafts=new Map();
+let guestHouseFilePickerOpen=false;
+let guestHouseFilePickerReleaseTimer=null;
 const boundConnectionButtons=new WeakSet();
 const boundTeamMembershipButtons=new WeakSet();
 const adminTeamMapDialog=document.getElementById("adminTeamMapDialog");
@@ -1595,6 +1598,49 @@ function guestHousePendingMarkup(requestId){
 function guestHouseUploadActive(){
   return guestHouseUploadsInFlight.size>0;
 }
+function guestHouseDraftFor(requestId){
+  return guestHouseUploadDrafts.get(requestId) || null;
+}
+function syncGuestHouseDraftFlag(){
+  const hasSelectedFile=[...guestHouseUploadDrafts.values()].some(draft=>draft?.file);
+  if(hasSelectedFile) document.body.dataset.guestHouseDraft='selected';
+  else delete document.body.dataset.guestHouseDraft;
+}
+function rememberGuestHouseDraft(requestId,patch={}){
+  if(!requestId) return null;
+  const previous=guestHouseDraftFor(requestId) || {file:null,title:'',note:''};
+  const next={
+    file:Object.prototype.hasOwnProperty.call(patch,'file') ? patch.file : previous.file,
+    title:Object.prototype.hasOwnProperty.call(patch,'title') ? String(patch.title || '') : previous.title,
+    note:Object.prototype.hasOwnProperty.call(patch,'note') ? String(patch.note || '') : previous.note,
+  };
+  if(!next.file && !next.title && !next.note) guestHouseUploadDrafts.delete(requestId);
+  else guestHouseUploadDrafts.set(requestId,next);
+  syncGuestHouseDraftFlag();
+  return guestHouseDraftFor(requestId);
+}
+function clearGuestHouseDraft(requestId){
+  guestHouseUploadDrafts.delete(requestId);
+  syncGuestHouseDraftFlag();
+}
+function guestHouseDraftActive(){
+  return [...guestHouseUploadDrafts.values()].some(draft=>draft?.file);
+}
+function beginGuestHouseFilePicker(){
+  window.clearTimeout(guestHouseFilePickerReleaseTimer);
+  guestHouseFilePickerOpen=true;
+  document.body.dataset.guestHouseFilePicker='open';
+}
+function endGuestHouseFilePicker(){
+  window.clearTimeout(guestHouseFilePickerReleaseTimer);
+  guestHouseFilePickerReleaseTimer=window.setTimeout(()=>{
+    guestHouseFilePickerOpen=false;
+    delete document.body.dataset.guestHouseFilePicker;
+  },1200);
+}
+function guestHouseEditorProtected(){
+  return guestHouseUploadActive() || guestHouseFilePickerOpen || (activeFilter==='guest-house' && guestHouseDraftActive());
+}
 function beginGuestHouseUpload(requestId){
   guestHouseUploadsInFlight.add(requestId);
   document.body.dataset.guestHouseUpload='active';
@@ -1602,6 +1648,11 @@ function beginGuestHouseUpload(requestId){
 function endGuestHouseUpload(requestId){
   guestHouseUploadsInFlight.delete(requestId);
   if(!guestHouseUploadsInFlight.size) delete document.body.dataset.guestHouseUpload;
+}
+function guestHouseSelectedFileMarkup(requestId){
+  const draft=guestHouseDraftFor(requestId);
+  const file=draft?.file;
+  return `<div class="guest-house-selected-file" data-guest-house-selected-file ${file?'':'hidden'}><div><span>READY TO UPLOAD</span><strong data-guest-house-selected-name>${file?escapeHtml(file.name):''}</strong><em data-guest-house-selected-size>${file?`${escapeHtml(guestHouseFileSize(file.size))} · This selection will stay here until you upload or clear it.`:''}</em></div><button class="quiet" type="button" data-guest-house-clear-file>CLEAR FILE</button></div>`;
 }
 function guestHouseAccessMarkup(request){
   const prepared=guestHouseAccessLinks.get(request.request_id);
@@ -1615,7 +1666,7 @@ function renderGuestHouseQueue(){
     return;
   }
   const awaiting=guestHouseRequests.filter(row=>['requested','locating','preparing'].includes(String(row.request_status||''))).length;
-  queue.innerHTML=`<section class="guest-house-admin-dashboard"><header><div><p class="eyebrow">FORMER 1:1 CLIENTS</p><h3>${awaiting} ${awaiting===1?'request is':'requests are'} waiting for care.</h3><p>Each woman receives a separate Guest House identity and a revocable Replay Room—never automatic access to the Flowtel or Queendom.</p></div><span>${guestHouseRequests.length} REQUESTS</span></header><div class="guest-house-request-list">${guestHouseRequests.length?guestHouseRequests.map(request=>{const files=Array.isArray(request.files)?request.files:[];const activeFiles=files.filter(file=>file.is_active!==false);const fullName=[request.first_name,request.last_name].filter(Boolean).join(' ');return `<article class="guest-house-request-card" data-guest-house-request="${escapeHtml(request.request_id)}"><header><div><p class="eyebrow">${request.member_id?'EXISTING FLOWTEL IDENTITY · MEMBERSHIP PRESERVED':'GUEST HOUSE VISITOR'}</p><h3>${escapeHtml(fullName||'Guest House Visitor')}</h3><a href="mailto:${escapeHtml(request.email)}">${escapeHtml(request.email)}</a></div><strong>${escapeHtml(GUEST_HOUSE_STATUS_LABELS[request.request_status]||request.request_status||'Request received')}</strong></header><div class="guest-house-request-details"><div><span>CALL DATE / MONTH</span><p>${escapeHtml(request.call_date_hint||'Not provided')}</p></div><div><span>CALL MEMORY</span><p>${escapeHtml(request.call_topic||'Not provided')}</p></div></div>${request.requester_note?`<blockquote>${escapeHtml(request.requester_note)}</blockquote>`:''}<div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, verification details, or a private follow-up">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(request.request_id)}">SAVE CONCIERGE CARE</button><p role="status"></p></div><section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in her room`:'No active replay in her room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED · `:''}STREAM + DOWNLOAD</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(request.request_id)}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" data-guest-house-title /></label><label><span>Note inside her room — optional</span><input type="text" maxlength="1000" placeholder="A note she will see above the player" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(request.request_id)}">UPLOAD REPLAY</button><div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>${guestHouseAccessMarkup(request)}<footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Room opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Replay Room not opened yet</span>'}</footer></article>`}).join(''):'<p class="honors-empty">No Guest House replay requests have arrived yet.</p>'}</div></section>`;
+  queue.innerHTML=`<section class="guest-house-admin-dashboard"><header><div><p class="eyebrow">FORMER 1:1 CLIENTS</p><h3>${awaiting} ${awaiting===1?'request is':'requests are'} waiting for care.</h3><p>Each woman receives a separate Guest House identity and a revocable Replay Room—never automatic access to the Flowtel or Queendom.</p></div><span>${guestHouseRequests.length} REQUESTS</span></header><div class="guest-house-request-list">${guestHouseRequests.length?guestHouseRequests.map(request=>{const files=Array.isArray(request.files)?request.files:[];const activeFiles=files.filter(file=>file.is_active!==false);const fullName=[request.first_name,request.last_name].filter(Boolean).join(' ');return `<article class="guest-house-request-card" data-guest-house-request="${escapeHtml(request.request_id)}"><header><div><p class="eyebrow">${request.member_id?'EXISTING FLOWTEL IDENTITY · MEMBERSHIP PRESERVED':'GUEST HOUSE VISITOR'}</p><h3>${escapeHtml(fullName||'Guest House Visitor')}</h3><a href="mailto:${escapeHtml(request.email)}">${escapeHtml(request.email)}</a></div><strong>${escapeHtml(GUEST_HOUSE_STATUS_LABELS[request.request_status]||request.request_status||'Request received')}</strong></header><div class="guest-house-request-details"><div><span>CALL DATE / MONTH</span><p>${escapeHtml(request.call_date_hint||'Not provided')}</p></div><div><span>CALL MEMORY</span><p>${escapeHtml(request.call_topic||'Not provided')}</p></div></div>${request.requester_note?`<blockquote>${escapeHtml(request.requester_note)}</blockquote>`:''}<div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, verification details, or a private follow-up">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(request.request_id)}">SAVE CONCIERGE CARE</button><p role="status"></p></div><section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in her room`:'No active replay in her room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED · `:''}STREAM + DOWNLOAD</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(request.request_id)}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" value="${escapeHtml(guestHouseDraftFor(request.request_id)?.title||'')}" data-guest-house-title /></label><label><span>Note inside her room — optional</span><input type="text" maxlength="1000" placeholder="A note she will see above the player" value="${escapeHtml(guestHouseDraftFor(request.request_id)?.note||'')}" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(request.request_id)}">UPLOAD REPLAY</button>${guestHouseSelectedFileMarkup(request.request_id)}<div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>${guestHouseAccessMarkup(request)}<footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Room opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Replay Room not opened yet</span>'}</footer></article>`}).join(''):'<p class="honors-empty">No Guest House replay requests have arrived yet.</p>'}</div></section>`;
   bindGuestHouseControls();
 }
 async function downloadGuestHouseOwnerFile(button){
@@ -1645,6 +1696,58 @@ async function copyGuestHouseLink(value,input){
   throw new Error('Select and copy the private link manually.');
 }
 function bindGuestHouseControls(){
+  queue.querySelectorAll('[data-guest-house-request]').forEach(card=>{
+    const requestId=card.dataset.guestHouseRequest;
+    const fileInput=card.querySelector('[data-guest-house-file]');
+    const titleInput=card.querySelector('[data-guest-house-title]');
+    const noteInput=card.querySelector('[data-guest-house-note]');
+    const selectedPanel=card.querySelector('[data-guest-house-selected-file]');
+    const selectedName=card.querySelector('[data-guest-house-selected-name]');
+    const selectedSize=card.querySelector('[data-guest-house-selected-size]');
+    const clearButton=card.querySelector('[data-guest-house-clear-file]');
+    const output=card.querySelector('.guest-house-upload p[role="status"]');
+
+    const showSelectedFile=file=>{
+      if(!selectedPanel || !selectedName || !selectedSize) return;
+      selectedPanel.hidden=!file;
+      selectedName.textContent=file?.name || '';
+      selectedSize.textContent=file ? `${guestHouseFileSize(file.size)} · This selection will stay here until you upload or clear it.` : '';
+    };
+
+    fileInput?.addEventListener('click',beginGuestHouseFilePicker,{capture:true});
+    fileInput?.addEventListener('cancel',endGuestHouseFilePicker);
+    fileInput?.addEventListener('change',()=>{
+      const file=fileInput.files?.[0] || null;
+      if(file){
+        rememberGuestHouseDraft(requestId,{file,title:titleInput?.value||'',note:noteInput?.value||''});
+        showSelectedFile(file);
+        if(output) output.textContent=`${file.name} (${guestHouseFileSize(file.size)}) is selected and will remain here until you upload or clear it.`;
+      }
+      endGuestHouseFilePicker();
+    });
+    titleInput?.addEventListener('input',()=>rememberGuestHouseDraft(requestId,{title:titleInput.value}));
+    noteInput?.addEventListener('input',()=>rememberGuestHouseDraft(requestId,{note:noteInput.value}));
+    clearButton?.addEventListener('click',()=>{
+      clearGuestHouseDraft(requestId);
+      if(fileInput) fileInput.value='';
+      showSelectedFile(null);
+      if(output) output.textContent='The replay selection was cleared.';
+    });
+
+    const draft=guestHouseDraftFor(requestId);
+    if(draft?.file){
+      showSelectedFile(draft.file);
+      try{
+        if(fileInput && !fileInput.files?.length && typeof DataTransfer==='function'){
+          const transfer=new DataTransfer();
+          transfer.items.add(draft.file);
+          fileInput.files=transfer.files;
+        }
+      }catch(_error){
+        // The preserved in-memory File is still used by the Upload Replay button.
+      }
+    }
+  });
   queue.querySelectorAll('[data-guest-house-owner-download]').forEach(button=>button.addEventListener('click',()=>downloadGuestHouseOwnerFile(button)));
   queue.querySelectorAll('[data-guest-house-deactivate-file]').forEach(button=>button.addEventListener('click',async()=>{const original=button.textContent;button.disabled=true;button.textContent='REMOVING…';try{await deactivateGuestHouseReplay(button.dataset.guestHouseDeactivateFile);await reloadGuestHouse('The replay was removed from the guest’s room while its private record was preserved.');}catch(error){button.disabled=false;button.textContent=original;if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be removed from the room.';}}));
   queue.querySelectorAll('[data-guest-house-save]').forEach(button=>button.addEventListener('click',async()=>{const card=button.closest('[data-guest-house-request]');const status=card?.querySelector('[data-guest-house-status]')?.value;const note=card?.querySelector('[data-guest-house-owner-note]')?.value||'';const output=button.parentElement.querySelector('p[role="status"]');const original=button.textContent;button.disabled=true;button.textContent='SAVING…';try{await updateGuestHouseRequest({requestId:button.dataset.guestHouseSave,status,ownerNote:note});await reloadGuestHouse('Guest House care saved.');}catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message||'This request could not be saved.';}}));
@@ -1654,9 +1757,10 @@ function bindGuestHouseControls(){
     button.addEventListener('click',async()=>{
       const card=button.closest('[data-guest-house-request]');
       const requestId=button.dataset.guestHouseUpload;
-      const file=card?.querySelector('[data-guest-house-file]')?.files?.[0];
-      const title=card?.querySelector('[data-guest-house-title]')?.value||'';
-      const note=card?.querySelector('[data-guest-house-note]')?.value||'';
+      const draft=guestHouseDraftFor(requestId);
+      const file=card?.querySelector('[data-guest-house-file]')?.files?.[0] || draft?.file;
+      const title=card?.querySelector('[data-guest-house-title]')?.value ?? draft?.title ?? '';
+      const note=card?.querySelector('[data-guest-house-note]')?.value ?? draft?.note ?? '';
       const progress=button.parentElement.querySelector('.guest-house-progress');
       const bar=progress?.querySelector('span');
       const output=button.parentElement.querySelector('p[role="status"]');
@@ -1667,6 +1771,7 @@ function bindGuestHouseControls(){
         return;
       }
 
+      rememberGuestHouseDraft(requestId,{file,title,note});
       beginGuestHouseUpload(requestId);
       button.disabled=true;
       button.textContent='UPLOADING…';
@@ -1692,6 +1797,7 @@ function bindGuestHouseControls(){
           },
         });
         endGuestHouseUpload(requestId);
+        clearGuestHouseDraft(requestId);
         await reloadGuestHouse('The call replay is waiting safely in the Guest House.');
       }catch(error){
         endGuestHouseUpload(requestId);
@@ -1949,7 +2055,7 @@ async function loadDesk({silent=false}={}){
     await loadPriestessMailboxData();
     await loadGuestHouseData();
     updateStats();
-    if(!guestHouseUploadActive()) renderQueue();
+    if(!guestHouseEditorProtected()) renderQueue();
   }catch(error){
     console.error("Concierge Desk refresh failed.",error);
     if(!silent && managerMessage){
@@ -1964,7 +2070,7 @@ async function loadDesk({silent=false}={}){
 
 function refreshDeskWhenVisible(){
   if(document.visibilityState && document.visibilityState!=="visible") return;
-  if(guestHouseUploadActive()) return;
+  if(guestHouseEditorProtected()) return;
   loadDesk({silent:true});
 }
 
@@ -2069,5 +2175,13 @@ adminTeamMapDialog?.addEventListener("click",event=>{if(event.target===adminTeam
 
 if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);
 if(initiationHallButton) initiationHallButton.addEventListener("click",markInitiationHallClockIn);
-document.addEventListener("visibilitychange",refreshDeskWhenVisible);
-window.addEventListener("focus",refreshDeskWhenVisible);
+document.addEventListener("visibilitychange",()=>window.setTimeout(refreshDeskWhenVisible,250));
+window.addEventListener("focus",()=>{
+  if(guestHouseFilePickerOpen) endGuestHouseFilePicker();
+  window.setTimeout(refreshDeskWhenVisible,1400);
+});
+window.addEventListener("beforeunload",event=>{
+  if(!guestHouseEditorProtected()) return;
+  event.preventDefault();
+  event.returnValue="";
+});

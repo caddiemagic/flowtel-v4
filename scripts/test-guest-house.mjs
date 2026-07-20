@@ -6,6 +6,7 @@ import {
   guestHouseExpirationDate,
   guestHouseFileSize,
   guestHouseMediaKind,
+  guestHouseProjectLimitMessage,
   hashGuestHouseToken,
   normalizeGuestHouseEmail,
   safeGuestHouseFilename,
@@ -33,6 +34,7 @@ assert.deepEqual(validateGuestHouseReplayMetadata({name:'call.webm',type:'video/
 });
 assert.throws(()=>validateGuestHouseReplayMetadata({name:'call.pdf',type:'application/pdf',size:1024}),/Choose an MP4/);
 assert.throws(()=>validateGuestHouseReplayMetadata({name:'call.mp4',type:'video/mp4',size:GUEST_HOUSE_MAX_BYTES+1}),/smaller than 2 GB/);
+assert.match(guestHouseProjectLimitMessage({name:'call.mp4',size:450*1024*1024}),/call\.mp4 \(450 MB\).*Global file size limit.*1 GB.*bucket is already configured for 2 GB/);
 
 const token=createGuestHouseToken();
 assert.match(token,/^[a-f0-9]{64}$/);

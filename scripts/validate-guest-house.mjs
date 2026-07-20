@@ -46,10 +46,10 @@ assert(files.managerJs.includes('revokeGuestHouseAccess'),'Private room-key revo
 assert(files.managerJs.includes('sendGuestHouseInvitation'),'Optional invitation email is not wired.');
 assert(!files.managerJs.includes('from "../shared/guest-house.js'), 'Guest House must not be a static dependency of the Concierge access gate.');
 assert(files.managerJs.includes('async function ensureGuestHouseModules()'),'Guest House lazy module isolation is missing.');
-assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.60")'),'Guest House lazy module cache-bust is missing.');
+assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.62")'),'Guest House lazy module cache-bust is missing.');
 assert(files.managerJs.includes('document.documentElement.dataset.conciergeAppBooted="true"'),'Concierge boot marker is missing.');
 assert(files.managerHtml.includes('The Concierge Desk did not finish opening.'),'Concierge boot watchdog is missing.');
-assert(files.managerHtml.includes('import("./app.js?v=0.10.61-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.62-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
 assert(files.managerHtml.includes('conciergeLoadFailed'),'Concierge module-load failure state is missing.');
 assert(files.managerJs.includes('withConciergeGateTimeout'),'Concierge access verification can still remain indefinitely on the checking screen.');
 
@@ -87,12 +87,19 @@ assert(files.shared.includes('resumableUpload'),'Large call replay resumable upl
 assert(files.shared.includes('chunkSize:6*1024*1024'),'Supabase-compatible 6 MB resumable chunks are missing.');
 
 assert(files.managerJs.includes('guestHouseUploadsInFlight'),'Large replay upload state is not preserved in Concierge.');
-assert(files.managerJs.includes('if(guestHouseUploadActive()) return;'),'Concierge auto-refresh is not suspended during a large replay upload.');
-assert(files.managerJs.includes('if(!guestHouseUploadActive()) renderQueue();'),'An in-flight Desk refresh can still replace the active upload panel.');
+assert(files.managerJs.includes('if(guestHouseEditorProtected()) return;'),'Concierge auto-refresh is not suspended while a replay is selected or uploading.');
+assert(files.managerJs.includes('if(!guestHouseEditorProtected()) renderQueue();'),'An in-flight Desk refresh can still replace a selected or active upload panel.');
 assert(files.managerJs.includes('data-guest-house-finalize-pending'),'Pending Replay Room finalization control is missing.');
 assert(files.shared.includes('.storage.supabase.co'),'Resumable uploads are not using the direct Supabase Storage hostname.');
 assert(files.shared.includes('GUEST_HOUSE_FINALIZE_PENDING'),'Completed Storage transfers are not protected from finalization failures.');
 assert(files.shared.includes('getPendingGuestHouseUpload'),'Pending replay finalization state is not recoverable.');
+assert(files.managerJs.includes('guestHouseUploadDrafts'),'Selected replay file is not preserved in Concierge memory.');
+assert(files.managerJs.includes('guestHouseFilePickerOpen'),'File-picker focus refresh protection is missing.');
+assert(files.managerJs.includes('data-guest-house-selected-file'),'Persistent selected-file confirmation is missing.');
+assert(files.managerJs.includes('data-guest-house-clear-file'),'Selected replay clear control is missing.');
+assert(files.shared.includes('guestHouseProjectLimitMessage'),'Project-wide Storage limit errors are not translated into actionable guidance.');
+assert(files.shared.includes("from './guest-house-core.js?v=0.10.62'"),'Guest House core cache-bust is missing from the upload helper.');
+assert(files.core.includes('Global file size limit'),'Supabase global file-size guidance is missing from large-upload errors.');
 assert(files.replayHtml.includes('noindex,nofollow,noarchive'),'Replay Room robots privacy metadata is missing.');
 assert(files.replayJs.includes('sessionStorage.setItem(TOKEN_KEY'),'Replay key is not preserved privately for the browser session.');
 assert(files.replayJs.includes('window.history.replaceState'),'Raw Replay Room key is not removed from the visible URL.');

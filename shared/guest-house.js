@@ -1,4 +1,4 @@
-// Flowtel v0.10.59 — resilient owner Concierge helpers for Guest House replay requests.
+// Flowtel v0.10.62 — resilient owner Concierge helpers for Guest House replay requests.
 
 import { supabase } from './supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
@@ -7,10 +7,11 @@ import {
   buildGuestHouseReplayUrl,
   createGuestHouseToken,
   guestHouseExpirationDate,
+  guestHouseProjectLimitMessage,
   hashGuestHouseToken,
   safeGuestHouseFilename,
   validateGuestHouseReplayMetadata,
-} from './guest-house-core.js';
+} from './guest-house-core.js?v=0.10.62';
 
 const PENDING_UPLOAD_KEY='flowtel_guest_house_pending_uploads_v1';
 const pendingUploadMemory=new Map();
@@ -127,6 +128,11 @@ async function resumableUpload(path,file,onProgress){
       },
       onError(error){
         const detail=error?.originalResponse?.getBody?.() || error?.message || 'The large replay upload stopped unexpectedly.';
+        const normalized=String(detail || '').toLowerCase();
+        if(normalized.includes('maximum size exceeded') || normalized.includes('entitytoolarge') || normalized.includes('payload too large')){
+          reject(new Error(guestHouseProjectLimitMessage(file)));
+          return;
+        }
         reject(new Error(`The private upload stopped before completion. ${detail}`));
       },
       onProgress(bytesUploaded,bytesTotal){

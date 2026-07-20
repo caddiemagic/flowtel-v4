@@ -1,3 +1,16 @@
+## v0.10.62 — Guest House Replay Selection + Storage Limit Recovery Hotfix
+
+- Prevents the Concierge Desk from discarding a selected Guest House audio/video file when the operating-system file picker returns focus to the browser.
+- Protects the Guest House editor from scheduled, focus-triggered, visibility-triggered, and already-running Desk refreshes while a file is being chosen, held, or uploaded.
+- Preserves the selected browser File, replay title, and guest-visible note in owner-session memory and uses that preserved File even if the native input is rebuilt.
+- Adds a persistent **Ready to Upload** filename/size panel, **Clear File**, and a leave-page warning while a replay is selected or uploading.
+- Keeps the selected file available after an upload error so the owner can retry without choosing it again.
+- Converts Supabase **Maximum size exceeded** responses into exact guidance to raise the project-wide Storage **Global file size limit** to at least 1 GB for a roughly 450 MB replay.
+- Clarifies that migration 048 already sets the private Guest House bucket limit to 2 GB, while the hosted project-wide limit must be changed in Supabase Storage Settings.
+- Adds v0.10.62 cache keys and validation for file-picker focus protection, selected-file persistence, and actionable Storage-limit errors.
+- No Supabase migration required. Migration 048 remains current, and migration 037 remains retired.
+- Preserves all established Flowtel, Guest House, Hourly Flow Rate, Priestess Mailbox, Honors, and Caddie Magic boundaries.
+
 ## v0.10.61 — Concierge Browser Module Syntax Recovery Hotfix
 
 - Restores the owner Concierge Desk after v0.10.60 still stopped on **Checking your role**.

@@ -1,4 +1,4 @@
-// Flowtel v0.10.58 — Guest House request, replay-file, and private-room helpers.
+// Flowtel v0.10.62 — Guest House request, replay-file, and private-room helpers.
 
 export const GUEST_HOUSE_REPLAY_BUCKET = 'flowtel-guest-house-replays';
 export const GUEST_HOUSE_MAX_BYTES = 2 * 1024 * 1024 * 1024;
@@ -49,6 +49,13 @@ export function safeGuestHouseFilename(filename='replay'){
     .replace(/-+/g,'-')
     .replace(/^-|-$/g,'');
   return cleaned || 'replay';
+}
+
+
+export function guestHouseProjectLimitMessage(file={}){
+  const name=String(file?.name || 'This replay');
+  const size=Math.max(1,Math.round((Number(file?.size)||0)/(1024*1024)));
+  return `Supabase rejected ${name} (${size} MB) before transfer because the project-wide Storage limit is smaller than this recording. In Supabase, open Storage → Settings and raise Global file size limit to at least 1 GB, then try again. The private Guest House bucket is already configured for 2 GB.`;
 }
 
 export function validateGuestHouseReplayMetadata(file){
