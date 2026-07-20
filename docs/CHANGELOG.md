@@ -1,3 +1,15 @@
+## v0.10.65 — Private Lounge Video Uploader + Squarespace Replay Notes Embed
+
+- Moves the Flow FM Lounge workshop video out of GitHub and into the private `flowtel-lounge-videos` Supabase Storage bucket.
+- Adds an owner-only **Lounge Video** Concierge room with resumable uploads up to 2 GB, selected-file continuity, progress, preserved-finalization recovery, owner download, and archive controls.
+- Automatically archives the prior active transmission when a new Lounge video is registered.
+- Gives recognized Flow FM/Council members private signed playback URLs while keeping the bucket non-public and blocking Queendom-only, Guest House-only, and Player-Only accounts.
+- Dynamically updates the Lounge title, invitation copy, and embedded replay-note source from the active video record.
+- Removes the GitHub dependency on `assets/Four-Seasons-Flowtel-Workshop.mp4`; the large MP4 should not be committed to the repository.
+- Documents the Squarespace iframe embed for the living replay-notes room.
+- Adds migration 051. Migration 037 remains retired and must never be rerun.
+- Preserves Flowtel v0.10.64, Guest House replay expiration, workshop replay notes, Hourly Flow Rate, Honors, Priestess Mailbox, and Caddie Magic v0.4.5 boundaries.
+
 ## v0.10.64 — Five Experience Updates
 
 - Adds an embedded Queendom workshop replay-notes room with append-only Question, Note, Download, Reflection, and Track This in Cycle Data entries.

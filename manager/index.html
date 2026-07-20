@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.64" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.65" />
 </head>
 
 <body>
@@ -111,6 +111,11 @@
           <strong id="workshopReplayNoteCount">0</strong>
           <em>Questions + reflections</em>
         </button>
+        <button class="stat-card" type="button" data-filter="lounge-video">
+          <span>Lounge Video</span>
+          <strong id="loungeVideoCount">0</strong>
+          <em>Private Flow FM transmission</em>
+        </button>
         <button class="stat-card" type="button" data-filter="in-house">
           <span>Guests in House</span>
           <strong id="guestsInHouse">0</strong>
@@ -146,7 +151,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.64-caddie-0.4.5").catch(function(error){
+    import("./app.js?v=0.10.65-caddie-0.4.5").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

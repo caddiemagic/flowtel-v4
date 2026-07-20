@@ -4,6 +4,7 @@ import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, auto
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
+import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -35,6 +36,8 @@ let passwordRecoveryMode=urlParam("passwordRecovery")==="1";
 let passwordRecoveryHandled=false;
 
 let currentProfile=null;
+let loungeWorkshopLoadPromise=null;
+let loungeWorkshopLoadedVideoId=null;
 let currentMentorRelationship=null;
 let currentStay=null;
 let unreadConciergeStays=[];
@@ -45,7 +48,9 @@ function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
   if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
   const workshopCard=document.getElementById("flowFmWorkshopLoungeCard");
-  if(workshopCard) workshopCard.classList.toggle("hidden", effectiveFlowFmRank(currentProfile || {})<2);
+  const workshopAllowed=effectiveFlowFmRank(currentProfile || {})>=2;
+  if(workshopCard) workshopCard.classList.toggle("hidden", !workshopAllowed);
+  if(workshopAllowed) void prepareLoungeWorkshopVideo();
   renderSuiteClockInButton();
 }
 
@@ -2254,13 +2259,61 @@ onAuthStateChange((event,session)=>{
 
 const loungeWorkshopVideo=document.getElementById("loungeWorkshopVideo");
 const loungeWorkshopVideoStatus=document.getElementById("loungeWorkshopVideoStatus");
+const loungeWorkshopTitle=document.getElementById("loungeWorkshopTitle");
+const loungeWorkshopIntro=document.getElementById("loungeWorkshopIntro");
+const loungeReplayNotes=document.getElementById("loungeReplayNotes");
+
+function setLoungeReplayNotesSource(video){
+  if(!loungeReplayNotes || !video) return;
+  const params=new URLSearchParams({
+    workshop:'four-seasons-flowtel-workshop',
+    title:video.title || 'Four Seasons Flowtel Workshop',
+    source:`flowtel-lounge-video:${video.video_id || 'active'}`,
+    embed:'1',
+  });
+  const next=`/replay-notes/?${params.toString()}`;
+  if(loungeReplayNotes.getAttribute('src')!==next) loungeReplayNotes.setAttribute('src',next);
+}
+async function prepareLoungeWorkshopVideo({force=false}={}){
+  if(!loungeWorkshopVideo) return null;
+  if(loungeWorkshopLoadPromise && !force) return loungeWorkshopLoadPromise;
+  loungeWorkshopLoadPromise=(async()=>{
+    if(loungeWorkshopVideoStatus) loungeWorkshopVideoStatus.textContent='Opening the private Lounge transmission…';
+    try{
+      const video=await openActiveLoungeVideo();
+      if(!video){
+        loungeWorkshopVideo.removeAttribute('src');
+        loungeWorkshopVideo.load();
+        loungeWorkshopLoadedVideoId=null;
+        if(loungeWorkshopVideoStatus) loungeWorkshopVideoStatus.textContent='The next Lounge transmission has not been placed yet.';
+        return null;
+      }
+      if(force || loungeWorkshopLoadedVideoId!==video.video_id || loungeWorkshopVideo.src!==video.signedUrl){
+        loungeWorkshopVideo.src=video.signedUrl;
+        loungeWorkshopVideo.load();
+        loungeWorkshopLoadedVideoId=video.video_id;
+      }
+      if(loungeWorkshopTitle) loungeWorkshopTitle.textContent=video.title || 'Four Seasons Flowtel Workshop';
+      if(loungeWorkshopIntro) loungeWorkshopIntro.textContent=video.description || 'Move through the four seasons of the Flowtel and let the teaching meet the season you are living now.';
+      setLoungeReplayNotesSource(video);
+      return video;
+    }catch(error){
+      console.warn('The Lounge transmission could not be opened.',error);
+      if(loungeWorkshopVideoStatus) loungeWorkshopVideoStatus.textContent=error?.message || 'This Lounge transmission could not be opened just now.';
+      return null;
+    }finally{
+      loungeWorkshopLoadPromise=null;
+    }
+  })();
+  return loungeWorkshopLoadPromise;
+}
 if(loungeWorkshopVideo){
   loungeWorkshopVideo.addEventListener("loadedmetadata",()=>{
     if(loungeWorkshopVideoStatus) loungeWorkshopVideoStatus.textContent="";
   });
   loungeWorkshopVideo.addEventListener("error",()=>{
     if(loungeWorkshopVideoStatus){
-      loungeWorkshopVideoStatus.textContent="This Lounge transmission is still being placed in its room. Return shortly.";
+      loungeWorkshopVideoStatus.textContent="This private Lounge transmission could not be played just now. Refresh once to prepare a new room key.";
     }
   });
 }

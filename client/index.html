@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.64" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.65" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -258,11 +258,10 @@
 
         <section class="video-lounge-card flow-fm-lounge-content hidden" id="flowFmWorkshopLoungeCard">
           <p class="eyebrow">FLOW FM LOUNGE TRANSMISSION</p>
-          <h3>Four Seasons Flowtel Workshop</h3>
-          <p class="lounge-video-intro">Move through the four seasons of the Flowtel and let the teaching meet the season you are living now.</p>
+          <h3 id="loungeWorkshopTitle">Four Seasons Flowtel Workshop</h3>
+          <p class="lounge-video-intro" id="loungeWorkshopIntro">Move through the four seasons of the Flowtel and let the teaching meet the season you are living now.</p>
           <div class="lounge-video-frame">
             <video id="loungeWorkshopVideo" controls preload="metadata" playsinline>
-              <source src="/assets/Four-Seasons-Flowtel-Workshop.mp4" type="video/mp4" />
               Your browser could not open this private workshop video.
             </video>
           </div>
@@ -272,7 +271,7 @@
             id="loungeReplayNotes"
             title="Four Seasons Flowtel Workshop replay notes"
             loading="lazy"
-            src="/replay-notes/?workshop=four-seasons-flowtel-workshop&amp;title=Four%20Seasons%20Flowtel%20Workshop&amp;source=%2Fassets%2FFour-Seasons-Flowtel-Workshop.mp4&amp;embed=1"
+            src="/replay-notes/?workshop=four-seasons-flowtel-workshop&amp;title=Four%20Seasons%20Flowtel%20Workshop&amp;source=flowtel-lounge-video%3Aactive&amp;embed=1"
           ></iframe>
         </section>
 
@@ -344,6 +343,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.64"></script>
+  <script type="module" src="./app.js?v=0.10.65"></script>
 </body>
 </html>

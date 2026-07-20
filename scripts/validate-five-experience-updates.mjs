@@ -12,6 +12,7 @@ const files={
   loungeHtml:await read('client/index.html'),
   loungeJs:await read('client/app.js'),
   loungeCss:await read('client/styles.css'),
+  loungeShared:await read('shared/lounge-video.js'),
   guestHtml:await read('guest-house/index.html'),
   guestCore:await read('shared/guest-house-core.js'),
   guestShared:await read('shared/guest-house.js'),
@@ -71,10 +72,12 @@ assert(files.managerJs.includes('listAdminWorkshopReplayNotes'),'Concierge owner
 assert(files.managerHtml.includes('data-filter="workshop-notes"'),'Concierge Workshop Notes doorway is missing.');
 
 // Lounge video, Flow FM gate, and embedded living note portal.
-assert(files.loungeHtml.includes('/assets/Four-Seasons-Flowtel-Workshop.mp4'),'Approved Lounge video source is missing.');
+assert(files.loungeHtml.includes('id="loungeWorkshopVideo"'),'Approved Lounge video player is missing.');
 assert(files.loungeHtml.includes('id="flowFmWorkshopLoungeCard"'),'Flow FM Lounge video card is missing.');
 assert(files.loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Embedded replay notes are missing beneath the Lounge video.');
-assert(files.loungeJs.includes('effectiveFlowFmRank(currentProfile || {})<2'),'Lounge workshop is not gated to Flow FM members.');
+assert(files.loungeJs.includes('effectiveFlowFmRank(currentProfile || {})>=2'),'Lounge workshop is not gated to Flow FM members.');
+assert(files.loungeJs.includes('openActiveLoungeVideo'),'Lounge does not load the private active transmission.');
+assert(files.loungeShared.includes('flowtel_get_active_lounge_video'),'Private Lounge video helper is missing.');
 assert((files.vercel.rewrites||[]).some(item=>item.source==='/replay-notes'&&item.destination==='/replay-notes/index.html'),'Replay Notes rewrite is missing.');
 assert((files.vercel.headers||[]).some(item=>item.source==='/replay-notes'&&item.headers?.some(h=>h.key==='X-Robots-Tag')),'Replay Notes no-index header is missing.');
 
@@ -106,8 +109,4 @@ assert(files.caddieCss.includes('Upcoming Golf practical calendar typography'),'
 assert(files.caddieAdminCss.includes('owner Upcoming Golf practical calendar typography'),'Owner Upcoming Golf font polish is missing.');
 assert(files.managerCss.includes('Caddie Magic Upcoming Golf calendar readability'),'Concierge Upcoming Golf font polish is missing.');
 
-let assetPresent=true;
-try{await access('assets/Four-Seasons-Flowtel-Workshop.mp4');}catch{assetPresent=false;}
-if(!assetPresent) console.warn('WARNING: The Lounge code is complete, but assets/Four-Seasons-Flowtel-Workshop.mp4 was not present in the supplied source ZIP.');
-
-console.log(`Five-experience update validation passed${assetPresent?' with the Lounge video asset present':' with one documented missing media asset'}.`);
+console.log('Five-experience update validation passed with private Lounge video delivery.');

@@ -38,7 +38,7 @@ assert.equal(guestHouseReplayDaysRemaining(end,start),28);
 assert.equal(guestHouseReplayExpirationCopy(end,start),'This replay will be deleted in 28 days.');
 
 const loungeHtml=await readFile('client/index.html','utf8');
-assert(loungeHtml.includes('/assets/Four-Seasons-Flowtel-Workshop.mp4'),'Lounge workshop source path is missing.');
+assert(loungeHtml.includes('id="loungeWorkshopVideo"'),'Lounge workshop player is missing.');
 assert(loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Embedded replay-notes portal is missing.');
 const guestHouseHtml=await readFile('guest-house/index.html','utf8');
 assert(!guestHouseHtml.includes('The Guest House is a threshold. The Queendom is the world beyond it.'),'Large Guest House threshold headline was not removed.');
@@ -49,11 +49,7 @@ const caddieCss=await readFile('caddie-magic/compass/styles.css','utf8');
 assert(caddieCss.includes('Upcoming Golf practical calendar typography'),'Caddie Magic calendar font clarity rules are missing.');
 assert(caddieCss.includes('"Helvetica Neue",Arial,sans-serif'),'Caddie Magic practical calendar font stack is missing.');
 
-try{
-  await access('assets/Four-Seasons-Flowtel-Workshop.mp4');
-  console.log('Lounge workshop media file is present.');
-}catch{
-  console.warn('WARNING: assets/Four-Seasons-Flowtel-Workshop.mp4 is referenced but is not present in the supplied source ZIP.');
-}
+console.log('Lounge workshop media is supplied through private Storage.');
+
 
 console.log('Five-experience update behavior tests passed.');

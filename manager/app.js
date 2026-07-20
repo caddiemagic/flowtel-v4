@@ -11,6 +11,8 @@ import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, 
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
+import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
+import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -123,6 +125,12 @@ let guestHouseServiceAvailable=true;
 let guestHouseExpandedRequestId=null;
 let workshopReplayNotes=[];
 let workshopReplayNotesServiceAvailable=true;
+let loungeVideos=[];
+let loungeVideoServiceAvailable=true;
+let loungeVideoDraft={file:null,title:'Four Seasons Flowtel Workshop',description:'Move through the four seasons of the Flowtel and let the teaching meet the season you are living now.'};
+let loungeVideoUploadInFlight=false;
+let loungeVideoFilePickerOpen=false;
+let loungeVideoFilePickerReleaseTimer=null;
 const guestHouseAccessLinks=new Map();
 let deskRefreshTimer=null;
 let deskRefreshInFlight=false;
@@ -684,7 +692,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes"].includes(activeFilter)) return [];
+  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -702,6 +710,7 @@ function updateStats(){
   const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
   const guestHouseAwaiting=guestHouseRequests.filter(row=>["requested","locating","preparing"].includes(String(row.request_status||""))).length;
   const workshopQuestions=workshopReplayNotes.filter(row=>row.note_type==="question").length;
+  const activeLoungeVideo=loungeVideos.find(row=>row.is_active);
 
   setText("awaitingTurndownCount",awaitingCount);
   setText("caddiePlayerCount",caddiePlayers.filter(player=>player.caddie_magic_access).length);
@@ -720,6 +729,7 @@ function updateStats(){
   setText("priestessMailboxCount",mailboxAwaiting);
   setText("guestHouseRequestCount",guestHouseAwaiting);
   setText("workshopReplayNoteCount",workshopReplayNotes.length);
+  setText("loungeVideoCount",activeLoungeVideo?"1":"0");
 
   const queueCard=document.querySelector(".queue");
   if(queueCard) queueCard.classList.toggle("has-requests",activeFilter==="queue" && awaitingCount>0);
@@ -749,6 +759,8 @@ function updateStats(){
   if(guestHouseCard) guestHouseCard.classList.toggle("has-alert",guestHouseAwaiting>0);
   const workshopNotesCard=document.querySelector('[data-filter="workshop-notes"]');
   if(workshopNotesCard) workshopNotesCard.classList.toggle("has-alert",workshopQuestions>0);
+  const loungeVideoCard=document.querySelector('[data-filter="lounge-video"]');
+  if(loungeVideoCard) loungeVideoCard.classList.toggle("has-alert",!activeLoungeVideo);
 
   const inHouseCard=document.querySelector('[data-filter="in-house"]');
   if(inHouseCard) inHouseCard.classList.remove("has-alert");
@@ -774,6 +786,7 @@ function setFilter(filter){
     "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
     "guest-house":["FLOWTEL GUEST HOUSE","Call Replay Requests + Private Rooms","Locate former 1:1 calls, upload private audio or video replays, and open them inside remembered Guest House accounts without granting Flowtel access."],
     "workshop-notes":["WORKSHOP REPLAY NOTES","Questions, Reflections + Downloads","Witness what each teaching activates while keeping every note connected to the member’s Flowtel cycle history."],
+    "lounge-video":["FLOW FM LOUNGE","Private Lounge Transmission","Upload the current workshop video to private Storage and place it directly inside the Flow FM Lounge without committing media to GitHub."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -1634,6 +1647,130 @@ async function loadWorkshopReplayNotes(){
 }
 
 
+function loungeVideoEditorProtected(){
+  return loungeVideoUploadInFlight || loungeVideoFilePickerOpen || (activeFilter==='lounge-video' && !!loungeVideoDraft.file);
+}
+function beginLoungeVideoFilePicker(){
+  window.clearTimeout(loungeVideoFilePickerReleaseTimer);
+  loungeVideoFilePickerOpen=true;
+  document.body.dataset.loungeVideoFilePicker='open';
+}
+function endLoungeVideoFilePicker(){
+  window.clearTimeout(loungeVideoFilePickerReleaseTimer);
+  loungeVideoFilePickerReleaseTimer=window.setTimeout(()=>{
+    loungeVideoFilePickerOpen=false;
+    delete document.body.dataset.loungeVideoFilePicker;
+  },1200);
+}
+function loungeVideoSelectedMarkup(){
+  const file=loungeVideoDraft.file;
+  if(!file) return '';
+  return `<div class="lounge-video-selected"><div><p>READY TO PLACE IN THE LOUNGE</p><strong>${escapeHtml(file.name)}</strong><span>${escapeHtml(loungeVideoFileSize(file.size))} · This selection will stay here until you upload or clear it.</span></div><button class="quiet" type="button" data-lounge-video-clear>CLEAR FILE</button></div>`;
+}
+function loungeVideoRowMarkup(video){
+  return `<article class="lounge-video-admin-row ${video.is_active?'is-active':''}"><div><p>${video.is_active?'CURRENT LOUNGE TRANSMISSION':'ARCHIVED TRANSMISSION'}</p><h4>${escapeHtml(video.title || video.original_filename || 'Flowtel Lounge Transmission')}</h4><span>${escapeHtml(loungeVideoFileSize(video.size_bytes))} · ${escapeHtml(managerDateLabel(video.activated_at || video.created_at,{withTime:true}))}</span>${video.description?`<em>${escapeHtml(video.description)}</em>`:''}</div><div><button type="button" data-lounge-video-download="${escapeHtml(video.storage_path)}">DOWNLOAD</button>${video.is_active?`<button class="quiet" type="button" data-lounge-video-archive="${escapeHtml(video.video_id)}">REMOVE FROM LOUNGE</button>`:''}</div></article>`;
+}
+function renderLoungeVideoQueue(){
+  if(!loungeVideoServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>The Lounge uploader is waiting for migration 051.</h3><p>Run database/migration-051-flow-fm-lounge-video-uploader.sql to open private Lounge video Storage.</p></div>';
+    return;
+  }
+  const active=loungeVideos.find(row=>row.is_active);
+  const pending=getPendingLoungeVideoUpload();
+  queue.innerHTML=`<section class="lounge-video-admin"><header><div><p class="eyebrow">FLOW FM LOUNGE TRANSMISSION</p><h3>${active?'A private Lounge video is active.':'Place the workshop inside the Lounge.'}</h3><p>Large workshop videos live in private Supabase Storage rather than GitHub. Uploading a new transmission automatically archives the prior one.</p></div><span>${active?'ACTIVE':'WAITING'}</span></header>
+    ${active?loungeVideoRowMarkup(active):''}
+    ${pending?`<div class="lounge-video-pending"><div><p>UPLOAD PRESERVED SAFELY</p><strong>${escapeHtml(pending.originalFilename || 'Lounge video')}</strong><span>${escapeHtml(loungeVideoFileSize(pending.sizeBytes))} reached private Storage and is waiting to be registered.</span></div><div><button type="button" data-lounge-video-finalize>FINISH ADDING TO LOUNGE</button><button class="quiet" type="button" data-lounge-video-discard>REMOVE PRESERVED UPLOAD</button></div><p role="status"></p></div>`:''}
+    <section class="lounge-video-uploader">
+      <label><span>Choose the Lounge video</span><input type="file" accept=".mp4,.mov,.m4v,.webm,video/*" data-lounge-video-file /></label>
+      <label><span>Transmission title</span><input type="text" maxlength="240" value="${escapeHtml(loungeVideoDraft.title)}" data-lounge-video-title /></label>
+      <label class="lounge-video-description"><span>Invitation beneath the title</span><textarea maxlength="1200" rows="3" data-lounge-video-description>${escapeHtml(loungeVideoDraft.description)}</textarea></label>
+      <button type="button" data-lounge-video-upload>UPLOAD TO LOUNGE</button>
+      ${loungeVideoSelectedMarkup()}
+      <div class="lounge-video-progress" hidden><span></span></div>
+      <p role="status"></p>
+    </section>
+    ${loungeVideos.filter(row=>!row.is_active).length?`<section class="lounge-video-archive"><p class="eyebrow">EARLIER TRANSMISSIONS</p>${loungeVideos.filter(row=>!row.is_active).map(loungeVideoRowMarkup).join('')}</section>`:''}
+  </section>`;
+  bindLoungeVideoControls();
+}
+function bindLoungeVideoControls(){
+  const fileInput=queue.querySelector('[data-lounge-video-file]');
+  fileInput?.addEventListener('pointerdown',beginLoungeVideoFilePicker);
+  fileInput?.addEventListener('click',beginLoungeVideoFilePicker);
+  fileInput?.addEventListener('change',()=>{
+    endLoungeVideoFilePicker();
+    const file=fileInput.files?.[0] || null;
+    loungeVideoDraft={...loungeVideoDraft,file};
+    renderLoungeVideoQueue();
+  });
+  queue.querySelector('[data-lounge-video-title]')?.addEventListener('input',event=>{loungeVideoDraft.title=event.target.value;});
+  queue.querySelector('[data-lounge-video-description]')?.addEventListener('input',event=>{loungeVideoDraft.description=event.target.value;});
+  queue.querySelector('[data-lounge-video-clear]')?.addEventListener('click',()=>{loungeVideoDraft={...loungeVideoDraft,file:null};renderLoungeVideoQueue();});
+  queue.querySelector('[data-lounge-video-upload]')?.addEventListener('click',async()=>{
+    const file=loungeVideoDraft.file;
+    const output=queue.querySelector('.lounge-video-uploader p[role="status"]');
+    const progress=queue.querySelector('.lounge-video-progress');
+    const bar=progress?.querySelector('span');
+    const button=queue.querySelector('[data-lounge-video-upload]');
+    if(!file){if(output) output.textContent='Choose the Lounge video first.';return;}
+    const original=button.textContent;
+    loungeVideoUploadInFlight=true;
+    document.body.dataset.loungeVideoUpload='active';
+    button.disabled=true;
+    progress.hidden=false;
+    if(output) output.textContent=`Preparing ${file.name} (${loungeVideoFileSize(file.size)})… Keep this tab open.`;
+    try{
+      await uploadLoungeVideo({
+        file,title:loungeVideoDraft.title,description:loungeVideoDraft.description,
+        onProgress(percent){if(bar) bar.style.width=`${percent}%`;if(output && percent<100) output.textContent=`Uploading privately… ${percent}%`;},
+        onStage(stage){if(stage==='finalizing' && output) output.textContent='Finishing the Lounge transmission…';},
+      });
+      loungeVideoDraft={file:null,title:'Four Seasons Flowtel Workshop',description:'Move through the four seasons of the Flowtel and let the teaching meet the season you are living now.'};
+      await loadLoungeVideos();
+      updateStats();
+      renderLoungeVideoQueue();
+      if(managerMessage) managerMessage.textContent='The new private Lounge transmission is active.';
+    }catch(error){
+      button.disabled=false;button.textContent=original;
+      if(output) output.textContent=error?.message || 'The Lounge video could not be uploaded.';
+      if(managerMessage) managerMessage.textContent=error?.message || 'The Lounge video could not be uploaded.';
+    }finally{
+      loungeVideoUploadInFlight=false;
+      delete document.body.dataset.loungeVideoUpload;
+    }
+  });
+  queue.querySelector('[data-lounge-video-finalize]')?.addEventListener('click',async event=>{
+    const button=event.currentTarget;const panel=button.closest('.lounge-video-pending');const output=panel?.querySelector('p[role="status"]');const original=button.textContent;
+    loungeVideoUploadInFlight=true;button.disabled=true;button.textContent='FINISHING…';
+    try{await finalizePendingLoungeVideo();await loadLoungeVideos();updateStats();renderLoungeVideoQueue();if(managerMessage) managerMessage.textContent='The preserved Lounge video is active.';}
+    catch(error){button.disabled=false;button.textContent=original;if(output) output.textContent=error?.message || 'The preserved upload could not be finished.';}
+    finally{loungeVideoUploadInFlight=false;}
+  });
+  queue.querySelector('[data-lounge-video-discard]')?.addEventListener('click',async event=>{
+    if(!window.confirm('Remove this preserved Lounge upload from private Storage?')) return;
+    const button=event.currentTarget;button.disabled=true;
+    try{await discardPendingLoungeVideo();renderLoungeVideoQueue();}
+    catch(error){button.disabled=false;if(managerMessage) managerMessage.textContent=error?.message || 'The preserved upload could not be removed.';}
+  });
+  queue.querySelectorAll('[data-lounge-video-download]').forEach(button=>button.addEventListener('click',async()=>{
+    const original=button.textContent;button.disabled=true;button.textContent='PREPARING…';
+    try{window.open(await createLoungeVideoOwnerDownloadUrl(button.dataset.loungeVideoDownload),'_blank','noopener');}
+    catch(error){if(managerMessage) managerMessage.textContent=error?.message || 'The private Lounge video could not be opened.';}
+    finally{button.disabled=false;button.textContent=original;}
+  }));
+  queue.querySelectorAll('[data-lounge-video-archive]').forEach(button=>button.addEventListener('click',async()=>{
+    if(!window.confirm('Remove this transmission from the Flow FM Lounge? The private record and file will remain preserved.')) return;
+    const original=button.textContent;button.disabled=true;button.textContent='REMOVING…';
+    try{await archiveLoungeVideo(button.dataset.loungeVideoArchive);await loadLoungeVideos();updateStats();renderLoungeVideoQueue();}
+    catch(error){button.disabled=false;button.textContent=original;if(managerMessage) managerMessage.textContent=error?.message || 'The Lounge transmission could not be removed.';}
+  }));
+}
+async function loadLoungeVideos(){
+  try{loungeVideos=await listAdminLoungeVideos();loungeVideoServiceAvailable=true;}
+  catch(error){console.warn('Lounge video administration is not available yet.',error);loungeVideos=[];loungeVideoServiceAvailable=false;}
+}
+
+
 function guestHouseStatusOptions(current){
   const normalized=['ready','delivered','received'].includes(String(current||''))
     ? 'ready'
@@ -1711,6 +1848,9 @@ function endGuestHouseFilePicker(){
 }
 function guestHouseEditorProtected(){
   return guestHouseUploadActive() || guestHouseFilePickerOpen || (activeFilter==='guest-house' && guestHouseDraftActive());
+}
+function conciergeEditorProtected(){
+  return guestHouseEditorProtected() || loungeVideoEditorProtected();
 }
 function beginGuestHouseUpload(requestId){
   guestHouseExpandedRequestId=requestId;
@@ -2011,6 +2151,10 @@ function renderQueue(){
     renderWorkshopReplayNotesQueue();
     return;
   }
+  if(activeFilter==="lounge-video"){
+    renderLoungeVideoQueue();
+    return;
+  }
 
   const stays=visibleStays();
   if(!stays.length){queue.innerHTML="<p>No guests in this category right now.</p>";return;}
@@ -2179,8 +2323,9 @@ async function loadDesk({silent=false}={}){
     await loadPriestessMailboxData();
     await loadGuestHouseData();
     await loadWorkshopReplayNotes();
+    await loadLoungeVideos();
     updateStats();
-    if(!guestHouseEditorProtected()) renderQueue();
+    if(!conciergeEditorProtected()) renderQueue();
   }catch(error){
     console.error("Concierge Desk refresh failed.",error);
     if(!silent && managerMessage){
@@ -2195,7 +2340,7 @@ async function loadDesk({silent=false}={}){
 
 function refreshDeskWhenVisible(){
   if(document.visibilityState && document.visibilityState!=="visible") return;
-  if(guestHouseEditorProtected()) return;
+  if(conciergeEditorProtected()) return;
   loadDesk({silent:true});
 }
 
@@ -2303,10 +2448,11 @@ if(initiationHallButton) initiationHallButton.addEventListener("click",markIniti
 document.addEventListener("visibilitychange",()=>window.setTimeout(refreshDeskWhenVisible,250));
 window.addEventListener("focus",()=>{
   if(guestHouseFilePickerOpen) endGuestHouseFilePicker();
+  if(loungeVideoFilePickerOpen) endLoungeVideoFilePicker();
   window.setTimeout(refreshDeskWhenVisible,1400);
 });
 window.addEventListener("beforeunload",event=>{
-  if(!guestHouseEditorProtected()) return;
+  if(!conciergeEditorProtected()) return;
   event.preventDefault();
   event.returnValue="";
 });
