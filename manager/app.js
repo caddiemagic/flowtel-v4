@@ -1,12 +1,14 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
 import { isPractitionerLevel } from "../shared/beta-access.js";
-import { ownerRecognizeTeamMember } from "../shared/team-map.js?v=0.10.50";
+import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
 import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.1";
 import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.1";
 import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.1";
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.1";
+import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
+import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -26,11 +28,22 @@ let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let clockInContext=null;
 let currentManagerProfile=null;
+let adminTeamMapRows=[];
+let adminTeamMapServiceAvailable=true;
+let honorsPractitioners=[];
+let honorsDashboardRows=[];
+let honorsLedgerRows=[];
+let honorsServiceAvailable=true;
+let priestessMailboxRows=[];
+let priestessMailboxServiceAvailable=true;
 let deskRefreshTimer=null;
 let deskRefreshInFlight=false;
 const DESK_REFRESH_INTERVAL_MS=45000;
 const boundConnectionButtons=new WeakSet();
 const boundTeamMembershipButtons=new WeakSet();
+const adminTeamMapDialog=document.getElementById("adminTeamMapDialog");
+const adminTeamMapDialogClose=document.getElementById("adminTeamMapDialogClose");
+const adminTeamMapDialogContent=document.getElementById("adminTeamMapDialogContent");
 
 function isOwnerOrAdmin(profile=currentManagerProfile){
   return ["owner","admin"].includes(String(profile?.role || "").toLowerCase());
@@ -579,7 +592,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(activeFilter==="clients" || activeFilter==="caddie-players" || activeFilter==="caddie-reviews" || activeFilter==="caddie-compass" || activeFilter==="upcoming-golf") return [];
+  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -593,6 +606,8 @@ function updateStats(){
   const caddieInviteCount=caddiePlayerInvitations.filter(invite=>invite.status==="invited").length;
   const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO()).length;
+  const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
+  const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
 
   setText("awaitingTurndownCount",awaitingCount);
   setText("caddiePlayerCount",caddiePlayers.filter(player=>player.caddie_magic_access).length);
@@ -605,6 +620,10 @@ function updateStats(){
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
   setText("clientConnectionCount",currentConnectionRequestsCount);
+  setText("adminTeamMapCount",adminTeamMapRows.length);
+  setText("honorsAvailablePoints",formatPoints(honorsAvailable));
+  setText("honorsPractitionerCount",honorsDashboardRows.length);
+  setText("priestessMailboxCount",mailboxAwaiting);
 
   const queueCard=document.querySelector(".queue");
   if(queueCard) queueCard.classList.toggle("has-requests",activeFilter==="queue" && awaitingCount>0);
@@ -627,6 +646,9 @@ function updateStats(){
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
 
+  const mailboxCard=document.querySelector('[data-filter="priestess-mailbox"]');
+  if(mailboxCard) mailboxCard.classList.toggle("has-alert",mailboxAwaiting>0);
+
   const inHouseCard=document.querySelector('[data-filter="in-house"]');
   if(inHouseCard) inHouseCard.classList.remove("has-alert");
 
@@ -646,6 +668,9 @@ function setFilter(filter){
     "caddie-compass":["CADDIE COMPASS","Compass Homework + The Caddie Shack","Open each player’s five-club map, create assignments, and answer private messages."],
     "upcoming-golf":["UPCOMING GOLF","Caddie Magic Golf Calendar","See upcoming rounds, tournaments, and trips with daily moon forecasts."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
+    "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
+    "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
+    "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -1175,6 +1200,301 @@ async function loadUpcomingGolfEvents(){
   }
 }
 
+
+function formatPoints(value=0){
+  const number=Number(value)||0;
+  return new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(number);
+}
+function formatMoney(value=0){
+  return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2}).format(Number(value)||0);
+}
+function managerDateLabel(value,{withTime=false}={}){
+  if(!value) return 'Not recorded';
+  const raw=String(value);
+  const date=/^\d{4}-\d{2}-\d{2}$/.test(raw)
+    ? new Date(`${raw}T12:00:00Z`)
+    : new Date(value);
+  if(Number.isNaN(date.getTime())) return raw;
+  return new Intl.DateTimeFormat('en-US',withTime
+    ? {timeZone:FLOWTEL_TIME_ZONE,month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}
+    : {timeZone:FLOWTEL_TIME_ZONE,month:'short',day:'numeric',year:'numeric'}).format(date);
+}
+function safeManagerImage(value){
+  const raw=String(value||'').trim();
+  if(!raw) return '/assets/flowtel-pinkrose.png';
+  if(raw.startsWith('/')) return raw;
+  try{
+    const url=new URL(raw,window.location.origin);
+    return ['http:','https:'].includes(url.protocol)?url.href:'/assets/flowtel-pinkrose.png';
+  }catch(error){ return '/assets/flowtel-pinkrose.png'; }
+}
+function normalizedMapSeason(value){
+  const clean=String(value||'').toLowerCase().replace(/[^a-z]/g,'');
+  return {innerwinter:'Inner Winter',winter:'Inner Winter',innerspring:'Inner Spring',spring:'Inner Spring',innersummer:'Inner Summer',summer:'Inner Summer',innerautumn:'Inner Autumn',autumn:'Inner Autumn',fall:'Inner Autumn',innerfall:'Inner Autumn'}[clean]||'Inner Winter';
+}
+function displayCycleDay(value){
+  const day=Number(value);
+  if(!Number.isFinite(day)) return '—';
+  return day>=28?'28+':String(Math.max(1,day));
+}
+function adminMapPortrait(row){
+  const name=row.display_name||'Flow FM Priestess';
+  return `<button class="admin-map-presence ${row.checked_in_today?'is-here-today':''}" type="button" data-admin-map-member="${escapeHtml(row.member_id)}">
+    <span class="admin-map-photo"><img src="${escapeHtml(safeManagerImage(row.profile_photo_url))}" alt="${escapeHtml(name)}" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /></span>
+    <strong>${escapeHtml(name)}</strong>
+    <small>Cycle Day ${escapeHtml(displayCycleDay(row.cycle_day))}</small>
+    <em>${row.checked_in_today?'HERE TODAY':`LAST SEEN ${escapeHtml(managerDateLabel(row.last_checkin_date).toUpperCase())}`}</em>
+  </button>`;
+}
+function adminMapClients(row){
+  if(Array.isArray(row.current_clients)) return row.current_clients;
+  if(typeof row.current_clients==='string'){
+    try{ return JSON.parse(row.current_clients)||[]; }catch(error){ return []; }
+  }
+  return [];
+}
+function openAdminMapProfile(memberId){
+  const row=adminTeamMapRows.find(item=>String(item.member_id)===String(memberId));
+  if(!row||!adminTeamMapDialog||!adminTeamMapDialogContent) return;
+  const clients=adminMapClients(row);
+  adminTeamMapDialogContent.innerHTML=`<article class="admin-team-profile-card">
+    <div class="admin-team-profile-photo"><img src="${escapeHtml(safeManagerImage(row.profile_photo_url))}" alt="${escapeHtml(row.display_name||'Flow FM Priestess')}" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /></div>
+    <p class="eyebrow">28-DAY TEAM MAP</p>
+    <h2>${escapeHtml(row.display_name||'Flow FM Priestess')}</h2>
+    <p class="admin-team-priestess-title">${escapeHtml(row.priestess_title||'Flow FM Priestess')}</p>
+    <div class="admin-team-profile-pills"><span>Cycle Day ${escapeHtml(displayCycleDay(row.cycle_day))}</span><span>${escapeHtml(normalizedMapSeason(row.actual_inner_season))}</span><span>Last check-in ${escapeHtml(managerDateLabel(row.last_checkin_date))}</span></div>
+    <section><p class="eyebrow">CURRENT CLIENTS · ${escapeHtml(row.current_client_count||0)}</p>${clients.length?`<div class="admin-team-client-list">${clients.map(client=>`<button type="button" data-view-client-data="${escapeHtml(client.client_id)}">${escapeHtml(client.display_name||'Flowtel Guest')}</button>`).join('')}</div>`:'<p class="admin-team-empty">No current clients are connected.</p>'}</section>
+    <section><p class="eyebrow">UPCOMING CALLS · ${escapeHtml(row.upcoming_call_count||0)}</p><p class="admin-team-empty">${escapeHtml(row.upcoming_calls_note||'Calendar connection coming soon.')}</p></section>
+  </article>`;
+  bindClientDataButtons(adminTeamMapDialogContent);
+  if(typeof adminTeamMapDialog.showModal==='function') adminTeamMapDialog.showModal();
+  else adminTeamMapDialog.setAttribute('open','');
+}
+function renderAdminTeamMap(){
+  if(!adminTeamMapServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>The 28-Day Team Map is waiting for migration 046.</h3><p>No member-facing Team Map data has been changed.</p></div>';
+    return;
+  }
+  const seasons=['Inner Winter','Inner Spring','Inner Summer','Inner Autumn'];
+  const labels={
+    'Inner Winter':'WEST · INNER WINTER',
+    'Inner Spring':'SOUTH · INNER SPRING',
+    'Inner Summer':'EAST · INNER SUMMER',
+    'Inner Autumn':'NORTH · INNER AUTUMN',
+  };
+  queue.innerHTML=`<section class="admin-team-map-view">
+    <header class="admin-team-map-summary"><div><p class="eyebrow">LAST 28 FLOWTEL DAYS</p><h3>${adminTeamMapRows.length} ${adminTeamMapRows.length===1?'Priestess has':'Priestesses have'} moved through the Flowtel.</h3><p>Portraits are placed by each woman’s calculated cycle position from her latest stay. This owner view does not change today’s member-facing Team Map.</p></div><span>FLOWTEL TIME</span></header>
+    <div class="admin-team-map-grid">${seasons.map(season=>{const rows=adminTeamMapRows.filter(row=>normalizedMapSeason(row.actual_inner_season)===season);return `<section class="admin-team-quadrant season-${season.split(' ')[1].toLowerCase()}"><header><p>${labels[season]}</p><span>${rows.length}</span></header><div class="admin-team-presence-field">${rows.length?rows.map(adminMapPortrait).join(''):'<p class="admin-team-map-empty">This chamber is quiet.</p>'}</div></section>`;}).join('')}</div>
+  </section>`;
+  queue.querySelectorAll('[data-admin-map-member]').forEach(button=>button.addEventListener('click',()=>openAdminMapProfile(button.dataset.adminMapMember)));
+}
+async function loadAdminTeamMap(){
+  try{
+    adminTeamMapRows=await listAdminTeamMapPresences();
+    adminTeamMapServiceAvailable=true;
+  }catch(error){
+    console.warn('Admin 28-Day Team Map is not available yet.',error);
+    adminTeamMapRows=[];
+    adminTeamMapServiceAvailable=false;
+  }
+}
+
+function honorsTransactionLabel(value){
+  return {
+    practitioner_revenue:'Practitioner Revenue',
+    direct_line_referral:'Direct-Line Referral',
+    bonus:'Honors Bonus',
+    adjustment:'Manual Adjustment',
+    redemption:'Redemption',
+  }[String(value||'')]||String(value||'Honors Entry').replaceAll('_',' ');
+}
+function honorsBalanceCard(row){
+  return `<article class="honors-balance-card"><div class="honors-balance-photo"><img src="${escapeHtml(safeManagerImage(row.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /></div><div><h4>${escapeHtml(row.display_name||'Flow FM Priestess')}</h4><p>${formatPoints(row.available_points)} available · ${formatPoints(row.lifetime_points)} lifetime</p></div><strong>${formatPoints(row.available_points)}</strong></article>`;
+}
+function honorsLedgerRow(row){
+  const points=Number(row.points_delta)||0;
+  return `<article class="honors-ledger-row"><div><p class="honors-ledger-type">${escapeHtml(honorsTransactionLabel(row.transaction_type))}</p><h4>${escapeHtml(row.practitioner_name||'Flow FM Priestess')}</h4><p>${escapeHtml(row.reason||row.source_transaction||'Flowtel Honors entry')} · ${escapeHtml(managerDateLabel(row.created_at,{withTime:true}))}</p>${row.source_member_name?`<p>Source: ${escapeHtml(row.source_member_name)}</p>`:''}</div><div class="honors-ledger-money">${Number(row.gross_amount)>0?`<span>${formatMoney(row.gross_amount)} gross</span><span>${formatMoney(row.flowtel_share)} Flowtel share</span>`:''}<strong class="${points<0?'is-negative':''}">${points>0?'+':''}${formatPoints(points)} Honors</strong></div></article>`;
+}
+function updateHonorsFormPreview(form){
+  const preview=form?.querySelector('[data-honors-preview]');
+  const grossFields=form?.querySelector('[data-honors-gross-fields]');
+  const manualFields=form?.querySelector('[data-honors-manual-fields]');
+  if(!preview) return;
+  const type=form.elements.transaction_type?.value;
+  const usesGross=['practitioner_revenue','direct_line_referral'].includes(type);
+  grossFields?.classList.toggle('hidden',!usesGross);
+  manualFields?.classList.toggle('hidden',usesGross);
+  if(usesGross){
+    const calculation=honorsCalculation(form.elements.gross_amount?.value||0);
+    preview.textContent=`${formatMoney(calculation.grossAmount)} gross → ${formatMoney(calculation.practitionerPayout)} practitioner payout · ${formatMoney(calculation.flowtelShare)} Flowtel share · ${formatPoints(calculation.honorsPoints)} Honors points`;
+  }else{
+    const points=Math.abs(Number(form.elements.manual_points?.value)||0);
+    preview.textContent=type==='redemption'
+      ? `${formatPoints(points)} points will be recorded as a redemption.`
+      : `${formatPoints(points)} Honors points will be added as an append-only ${honorsTransactionLabel(type).toLowerCase()}.`;
+  }
+}
+function renderHonorsQueue(){
+  if(!honorsServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>Flowtel Honors is waiting for migration 046.</h3><p>The Concierge Desk and existing payment pathways remain unchanged.</p></div>';
+    return;
+  }
+  const totalAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
+  const lifetime=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.lifetime_points)||0),0);
+  const redeemed=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.redeemed_points)||0),0);
+  const gross=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.gross_volume)||0),0);
+  const options=honorsPractitioners.map(row=>`<option value="${escapeHtml(row.practitioner_id)}">${escapeHtml(row.display_name||row.email||'Flow FM Priestess')}</option>`).join('');
+  queue.innerHTML=`<section class="honors-dashboard">
+    <div class="honors-summary-grid"><article><span>Available Honors</span><strong>${formatPoints(totalAvailable)}</strong></article><article><span>Lifetime Awarded</span><strong>${formatPoints(lifetime)}</strong></article><article><span>Redeemed</span><strong>${formatPoints(redeemed)}</strong></article><article><span>Gross Tracked</span><strong>${formatMoney(gross)}</strong></article></div>
+    <div class="honors-workspace">
+      <form class="honors-entry-form" id="honorsEntryForm"><div class="honors-form-heading"><p class="eyebrow">RECORD CONTRIBUTION</p><h3>Flowtel remembers every contribution.</h3><p>Revenue entries automatically mirror Flowtel’s 23% share into Honors points. Bonuses, adjustments, and redemptions remain append-only ledger entries.</p></div>
+        <label><span>Award Honors to</span><select name="practitioner_id" required><option value="">Choose a Priestess</option>${options}</select></label>
+        <label><span>Entry type</span><select name="transaction_type"><option value="practitioner_revenue">Practitioner Revenue · 77/23</option><option value="direct_line_referral">Direct-Line Referral · 23% Honors</option><option value="bonus">Honors Bonus</option><option value="adjustment">Manual Adjustment</option><option value="redemption">Redemption</option></select></label>
+        <div data-honors-gross-fields><label><span>Gross amount</span><input name="gross_amount" type="number" min="0" step="0.01" placeholder="1111.00" /></label></div>
+        <div class="hidden" data-honors-manual-fields><label><span>Honors points</span><input name="manual_points" type="number" step="0.01" placeholder="23" /></label></div>
+        <label><span>Source member — optional</span><select name="source_member_id"><option value="">No source member</option>${options}</select></label>
+        <label><span>Transaction reference — optional</span><input name="source_transaction" maxlength="160" placeholder="Invoice, payment, retreat, or referral reference" /></label>
+        <label><span>Reason / direct-line note</span><textarea name="reason" rows="3" maxlength="1000" placeholder="Why these Honors were awarded or redeemed"></textarea></label>
+        <p class="honors-calculation-preview" data-honors-preview></p>
+        <button type="submit">RECORD FLOWTEL HONORS</button><p class="honors-form-status" role="status"></p>
+      </form>
+      <section class="honors-balances"><div class="honors-section-heading"><p class="eyebrow">PRIESTESS BALANCES</p><span>${honorsDashboardRows.length}</span></div>${honorsDashboardRows.length?honorsDashboardRows.map(honorsBalanceCard).join(''):'<p class="honors-empty">No Flowtel Honors balances have been opened yet.</p>'}</section>
+    </div>
+    <section class="honors-ledger"><div class="honors-section-heading"><p class="eyebrow">RECENT HONORS LEDGER</p><span>${honorsLedgerRows.length}</span></div>${honorsLedgerRows.length?honorsLedgerRows.map(honorsLedgerRow).join(''):'<p class="honors-empty">The first contribution will begin the Honors ledger.</p>'}</section>
+  </section>`;
+  bindHonorsForm();
+}
+function bindHonorsForm(){
+  const form=document.getElementById('honorsEntryForm');
+  if(!form) return;
+  form.querySelectorAll('input,select').forEach(field=>field.addEventListener('input',()=>updateHonorsFormPreview(form)));
+  form.querySelectorAll('select').forEach(field=>field.addEventListener('change',()=>updateHonorsFormPreview(form)));
+  updateHonorsFormPreview(form);
+  form.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const button=form.querySelector('button[type="submit"]');
+    const status=form.querySelector('.honors-form-status');
+    button.disabled=true;
+    status.textContent='Recording this contribution in the Honors ledger…';
+    try{
+      await recordHonorsEntry({
+        practitionerId:form.elements.practitioner_id.value,
+        transactionType:form.elements.transaction_type.value,
+        grossAmount:form.elements.gross_amount.value,
+        manualPoints:form.elements.manual_points.value,
+        sourceMemberId:form.elements.source_member_id.value,
+        sourceTransaction:form.elements.source_transaction.value,
+        reason:form.elements.reason.value,
+        directLineRelationship:form.elements.transaction_type.value==='direct_line_referral'?'Direct-line contribution':'',
+      });
+      await loadHonorsData();
+      updateStats();
+      renderHonorsQueue();
+      if(managerMessage) managerMessage.textContent='Flowtel Honors entry recorded.';
+    }catch(error){
+      console.error('Flowtel Honors entry failed.',error);
+      button.disabled=false;
+      status.textContent=error?.message||'This Honors entry could not be recorded yet.';
+    }
+  });
+}
+async function loadHonorsData(){
+  try{
+    [honorsPractitioners,honorsDashboardRows,honorsLedgerRows]=await Promise.all([
+      listHonorsPractitioners(),getHonorsDashboard(),getHonorsLedger(100),
+    ]);
+    honorsServiceAvailable=true;
+  }catch(error){
+    console.warn('Flowtel Honors is not available yet.',error);
+    honorsPractitioners=[];honorsDashboardRows=[];honorsLedgerRows=[];honorsServiceAvailable=false;
+  }
+}
+
+function groupAdminMailboxRows(rows=[]){
+  const map=new Map();
+  rows.forEach(row=>{
+    if(!map.has(row.thread_id)) map.set(row.thread_id,{...row,files:[]});
+    map.get(row.thread_id).files.push(row);
+  });
+  return [...map.values()];
+}
+function managerFileSize(bytes=0){
+  const value=Number(bytes)||0;
+  if(value<1024) return `${value} B`;
+  if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
+  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+}
+function mailboxFileAdminMarkup(file){
+  const returned=file.direction==='to_practitioner';
+  return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Audio file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:`<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">${file.received_at?'DOWNLOAD AGAIN':'DOWNLOAD + MARK RECEIVED'}</button><span>${file.received_at?`Received ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}`:'Awaiting download'}</span>`}</div></article>`;
+}
+function renderPriestessMailboxQueue(){
+  if(!priestessMailboxServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>The Priestess Mailbox is waiting for migration 046.</h3><p>No files are deleted, and no existing Profile Studio data has changed.</p></div>';
+    return;
+  }
+  const threads=groupAdminMailboxRows(priestessMailboxRows);
+  const awaiting=priestessMailboxRows.filter(row=>row.direction==='to_admin'&&!row.received_at).length;
+  queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIVATE AUDIO HANDOFFS</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Download the original, keep the thread intact, then return your edited audio to the same Priestess. Files remain preserved after receipt.</p></div><span>${threads.length} THREADS</span></header><div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Audio for Megan')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return edited audio</span><input type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" data-return-audio /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your edited journey is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND EDITED AUDIO BACK</button><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess audio has arrived yet.</p>'}</div></section>`;
+  bindAdminMailboxControls();
+}
+async function adminDownloadMailbox(button){
+  const popup=window.open('about:blank','_blank');
+  const original=button.textContent;
+  button.disabled=true;button.textContent='PREPARING…';
+  try{
+    const url=await createMailboxDownloadUrl(button.dataset.adminMailboxPath);
+    if(popup){
+      popup.opener=null;
+      popup.location.href=url;
+    }else{
+      const link=document.createElement('a');
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener';
+      link.download='';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+    await markMailboxFileReceived(button.dataset.adminMailboxDownload);
+    await loadPriestessMailboxData();
+    updateStats();
+    renderPriestessMailboxQueue();
+    if(managerMessage) managerMessage.textContent='Priestess audio downloaded and marked received.';
+  }catch(error){
+    popup?.close();console.error(error);button.disabled=false;button.textContent=original;
+    if(managerMessage) managerMessage.textContent=error?.message||'This private audio could not be prepared.';
+  }
+}
+function bindAdminMailboxControls(){
+  queue.querySelectorAll('[data-admin-mailbox-download]').forEach(button=>button.addEventListener('click',()=>adminDownloadMailbox(button)));
+  queue.querySelectorAll('[data-return-thread]').forEach(button=>button.addEventListener('click',async()=>{
+    const card=button.closest('[data-mailbox-thread]');
+    const file=card?.querySelector('[data-return-audio]')?.files?.[0];
+    const note=card?.querySelector('[data-return-note]')?.value||'';
+    const status=card?.querySelector('.admin-mailbox-return p');
+    const original=button.textContent;
+    button.disabled=true;button.textContent='SENDING…';if(status) status.textContent='Returning this audio through the Flowtel…';
+    try{
+      await returnEditedAudio({threadId:button.dataset.returnThread,practitionerId:button.dataset.returnPractitioner,file,note});
+      await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();
+      if(managerMessage) managerMessage.textContent='Edited audio returned to the Priestess Mailbox.';
+    }catch(error){
+      console.error(error);button.disabled=false;button.textContent=original;if(status) status.textContent=error?.message||'This edited audio could not be returned yet.';
+    }
+  }));
+}
+async function loadPriestessMailboxData(){
+  try{
+    priestessMailboxRows=await listAdminPriestessMailbox();
+    priestessMailboxServiceAvailable=true;
+  }catch(error){
+    console.warn('Priestess Mailbox queue is not available yet.',error);
+    priestessMailboxRows=[];priestessMailboxServiceAvailable=false;
+  }
+}
+
 function renderQueue(){
   if(activeFilter==="clients"){
     const requests=document.getElementById("connectionRequests")?.innerHTML || "<p>No new mentor requests.</p>";
@@ -1218,6 +1538,21 @@ function renderQueue(){
 
   if(activeFilter==="upcoming-golf"){
     renderUpcomingGolfCalendar();
+    return;
+  }
+
+  if(activeFilter==="admin-team-map"){
+    renderAdminTeamMap();
+    return;
+  }
+
+  if(activeFilter==="honors"){
+    renderHonorsQueue();
+    return;
+  }
+
+  if(activeFilter==="priestess-mailbox"){
+    renderPriestessMailboxQueue();
     return;
   }
 
@@ -1383,6 +1718,9 @@ async function loadDesk({silent=false}={}){
     await loadCaddieReviews();
     await loadCaddieCompassPlayers();
     await loadUpcomingGolfEvents();
+    await loadAdminTeamMap();
+    await loadHonorsData();
+    await loadPriestessMailboxData();
     updateStats();
     renderQueue();
   }catch(error){
@@ -1489,6 +1827,8 @@ openDeskFromSession();
 
 document.getElementById("managerEntryButton")?.addEventListener("click",routeToFlowtelLogin);
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
+adminTeamMapDialogClose?.addEventListener("click",()=>adminTeamMapDialog?.close());
+adminTeamMapDialog?.addEventListener("click",event=>{if(event.target===adminTeamMapDialog) adminTeamMapDialog.close();});
 
 if(goToSuiteButton) goToSuiteButton.addEventListener("click",goToSuite);
 if(initiationHallButton) initiationHallButton.addEventListener("click",markInitiationHallClockIn);

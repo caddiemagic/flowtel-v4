@@ -1,4 +1,4 @@
-// Flowtel v0.10.50 — Flow FM Team Map helpers.
+// Flowtel v0.10.56 — member/public Team Map helpers plus owner-only 28-day view.
 
 import { supabase } from './supabase.js';
 
@@ -26,6 +26,12 @@ export async function getTeamMapViewerState(){
 
 export async function listTeamMapPresences(){
   const { data, error } = await supabase.rpc('flow_fm_get_team_map');
+  if(error) throw error;
+  return data || [];
+}
+
+export async function listAdminTeamMapPresences(){
+  const { data, error } = await supabase.rpc('flowtel_admin_get_28_day_team_map');
   if(error) throw error;
   return data || [];
 }

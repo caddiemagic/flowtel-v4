@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.55 — elevated Priestess Profile Studio + Phase 1 beta polish.
+// Flowtel v0.10.56 — compact Profile Studio, human timezone preview, and Priestess Audio Mailbox.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -47,11 +47,15 @@ const profileStudioForm = document.getElementById('profileStudioForm');
 const profileStudioPreview = document.getElementById('profileStudioPreview');
 const message = document.getElementById('message');
 const accessState = document.getElementById('accessState');
+const priestessMailboxSection = document.getElementById('priestessMailboxSection');
 
 let currentProfile = null;
 let currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
 let profileDirtyDisplayStatus = '';
 let api = null;
+let mailboxApi = null;
+let mailboxRows = [];
+let profileClockTimer = null;
 let selectedProfilePhotoFile = null;
 let selectedProfilePhotoPreviewUrl = '';
 const DEFAULT_PROFILE_PHOTO = '/assets/flowtel-pinkrose.png';
@@ -83,6 +87,42 @@ function safeImageSrc(value){
 }
 function setPageMessage(text=''){
   if(message) message.textContent = text;
+}
+function timezoneDetails(timezone='America/Los_Angeles',date=new Date()){
+  const zone=String(timezone || 'America/Los_Angeles');
+  try{
+    const longName=new Intl.DateTimeFormat('en-US',{timeZone:zone,timeZoneName:'long'})
+      .formatToParts(date).find(part=>part.type==='timeZoneName')?.value || zone.replace(/_/g,' ');
+    const shortName=new Intl.DateTimeFormat('en-US',{timeZone:zone,timeZoneName:'short'})
+      .formatToParts(date).find(part=>part.type==='timeZoneName')?.value || '';
+    const currentTime=new Intl.DateTimeFormat('en-US',{timeZone:zone,hour:'numeric',minute:'2-digit'})
+      .format(date);
+    return { zone,longName,shortName,currentTime };
+  }catch(error){
+    console.warn('Timezone preview could not be formatted.',error);
+    return { zone,longName:zone.replace(/_/g,' '),shortName:'',currentTime:'' };
+  }
+}
+function timezonePreviewMarkup(timezone='America/Los_Angeles'){
+  const details=timezoneDetails(timezone);
+  const clock=details.currentTime
+    ? `Current time: ${details.currentTime}${details.shortName ? ` (${details.shortName})` : ''}`
+    : '';
+  return `<div class="timezone-line" data-profile-timezone="${escapeHtml(details.zone)}"><span class="timezone-name">${escapeHtml(details.longName)}</span>${clock ? `<span class="timezone-clock">${escapeHtml(clock)}</span>` : ''}</div>`;
+}
+function updateTimezoneClocks(){
+  document.querySelectorAll('[data-profile-timezone]').forEach(node=>{
+    const details=timezoneDetails(node.dataset.profileTimezone || 'America/Los_Angeles');
+    const name=node.querySelector('.timezone-name');
+    const clock=node.querySelector('.timezone-clock');
+    if(name) name.textContent=details.longName;
+    if(clock) clock.textContent=`Current time: ${details.currentTime}${details.shortName ? ` (${details.shortName})` : ''}`;
+  });
+}
+function startTimezoneClock(){
+  window.clearInterval(profileClockTimer);
+  updateTimezoneClocks();
+  profileClockTimer=window.setInterval(updateTimezoneClocks,30000);
 }
 function canUseProfileStudio(profile){
   const membership=String(profile?.membership_type || '').toLowerCase().replace(/[^a-z]/g,'');
@@ -229,12 +269,12 @@ function renderDisplayProfile(profile={}){
   const name=profile.display_name || profile.priestess_name || profile.member_name || 'Priestess Profile';
   const title=labelForPriestessTitle(profile.priestess_title || profile.modalities || 'rose-priestess');
   const locationLine=String(profile.location || '').trim();
-  const timezoneLine=String(profile.timezone || '').trim();
+  const timezone=String(profile.timezone || '').trim();
   const website=safeHref(profile.website_url);
   const offerings=offeringLabelsFromValues(profile.offering_template_keys || profile.offerings).map(item=>`<span>${escapeHtml(item)}</span>`).join('');
   const displayStatus=displayStatusForProfile(profile);
   return `<article class="display-profile-card display-profile-card--simple">
-    <div class="display-profile-hero">${profilePhotoMarkup(profile)}<div><p class="eyebrow">${escapeHtml(title)}</p><h3>${escapeHtml(name)}</h3>${locationLine ? `<p>${escapeHtml(locationLine)}</p>` : ''}${timezoneLine ? `<p class="timezone-line">${escapeHtml(timezoneLine)}</p>` : ''}${renderProfileStatusPill(displayStatus)}</div></div>
+    <div class="display-profile-hero">${profilePhotoMarkup(profile)}<div><p class="eyebrow">${escapeHtml(title)}</p><h3>${escapeHtml(name)}</h3>${locationLine ? `<p>${escapeHtml(locationLine)}</p>` : ''}${timezone ? timezonePreviewMarkup(timezone) : ''}${renderProfileStatusPill(displayStatus)}</div></div>
     <div class="profile-section"><p class="eyebrow">ABOUT ME</p><p>${escapeHtml(profile.bio || 'Choose a prepared bio to begin. Your profile can evolve as your medicine becomes clearer.')}</p></div>
     ${offerings ? `<div class="profile-section"><p class="eyebrow">OFFERINGS</p><div class="profile-tags">${offerings}</div></div>` : ''}
     ${website ? `<div class="profile-links"><a href="${escapeHtml(website)}" target="_blank" rel="noreferrer">Visit Website</a></div>` : ''}
@@ -296,6 +336,7 @@ function refreshPreviewFromForm(form,{ markDirty=true }={}){
     timezone:payload.timezone
   };
   profileStudioPreview.innerHTML=renderDisplayProfile(currentPriestessProfile);
+  updateTimezoneClocks();
   const statusCopyNode=form?.querySelector('[data-profile-status-copy]');
   if(statusCopyNode) statusCopyNode.textContent=statusCopy(displayStatus);
   const statusPillNode=form?.querySelector('[data-profile-status-pill]');
@@ -387,6 +428,7 @@ function bindProfilePhotoUploader(){
       clearSelectedProfilePhoto();
       currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:photoUrl || ''};
       await loadSavedProfile();
+      await loadPriestessMailbox();
       setPageMessage('Your Priestess photo is now traveling through the Flowtel.');
     }catch(error){
       console.error(error);
@@ -429,8 +471,9 @@ function renderProfileStudio(record=currentPriestessProfile){
   const offeringValues=selectedOfferingValues(profile);
   const timezone=profile.timezone || 'America/Los_Angeles';
   const displayStatus=displayStatusForProfile(profile);
-  profileStudioIntro.textContent='Choose the title, language, offerings, and image that best represent your work right now. You can return and refine this profile as your medicine evolves.';
+  profileStudioIntro.textContent='You can return and refine this profile as often as your medicine evolves.';
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
+  updateTimezoneClocks();
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
     <div class="profile-form-heading"><div><p class="eyebrow">PROFILE DETAILS</p><h3>Shape how you are seen.</h3><p data-profile-status-copy>${escapeHtml(statusCopy(displayStatus))}</p></div><div data-profile-status-pill>${renderProfileStatusPill(displayStatus)}</div></div>
     ${isViewingAnotherMember(currentProfile)
@@ -535,6 +578,130 @@ async function handleProfileAction(form,action){
     setPageMessage(error.message || 'This Priestess Profile could not be tended yet.');
   }
 }
+function fileSizeLabel(bytes=0){
+  const value=Number(bytes)||0;
+  if(value<1024) return `${value} B`;
+  if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
+  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+}
+function mailboxDateLabel(value){
+  if(!value) return '';
+  const date=new Date(value);
+  if(Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(date);
+}
+function groupMailboxThreads(rows=[]){
+  const groups=new Map();
+  rows.forEach(row=>{
+    if(!groups.has(row.thread_id)) groups.set(row.thread_id,{...row,files:[]});
+    groups.get(row.thread_id).files.push(row);
+  });
+  return [...groups.values()];
+}
+function mailboxThreadStatus(thread){
+  const returned=thread.files.filter(file=>file.direction==='to_practitioner');
+  const originals=thread.files.filter(file=>file.direction==='to_admin');
+  if(returned.some(file=>!file.downloaded_at)) return 'Your edited audio is ready';
+  if(returned.length && returned.every(file=>file.downloaded_at)) return 'Returned and received';
+  if(originals.some(file=>file.received_at)) return 'Received by Megan';
+  return 'Traveling to Megan';
+}
+function mailboxFileMarkup(file){
+  const isReturn=file.direction==='to_practitioner';
+  const state=isReturn
+    ? (file.downloaded_at?'Downloaded':'Ready for you')
+    : (file.received_at?'Received by Megan':'Sent to Megan');
+  return `<article class="mailbox-file ${isReturn?'is-return':'is-original'}">
+    <div><p class="mailbox-file-direction">${isReturn?'RETURNED TO YOU':'SENT TO MEGAN'}</p><h4>${escapeHtml(file.original_filename || 'Audio file')}</h4><p>${escapeHtml(fileSizeLabel(file.size_bytes))} · ${escapeHtml(mailboxDateLabel(file.uploaded_at))}</p>${file.file_note?`<p class="mailbox-file-note">${escapeHtml(file.file_note)}</p>`:''}</div>
+    <div class="mailbox-file-action"><span>${escapeHtml(state)}</span>${isReturn?`<button type="button" data-mailbox-download="${escapeHtml(file.file_id)}" data-mailbox-path="${escapeHtml(file.storage_path)}">${file.downloaded_at?'Download Again':'Download Returned Audio'}</button>`:''}</div>
+  </article>`;
+}
+function renderPriestessMailbox(){
+  if(!priestessMailboxSection || !currentProfile?.id || isViewingAnotherMember(currentProfile)) return;
+  const threads=groupMailboxThreads(mailboxRows);
+  priestessMailboxSection.classList.remove('hidden');
+  priestessMailboxSection.innerHTML=`
+    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS MAILBOX</p><h2>Send your audio through the Flowtel.</h2><p>Leave a recording for Megan to download and tend. When the edited version is ready—with music, polish, or production—it will return to this same private thread.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
+    <div class="priestess-mailbox-layout">
+      <form class="priestess-mailbox-form" id="priestessMailboxForm">
+        <label><span>Audio title</span><input name="subject" maxlength="120" placeholder="Womb Wealth meditation" /></label>
+        <label><span>Note for Megan — optional</span><textarea name="message" rows="4" maxlength="1000" placeholder="What would you like her to know before editing?"></textarea></label>
+        <label class="mailbox-file-picker"><span>Choose your audio</span><input name="audio_file" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" required /><small>MP3, WAV, M4A, AAC, or OGG · up to 250 MB</small></label>
+        <button type="submit">SEND AUDIO TO MEGAN</button>
+        <p class="mailbox-form-status" id="priestessMailboxStatus" role="status"></p>
+      </form>
+      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Audio for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first audio handoff will appear here.</p></div>'}</section>
+    </div>`;
+  bindPriestessMailbox();
+}
+async function downloadReturnedAudio(button){
+  const popup=window.open('about:blank','_blank');
+  button.disabled=true;
+  const original=button.textContent;
+  button.textContent='Preparing...';
+  try{
+    const url=await mailboxApi.createMailboxDownloadUrl(button.dataset.mailboxPath);
+    if(popup){
+      popup.opener=null;
+      popup.location.href=url;
+    }else{
+      const link=document.createElement('a');
+      link.href=url;
+      link.target='_blank';
+      link.rel='noopener';
+      link.download='';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+    await mailboxApi.markReturnedAudioDownloaded(button.dataset.mailboxDownload);
+    await loadPriestessMailbox();
+    setPageMessage('Your returned audio has been received from the Priestess Mailbox.');
+  }catch(error){
+    popup?.close();
+    console.error(error);
+    button.disabled=false;
+    button.textContent=original;
+    setPageMessage(error?.message || 'This private audio download could not be prepared yet.');
+  }
+}
+function bindPriestessMailbox(){
+  const form=document.getElementById('priestessMailboxForm');
+  const status=document.getElementById('priestessMailboxStatus');
+  form?.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const button=form.querySelector('button[type="submit"]');
+    const file=form.elements.audio_file?.files?.[0];
+    button.disabled=true;
+    status.textContent='Sending your audio through the Flowtel…';
+    try{
+      await mailboxApi.sendAudioToConcierge(file,{
+        subject:form.elements.subject?.value || '',
+        message:form.elements.message?.value || '',
+      });
+      form.reset();
+      status.textContent='Your audio is waiting safely in Megan’s Priestess Mailbox.';
+      await loadPriestessMailbox();
+    }catch(error){
+      console.error(error);
+      button.disabled=false;
+      status.textContent=error?.message || 'This audio could not be sent yet.';
+    }
+  });
+  priestessMailboxSection.querySelectorAll('[data-mailbox-download]').forEach(button=>button.addEventListener('click',()=>downloadReturnedAudio(button)));
+}
+async function loadPriestessMailbox(){
+  if(!mailboxApi || !currentProfile?.id || isViewingAnotherMember(currentProfile)) return;
+  try{
+    mailboxRows=await mailboxApi.listMyPriestessMailbox();
+    renderPriestessMailbox();
+  }catch(error){
+    console.warn('Priestess Mailbox could not load.',error);
+    priestessMailboxSection?.classList.remove('hidden');
+    if(priestessMailboxSection) priestessMailboxSection.innerHTML='<div class="mailbox-empty"><p>The Priestess Mailbox will open after migration 046 is installed.</p></div>';
+  }
+}
+
 function renderStaticNav(){
   if(!topNav) return;
   topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
@@ -569,7 +736,8 @@ async function loadSavedProfile(){
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.52');
+    api=await import('/shared/flowtel.js?v=0.10.56');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.56');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({
@@ -581,6 +749,7 @@ async function hydrateFromSupabase(){
     }
     if(accessState) accessState.innerHTML='';
     await loadSavedProfile();
+    await loadPriestessMailbox();
   }catch(error){
     console.warn('Profile Studio save connection could not initialize.', error);
     setPageMessage('The Studio form is open. The save connection could not initialize yet, so preview is available while we keep the doorway visible.');
@@ -589,6 +758,8 @@ async function hydrateFromSupabase(){
 function init(){
   renderStaticNav();
   renderProfileStudio(currentPriestessProfile);
+  startTimezoneClock();
   hydrateFromSupabase();
 }
+window.addEventListener('beforeunload',()=>window.clearInterval(profileClockTimer));
 init();

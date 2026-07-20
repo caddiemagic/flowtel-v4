@@ -1,3 +1,17 @@
+## v0.10.56 — Admin Team Map + Flowtel Honors + Priestess Mailbox
+
+- Adds an owner-only **28-Day Team Map** to the Concierge Desk for eligible team members who checked in during the last 28 Flowtel Days.
+- Shows each member’s photo, canonical display name, calculated cycle day/Inner Season, last check-in, current connected clients, and an Upcoming Calls placeholder for future calendar integration.
+- Keeps the member-facing Team Map limited to today and preserves the public-safe Queendom boundary.
+- Adds an append-only **Flowtel Honors** ledger visible in Concierge with automatic 77% practitioner payout, 23% Flowtel share, and Honors points equal to the 23% share.
+- Adds manual bonuses, adjustments, direct-line entries, redemptions, balances, lifetime totals, source references, and redemption safeguards.
+- Adds a private bi-directional **Priestess Audio Mailbox** for MP3/WAV/M4A/AAC/OGG handoffs up to 250 MB.
+- Lets Megan download and mark original audio received, then return edited or music-backed audio through the same preserved private thread.
+- Compacts the Profile Studio hero, removes the **PROFILE STUDIO** eyebrow, and uses **You can return and refine this profile as often as your medicine evolves.**
+- Replaces raw timezone strings with a dynamic two-line format such as **Pacific Daylight Time** and **Current time: 3:42 PM (PDT)**.
+- Adds Supabase migration 046. Migration 037 remains retired and must not be rerun.
+- Preserves all integrated Caddie Magic v0.4.2 work from the uploaded v37 source.
+
 ## Caddie Magic v0.4.2 — Player Invitation Code Hotfix
 
 - Fixed **Create Player Invite** failing with `function gen_random_bytes(integer) does not exist`.

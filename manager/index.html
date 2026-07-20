@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=caddie-0.4.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.56" />
 </head>
 
 <body>
@@ -86,6 +86,21 @@
           <strong id="clientsCount">0</strong>
           <em><b id="clientConnectionCount">0</b> new mentor requests</em>
         </button>
+        <button class="stat-card" type="button" data-filter="admin-team-map">
+          <span>28-Day Team Map</span>
+          <strong id="adminTeamMapCount">0</strong>
+          <em>Team members in motion</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="honors">
+          <span>Flowtel Honors</span>
+          <strong id="honorsAvailablePoints">0</strong>
+          <em><b id="honorsPractitionerCount">0</b> Priestess balances</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="priestess-mailbox">
+          <span>Priestess Mailbox</span>
+          <strong id="priestessMailboxCount">0</strong>
+          <em>Audio files awaiting you</em>
+        </button>
         <button class="stat-card" type="button" data-filter="in-house">
           <span>Guests in House</span>
           <strong id="guestsInHouse">0</strong>
@@ -115,6 +130,11 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=caddie-0.4.1"></script>
+  <dialog class="admin-team-dialog" id="adminTeamMapDialog">
+    <button class="admin-team-dialog-close" id="adminTeamMapDialogClose" type="button" aria-label="Close profile card">×</button>
+    <div id="adminTeamMapDialogContent"></div>
+  </dialog>
+
+  <script type="module" src="./app.js?v=0.10.56"></script>
 </body>
 </html>
