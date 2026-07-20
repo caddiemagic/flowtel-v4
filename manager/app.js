@@ -10,8 +10,80 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.5";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
-import { createGuestHouseOwnerDownloadUrl, deactivateGuestHouseReplay, discardPendingGuestHouseReplay, finalizePendingGuestHouseReplay, getPendingGuestHouseUpload, listGuestHouseRequests, prepareGuestHouseAccess, revokeGuestHouseAccess, sendGuestHouseInvitation, updateGuestHouseRequest, uploadGuestHouseReplay } from "../shared/guest-house.js?v=0.10.59";
-import { guestHouseFileSize, GUEST_HOUSE_STATUS_LABELS } from "../shared/guest-house-core.js?v=0.10.58";
+
+document.documentElement.dataset.conciergeAppBooted="true";
+
+const DEFAULT_GUEST_HOUSE_STATUS_LABELS=Object.freeze({
+  requested:"Request received",
+  locating:"Locating your replay",
+  preparing:"Preparing your Replay Room",
+  ready:"Replay Room ready",
+  delivered:"Private invitation shared",
+  received:"Replay received",
+  unable_to_locate:"A personal reply is needed",
+  archived:"Room archived",
+});
+let GUEST_HOUSE_STATUS_LABELS=DEFAULT_GUEST_HOUSE_STATUS_LABELS;
+let guestHouseApi=null;
+let guestHouseCore=null;
+let guestHouseModulePromise=null;
+
+function fallbackGuestHouseFileSize(bytes=0){
+  const value=Number(bytes)||0;
+  if(value<1024) return `${value} B`;
+  if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
+  if(value<1024*1024*1024) return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  return `${(value/(1024*1024*1024)).toFixed(2)} GB`;
+}
+function guestHouseFileSize(bytes=0){
+  return typeof guestHouseCore?.guestHouseFileSize==="function"
+    ? guestHouseCore.guestHouseFileSize(bytes)
+    : fallbackGuestHouseFileSize(bytes);
+}
+async function ensureGuestHouseModules(){
+  if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
+  if(!guestHouseModulePromise){
+    guestHouseModulePromise=Promise.all([
+      import("../shared/guest-house.js?v=0.10.60"),
+      import("../shared/guest-house-core.js?v=0.10.60"),
+    ]).then(([api,core])=>{
+      const required=[
+        "createGuestHouseOwnerDownloadUrl",
+        "deactivateGuestHouseReplay",
+        "discardPendingGuestHouseReplay",
+        "finalizePendingGuestHouseReplay",
+        "getPendingGuestHouseUpload",
+        "listGuestHouseRequests",
+        "prepareGuestHouseAccess",
+        "revokeGuestHouseAccess",
+        "sendGuestHouseInvitation",
+        "updateGuestHouseRequest",
+        "uploadGuestHouseReplay",
+      ];
+      const missing=required.filter(name=>typeof api?.[name]!=="function");
+      if(missing.length) throw new Error(`Guest House module is incomplete: ${missing.join(", ")}.`);
+      guestHouseApi=api;
+      guestHouseCore=core;
+      GUEST_HOUSE_STATUS_LABELS=core?.GUEST_HOUSE_STATUS_LABELS || DEFAULT_GUEST_HOUSE_STATUS_LABELS;
+      return {api,core};
+    }).catch(error=>{
+      guestHouseModulePromise=null;
+      throw error;
+    });
+  }
+  return guestHouseModulePromise;
+}
+async function createGuestHouseOwnerDownloadUrl(...args){const {api}=await ensureGuestHouseModules();return api.createGuestHouseOwnerDownloadUrl(...args);}
+async function deactivateGuestHouseReplay(...args){const {api}=await ensureGuestHouseModules();return api.deactivateGuestHouseReplay(...args);}
+async function discardPendingGuestHouseReplay(...args){const {api}=await ensureGuestHouseModules();return api.discardPendingGuestHouseReplay(...args);}
+async function finalizePendingGuestHouseReplay(...args){const {api}=await ensureGuestHouseModules();return api.finalizePendingGuestHouseReplay(...args);}
+function getPendingGuestHouseUpload(...args){return guestHouseApi?.getPendingGuestHouseUpload?.(...args) || null;}
+async function listGuestHouseRequests(...args){const {api}=await ensureGuestHouseModules();return api.listGuestHouseRequests(...args);}
+async function prepareGuestHouseAccess(...args){const {api}=await ensureGuestHouseModules();return api.prepareGuestHouseAccess(...args);}
+async function revokeGuestHouseAccess(...args){const {api}=await ensureGuestHouseModules();return api.revokeGuestHouseAccess(...args);}
+async function sendGuestHouseInvitation(...args){const {api}=await ensureGuestHouseModules();return api.sendGuestHouseInvitation(...args);}
+async function updateGuestHouseRequest(...args){const {api}=await ensureGuestHouseModules();return api.updateGuestHouseRequest(...args);}
+async function uploadGuestHouseReplay(...args){const {api}=await ensureGuestHouseModules();return api.uploadGuestHouseReplay(...args);}
 
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
@@ -1844,6 +1916,14 @@ function startDeskAutoRefresh(){
   window.clearInterval(deskRefreshTimer);
   deskRefreshTimer=window.setInterval(refreshDeskWhenVisible,DESK_REFRESH_INTERVAL_MS);
 }
+function withConciergeGateTimeout(promise,label,timeoutMs=15000){
+  let timer=null;
+  const timeout=new Promise((_,reject)=>{
+    timer=window.setTimeout(()=>reject(new Error(`${label} took too long to respond. Refresh the Desk once, or enter through Flowtel again.`)),timeoutMs);
+  });
+  return Promise.race([promise,timeout]).finally(()=>window.clearTimeout(timer));
+}
+
 function showConciergeAccessPrompt(){
   if(!loginCard) return;
   loginCard.classList.remove("hidden");
@@ -1880,7 +1960,7 @@ async function hydrateClockInContextForSession(profile){
 async function openDeskFromSession(){
   try{
     if(managerMessage) managerMessage.textContent="Checking your Concierge access...";
-    const profile=await getCurrentProfile();
+    const profile=await withConciergeGateTimeout(getCurrentProfile(),"Concierge identity verification");
 
     if(!profile){
       showConciergeAccessPrompt();
@@ -1897,7 +1977,8 @@ async function openDeskFromSession(){
       return;
     }
 
-    const hasConciergeAccess=await currentUserHasConciergeAccess();
+    if(managerMessage) managerMessage.textContent="Owner identity recognized. Opening the Concierge Desk...";
+    const hasConciergeAccess=await withConciergeGateTimeout(currentUserHasConciergeAccess(),"Concierge permission verification");
     if(!hasConciergeAccess){
       if(managerMessage) managerMessage.textContent="Your owner account is recognized, but Concierge permission is not installed yet. Run migration 034.";
       return;

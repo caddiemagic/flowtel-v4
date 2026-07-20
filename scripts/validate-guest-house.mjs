@@ -43,6 +43,12 @@ assert(files.managerJs.includes('deactivateGuestHouseReplay'),'Safe removal of a
 assert(files.managerJs.includes('prepareGuestHouseAccess'),'Private room-key preparation is not wired.');
 assert(files.managerJs.includes('revokeGuestHouseAccess'),'Private room-key revocation is not wired.');
 assert(files.managerJs.includes('sendGuestHouseInvitation'),'Optional invitation email is not wired.');
+assert(!files.managerJs.includes('from "../shared/guest-house.js'), 'Guest House must not be a static dependency of the Concierge access gate.');
+assert(files.managerJs.includes('async function ensureGuestHouseModules()'),'Guest House lazy module isolation is missing.');
+assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.60")'),'Guest House lazy module cache-bust is missing.');
+assert(files.managerJs.includes('document.documentElement.dataset.conciergeAppBooted="true"'),'Concierge boot marker is missing.');
+assert(files.managerHtml.includes('The Concierge Desk did not finish opening.'),'Concierge boot watchdog is missing.');
+assert(files.managerJs.includes('withConciergeGateTimeout'),'Concierge access verification can still remain indefinitely on the checking screen.');
 
 assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house'&&item.destination==='/guest-house/index.html'),'Public Guest House rewrite missing.');
 assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house/replay'&&item.destination==='/guest-house/replay/index.html'),'Private Replay Room rewrite missing.');

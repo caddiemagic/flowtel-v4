@@ -1,3 +1,14 @@
+## v0.10.60 — Concierge Access Gate Recovery Hotfix
+
+- Restores owner access to the Concierge Desk after the screen could remain frozen on **Checking your role** following the Guest House large-upload release.
+- Removes the Guest House owner module from the Concierge application's required static import graph so an optional module load or stale-cache mismatch cannot prevent owner role verification.
+- Lazy-loads and validates Guest House helpers only after the core Concierge shell is available.
+- Adds v0.10.60 cache-busting for the Concierge application and Guest House modules.
+- Adds bounded identity/permission checks and a visible owner-recognized state instead of allowing an indefinite checking screen.
+- Adds a boot watchdog that gives a clear refresh instruction if the Concierge script itself does not finish loading.
+- Preserves the v0.10.59 450 MB resumable-upload continuity and all existing Flowtel and Caddie Magic boundaries.
+- No Supabase migration required. Migration 048 remains the current Guest House migration, and migration 037 remains retired.
+
 ## v0.10.59 — Guest House Large Replay Upload Continuity Hotfix
 
 - Prevents the Concierge Desk's 45-second background refresh from re-rendering and visually erasing an active Guest House upload.
