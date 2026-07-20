@@ -3790,3 +3790,14 @@ body.personal-room-key-is-open{
 .concierge-current-day-state .concierge-note-context{
   margin-bottom:0;
 }
+
+
+/* Flowtel v0.10.64 — Flow FM Lounge workshop transmission */
+.video-lounge-card.flow-fm-lounge-content{display:grid;gap:17px;text-align:left}
+.video-lounge-card.flow-fm-lounge-content>h3{margin:0;font-size:clamp(1.9rem,3.4vw,2.8rem)}
+.lounge-video-intro{max-width:760px;margin:0;color:var(--muted,#806963);line-height:1.7}
+.lounge-video-frame{overflow:hidden;border:1px solid rgba(184,148,85,.38);border-radius:24px;background:#1b1115;box-shadow:0 18px 45px rgba(73,40,47,.18)}
+.lounge-video-frame video{display:block;width:100%;max-height:72vh;background:#130d10}
+.lounge-video-status{min-height:20px;margin:0;color:#a35f65;font-family:"Cormorant Garamond",serif;font-size:1.05rem;font-style:italic}
+.lounge-replay-notes{display:block;width:100%;min-height:590px;border:0;border-radius:24px;background:transparent}
+@media(max-width:700px){.lounge-replay-notes{min-height:720px}.lounge-video-frame{border-radius:17px}}

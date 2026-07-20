@@ -1,3 +1,17 @@
+## v0.10.64 — Five Experience Updates
+
+- Adds an embedded Queendom workshop replay-notes room with append-only Question, Note, Download, Reflection, and Track This in Cycle Data entries.
+- Preserves Flowtel Time, current-day actual/recorded cycle context when checked in, Inner Season where available, and current Moon context with each replay note and returns the note to the consent-aware Flow Map.
+- Adds an owner-only **Workshop Replay Notes** Concierge view grouped by workshop and canonical `display_name`.
+- Replaces the Flow FM Lounge video placeholder with the **Four Seasons Flowtel Workshop** player and embedded living replay notes.
+- References `/assets/Four-Seasons-Flowtel-Workshop.mp4`; the named media was not present in the supplied source ZIP and must be placed at that exact path before deployment.
+- Collapses all Guest House replay requests by default and keeps only one request expanded at a time while protecting selected and active uploads.
+- Removes **her** from the three owner Guest House statuses.
+- Gives every replay a 28-day stay, displays days remaining, blocks expired playback, records view/download receipts, and removes expired private Storage objects on the next owner Concierge visit while preserving the file record.
+- Removes the large Guest House threshold headline while preserving the invitation eyebrow, body copy, and **Join the Queendom** button.
+- Improves Caddie Magic Upcoming Golf calendar legibility with practical sans-serif typography while preserving the dark/gold world and all v0.4.5 product boundaries.
+- Adds migration 050. Migration 037 remains retired and must never be rerun.
+
 ## v0.10.63 — Guest House Accounts + Replay Status Portal
 
 - Replaces the anonymous Guest House request doorway with a remembered email-and-password Guest House account.

@@ -1,4 +1,4 @@
-// Flowtel v0.10.63 — Guest House account, replay-file, and private-room helpers.
+// Flowtel v0.10.64 — Guest House account, replay-file, expiration, and private-room helpers.
 
 export const GUEST_HOUSE_REPLAY_BUCKET = 'flowtel-guest-house-replays';
 export const GUEST_HOUSE_MAX_BYTES = 2 * 1024 * 1024 * 1024;
@@ -6,14 +6,14 @@ export const GUEST_HOUSE_REPLAY_EXTENSIONS = ['mp4','mov','m4v','webm','mp3','wa
 export const GUEST_HOUSE_VIDEO_EXTENSIONS = new Set(['mp4','mov','m4v','webm']);
 export const GUEST_HOUSE_AUDIO_EXTENSIONS = new Set(['mp3','wav','m4a','aac','ogg']);
 export const GUEST_HOUSE_STATUS_LABELS = Object.freeze({
-  requested: 'Concierge is locating her recording',
-  locating: 'Concierge is locating her recording',
-  preparing: 'Concierge is locating her recording',
-  ready: 'Her Replay Room is ready',
-  delivered: 'Her Replay Room is ready',
-  received: 'Her Replay Room is ready',
-  unable_to_locate: "Concierge couldn't find her replay",
-  archived: "Concierge couldn't find her replay",
+  requested: 'Concierge is locating the recording',
+  locating: 'Concierge is locating the recording',
+  preparing: 'Concierge is locating the recording',
+  ready: 'Replay Room is ready',
+  delivered: 'Replay Room is ready',
+  received: 'Replay Room is ready',
+  unable_to_locate: "Concierge couldn't find the replay",
+  archived: "Concierge couldn't find the replay",
 });
 
 const SUPPORTED_MIME_TYPES = new Set([
@@ -132,4 +132,21 @@ export async function hashGuestHouseToken(token){
   const encoded=new TextEncoder().encode(String(token || ''));
   const digest=await globalThis.crypto.subtle.digest('SHA-256',encoded);
   return bytesToHex(new Uint8Array(digest));
+}
+
+
+export function guestHouseReplayDaysRemaining(expiresAt,fromDate=new Date()){
+  if(!expiresAt) return null;
+  const end=new Date(expiresAt).getTime();
+  const start=new Date(fromDate).getTime();
+  if(!Number.isFinite(end) || !Number.isFinite(start)) return null;
+  return Math.max(0,Math.ceil((end-start)/86400000));
+}
+
+export function guestHouseReplayExpirationCopy(expiresAt,fromDate=new Date()){
+  const days=guestHouseReplayDaysRemaining(expiresAt,fromDate);
+  if(days===null) return '';
+  if(days<=0) return 'This replay has reached the end of its 28-day Guest House stay.';
+  if(days===1) return 'This replay will be deleted in 1 day.';
+  return `This replay will be deleted in ${days} days.`;
 }

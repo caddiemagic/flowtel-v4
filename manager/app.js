@@ -10,18 +10,19 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.5";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
+import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
 const DEFAULT_GUEST_HOUSE_STATUS_LABELS=Object.freeze({
-  requested:"Concierge is locating her recording",
-  locating:"Concierge is locating her recording",
-  preparing:"Concierge is locating her recording",
-  ready:"Her Replay Room is ready",
-  delivered:"Her Replay Room is ready",
-  received:"Her Replay Room is ready",
-  unable_to_locate:"Concierge couldn't find her replay",
-  archived:"Concierge couldn't find her replay",
+  requested:"Concierge is locating the recording",
+  locating:"Concierge is locating the recording",
+  preparing:"Concierge is locating the recording",
+  ready:"Replay Room is ready",
+  delivered:"Replay Room is ready",
+  received:"Replay Room is ready",
+  unable_to_locate:"Concierge couldn't find the replay",
+  archived:"Concierge couldn't find the replay",
 });
 let GUEST_HOUSE_STATUS_LABELS=DEFAULT_GUEST_HOUSE_STATUS_LABELS;
 let guestHouseApi=null;
@@ -40,12 +41,18 @@ function guestHouseFileSize(bytes=0){
     ? guestHouseCore.guestHouseFileSize(bytes)
     : fallbackGuestHouseFileSize(bytes);
 }
+function guestHouseReplayExpirationCopy(expiresAt){
+  if(typeof guestHouseCore?.guestHouseReplayExpirationCopy==="function") return guestHouseCore.guestHouseReplayExpirationCopy(expiresAt);
+  if(!expiresAt) return "";
+  const days=Math.max(0,Math.ceil((new Date(expiresAt).getTime()-Date.now())/86400000));
+  return days===0 ? "This replay has reached the end of its 28-day Guest House stay." : `This replay will be deleted in ${days} day${days===1?"":"s"}.`;
+}
 async function ensureGuestHouseModules(){
   if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
   if(!guestHouseModulePromise){
     guestHouseModulePromise=Promise.all([
-      import("../shared/guest-house.js?v=0.10.63"),
-      import("../shared/guest-house-core.js?v=0.10.63"),
+      import("../shared/guest-house.js?v=0.10.64"),
+      import("../shared/guest-house-core.js?v=0.10.64"),
     ]).then(([api,core])=>{
       const required=[
         "createGuestHouseOwnerDownloadUrl",
@@ -55,6 +62,7 @@ async function ensureGuestHouseModules(){
         "getPendingGuestHouseUpload",
         "listGuestHouseRequests",
         "prepareGuestHouseAccess",
+        "purgeExpiredGuestHouseReplays",
         "revokeGuestHouseAccess",
         "updateGuestHouseRequest",
         "uploadGuestHouseReplay",
@@ -79,6 +87,7 @@ async function finalizePendingGuestHouseReplay(...args){const {api}=await ensure
 function getPendingGuestHouseUpload(...args){return guestHouseApi?.getPendingGuestHouseUpload?.(...args) || null;}
 async function listGuestHouseRequests(...args){const {api}=await ensureGuestHouseModules();return api.listGuestHouseRequests(...args);}
 async function prepareGuestHouseAccess(...args){const {api}=await ensureGuestHouseModules();return api.prepareGuestHouseAccess(...args);}
+async function purgeExpiredGuestHouseReplays(...args){const {api}=await ensureGuestHouseModules();return api.purgeExpiredGuestHouseReplays(...args);}
 async function revokeGuestHouseAccess(...args){const {api}=await ensureGuestHouseModules();return api.revokeGuestHouseAccess(...args);}
 async function updateGuestHouseRequest(...args){const {api}=await ensureGuestHouseModules();return api.updateGuestHouseRequest(...args);}
 async function uploadGuestHouseReplay(...args){const {api}=await ensureGuestHouseModules();return api.uploadGuestHouseReplay(...args);}
@@ -111,6 +120,9 @@ let priestessMailboxRows=[];
 let priestessMailboxServiceAvailable=true;
 let guestHouseRequests=[];
 let guestHouseServiceAvailable=true;
+let guestHouseExpandedRequestId=null;
+let workshopReplayNotes=[];
+let workshopReplayNotesServiceAvailable=true;
 const guestHouseAccessLinks=new Map();
 let deskRefreshTimer=null;
 let deskRefreshInFlight=false;
@@ -672,7 +684,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house"].includes(activeFilter)) return [];
+  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -689,6 +701,7 @@ function updateStats(){
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
   const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
   const guestHouseAwaiting=guestHouseRequests.filter(row=>["requested","locating","preparing"].includes(String(row.request_status||""))).length;
+  const workshopQuestions=workshopReplayNotes.filter(row=>row.note_type==="question").length;
 
   setText("awaitingTurndownCount",awaitingCount);
   setText("caddiePlayerCount",caddiePlayers.filter(player=>player.caddie_magic_access).length);
@@ -706,6 +719,7 @@ function updateStats(){
   setText("honorsPractitionerCount",honorsDashboardRows.length);
   setText("priestessMailboxCount",mailboxAwaiting);
   setText("guestHouseRequestCount",guestHouseAwaiting);
+  setText("workshopReplayNoteCount",workshopReplayNotes.length);
 
   const queueCard=document.querySelector(".queue");
   if(queueCard) queueCard.classList.toggle("has-requests",activeFilter==="queue" && awaitingCount>0);
@@ -733,6 +747,8 @@ function updateStats(){
 
   const guestHouseCard=document.querySelector('[data-filter="guest-house"]');
   if(guestHouseCard) guestHouseCard.classList.toggle("has-alert",guestHouseAwaiting>0);
+  const workshopNotesCard=document.querySelector('[data-filter="workshop-notes"]');
+  if(workshopNotesCard) workshopNotesCard.classList.toggle("has-alert",workshopQuestions>0);
 
   const inHouseCard=document.querySelector('[data-filter="in-house"]');
   if(inHouseCard) inHouseCard.classList.remove("has-alert");
@@ -757,6 +773,7 @@ function setFilter(filter){
     "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
     "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
     "guest-house":["FLOWTEL GUEST HOUSE","Call Replay Requests + Private Rooms","Locate former 1:1 calls, upload private audio or video replays, and open them inside remembered Guest House accounts without granting Flowtel access."],
+    "workshop-notes":["WORKSHOP REPLAY NOTES","Questions, Reflections + Downloads","Witness what each teaching activates while keeping every note connected to the member’s Flowtel cycle history."],
     "in-house":["GUESTS IN HOUSE","Guests currently in the Flowtel","All open stays for today appear here."],
     "extended":["EXTENDED STAY","Guests staying 14+ days","Longer stays are held quietly here."],
   };
@@ -1581,6 +1598,42 @@ async function loadPriestessMailboxData(){
 }
 
 
+function workshopNoteContext(row){
+  return [
+    row.flowtel_date?managerDateLabel(row.flowtel_date,{withTime:false}):'',
+    row.cycle_day_actual?`Cycle Day ${row.cycle_day_actual}`:'',
+    row.inner_season||'',
+    row.moon_day?`Moon Day ${row.moon_day}`:'',
+    row.moon_phase||'',
+  ].filter(Boolean);
+}
+function renderWorkshopReplayNotesQueue(){
+  if(!workshopReplayNotesServiceAvailable){
+    queue.innerHTML='<div class="service-notice"><h3>Workshop Replay Notes are waiting for migration 050.</h3><p>Run database/migration-050-five-experience-updates.sql to open the owner replay-note view.</p></div>';
+    return;
+  }
+  if(!workshopReplayNotes.length){
+    queue.innerHTML='<section class="workshop-notes-admin"><header><p class="eyebrow">LIVING REPLAY PORTALS</p><h3>No workshop notes have arrived yet.</h3><p>Questions, notes, downloads, and reflections will appear here after members save them underneath a replay.</p></header></section>';
+    return;
+  }
+  const groups=new Map();
+  workshopReplayNotes.forEach(row=>{
+    const key=row.workshop_key || 'workshop';
+    if(!groups.has(key)) groups.set(key,{title:row.workshop_title || 'Workshop Replay',rows:[]});
+    groups.get(key).rows.push(row);
+  });
+  const markup=[...groups.values()].map(group=>{
+    const questions=group.rows.filter(row=>row.note_type==='question').length;
+    return `<section class="workshop-note-group"><header><div><p class="eyebrow">WORKSHOP REPLAY</p><h3>${escapeHtml(group.title)}</h3></div><span>${group.rows.length} NOTES · ${questions} QUESTIONS</span></header><div class="workshop-note-list">${group.rows.map(row=>`<article class="workshop-note-card"><header><div><strong>${escapeHtml(labelForWorkshopReplayNoteType(row.note_type))}</strong><h4>${escapeHtml(row.display_name || 'Flowtel Guest')}</h4></div><time>${escapeHtml(managerDateLabel(row.created_at,{withTime:true}))}</time></header><p>${escapeHtml(row.note_body)}</p><div>${workshopNoteContext(row).map(item=>`<span>${escapeHtml(item)}</span>`).join('')}</div></article>`).join('')}</div></section>`;
+  }).join('');
+  queue.innerHTML=`<section class="workshop-notes-admin"><header><p class="eyebrow">LIVING REPLAY PORTALS</p><h3>${workshopReplayNotes.length} ${workshopReplayNotes.length===1?'note is':'notes are'} connected to Flowtel cycle history.</h3><p>Use these questions and reflections for follow-up, coursework insight, and curriculum refinement. The notes remain append-only.</p></header>${markup}</section>`;
+}
+async function loadWorkshopReplayNotes(){
+  try{workshopReplayNotes=await listAdminWorkshopReplayNotes();workshopReplayNotesServiceAvailable=true;}
+  catch(error){console.warn('Workshop replay notes are not available yet.',error);workshopReplayNotes=[];workshopReplayNotesServiceAvailable=false;}
+}
+
+
 function guestHouseStatusOptions(current){
   const normalized=['ready','delivered','received'].includes(String(current||''))
     ? 'ready'
@@ -1588,15 +1641,24 @@ function guestHouseStatusOptions(current){
       ? 'unable_to_locate'
       : 'locating';
   const options=[
-    ['locating','Concierge is locating her recording'],
-    ['ready','Her Replay Room is ready'],
-    ['unable_to_locate',"Concierge couldn't find her replay"],
+    ['locating','Concierge is locating the recording'],
+    ['ready','Replay Room is ready'],
+    ['unable_to_locate',"Concierge couldn't find the replay"],
   ];
   return options.map(([value,label])=>`<option value="${value}" ${value===normalized?'selected':''}>${escapeHtml(label)}</option>`).join('');
 }
+function guestHouseFileAvailable(file){
+  const expired=file?.expires_at && new Date(file.expires_at).getTime()<=Date.now();
+  return file?.is_active!==false && file?.deletion_status!=='deleted' && !expired;
+}
 function guestHouseFileMarkup(file){
-  const active=file.is_active!==false;
-  return `<article class="guest-house-admin-file ${active?'':'is-removed'}"><div><p>${active?escapeHtml(String(file.media_kind||'replay').toUpperCase()):'REMOVED FROM REPLAY ROOM'}</p><h4>${escapeHtml(file.display_title||file.original_filename||'Call replay')}</h4><span>${escapeHtml(guestHouseFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.note_to_guest?`<em>${escapeHtml(file.note_to_guest)}</em>`:''}</div><div><button type="button" data-guest-house-owner-download="${escapeHtml(file.storage_path)}">DOWNLOAD</button>${active?`<button class="quiet" type="button" data-guest-house-deactivate-file="${escapeHtml(file.file_id)}">REMOVE FROM ROOM</button>`:''}</div></article>`;
+  const available=guestHouseFileAvailable(file);
+  const expired=!!file.expires_at && new Date(file.expires_at).getTime()<=Date.now();
+  const state=available?escapeHtml(String(file.media_kind||'replay').toUpperCase()):expired?'28-DAY STAY ENDED':'REMOVED FROM REPLAY ROOM';
+  const receipts=[];
+  if(Number(file.view_count)>0) receipts.push(`${Number(file.view_count)} view${Number(file.view_count)===1?'':'s'}`);
+  if(Number(file.download_count)>0) receipts.push(`${Number(file.download_count)} download${Number(file.download_count)===1?'':'s'}`);
+  return `<article class="guest-house-admin-file ${available?'':'is-removed'}"><div><p>${state}</p><h4>${escapeHtml(file.display_title||file.original_filename||'Call replay')}</h4><span>${escapeHtml(guestHouseFileSize(file.size_bytes))} · Uploaded ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.expires_at?`<em>${escapeHtml(guestHouseReplayExpirationCopy(file.expires_at))}</em>`:''}${receipts.length?`<em>${escapeHtml(receipts.join(' · '))}</em>`:''}${file.note_to_guest?`<em>${escapeHtml(file.note_to_guest)}</em>`:''}${file.deletion_status==='delete_failed'?`<em>Storage cleanup will try again on the next Concierge visit.</em>`:''}</div><div>${available?`<button type="button" data-guest-house-owner-download="${escapeHtml(file.storage_path)}">DOWNLOAD</button><button class="quiet" type="button" data-guest-house-deactivate-file="${escapeHtml(file.file_id)}">REMOVE FROM ROOM</button>`:''}</div></article>`;
 }
 function guestHousePendingMarkup(requestId){
   const pending=getPendingGuestHouseUpload(requestId);
@@ -1616,6 +1678,7 @@ function syncGuestHouseDraftFlag(){
 }
 function rememberGuestHouseDraft(requestId,patch={}){
   if(!requestId) return null;
+  guestHouseExpandedRequestId=requestId;
   const previous=guestHouseDraftFor(requestId) || {file:null,title:'',note:''};
   const next={
     file:Object.prototype.hasOwnProperty.call(patch,'file') ? patch.file : previous.file,
@@ -1650,6 +1713,7 @@ function guestHouseEditorProtected(){
   return guestHouseUploadActive() || guestHouseFilePickerOpen || (activeFilter==='guest-house' && guestHouseDraftActive());
 }
 function beginGuestHouseUpload(requestId){
+  guestHouseExpandedRequestId=requestId;
   guestHouseUploadsInFlight.add(requestId);
   document.body.dataset.guestHouseUpload='active';
 }
@@ -1664,7 +1728,7 @@ function guestHouseSelectedFileMarkup(requestId){
 }
 function guestHouseAccessMarkup(request){
   if(request.auth_user_id){
-    return `<section class="guest-house-access-panel guest-house-account-panel"><div><p class="eyebrow">GUEST HOUSE ACCOUNT</p><h4>Her private doorway is active.</h4><span>She can return to <strong>app.theflowtel.com/guest-house/</strong>, sign in, and check her replay status. No separate private link is required.</span></div></section>`;
+    return `<section class="guest-house-access-panel guest-house-account-panel"><div><p class="eyebrow">GUEST HOUSE ACCOUNT</p><h4>The private doorway is active.</h4><span>The client can return to <strong>app.theflowtel.com/guest-house/</strong>, sign in, and check replay status. No separate private link is required.</span></div></section>`;
   }
   const prepared=guestHouseAccessLinks.get(request.request_id);
   const active=['ready','delivered','received'].includes(String(request.request_status||'')) && request.access_expires_at && !request.access_revoked_at && new Date(request.access_expires_at)>new Date();
@@ -1673,27 +1737,36 @@ function guestHouseAccessMarkup(request){
 }
 function renderGuestHouseQueue(){
   if(!guestHouseServiceAvailable){
-    queue.innerHTML='<div class="service-notice"><h3>The Guest House is waiting for migration 049.</h3><p>Run migrations 048 and 049 before opening the account-based replay portal.</p></div>';
+    queue.innerHTML='<div class="service-notice"><h3>The Guest House is waiting for migration 050.</h3><p>Run migrations 048, 049, and 050 before opening replay expiration and the quieter request queue.</p></div>';
     return;
   }
   const awaiting=guestHouseRequests.filter(row=>['requested','locating','preparing'].includes(String(row.request_status||''))).length;
   const cards=guestHouseRequests.map(request=>{
     const files=Array.isArray(request.files)?request.files:[];
-    const activeFiles=files.filter(file=>file.is_active!==false);
+    const activeFiles=files.filter(guestHouseFileAvailable);
     const fullName=[request.first_name,request.last_name].filter(Boolean).join(' ');
     const accountLabel=request.auth_user_id
       ? (request.member_id?'GUEST HOUSE ACCOUNT · EXISTING FLOWTEL IDENTITY PRESERVED':'GUEST HOUSE ACCOUNT')
       : 'LEGACY GUEST HOUSE REQUEST';
-    return `<article class="guest-house-request-card" data-guest-house-request="${escapeHtml(request.request_id)}">
-      <header><div><p class="eyebrow">${accountLabel}</p><h3>${escapeHtml(fullName||'Guest House Visitor')}</h3><span>${escapeHtml(request.email)}</span></div><strong>${escapeHtml(GUEST_HOUSE_STATUS_LABELS[request.request_status]||'Concierge is locating her recording')}</strong></header>
-      <div class="guest-house-request-details guest-house-memory-only"><div><span>WHAT SHE REMEMBERS ABOUT THE CALL</span><p>${escapeHtml(request.call_topic||'No call memory was provided on this legacy request.')}</p></div></div>
-      <div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, identity checks, or a private internal note">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(request.request_id)}">SAVE CONCIERGE CARE</button><p role="status"></p></div>
-      <section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in her room`:'No active replay in her room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED · `:''}STREAM + DOWNLOAD</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(request.request_id)}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" value="${escapeHtml(guestHouseDraftFor(request.request_id)?.title||'')}" data-guest-house-title /></label><label><span>Note inside her room — optional</span><input type="text" maxlength="1000" placeholder="A note she will see above the player" value="${escapeHtml(guestHouseDraftFor(request.request_id)?.note||'')}" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(request.request_id)}">UPLOAD REPLAY</button>${guestHouseSelectedFileMarkup(request.request_id)}<div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>
-      ${guestHouseAccessMarkup(request)}
-      <footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Guest House opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Guest House not opened yet</span>'}</footer>
+    const requestId=String(request.request_id||'');
+    const expanded=guestHouseExpandedRequestId===requestId || !!guestHouseDraftFor(requestId)?.file || !!getPendingGuestHouseUpload(requestId) || guestHouseUploadsInFlight.has(requestId);
+    const statusLabel=GUEST_HOUSE_STATUS_LABELS[request.request_status] || 'Concierge is locating the recording';
+    return `<article class="guest-house-request-card ${expanded?'is-expanded':'is-collapsed'}" data-guest-house-request="${escapeHtml(requestId)}">
+      <button class="guest-house-request-toggle" type="button" data-guest-house-toggle="${escapeHtml(requestId)}" aria-expanded="${expanded?'true':'false'}">
+        <span><small>${accountLabel}</small><strong>${escapeHtml(fullName||'Guest House Visitor')}</strong><em>${escapeHtml(request.email)}</em></span>
+        <span><b>${escapeHtml(statusLabel)}</b><em>${activeFiles.length} active ${activeFiles.length===1?'replay':'replays'} · Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:false}))}</em></span>
+        <i aria-hidden="true">${expanded?'−':'+'}</i>
+      </button>
+      <div class="guest-house-request-body" ${expanded?'':'hidden'}>
+        <div class="guest-house-request-details guest-house-memory-only"><div><span>WHAT THE CLIENT REMEMBERS ABOUT THE CALL</span><p>${escapeHtml(request.call_topic||'No call memory was provided on this legacy request.')}</p></div></div>
+        <div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, identity checks, or a private internal note">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(requestId)}">SAVE CONCIERGE CARE</button><p role="status"></p></div>
+        <section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in the Replay Room`:'No active replay in the Replay Room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED OR EXPIRED · `:''}28-DAY STAY</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(requestId)}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" value="${escapeHtml(guestHouseDraftFor(requestId)?.title||'')}" data-guest-house-title /></label><label><span>Note inside the Replay Room — optional</span><input type="text" maxlength="1000" placeholder="A note the client will see above the player" value="${escapeHtml(guestHouseDraftFor(requestId)?.note||'')}" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(requestId)}">UPLOAD REPLAY</button>${guestHouseSelectedFileMarkup(requestId)}<div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>
+        ${guestHouseAccessMarkup(request)}
+        <footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Guest House opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Guest House not opened yet</span>'}</footer>
+      </div>
     </article>`;
   }).join('');
-  queue.innerHTML=`<section class="guest-house-admin-dashboard"><header><div><p class="eyebrow">FORMER 1:1 CLIENTS</p><h3>${awaiting} ${awaiting===1?'request is':'requests are'} waiting for care.</h3><p>Guest House accounts remember each woman and her replay status without granting access to the Flowtel or Queendom.</p></div><span>${guestHouseRequests.length} REQUESTS</span></header><div class="guest-house-request-list">${cards||'<p class="honors-empty">No Guest House replay requests have arrived yet.</p>'}</div></section>`;
+  queue.innerHTML=`<section class="guest-house-admin-dashboard"><header><div><p class="eyebrow">FORMER 1:1 CLIENTS</p><h3>${awaiting} ${awaiting===1?'request is':'requests are'} waiting for care.</h3><p>Requests rest closed until you choose one. Only one request opens at a time, and uploaded replays complete a 28-day Guest House stay before private Storage cleanup.</p></div><span>${guestHouseRequests.length} REQUESTS</span></header><div class="guest-house-request-list">${cards||'<p class="honors-empty">No Guest House replay requests have arrived yet.</p>'}</div></section>`;
   bindGuestHouseControls();
 }
 async function downloadGuestHouseOwnerFile(button){
@@ -1723,6 +1796,11 @@ async function copyGuestHouseLink(value,input){
   throw new Error('Select and copy the private link manually.');
 }
 function bindGuestHouseControls(){
+  queue.querySelectorAll('[data-guest-house-toggle]').forEach(button=>button.addEventListener('click',()=>{
+    const requestId=button.dataset.guestHouseToggle;
+    guestHouseExpandedRequestId=guestHouseExpandedRequestId===requestId ? null : requestId;
+    renderGuestHouseQueue();
+  }));
   queue.querySelectorAll('[data-guest-house-request]').forEach(card=>{
     const requestId=card.dataset.guestHouseRequest;
     const fileInput=card.querySelector('[data-guest-house-file]');
@@ -1845,7 +1923,23 @@ function bindGuestHouseControls(){
   queue.querySelectorAll('[data-guest-house-revoke]').forEach(button=>button.addEventListener('click',async()=>{const output=button.closest('.guest-house-access-panel')?.querySelector('.guest-house-access-status');button.disabled=true;try{await revokeGuestHouseAccess(button.dataset.guestHouseRevoke);guestHouseAccessLinks.delete(button.dataset.guestHouseRevoke);await reloadGuestHouse('The private Replay Room has been closed.');}catch(error){button.disabled=false;if(output) output.textContent=error?.message||'The private room could not be closed.';}}));
 }
 async function loadGuestHouseData(){
-  try{guestHouseRequests=await listGuestHouseRequests();guestHouseServiceAvailable=true;}catch(error){console.warn('Guest House queue is not available yet.',error);guestHouseRequests=[];guestHouseServiceAvailable=false;}
+  try{
+    const cleanup=await purgeExpiredGuestHouseReplays();
+    if(cleanup?.deleted && managerMessage) managerMessage.textContent=`${cleanup.deleted} expired Guest House replay${cleanup.deleted===1?' was':'s were'} deleted from private Storage.`;
+  }catch(error){
+    // Housekeeping must never hide the owner queue. Expired playback is already
+    // blocked by the guest APIs, and cleanup can try again on the next visit.
+    console.warn('Expired Guest House replay cleanup will try again later.',error);
+  }
+
+  try{
+    guestHouseRequests=await listGuestHouseRequests();
+    guestHouseServiceAvailable=true;
+    if(guestHouseExpandedRequestId && !guestHouseRequests.some(row=>String(row.request_id)===guestHouseExpandedRequestId)) guestHouseExpandedRequestId=null;
+  }catch(error){
+    console.warn('Guest House queue is not available yet.',error);
+    guestHouseRequests=[];guestHouseServiceAvailable=false;
+  }
 }
 
 function renderQueue(){
@@ -1911,6 +2005,10 @@ function renderQueue(){
 
   if(activeFilter==="guest-house"){
     renderGuestHouseQueue();
+    return;
+  }
+  if(activeFilter==="workshop-notes"){
+    renderWorkshopReplayNotesQueue();
     return;
   }
 
@@ -2080,6 +2178,7 @@ async function loadDesk({silent=false}={}){
     await loadHonorsData();
     await loadPriestessMailboxData();
     await loadGuestHouseData();
+    await loadWorkshopReplayNotes();
     updateStats();
     if(!guestHouseEditorProtected()) renderQueue();
   }catch(error){

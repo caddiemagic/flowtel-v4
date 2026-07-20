@@ -1,7 +1,7 @@
-// Flowtel v0.10.63 — remembered Guest House accounts, replay requests, status, and private media.
+// Flowtel v0.10.64 — remembered Guest House accounts, replay requests, status, and private media.
 
 import { supabase } from '../shared/supabase.js';
-import { guestHouseFileSize } from '../shared/guest-house-core.js?v=0.10.63';
+import { guestHouseFileSize, guestHouseReplayExpirationCopy } from '../shared/guest-house-core.js?v=0.10.64';
 
 const accountCard=document.getElementById('accountCard');
 const portal=document.getElementById('guestHousePortal');
@@ -120,6 +120,7 @@ function mediaMarkup(file,index){
   return `<article class="replay-file-card">
     <header><div><p class="eyebrow">${file.mediaKind==='video'?'PRIVATE VIDEO REPLAY':'PRIVATE AUDIO REPLAY'}${index>0?` · PART ${index+1}`:''}</p><h4>${escapeHtml(file.title || 'Your 1:1 Call Replay')}</h4></div><span>${escapeHtml(guestHouseFileSize(file.sizeBytes))}</span></header>
     ${file.note?`<p class="replay-note">${escapeHtml(file.note)}</p>`:''}
+    ${file.expiresAt?`<p class="replay-expiration-note">${escapeHtml(guestHouseReplayExpirationCopy(file.expiresAt))}</p>`:''}
     <div class="media-frame">${player}</div>
     <div class="replay-actions"><a href="${escapeHtml(file.downloadUrl)}" data-download-file="${escapeHtml(file.id)}" download>DOWNLOAD THIS REPLAY</a><small>The secure player and download link refresh whenever you reopen your Guest House room.</small></div>
   </article>`;
@@ -142,7 +143,9 @@ function renderPortal(){
     const files=Array.isArray(request.files)?request.files:[];
     const replayInner=files.length
       ? `<section class="replay-files">${files.map(mediaMarkup).join('')}</section>`
-      : '<p class="gentle-note">Your room has been marked ready, and the private player is still being prepared. Check again shortly.</p>';
+      : data.request?.replayExpired
+        ? '<p class="gentle-note">Your replay completed its 28-day Guest House stay and has been deleted from private storage.</p>'
+        : '<p class="gentle-note">Your room has been marked ready, and the private player is still being prepared. Check again shortly.</p>';
     portalContent.innerHTML=statusShell({
       eyebrow:'YOUR REPLAY ROOM',
       title:'Your Replay Room is ready',

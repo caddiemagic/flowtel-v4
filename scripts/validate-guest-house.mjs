@@ -21,6 +21,7 @@ const files={
   server:await readFile('server/guest-house-server.js','utf8'),
   migration048:await readFile('database/migration-048-guest-house-call-replay-room.sql','utf8'),
   migration049:await readFile('database/migration-049-guest-house-accounts-replay-status-portal.sql','utf8'),
+  migration050:await readFile('database/migration-050-five-experience-updates.sql','utf8'),
   supabase:await readFile('shared/supabase.js','utf8'),
 };
 const vercel=JSON.parse(await readFile('vercel.json','utf8'));
@@ -70,6 +71,9 @@ assert(files.portalJs.includes('supabase.auth.signInWithPassword'),'Guest House 
 assert(files.portalJs.includes('Concierge is locating your recording'),'Locating hospitality state is missing.');
 assert(files.portalJs.includes('Your Replay Room is ready'),'Ready hospitality state is missing.');
 assert(files.portalJs.includes("Concierge couldn't find your replay"),'Unable-to-locate hospitality state is missing.');
+assert(files.core.includes("Concierge is locating the recording"),'Neutral owner-facing locating copy is missing.');
+assert(files.core.includes("Replay Room is ready"),'Neutral owner-facing ready copy is missing.');
+assert(files.core.includes("Concierge couldn't find the replay"),'Neutral owner-facing unable-to-locate copy is missing.');
 assert(!/email invitation|email notification|notify me/i.test(files.portalHtml+files.portalJs),'Guest-facing email notification workflow must remain out of this release.');
 assert(files.portalHtml.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the Guest House portal.');
 
@@ -117,10 +121,24 @@ assert(files.managerJs.includes('LEGACY PRIVATE ROOM KEY'),'Existing anonymous r
 assert(!files.managerJs.includes('data-guest-house-email'),'Email invitation control must be removed for this release.');
 assert(!files.managerJs.includes('sendGuestHouseInvitation'),'Concierge must not load an email integration for this release.');
 assert(!files.managerJs.includes('CALL DATE / MONTH'),'Removed call-date field still appears in Concierge.');
-assert(files.managerJs.includes('WHAT SHE REMEMBERS ABOUT THE CALL'),'Concierge call-memory field is missing.');
+assert(files.managerJs.includes('WHAT THE CLIENT REMEMBERS ABOUT THE CALL'),'Concierge call-memory field is missing.');
 assert(!files.managerJs.includes('from "../shared/guest-house.js'),'Guest House must remain a lazy dependency of the Concierge access gate.');
-assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.63")'),'Guest House lazy module cache-bust is missing.');
-assert(files.managerHtml.includes('import("./app.js?v=0.10.63-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
+assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.64")'),'Guest House lazy module cache-bust is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.64-caddie-0.4.5")'),'Concierge dynamic loader cache-bust is missing.');
+
+
+assert(files.migration050.includes("interval '28 days'"),'Migration 050 does not establish the 28-day replay stay.');
+assert(files.migration050.includes('flowtel_guest_house_admin_get_expired_files'),'Expired replay cleanup RPC is missing.');
+assert(files.migration050.includes('first_viewed_at'),'Replay view receipt fields are missing.');
+assert(files.migration050.includes('first_downloaded_at'),'Replay download receipt fields are missing.');
+assert(files.portalApi.includes('replayExpired'),'Authenticated portal does not explain an expired replay.');
+assert(files.portalApi.includes('deletion_status'),'Authenticated portal does not enforce deletion state.');
+assert(files.accessApi.includes('28-day stay'),'Legacy portal does not enforce the 28-day replay stay.');
+assert(files.shared.includes('purgeExpiredGuestHouseReplays'),'Owner-triggered private Storage cleanup is missing.');
+assert(files.managerJs.includes('guestHouseExpandedRequestId'),'Collapsed one-at-a-time Guest House request state is missing.');
+assert(files.managerJs.includes('data-guest-house-toggle'),'Collapsed Guest House request controls are missing.');
+assert(!files.managerJs.includes('Her Replay Room is ready'),'Gendered owner status copy should be removed.');
+assert(!files.managerJs.includes("couldn't find her replay"),'Gendered unable-to-locate status copy should be removed.');
 
 assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house'&&item.destination==='/guest-house/index.html'),'Guest House rewrite missing.');
 assert((vercel.rewrites||[]).some(item=>item.source==='/guest-house/replay'&&item.destination==='/guest-house/replay/index.html'),'Legacy Replay Room rewrite missing.');

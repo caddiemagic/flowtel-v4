@@ -1,4 +1,4 @@
-// Flowtel v0.10.63 — resilient owner Concierge helpers for Guest House replay requests.
+// Flowtel v0.10.64 — resilient owner Concierge helpers with 28-day replay cleanup.
 
 import { supabase } from './supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
@@ -11,7 +11,7 @@ import {
   hashGuestHouseToken,
   safeGuestHouseFilename,
   validateGuestHouseReplayMetadata,
-} from './guest-house-core.js?v=0.10.63';
+} from './guest-house-core.js?v=0.10.64';
 
 const PENDING_UPLOAD_KEY='flowtel_guest_house_pending_uploads_v1';
 const pendingUploadMemory=new Map();
@@ -72,6 +72,35 @@ async function currentSession(){
   if(error) throw error;
   if(!data?.session) throw new Error('Enter through the Flowtel before tending the Guest House.');
   return data.session;
+}
+
+export async function purgeExpiredGuestHouseReplays(){
+  const {data:expired,error:listError}=await supabase.rpc('flowtel_guest_house_admin_get_expired_files');
+  if(listError){
+    const missing=/flowtel_guest_house_admin_get_expired_files|PGRST202|42883/i.test(String(listError.message || listError.code || ''));
+    if(missing) return {deleted:0,pendingMigration:true};
+    throw listError;
+  }
+  const rows=Array.isArray(expired)?expired:[];
+  if(!rows.length) return {deleted:0};
+  const deletedIds=[];
+  for(const row of rows){
+    try{
+      const {error}=await supabase.storage.from(GUEST_HOUSE_REPLAY_BUCKET).remove([row.storage_path]);
+      if(error) throw error;
+      deletedIds.push(row.file_id);
+    }catch(error){
+      await supabase.rpc('flowtel_guest_house_admin_mark_file_delete_failed',{
+        p_file_id:row.file_id,
+        p_error:String(error?.message || error || 'Storage deletion failed.').slice(0,1000),
+      }).catch(()=>{});
+    }
+  }
+  if(deletedIds.length){
+    const {error}=await supabase.rpc('flowtel_guest_house_admin_mark_files_deleted',{p_file_ids:deletedIds});
+    if(error) throw error;
+  }
+  return {deleted:deletedIds.length};
 }
 
 export async function listGuestHouseRequests(){

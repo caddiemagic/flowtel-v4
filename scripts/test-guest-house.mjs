@@ -6,6 +6,8 @@ import {
   createGuestHouseToken,
   guestHouseExpirationDate,
   guestHouseFileSize,
+  guestHouseReplayDaysRemaining,
+  guestHouseReplayExpirationCopy,
   guestHouseMediaKind,
   guestHouseProjectLimitMessage,
   hashGuestHouseToken,
@@ -25,9 +27,9 @@ assert.deepEqual(validateGuestHouseRequest({
 });
 assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',callMemory:'Memory',confirmed:false}),/requesting your own/);
 assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',callMemory:'',confirmed:true}),/what you remember/);
-assert.equal(GUEST_HOUSE_STATUS_LABELS.locating,'Concierge is locating her recording');
-assert.equal(GUEST_HOUSE_STATUS_LABELS.ready,'Her Replay Room is ready');
-assert.equal(GUEST_HOUSE_STATUS_LABELS.unable_to_locate,"Concierge couldn't find her replay");
+assert.equal(GUEST_HOUSE_STATUS_LABELS.locating,'Concierge is locating the recording');
+assert.equal(GUEST_HOUSE_STATUS_LABELS.ready,'Replay Room is ready');
+assert.equal(GUEST_HOUSE_STATUS_LABELS.unable_to_locate,"Concierge couldn't find the replay");
 
 assert.equal(guestHouseMediaKind('call.mp4','video/mp4'),'video');
 assert.equal(guestHouseMediaKind('call.m4a','audio/mp4'),'audio');
@@ -53,5 +55,12 @@ assert.equal(guestHouseExpirationDate(90,start).toISOString(),'2026-10-18T12:00:
 assert.equal(guestHouseExpirationDate(999,start).toISOString(),'2027-07-21T12:00:00.000Z');
 assert.equal(guestHouseFileSize(1024),'1.0 KB');
 assert.equal(guestHouseFileSize(1024*1024*1024),'1.00 GB');
+
+const replayStart=new Date('2026-07-20T12:00:00.000Z');
+const replayEnd=new Date('2026-08-17T12:00:00.000Z');
+assert.equal(guestHouseReplayDaysRemaining(replayEnd,replayStart),28);
+assert.equal(guestHouseReplayExpirationCopy(replayEnd,replayStart),'This replay will be deleted in 28 days.');
+assert.equal(guestHouseReplayExpirationCopy(replayStart,replayStart),'This replay has reached the end of its 28-day Guest House stay.');
+
 
 console.log('Guest House account request, status, file, token, expiration, and private-link tests passed.');

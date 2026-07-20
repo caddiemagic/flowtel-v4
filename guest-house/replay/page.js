@@ -1,4 +1,4 @@
-import { guestHouseFileSize } from '../../shared/guest-house-core.js?v=0.10.63';
+import { guestHouseFileSize, guestHouseReplayExpirationCopy } from '../../shared/guest-house-core.js?v=0.10.64';
 
 const TOKEN_KEY='flowtel:guestHouseReplayKey';
 const room=document.getElementById('replayRoom');
@@ -31,6 +31,7 @@ function mediaMarkup(file,index){
   return `<article class="replay-file-card">
     <header><div><p class="eyebrow">${file.mediaKind==='video'?'PRIVATE VIDEO REPLAY':'PRIVATE AUDIO REPLAY'}${index>0?` · PART ${index+1}`:''}</p><h2>${escapeHtml(file.title || 'Your 1:1 Call Replay')}</h2></div><span>${escapeHtml(guestHouseFileSize(file.sizeBytes))}</span></header>
     ${file.note?`<p class="replay-note">${escapeHtml(file.note)}</p>`:''}
+    ${file.expiresAt?`<p class="replay-expiration-note">${escapeHtml(guestHouseReplayExpirationCopy(file.expiresAt))}</p>`:''}
     <div class="media-frame">${player}</div>
     <div class="replay-actions"><a href="${escapeHtml(file.downloadUrl)}" data-download-file="${escapeHtml(file.id)}" download>DOWNLOAD THIS REPLAY</a><small>The secure player and download link refresh when you reopen this room.</small></div>
   </article>`;

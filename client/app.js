@@ -3,6 +3,7 @@ import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeeds
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.53";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
+import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -43,6 +44,8 @@ let unreadConciergeLoadToken=0;
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
   if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
+  const workshopCard=document.getElementById("flowFmWorkshopLoungeCard");
+  if(workshopCard) workshopCard.classList.toggle("hidden", effectiveFlowFmRank(currentProfile || {})<2);
   renderSuiteClockInButton();
 }
 
@@ -2248,6 +2251,19 @@ onAuthStateChange((event,session)=>{
   passwordRecoveryMode=true;
   window.setTimeout(()=>beginPasswordRecovery(session?.user || null),0);
 });
+
+const loungeWorkshopVideo=document.getElementById("loungeWorkshopVideo");
+const loungeWorkshopVideoStatus=document.getElementById("loungeWorkshopVideoStatus");
+if(loungeWorkshopVideo){
+  loungeWorkshopVideo.addEventListener("loadedmetadata",()=>{
+    if(loungeWorkshopVideoStatus) loungeWorkshopVideoStatus.textContent="";
+  });
+  loungeWorkshopVideo.addEventListener("error",()=>{
+    if(loungeWorkshopVideoStatus){
+      loungeWorkshopVideoStatus.textContent="This Lounge transmission is still being placed in its room. Return shortly.";
+    }
+  });
+}
 
 // Auto-enter remains opt-in for later Squarespace code injection.
 // Remembered Flowtel access is the primary experience after a private room key
