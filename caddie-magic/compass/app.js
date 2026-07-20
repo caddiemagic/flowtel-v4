@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.4 — Verified Compass Messages + Exact Moon Labels
+// Caddie Magic v0.4.5 — Verified Compass Messages + Exact Moon Labels
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.4";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.5";
 import {
   getMyCaddieMagicProfile,
   getMyActiveCompass,
@@ -10,13 +10,13 @@ import {
   updateMyCompassAssignment,
   getCompassDispatches,
   sendCompassDispatch,
-} from "../../shared/caddie-magic-compass.js?v=0.4.4";
+} from "../../shared/caddie-magic-compass.js?v=0.4.5";
 import {
   getMyUpcomingGolfEvents,
   saveUpcomingGolfEvent,
   deleteUpcomingGolfEvent,
-} from "../../shared/caddie-magic-schedule.js?v=0.4.4";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../shared/caddie-magic-moon-calendar.js?v=0.4.4";
+} from "../../shared/caddie-magic-schedule.js?v=0.4.5";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../shared/caddie-magic-moon-calendar.js?v=0.4.5";
 
 const $ = (id) => document.getElementById(id);
 

@@ -20,10 +20,17 @@ export async function getMyCaddieMagicProfile() {
 }
 
 export async function getMyActiveCompass() {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user || null;
+  if (!user) return null;
+
   const { data, error } = await supabase
     .from("caddie_magic_compasses")
     .select("*")
+    .eq("user_id", user.id)
     .eq("is_active", true)
+    .order("version", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (error) throw error;
   return data || null;
@@ -96,6 +103,8 @@ export async function getCompassForPlayer(playerProfileId) {
     .select("*")
     .eq("player_profile_id", playerProfileId)
     .eq("is_active", true)
+    .order("version", { ascending: false })
+    .limit(1)
     .maybeSingle();
   if (error) throw error;
   return data || null;

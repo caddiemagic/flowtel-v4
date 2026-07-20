@@ -1,3 +1,13 @@
+## Caddie Magic v0.4.5 — Compass Query + Medicine Wheel Hotfix
+
+- Fixed the Caddie Compass failing for owner/admin sessions with `JSON object requested, multiple (or no) rows returned`.
+- Scoped **My Caddie Compass** queries to the currently authenticated user instead of every active Compass visible to an owner/admin through RLS.
+- Added deterministic newest-version ordering to player and admin Compass lookups.
+- Reduced the direction-labeled wooden wheel artwork to 78% inside the Moon Score Data wheel.
+- Returned the 28 Moon Day buttons to an outer 45% ring so they no longer overlap the wheel handles or cardinal-direction labels.
+- Bumped Caddie Magic browser cache versions to v0.4.5.
+- No Supabase migration required.
+
 ## Caddie Magic v0.4.4 — Verified Portal Update + Mobile Route Repair
 
 - Rebuilt the requested update set from the latest integrated `flowtel-v4(38).zip` rather than the older Caddie-only base.

@@ -1,12 +1,12 @@
-// Caddie Magic v0.4.4 — Verified Compass Snapshot + Phase Language
+// Caddie Magic v0.4.5 — Compass Query + Medicine Wheel Hotfix
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.4";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.4";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches } from "../shared/caddie-magic-compass.js?v=0.4.4";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.4";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.4.4";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.5";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.5";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches } from "../shared/caddie-magic-compass.js?v=0.4.5";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.5";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.4.5";
 
 const $ = (id) => document.getElementById(id);
 
@@ -499,7 +499,7 @@ function renderMoonDayDetail(token) {
 
 function positionMoonDayButtons() {
   const buttons = document.querySelectorAll(".cm-day-button");
-  const radius = window.innerWidth <= 430 ? 35 : window.innerWidth <= 760 ? 36 : 37;
+  const radius = window.innerWidth <= 430 ? 44.5 : 45;
   buttons.forEach((button, index) => {
     const angle = 170 - (index * (360 / 28));
     const radians = angle * Math.PI / 180;

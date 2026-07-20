@@ -1,6 +1,6 @@
 # Caddie Magic File Manifest
 
-Latest integrated release: **Caddie Magic v0.4.2**
+Latest integrated release: **Caddie Magic v0.4.5**
 
 ## Application files
 
