@@ -1,3 +1,14 @@
+## v0.10.66 — Squarespace Replay Notes Session Bridge
+
+- Displays the complete workshop replay comment/reflection form by default inside Squarespace instead of replacing it with a large login card.
+- Keeps the visible form softly disabled and private until the member passes the existing Flowtel product and Queendom membership boundaries.
+- Adds a one-click first-party Flowtel connection window for browsers that partition embedded iframe storage.
+- Reuses an existing remembered Flowtel session without requesting the password again; signed-out members can enter their existing Flowtel credentials in the first-party window.
+- Returns the session through an exact-origin, one-time-nonce `postMessage` bridge without placing credentials or tokens in URLs.
+- Automatically opens the embedded room on later visits from the same Squarespace site/browser while the embedded session remains remembered.
+- Adds no migration and preserves migration 037 as retired.
+- Preserves all v0.10.65 Lounge video, replay-note, Guest House, Hourly Flow Rate, and Caddie Magic v0.4.5 boundaries.
+
 ## v0.10.65 — Private Lounge Video Uploader + Squarespace Replay Notes Embed
 
 - Moves the Flow FM Lounge workshop video out of GitHub and into the private `flowtel-lounge-videos` Supabase Storage bucket.

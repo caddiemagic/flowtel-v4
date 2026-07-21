@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>Connect Flowtel Replay Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.66" />
+</head>
+<body>
+  <main>
+    <section class="connect-card">
+      <img src="/assets/flowtel-wax-seal.png" alt="" />
+      <p class="eyebrow">FLOWTEL REPLAY NOTES</p>
+      <h1>Open your private notes room.</h1>
+      <p id="connectCopy">Checking for your remembered Flowtel room key…</p>
+
+      <form id="connectForm" hidden>
+        <label>
+          <span>Email</span>
+          <input id="connectEmail" type="email" autocomplete="email" required />
+        </label>
+        <label>
+          <span>Flowtel password</span>
+          <input id="connectPassword" type="password" autocomplete="current-password" required />
+        </label>
+        <button id="connectSubmit" type="submit">ENTER THE FLOWTEL</button>
+      </form>
+
+      <p id="connectStatus" role="status"></p>
+      <button class="quiet-button" id="closeConnect" type="button">CLOSE THIS WINDOW</button>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.10.66"></script>
+</body>
+</html>

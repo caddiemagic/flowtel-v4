@@ -11,13 +11,21 @@ const workshopTitle=String(params.get('title') || 'Workshop Replay').trim().slic
 const sourceUrl=String(params.get('source') || '').trim().slice(0,1000);
 const isEmbed=params.get('embed')==='1';
 const accessState=document.getElementById('replayAccessState');
+const accessCopy=document.getElementById('replayAccessCopy');
+const connectButton=document.getElementById('connectFlowtelButton');
+const connectStatus=document.getElementById('connectFlowtelStatus');
 const room=document.getElementById('replayNoteRoom');
+const fields=document.getElementById('replayNoteFields');
 const form=document.getElementById('replayNoteForm');
 const status=document.getElementById('replayNoteStatus');
 const history=document.getElementById('replayNotesHistory');
+let connectPopup=null;
+let connectionId='';
+let bootSequence=0;
 
 document.body.classList.toggle('is-embed',isEmbed);
 document.getElementById('workshopTitle').textContent=workshopTitle;
+room.hidden=false;
 
 function escapeHtml(value=''){
   return String(value).replace(/[&<>'"]/g,char=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':'&quot;'}[char]));
@@ -34,25 +42,109 @@ function renderNotes(rows=[]){
   }).join('')}</div>`;
 }
 async function refreshNotes(){renderNotes(await listMyWorkshopReplayNotes(workshopKey));}
-function showDoorway(copy){
-  room.hidden=true;
+function setConnected(connected){
+  fields.disabled=!connected;
+  document.body.classList.toggle('is-connected',connected);
+  if(!connected && !history.querySelector('.note-list')){
+    history.innerHTML='<p class="notes-empty">Your notes will appear here after your Flowtel room opens.</p>';
+  }
+}
+function showConnect(copy){
+  setConnected(false);
   accessState.hidden=false;
-  accessState.innerHTML=`<img src="/assets/flowtel-wax-seal.png" alt="" /><p>${escapeHtml(copy)}</p><a href="/client/" target="_top">OPEN THE FLOWTEL</a>`;
+  accessCopy.textContent=copy;
+  connectButton.hidden=false;
+  connectButton.disabled=false;
+  connectStatus.textContent='';
+  connectButton.textContent=isEmbed?'OPEN MY NOTES':'ENTER THE FLOWTEL';
+}
+function showBlocked(copy){
+  setConnected(false);
+  accessState.hidden=false;
+  accessCopy.textContent=copy;
+  connectButton.hidden=false;
+  connectButton.disabled=false;
+  connectButton.textContent='OPEN THE FLOWTEL';
+  connectStatus.textContent='';
 }
 async function boot(){
+  const currentBoot=++bootSequence;
+  setConnected(false);
+  accessState.hidden=false;
+  accessCopy.textContent='Opening your private notes room…';
+  connectButton.hidden=true;
+  connectStatus.textContent='';
   try{
-    const {data}=await supabase.auth.getSession();
-    if(!data?.session){showDoorway('Enter through Flowtel first so this note can return to your private cycle history.');return;}
+    const {data,error}=await supabase.auth.getSession();
+    if(error) throw error;
+    if(currentBoot!==bootSequence) return;
+    if(!data?.session){
+      showConnect(isEmbed
+        ? 'Your notes room is ready below. Connect Flowtel once to save this reflection to your private cycle history.'
+        : 'Enter through Flowtel first so this note can return to your private cycle history.');
+      return;
+    }
     await requireProductAccess('flowtel');
     const profile=await getCurrentProfile();
-    if(!profile || effectiveFlowFmRank(profile)<1){showDoorway('This replay-notes room is reserved for Queendom members.');return;}
+    if(!profile || effectiveFlowFmRank(profile)<1){showBlocked('This replay-notes room is reserved for Queendom members.');return;}
+    if(currentBoot!==bootSequence) return;
+    setConnected(true);
     accessState.hidden=true;
-    room.hidden=false;
     await refreshNotes();
-  }catch(error){showDoorway(error?.message || 'This private notes room could not be opened just now.');}
+  }catch(error){
+    const message=String(error?.message || 'This private notes room could not be opened just now.');
+    if(/sign in|session|jwt|token/i.test(message)) showConnect('Connect Flowtel to open your private replay notes.');
+    else showBlocked(message);
+  }
 }
+function openConnectionWindow(){
+  connectionId=crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  const popupUrl=new URL('/replay-notes/connect/',window.location.origin);
+  popupUrl.searchParams.set('connection',connectionId);
+  popupUrl.searchParams.set('title',workshopTitle);
+  connectStatus.textContent='Opening your Flowtel room…';
+  connectButton.disabled=true;
+  connectPopup=window.open(popupUrl.toString(),'flowtelReplayNotesConnect','popup=yes,width=520,height=690,resizable=yes,scrollbars=yes');
+  if(!connectPopup){
+    connectButton.disabled=false;
+    connectStatus.textContent='Your browser blocked the Flowtel window. Allow pop-ups for this page, then try again.';
+    return;
+  }
+  connectPopup.focus();
+  const watch=setInterval(()=>{
+    if(!connectPopup || connectPopup.closed){
+      clearInterval(watch);
+      connectButton.disabled=false;
+      if(!document.body.classList.contains('is-connected') && !connectStatus.textContent.includes('connected')){
+        connectStatus.textContent='The Flowtel window closed before this notes room connected.';
+      }
+    }
+  },500);
+}
+connectButton?.addEventListener('click',()=>{
+  if(isEmbed){openConnectionWindow();return;}
+  window.open('/client/','_top');
+});
+window.addEventListener('message',async event=>{
+  if(event.origin!==window.location.origin) return;
+  if(connectPopup && event.source!==connectPopup) return;
+  const payload=event.data || {};
+  if(payload.type!=='flowtel:replay-notes-session' || payload.connection!==connectionId) return;
+  if(typeof payload.accessToken!=='string' || typeof payload.refreshToken!=='string') return;
+  connectStatus.textContent='Flowtel connected. Opening your notes…';
+  try{
+    const {error}=await supabase.auth.setSession({access_token:payload.accessToken,refresh_token:payload.refreshToken});
+    if(error) throw error;
+    connectStatus.textContent='Flowtel connected.';
+    await boot();
+  }catch(error){
+    connectButton.disabled=false;
+    connectStatus.textContent=error?.message || 'Flowtel could not connect this notes room just now.';
+  }
+});
 form?.addEventListener('submit',async event=>{
   event.preventDefault();
+  if(fields.disabled){showConnect('Connect Flowtel before saving this note.');return;}
   const button=document.getElementById('saveReplayNote');
   const noteType=document.getElementById('replayNoteType').value;
   const noteBody=document.getElementById('replayNoteBody').value;

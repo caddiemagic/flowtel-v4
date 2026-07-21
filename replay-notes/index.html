@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Montserrat:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="./styles.css?v=0.10.64" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.66" />
 </head>
 <body>
   <main class="replay-notes-shell">
@@ -19,31 +19,37 @@
         <p id="workshopInvitation">Capture the question, reflection, or download that arrived while you watched. Flowtel will remember the date, your cycle context, and the Moon with it.</p>
       </header>
 
-      <section class="replay-access-state" id="replayAccessState">
+      <section class="replay-access-state" id="replayAccessState" aria-live="polite">
         <img src="/assets/flowtel-wax-seal.png" alt="" />
-        <p>Opening your private notes room…</p>
+        <div>
+          <p id="replayAccessCopy">Opening your private notes room…</p>
+          <button id="connectFlowtelButton" type="button" hidden>CONNECT FLOWTEL</button>
+          <span id="connectFlowtelStatus" role="status"></span>
+        </div>
       </section>
 
-      <section class="replay-note-room" id="replayNoteRoom" hidden>
+      <section class="replay-note-room" id="replayNoteRoom">
         <form id="replayNoteForm">
-          <label>
-            <span>What would you like Flowtel to remember?</span>
-            <select id="replayNoteType" name="note_type" required>
-              <option value="reflection">Reflection</option>
-              <option value="note">Note</option>
-              <option value="question">Question</option>
-              <option value="download">Download</option>
-              <option value="cycle_data">Track This in Cycle Data</option>
-            </select>
-          </label>
-          <label>
-            <span>Your words</span>
-            <textarea id="replayNoteBody" name="note_body" maxlength="4000" rows="5" placeholder="What opened, landed, or wants to be remembered?" required></textarea>
-          </label>
-          <div class="note-actions">
-            <button type="submit" id="saveReplayNote">SAVE TO FLOWTEL</button>
-            <span id="replayNoteStatus" role="status"></span>
-          </div>
+          <fieldset id="replayNoteFields" disabled>
+            <label>
+              <span>What would you like Flowtel to remember?</span>
+              <select id="replayNoteType" name="note_type" required>
+                <option value="reflection">Reflection</option>
+                <option value="note">Note</option>
+                <option value="question">Question</option>
+                <option value="download">Download</option>
+                <option value="cycle_data">Track This in Cycle Data</option>
+              </select>
+            </label>
+            <label>
+              <span>Your words</span>
+              <textarea id="replayNoteBody" name="note_body" maxlength="4000" rows="5" placeholder="What opened, landed, or wants to be remembered?" required></textarea>
+            </label>
+            <div class="note-actions">
+              <button type="submit" id="saveReplayNote">SAVE TO FLOWTEL</button>
+              <span id="replayNoteStatus" role="status"></span>
+            </div>
+          </fieldset>
         </form>
 
         <section class="notes-history" aria-labelledby="notesHistoryTitle">
@@ -51,11 +57,13 @@
             <p class="eyebrow">WHAT FLOWTEL REMEMBERS</p>
             <h2 id="notesHistoryTitle">Your notes from this replay</h2>
           </div>
-          <div id="replayNotesHistory"></div>
+          <div id="replayNotesHistory">
+            <p class="notes-empty">Your notes will appear here after your Flowtel room opens.</p>
+          </div>
         </section>
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.64"></script>
+  <script type="module" src="./app.js?v=0.10.66"></script>
 </body>
 </html>
