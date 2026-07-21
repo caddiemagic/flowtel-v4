@@ -66,15 +66,10 @@
           <strong id="caddiePlayerCount">0</strong>
           <em><b id="caddieInviteCount">0</b> invitations open</em>
         </button>
-        <button class="stat-card" type="button" data-filter="caddie-reviews">
-          <span>Caddie Reviews</span>
-          <strong id="caddieReviewCount">0</strong>
-          <em>Pattern requests</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-compass">
-          <span>Caddie Compass</span>
-          <strong id="caddieCompassCount">0</strong>
-          <em><b id="caddieCompassPlayerCount">0</b> players mapped</em>
+        <button class="stat-card" type="button" data-filter="caddie-network">
+          <span>Caddie Network</span>
+          <strong id="caddieNetworkCount">0</strong>
+          <em><b id="caddieNetworkReviewCount">0</b> profiles awaiting review</em>
         </button>
         <button class="stat-card" type="button" data-filter="upcoming-golf">
           <span>Upcoming Golf</span>
@@ -151,7 +146,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.65-caddie-0.4.5").catch(function(error){
+    import("./app.js?v=0.10.66-caddie-0.5.0").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

@@ -13,49 +13,25 @@
 .compass-staff-field strong{color:var(--ivory);font:500 1.2rem var(--font-display)}
 .compass-form .cm-button{justify-self:start;min-width:230px}
 
-.personal-compass{position:relative;width:min(100%,980px);min-height:760px;margin:26px auto 0;display:grid;grid-template-columns:220px minmax(400px,470px) 220px;grid-template-rows:160px minmax(410px,1fr) 160px;column-gap:38px;row-gap:18px;align-items:center;justify-content:center;justify-items:center}
-.compass-center{grid-column:2;grid-row:2;position:relative;width:min(100%,460px);aspect-ratio:1;display:grid;place-items:center}
-.compass-center img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 18px 26px rgba(0,0,0,.28))}
-.compass-direction{width:100%;min-height:116px;border:1px solid var(--line-soft);border-radius:22px;padding:18px;display:grid;align-content:center;text-align:center;background:#091a2a;box-shadow:inset 0 1px 0 rgba(255,255,255,.02)}
+/* Caddie Magic v0.5.0 — functional four-door Cardinal Club map. */
+.personal-compass{position:relative;width:min(100%,940px);min-height:690px;margin:28px auto 10px;display:grid;grid-template-columns:minmax(190px,235px) minmax(330px,430px) minmax(190px,235px);grid-template-rows:minmax(130px,auto) minmax(330px,430px) minmax(130px,auto);gap:24px 34px;align-items:center;justify-content:center}
+.compass-center{grid-column:2;grid-row:2;position:relative;width:min(100%,420px);aspect-ratio:1;display:grid;place-items:center;pointer-events:none}
+.compass-center::before{content:"";position:absolute;inset:10%;border:1px solid rgba(211,173,105,.22);border-radius:50%;box-shadow:0 0 45px rgba(211,173,105,.08)}
+.compass-center img{width:88%;height:88%;object-fit:contain;filter:drop-shadow(0 18px 26px rgba(0,0,0,.28))}
+.compass-direction{position:relative;width:100%;min-height:132px;border:1px solid var(--line-soft);border-radius:22px;padding:18px;display:grid;align-content:center;text-align:center;background:linear-gradient(180deg,#0b2032,#081827);box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 12px 24px rgba(0,0,0,.12);text-decoration:none;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.compass-direction:hover,.compass-direction:focus-visible{transform:translateY(-3px);border-color:var(--line);box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 18px 30px rgba(0,0,0,.2);outline:none}
 .compass-direction span{color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.14em;text-transform:uppercase}
-.compass-direction strong{margin:7px 0 5px;color:var(--ivory);font:500 1.3rem var(--font-display)}
-.compass-direction small{color:var(--gold-soft);font:700 .55rem var(--font-body);letter-spacing:.11em;text-transform:uppercase}
+.compass-direction strong{margin:7px 0 5px;color:var(--ivory);font:500 1.34rem var(--font-display)}
+.compass-direction small{color:var(--gold-soft);font:700 .52rem/1.45 var(--font-body);letter-spacing:.09em;text-transform:uppercase}
+.compass-direction b{margin-top:12px;color:var(--text);font:700 .5rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
 .compass-direction.north{grid-column:2;grid-row:1;align-self:end}
 .compass-direction.east{grid-column:3;grid-row:2;justify-self:start}
 .compass-direction.west{grid-column:1;grid-row:2;justify-self:end}
 .compass-direction.south{grid-column:2;grid-row:3;align-self:start}
-.compass-staff-summary{width:min(100%,300px);margin:-8px auto 14px;border:1px solid var(--line-soft);border-radius:999px;padding:11px 18px;display:flex;justify-content:center;gap:12px;align-items:center;background:#071725}
+.compass-staff-summary{width:min(100%,320px);margin:0 auto 14px;border:1px solid var(--line-soft);border-radius:999px;padding:11px 18px;display:flex;justify-content:center;gap:12px;align-items:center;background:#071725}
 .compass-staff-summary span{color:var(--gold);font:700 .54rem var(--font-body);letter-spacing:.13em;text-transform:uppercase}
 .compass-staff-summary strong{color:var(--ivory);font:500 1rem var(--font-display)}
-.compass-seal-note{max-width:680px;margin:0 auto;text-align:center;color:var(--muted);font-size:.84rem;line-height:1.55}
-
-.assignment-list{display:grid;gap:14px;margin-top:18px}
-.assignment-card{border:1px solid var(--line-soft);border-radius:22px;padding:20px;background:#091a2a}
-.assignment-card.is-completed{opacity:.85}
-.assignment-topline{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
-.assignment-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
-.assignment-meta span{display:inline-flex;border:1px solid rgba(211,173,105,.24);border-radius:999px;padding:6px 9px;color:var(--gold);background:rgba(211,173,105,.05);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
-.assignment-card h3{font-size:1.35rem}
-.assignment-status{color:var(--gold-soft);font:700 .55rem var(--font-body);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
-.assignment-instructions{margin:12px 0 0;color:var(--text);line-height:1.68;white-space:pre-wrap}
-.assignment-due{margin:12px 0 0;color:var(--muted);font-size:.8rem}
-.assignment-response{display:grid;gap:10px;margin-top:16px;padding-top:16px;border-top:1px solid var(--line-soft)}
-.assignment-response textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:13px;background:#071725;color:var(--ivory);font:500 .9rem/1.5 var(--font-body);resize:vertical}
-.assignment-actions{display:flex;gap:10px;flex-wrap:wrap}
-.assignment-actions .cm-button{min-width:150px}
-.assignment-completion{margin:16px 0 0;border-left:2px solid var(--green);padding:2px 0 2px 14px;color:var(--text);line-height:1.6;white-space:pre-wrap}
-
-.dispatch-thread{display:grid;gap:10px;max-height:520px;overflow:auto;margin:18px 0;padding:4px}
-.dispatch-bubble{max-width:78%;border:1px solid var(--line-soft);border-radius:20px;padding:14px 16px;background:#091a2a}
-.dispatch-bubble.is-player{justify-self:end;background:#102b43}
-.dispatch-bubble.is-caddie{justify-self:start}
-.dispatch-bubble span{display:block;margin-bottom:7px;color:var(--gold);font:700 .52rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
-.dispatch-bubble p{margin:0;color:var(--text);line-height:1.55;white-space:pre-wrap}
-.dispatch-bubble small{display:block;margin-top:8px;color:var(--muted);font-size:.68rem}
-.dispatch-form{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:end;margin-top:16px}
-.dispatch-form label{display:grid;gap:7px;color:var(--gold);font:700 .6rem var(--font-body);letter-spacing:.13em;text-transform:uppercase}
-.dispatch-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px 13px;background:#071725;color:var(--ivory);font:500 .88rem/1.45 var(--font-body);resize:vertical;min-height:86px}
-.dispatch-form .cm-button{min-width:150px;margin-bottom:1px}
+.compass-seal-note{max-width:720px;margin:0 auto;text-align:center;color:var(--muted);font-size:.84rem;line-height:1.55}
 
 .golf-schedule-form select,.golf-schedule-form input,.golf-schedule-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px 13px;background:#071725;color:var(--ivory);font:500 .9rem/1.45 var(--font-body)}
 .golf-schedule-form select{min-height:47px;color-scheme:dark}
@@ -69,48 +45,44 @@
 .golf-event-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
 .golf-event-meta span{display:inline-flex;border:1px solid rgba(211,173,105,.24);border-radius:999px;padding:6px 9px;color:var(--gold);background:rgba(211,173,105,.05);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
 .golf-event-card h3{font-size:1.35rem}
-.golf-event-place,.golf-event-notes{color:var(--text);line-height:1.55}
-.golf-event-place{margin:7px 0 0}.golf-event-notes{margin:14px 0 0}
-.golf-event-remove{border:1px solid var(--line-soft);border-radius:999px;padding:8px 12px;color:var(--muted);background:transparent;cursor:pointer;font:700 .52rem var(--font-body);letter-spacing:.11em;text-transform:uppercase}
-.golf-event-remove:hover{color:var(--gold);border-color:var(--line)}
-.golf-moon-forecast{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
-.golf-moon-forecast li{border:1px solid var(--line-soft);border-radius:15px;padding:11px 12px;background:#071725;display:grid;gap:5px}
-.golf-moon-forecast span{color:var(--muted);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
-.golf-moon-forecast strong{color:var(--ivory);font:600 .82rem var(--font-body)}
+.golf-event-card p,.golf-event-notes{color:var(--text);line-height:1.55}
+.golf-event-card p{margin:7px 0 0}.golf-event-notes{margin:14px 0 0}
+.golf-event-card details{margin-top:14px}.golf-event-card summary{cursor:pointer;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.golf-event-forecast{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+.golf-event-forecast li{border:1px solid var(--line-soft);border-radius:15px;padding:11px 12px;background:#071725;display:grid;gap:5px}
+.golf-event-forecast span{color:var(--muted);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.golf-event-forecast strong{color:var(--ivory);font:600 .82rem var(--font-body)}
+.golf-schedule-form,.golf-schedule-list,.golf-event-card,.golf-event-forecast{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
 
 @media(max-width:1050px){
-  .personal-compass{grid-template-columns:190px minmax(340px,430px) 190px;column-gap:24px}
+  .personal-compass{grid-template-columns:minmax(170px,210px) minmax(310px,390px) minmax(170px,210px);column-gap:22px}
   .golf-schedule-primary-fields{grid-template-columns:1fr 1fr}
 }
 @media(max-width:900px){
   .compass-back{position:static;margin:18px auto 0;width:min(100%,280px)}
   .personal-compass{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;gap:16px;min-height:0}
-  .compass-center{grid-column:1/-1;grid-row:2;width:min(100%,430px)}
+  .compass-center{grid-column:1/-1;grid-row:2;width:min(100%,400px)}
   .compass-direction.north{grid-column:1;grid-row:1;align-self:auto}
   .compass-direction.east{grid-column:2;grid-row:1;justify-self:auto}
   .compass-direction.west{grid-column:1;grid-row:3;justify-self:auto}
   .compass-direction.south{grid-column:2;grid-row:3;align-self:auto}
-  .dispatch-form{grid-template-columns:1fr}
-  .dispatch-form .cm-button{width:100%}
 }
 @media(max-width:700px){
+  .compass-shell{width:min(calc(100% - 18px),1220px)}
   .compass-section-heading{display:grid}
   .compass-club-fields,.golf-schedule-primary-fields,.golf-schedule-secondary-fields{grid-template-columns:1fr}
   .compass-form .cm-button,.golf-schedule-form .cm-button{width:100%;min-width:0}
-  .personal-compass{grid-template-columns:1fr}
-  .compass-center,.compass-direction.north,.compass-direction.east,.compass-direction.west,.compass-direction.south{grid-column:1;grid-row:auto}
-  .compass-direction.north{order:1}.compass-direction.east{order:2}.compass-center{order:3}.compass-direction.west{order:4}.compass-direction.south{order:5}
-  .assignment-topline,.golf-event-heading{display:grid}
-  .assignment-actions{display:grid}
-  .assignment-actions .cm-button{width:100%;min-width:0}
-  .dispatch-bubble{max-width:92%}
-  .golf-moon-forecast{grid-template-columns:1fr}
+  .personal-compass{grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;margin-top:20px;gap:10px}
+  .compass-center{grid-column:1/-1;grid-row:2;width:min(76vw,310px);margin:2px auto}
+  .compass-direction{min-height:126px;padding:14px 10px;border-radius:18px}
+  .compass-direction.north{grid-column:1;grid-row:1}.compass-direction.east{grid-column:2;grid-row:1}.compass-direction.west{grid-column:1;grid-row:3}.compass-direction.south{grid-column:2;grid-row:3}
+  .compass-direction strong{font-size:1.12rem}.compass-direction small{font-size:.46rem}.compass-direction b{font-size:.45rem}
+  .golf-event-heading{display:grid}.golf-event-heading .cm-button{width:100%}
+  .golf-event-forecast{grid-template-columns:1fr}
 }
-
-/* Flowtel v0.10.64 — Upcoming Golf practical calendar typography */
-.golf-schedule-form,.golf-schedule-list,.golf-event-card,.golf-moon-forecast{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
-.golf-schedule-form label,.golf-schedule-form input,.golf-schedule-form select,.golf-schedule-form textarea{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
-.golf-event-card h3{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif;font-size:1.16rem;font-weight:700;letter-spacing:.01em;line-height:1.25}
-.golf-event-place,.golf-event-notes{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif;font-size:.9rem}
-.golf-event-meta span,.golf-moon-forecast span,.golf-moon-forecast strong,.golf-event-remove{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
-.golf-moon-forecast strong{font-size:.86rem;line-height:1.35}
+@media(max-width:390px){
+  .personal-compass{grid-template-columns:1fr}
+  .compass-direction.north,.compass-direction.east,.compass-direction.west,.compass-direction.south,.compass-center{grid-column:1;grid-row:auto}
+  .compass-direction.north{order:1}.compass-direction.east{order:2}.compass-center{order:3}.compass-direction.west{order:4}.compass-direction.south{order:5}
+  .compass-center{width:min(82vw,300px)}
+}

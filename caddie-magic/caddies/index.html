@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Choose Your Caddie · Caddie Magic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=0.5.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.5.0" />
+</head>
+<body>
+  <main class="cm-shell caddie-directory-shell">
+    <section class="cm-hero caddie-directory-hero">
+      <span class="cm-version">v0.5.0</span>
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">CADDIE NETWORK</p>
+        <h1>CHOOSE YOUR CADDIE</h1>
+        <p class="cm-lead">Request a professional Caddie, then schedule a private consultation before your Pebble Beach experience.</p>
+      </div>
+      <a class="cm-button secondary caddie-directory-back" href="/caddie-magic/">← Player Profile</a>
+    </section>
+
+    <section class="cm-card" id="directoryLoadingCard">
+      <p class="cm-eyebrow">OPENING THE CADDIE NETWORK</p>
+      <h2>Finding active Caddies and your request status.</h2>
+      <p class="cm-message" id="directoryMessage">Checking your Caddie Magic access...</p>
+    </section>
+
+    <section class="caddie-directory-page hidden" id="directoryPage">
+      <section class="cm-card request-status-card" id="requestStatusCard">
+        <div class="directory-heading">
+          <div>
+            <p class="cm-eyebrow">YOUR CADDIE REQUEST</p>
+            <h2 id="requestStatusTitle">No active request.</h2>
+            <p class="cm-muted" id="requestStatusCopy">Choose one active Caddie below. Consultation times remain private until that Caddie accepts.</p>
+          </div>
+          <span class="directory-status" id="requestStatusPill">OPEN</span>
+        </div>
+        <div id="requestStatusBody"></div>
+      </section>
+
+      <section class="cm-card consultation-card hidden" id="availabilityCard">
+        <div class="directory-heading">
+          <div>
+            <p class="cm-eyebrow">CONSULTATION AVAILABILITY</p>
+            <h2>Choose a time with your accepted Caddie.</h2>
+            <p class="cm-muted">Times appear only after your request is accepted. All times display in your device timezone.</p>
+          </div>
+        </div>
+        <div class="availability-grid" id="availabilityGrid"></div>
+        <p class="cm-message" id="availabilityMessage"></p>
+      </section>
+
+      <section class="cm-card consultation-history-card">
+        <div class="directory-heading">
+          <div>
+            <p class="cm-eyebrow">YOUR CONSULTATIONS</p>
+            <h2>Scheduled and previous meetings.</h2>
+          </div>
+        </div>
+        <div class="consultation-list" id="consultationList"></div>
+      </section>
+
+      <section class="cm-card directory-card">
+        <div class="directory-heading">
+          <div>
+            <p class="cm-eyebrow">ACTIVE CADDIES</p>
+            <h2>Request the Caddie you would like to meet.</h2>
+            <p class="cm-muted">A request is an invitation to consult. It is not yet a confirmed pairing for your round.</p>
+          </div>
+        </div>
+        <div class="caddie-card-grid" id="caddieCardGrid"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog class="caddie-request-dialog" id="requestDialog">
+    <button class="caddie-request-close" id="requestDialogClose" type="button" aria-label="Close request form">×</button>
+    <form class="cm-form caddie-request-form" id="requestForm">
+      <p class="cm-eyebrow">REQUEST THIS CADDIE</p>
+      <h2 id="requestDialogTitle">Prepare your consultation request.</h2>
+      <input id="requestCaddieProfileId" type="hidden" />
+      <label>Anticipated Pebble Beach Date <span class="optional">Optional</span>
+        <input id="requestTripDate" type="date" />
+      </label>
+      <label>Course or Itinerary <span class="optional">Optional</span>
+        <input id="requestItinerary" type="text" placeholder="Pebble Beach, Spyglass Hill, Spanish Bay..." />
+      </label>
+      <label>What would you like help preparing for?
+        <textarea id="requestGoal" rows="4" required placeholder="Course strategy, mindset, first-time nerves, trip preparation..."></textarea>
+      </label>
+      <label>Have you played Pebble Beach before?
+        <select id="requestPlayedPebble">
+          <option value="">Prefer not to say</option>
+          <option value="yes">Yes</option>
+          <option value="no">No</option>
+        </select>
+      </label>
+      <fieldset class="consent-fieldset">
+        <legend>Consultation preparation consent</legend>
+        <p>Your Caddie receives read-only access only after accepting your request. You can choose which parts of Caddie Magic are included.</p>
+        <label><input id="shareScorecard" type="checkbox" checked /> Share Scorecard history</label>
+        <label><input id="shareScoreMap" type="checkbox" checked /> Share Score Map entries</label>
+        <label><input id="shareCompass" type="checkbox" checked /> Share Caddie Compass clubs</label>
+        <label><input id="shareUpcomingGolf" type="checkbox" checked /> Share upcoming golf</label>
+      </fieldset>
+      <button class="cm-button" type="submit">Send Caddie Request</button>
+      <p class="cm-message" id="requestFormMessage"></p>
+    </form>
+  </dialog>
+
+  <script type="module" src="./app.js?v=0.5.0"></script>
+</body>
+</html>

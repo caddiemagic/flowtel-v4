@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Desk · Caddie Magic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles.css?v=0.5.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.5.0" />
+</head>
+<body>
+  <main class="cm-shell caddie-desk-shell">
+    <section class="cm-hero caddie-desk-hero">
+      <span class="cm-version">v0.5.0</span>
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">CADDIE MAGIC</p>
+        <h1>CADDIE DESK</h1>
+        <p class="cm-lead">Manage player requests, private consultation availability, and scheduled meetings.</p>
+      </div>
+      <a class="cm-button secondary desk-back" href="/caddie-magic/">← My Player Profile</a>
+    </section>
+
+    <section class="cm-card" id="deskLoadingCard">
+      <p class="cm-eyebrow">OPENING YOUR CADDIE DESK</p>
+      <h2>Checking your Caddie Network invitation and status.</h2>
+      <p class="cm-message" id="deskMessage">Opening your service doorway...</p>
+    </section>
+
+    <section class="cm-card hidden" id="notInvitedCard">
+      <p class="cm-eyebrow">PLAYER FIRST</p>
+      <h2>Your Player Profile is active.</h2>
+      <p class="cm-muted">The Caddie Desk opens only after the owner invites your existing Player account into the Caddie Network.</p>
+      <a class="cm-button" href="/caddie-magic/">Return to My Player Profile</a>
+    </section>
+
+    <section class="caddie-desk-page hidden" id="deskPage">
+      <section class="cm-card profile-card">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">CADDIE PROFILE</p>
+            <h2>Build the professional card players will see.</h2>
+            <p class="cm-muted">Your personal Player Profile stays separate. This card belongs to your Caddie service role.</p>
+          </div>
+          <span class="desk-status" id="caddieProfileStatus">INVITED</span>
+        </div>
+        <form class="cm-form caddie-profile-form" id="caddieProfileForm">
+          <div class="desk-two-col">
+            <label>Professional Display Name
+              <input id="caddieDisplayName" type="text" required />
+            </label>
+            <label>Professional Title
+              <input id="caddieProfessionalTitle" type="text" placeholder="Pebble Beach Caddie" />
+            </label>
+          </div>
+          <div class="desk-three-col">
+            <label>Years of Experience
+              <input id="caddieYearsExperience" type="number" min="0" max="80" />
+            </label>
+            <label>City
+              <input id="caddieCity" type="text" placeholder="Monterey, California" />
+            </label>
+            <label>Timezone
+              <select id="caddieTimezone">
+                <option value="America/Los_Angeles">Pacific Time</option>
+                <option value="America/Denver">Mountain Time</option>
+                <option value="America/Chicago">Central Time</option>
+                <option value="America/New_York">Eastern Time</option>
+                <option value="UTC">UTC</option>
+              </select>
+            </label>
+          </div>
+          <label>Profile Photo URL <span class="optional">Optional for beta</span>
+            <input id="caddieProfilePhotoUrl" type="url" placeholder="https://..." />
+          </label>
+          <label>Courses Served
+            <textarea id="caddieCoursesServed" rows="3" placeholder="Pebble Beach Golf Links, Spyglass Hill, Spanish Bay..."></textarea>
+          </label>
+          <label>Pebble Beach Experience
+            <textarea id="caddiePebbleExperience" rows="3" placeholder="Share the experience players should know before requesting you."></textarea>
+          </label>
+          <label>Caddie Philosophy
+            <textarea id="caddiePhilosophy" rows="4" placeholder="How do you help a player prepare, settle, and see the course?"></textarea>
+          </label>
+          <div class="desk-three-col">
+            <label>Consultation Method
+              <input id="caddieConsultationMethod" type="text" placeholder="Google Meet, phone, in person..." />
+            </label>
+            <label>Consultation Length
+              <select id="caddieConsultationDuration">
+                <option value="30">30 minutes</option>
+                <option value="45">45 minutes</option>
+                <option value="60">60 minutes</option>
+                <option value="90">90 minutes</option>
+              </select>
+            </label>
+            <label>Meeting Link <span class="optional">Optional</span>
+              <input id="caddieMeetingLink" type="url" placeholder="https://meet.google.com/..." />
+            </label>
+          </div>
+          <div class="desk-action-row">
+            <button class="cm-button secondary" id="saveCaddieDraftButton" type="button">Save Draft</button>
+            <button class="cm-button" id="submitCaddieProfileButton" type="button">Submit for Approval</button>
+          </div>
+        </form>
+        <p class="cm-message" id="profileMessage"></p>
+      </section>
+
+      <section class="cm-card hidden" id="activeDeskControls">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">SERVICE STATUS</p>
+            <h2>Choose whether players can request you.</h2>
+          </div>
+          <label class="accepting-toggle"><input id="acceptingRequestsToggle" type="checkbox" /><span></span><b id="acceptingRequestsLabel">Not accepting requests</b></label>
+        </div>
+        <p class="cm-muted">Caddies do not create assignments, send portal messages, leave notes, or edit player records. Your Desk is intentionally limited to requests, availability, consultation preparation, and scheduled meetings.</p>
+      </section>
+
+      <section class="cm-card hidden" id="playerRequestsCard">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">PLAYER REQUESTS</p>
+            <h2>Players who asked to meet you.</h2>
+            <p class="cm-muted">Private player data remains closed until you accept. Accepted preparation data is read-only and follows the player’s consent choices.</p>
+          </div>
+          <span class="desk-count" id="requestCount">0 waiting</span>
+        </div>
+        <div class="request-list" id="requestList"></div>
+      </section>
+
+      <section class="cm-card hidden" id="availabilityDeskCard">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">AVAILABILITY</p>
+            <h2>Post exact consultation times.</h2>
+            <p class="cm-muted">Only players whose requests you accept can see these times.</p>
+          </div>
+        </div>
+        <form class="availability-form" id="availabilityForm">
+          <label>Start<input id="availabilityStart" type="datetime-local" required /></label>
+          <label>End<input id="availabilityEnd" type="datetime-local" required /></label>
+          <button class="cm-button" type="submit">Add Availability</button>
+        </form>
+        <p class="cm-message" id="availabilityStatus"></p>
+        <div class="slot-list" id="slotList"></div>
+      </section>
+
+      <section class="cm-card hidden" id="consultationsDeskCard">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">CONSULTATIONS</p>
+            <h2>Scheduled player meetings.</h2>
+          </div>
+        </div>
+        <div class="consultation-list" id="deskConsultationList"></div>
+      </section>
+    </section>
+  </main>
+
+  <dialog class="snapshot-dialog" id="snapshotDialog">
+    <button class="snapshot-close" id="snapshotDialogClose" type="button" aria-label="Close preparation view">×</button>
+    <div id="snapshotContent"></div>
+  </dialog>
+
+  <script type="module" src="./app.js?v=0.5.0"></script>
+</body>
+</html>

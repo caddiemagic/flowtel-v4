@@ -1,3 +1,19 @@
+## Caddie Magic v0.5.0 — Caddie Network Foundation + Cardinal Club Rooms
+
+- Adds an owner-approved Caddie pathway attached to an existing Caddie Magic Player account; the Player identity, Scorecard, Score Map, Locker Room, Compass, and Calendar remain intact.
+- Adds separate **My Player Profile** and **Caddie Desk** doorways for invited Caddies.
+- Adds professional Caddie Profiles with invited, draft, submitted, approved, active, paused, and declined states.
+- Adds the player **Find a Caddie** directory for active Caddies who are accepting requests.
+- Adds one-open-request relationship rules, Pebble Beach consultation intake, and explicit consent for Scorecard, Score Map, Compass, and upcoming-golf preparation data.
+- Keeps availability private until the Caddie accepts the player request.
+- Adds exact Caddie availability, one-at-a-time consultation scheduling, meeting links, completion, and cancellation flows; ending a relationship safely cancels its scheduled meeting and reopens future availability.
+- Gives accepted Caddies consent-scoped, read-only preparation data without assignments, portal messages, Caddie Notes, or player-record editing.
+- Reworks the player Caddie Compass into four clickable Cardinal Club rooms personalized to the player’s North, East, South, and West clubs.
+- Adds **Only Mine / Everyone’s** and **Thoughts + Scores / Scores Only** room views; collective entries remain anonymous and follow Locker Room sharing.
+- Removes visible legacy Caddie Review and Assignments + Messages cards from the owner Concierge Desk and adds an owner **Caddie Network** invitation/approval queue.
+- Carries the v0.4.6 full-width mobile Score Map controls into the latest Flowtel source.
+- Adds migration 052 with restrictive Caddie Magic product-access policies and RPC guards. The broader Concierge role-architecture redesign remains future work; the current manager source remains owner-only.
+
 ## v0.10.66 — Squarespace Replay Notes Session Bridge
 
 - Displays the complete workshop replay comment/reflection form by default inside Squarespace instead of replacing it with a large login card.

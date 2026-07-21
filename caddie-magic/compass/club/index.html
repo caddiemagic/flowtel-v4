@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cardinal Club · Caddie Magic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../../styles.css?v=0.5.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.5.0" />
+</head>
+<body>
+  <main class="cm-shell club-room-shell">
+    <section class="cm-hero club-room-hero">
+      <span class="cm-version">v0.5.0</span>
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow" id="clubDirectionEyebrow">CARDINAL CLUB</p>
+        <h1 id="clubRoomTitle">YOUR CLUB ROOM</h1>
+        <p class="cm-lead" id="clubRoomLead">Scores and swing thoughts gathered in this moon phase.</p>
+      </div>
+      <a class="cm-button secondary club-room-back" href="/caddie-magic/compass/">← Caddie Compass</a>
+    </section>
+
+    <section class="cm-card" id="clubLoadingCard">
+      <p class="cm-eyebrow">OPENING YOUR CLUB ROOM</p>
+      <h2>Gathering personal and anonymous entries.</h2>
+      <p class="cm-message" id="clubMessage">Checking your Caddie Magic access...</p>
+    </section>
+
+    <section class="club-room-page hidden" id="clubRoomPage">
+      <section class="cm-card club-room-intro">
+        <div class="club-room-heading">
+          <div>
+            <p class="cm-eyebrow" id="clubPhaseLabel">MOON PHASE</p>
+            <h2 id="personalizedClubName">Your Cardinal Club</h2>
+            <p class="cm-muted" id="clubPhaseCopy"></p>
+          </div>
+          <div class="club-room-symbol" id="clubRoomSymbol" aria-hidden="true">N</div>
+        </div>
+        <div class="club-stats" id="clubStats"></div>
+      </section>
+
+      <section class="cm-card club-room-feed-card">
+        <div class="club-room-controls">
+          <div class="club-segment" id="scopeToggle" aria-label="Entry source">
+            <button type="button" data-scope="mine" class="is-active">Only Mine</button>
+            <button type="button" data-scope="everyone">Everyone’s</button>
+          </div>
+          <div class="club-segment" id="viewToggle" aria-label="Entry display">
+            <button type="button" data-view="thoughts_scores" class="is-active">Thoughts + Scores</button>
+            <button type="button" data-view="scores">Scores Only</button>
+          </div>
+        </div>
+        <p class="club-anonymous-note" id="anonymousNote">Your personal entries include dates and course context. Everyone’s view is anonymous and follows each player’s Locker Room sharing preference.</p>
+        <div class="club-room-feed" id="clubRoomFeed"></div>
+      </section>
+
+      <nav class="club-room-nav" aria-label="Other Cardinal Clubs">
+        <a href="?direction=north">North Club</a>
+        <a href="?direction=east">East Club</a>
+        <a href="?direction=south">South Club</a>
+        <a href="?direction=west">West Club</a>
+      </nav>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.5.0"></script>
+</body>
+</html>

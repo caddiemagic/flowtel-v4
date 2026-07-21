@@ -41,7 +41,7 @@
   content:"";
   position:absolute;
   inset:0;
-  background:url('/assets/caddie-magic-map-wheel.png?v=0.4.5') center/contain no-repeat;
+  background:url('/assets/caddie-magic-map-wheel.png?v=0.5.0') center/contain no-repeat;
   filter:drop-shadow(0 12px 18px rgba(0,0,0,.18));
 }
 .cm-map-center span{display:none}
@@ -172,12 +172,43 @@ body.cm-modal-open{overflow:hidden}
 .cm-map-note{justify-self:stretch;margin-left:0;margin-right:0}
 .cm-map-north .cm-map-notes,.cm-map-east .cm-map-notes{align-items:stretch;justify-content:start}
 
-/* Caddie Magic v0.4.5 — 28-day insight gate + Locker Room-matched mobile controls */
+/* Caddie Magic v0.5.0 — deterministic Locker Room-matched mobile controls */
 .cm-insight.is-wide{grid-column:1/-1;min-height:112px}
-@media(max-width:720px){
-  .cm-map-toolbar{display:grid;gap:12px;padding:5px 4px 14px}
-  .cm-map-toolbar-controls{display:grid;grid-template-columns:1fr;gap:10px;width:100%}
-  .cm-map-filters,.cm-map-display-toggle{display:flex;width:100%;max-width:none}
-  .cm-filter-button,.cm-display-button{flex:1 1 0;min-width:0;padding:0 6px;text-align:center}
-  .cm-player-view{display:block;width:100%;justify-self:stretch;text-align:center}
+@media(max-width:760px){
+  body.cm-map-page .cm-score-map-card .cm-map-toolbar{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
+    width:100%!important;min-width:0;align-items:stretch!important;padding:5px 4px 14px!important;box-sizing:border-box;
+  }
+  body.cm-map-page .cm-score-map-card .cm-map-toolbar-controls{
+    display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;
+    width:100%!important;min-width:0;align-items:stretch!important;
+  }
+  body.cm-map-page .cm-score-map-card .cm-map-filters,
+  body.cm-map-page .cm-score-map-card .cm-map-display-toggle{
+    display:flex!important;align-items:stretch!important;width:100%!important;max-width:none!important;min-width:0!important;
+    margin:0!important;border:1px solid var(--line)!important;border-radius:999px!important;overflow:hidden!important;
+    background:#091a2a!important;box-sizing:border-box;
+  }
+  body.cm-map-page .cm-score-map-card .cm-filter-button,
+  body.cm-map-page .cm-score-map-card .cm-display-button{
+    display:flex!important;flex:1 1 0!important;align-items:center!important;justify-content:center!important;
+    width:auto!important;min-width:0!important;min-height:38px!important;padding:0 8px!important;
+    border:0!important;border-right:1px solid var(--line-soft)!important;border-radius:0!important;
+    color:var(--gold)!important;background:transparent!important;box-shadow:none!important;text-align:center!important;
+    white-space:nowrap!important;font:700 .56rem var(--font-body)!important;letter-spacing:.14em!important;
+    text-transform:uppercase!important;box-sizing:border-box;
+  }
+  body.cm-map-page .cm-score-map-card .cm-filter-button:last-child,
+  body.cm-map-page .cm-score-map-card .cm-display-button:last-child{border-right:0!important}
+  body.cm-map-page .cm-score-map-card .cm-filter-button.is-active,
+  body.cm-map-page .cm-score-map-card .cm-display-button.is-active{
+    color:var(--ivory)!important;background:linear-gradient(180deg,var(--green),var(--green-2))!important;box-shadow:none!important;
+  }
+  body.cm-map-page .cm-score-map-card .cm-player-view{
+    display:block!important;width:100%!important;min-width:0;justify-self:stretch!important;text-align:center!important;box-sizing:border-box;
+  }
+}
+@media(max-width:390px){
+  body.cm-map-page .cm-score-map-card .cm-filter-button,
+  body.cm-map-page .cm-score-map-card .cm-display-button{padding:0 5px!important;font-size:.52rem!important;letter-spacing:.1em!important}
 }

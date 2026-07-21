@@ -4,123 +4,104 @@
 
 **Caddie Magic is playing golf on the moon.**
 
-It uses the Flowtel hospitality engine as a foundation, but the brand world is separate: a private moonlit golf club, a brass-plated locker room, and a Caddie Master review desk for men tracking their game over time.
+It uses the Flowtel hospitality engine as a foundation, but the brand world remains separate: a private moonlit golf club, a brass-plated Locker Room, personalized Cardinal Clubs, and a quiet professional Caddie Network.
 
-## Phase 1 — Moon Score Tracker Foundation
+## Foundation — Player data
 
-Primary goal: start collecting player data as soon as possible.
+Open:
 
-Open in Phase 1:
+- private Player Profile and account
+- Scorecard logging for rounds and swing thoughts
+- automatic Moon Day and Moon Phase tagging
+- private Score Map
+- anonymous Locker Room with player-controlled sharing
+- upcoming golf Calendar
 
-- `/caddie-magic/` portal
-- player account/profile creation
-- Player Locker
-- simple round logging
-- visible fields only: date of round, course played, score, swing thoughts
-- behind-the-scenes moon tagging: moon phase, moon day, moon season, last/next new moon dates
-- Moon Scorecard / Flow Map-style grouping by moon phase
-- Notes Under the Door placeholder
+## Cardinal Clubs — v0.5.0
 
-Closed in Phase 1:
+Open:
 
-- caddie profile builder
-- player/caddie matching
-- scheduling
-- payments
-- official Caddie Network directory
-- Caddie Master admin note composer
-
-## Phase 2 — Caddie Master Review + Caddie Notes
-
-Goal: Megan can review player scores and swing thoughts, see patterns, and leave private notes.
-
-Open in v0.2.0:
-
-- player-requested Caddie Reviews
-- owner/admin review queue inside the Flowtel Concierge Desk
-- secure player Score Map access from a review request
-- private Caddie Note delivery
-- open/completed review status
-
-Still future:
-
-- dedicated standalone Caddie Master Desk
-- richer player list and profile detail view
-- automated pattern flags
-- structured review templates
-
-## Phase 3 — Caddie Compass + Moon Initiations
-
-Goal: give each player a personalized five-club initiation pathway.
-
-Open in v0.3.0:
-
-- NEWS compass setup
-- North, East, West, and South club mapping
+- player-owned Caddie Compass
+- North, East, South, and West personalized club mapping
 - Putter as the center Staff
-- compass sealing after the first assignment
-- personalized moon-phase assignments
-- direction-specific club assignments
-- player completion reflections
-- initiation history
-- private Caddie Dispatches
-- owner/admin Compass queue inside the Concierge Desk
+- one functional Cardinal Club room per moon phase
+- Only Mine / Everyone’s views
+- Thoughts + Scores / Scores Only views
+- anonymous collective entries following Locker Room sharing
 
-Still future:
+Legacy assignment, dispatch, review, and note records remain preserved, but assignments, portal messaging, and Caddie Notes are no longer part of the active Caddie Network product direction.
 
-- owner-created new compass versions after a sealed compass evolves
-- reusable assignment templates
-- group initiations
-- automated moon-phase release timing
-- assignment media and audio
+## Caddie Network Foundation — v0.5.0
 
-## Phase 4 — Caddie Network Profiles
+Open:
 
-Goal: prepare caddies and players for matching.
+- owner invitation of an existing player into the Caddie pathway
+- professional Caddie Profile
+- Draft → Submitted → Approved → Active lifecycle
+- separate My Player Profile / Caddie Desk modes
+- approved, active, accepting Caddie directory
+- one open player-to-Caddie request
+- Caddie accept or decline
+- exact consultation availability hidden until acceptance
+- pre-Pebble Beach consultation booking
+- consent-scoped, read-only consultation preparation
+- no assignments, messages, notes, or player-data editing for Caddies
 
-Future scope:
+## Next — Data collection before pairing
 
-- caddie profile builder
-- player trip profile
-- Pebble Beach prep preferences
-- caddie availability/preferences
-- caddie style/personality data
-- player style/personality data
+The immediate goal is to collect meaningful data before designing automated pairing logic.
 
-## Phase 5 — Matching + Scheduling
+Collect:
 
-Goal: reduce caddie options to 2–3 matches.
+- player request patterns
+- Pebble Beach dates and itineraries
+- consultation goals
+- player score ranges and Moon patterns
+- Caddie experience, courses, location, availability, and consultation style
+- acceptance rates, booking lead time, and consultation completion
 
-Future scope:
+Do not automate matching yet.
 
-- Caddie Master matching desk
-- recommended caddie shortlist
-- player chooses caddie
-- Zoom/pre-arrival call scheduling link
-- prep call notes
-- confirmed caddie assignment
+## Future — Caddie pairing logic
 
-## Phase 6 — Full Caddie Concierge Platform
+Potential later scope:
 
-Goal: full Caddie Network operating layer.
+- owner-assisted shortlist of two or three Caddies
+- player/Caddie compatibility signals
+- course and itinerary fit
+- availability fit
+- experience and service-style fit
+- confirmed on-course Caddie pairing distinct from consultation acceptance
 
-Future scope:
+## Future — Concierge role architecture
 
-- caddie training portal
+Rework the growing Concierge Desk so each role receives a calm, capability-based view:
+
+- Owner/Admin: complete command center
+- Flowtel Practitioner: connected clients and authorized Flowtel services only
+- Caddie: Caddie Desk only
+- Player/Guest: no manager access
+
+The visual navigation and Supabase permissions must enforce the same boundaries.
+
+## Future — Full Caddie Concierge platform
+
+- consultation completion states
+- Caddie scheduling integrations
+- trip preparation timeline
+- confirmed pairing workflow
+- Caddie training portal
 - service tiers
-- player/caddie prep pages
-- trip timeline
 - post-round feedback
 - testimonials
-- payment/booking layer later
+- payment and booking layer
 
 ## Design direction
 
 Caddie Magic should feel like:
 
-- private golf locker room on the moon
+- private golf Locker Room on the moon
 - moonlit fairway
-- private clubhouse
 - old leather scorecard holder
 - brass locker plate
 - obsidian green
@@ -129,4 +110,4 @@ Caddie Magic should feel like:
 - antique gold
 - quiet masculine mysticism
 
-Avoid making it feel like Flowtel with golf words. It should share the engine, not the feminine hotel/rose/temple skin.
+Avoid making it feel like Flowtel with golf words. It should share the engine, not the feminine hotel, rose, or temple skin.

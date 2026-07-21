@@ -1,7 +1,7 @@
 // Caddie Magic v0.4.5 — 28-Day Pattern Window + Mobile Controls
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.5";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.0";
 import { getMoonMagic } from "../../shared/moon.js";
 
 const $ = (id) => document.getElementById(id);

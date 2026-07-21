@@ -1,12 +1,12 @@
-// Caddie Magic v0.4.5 — Compass Query + Medicine Wheel Hotfix
+// Caddie Magic v0.5.0 — Player Profile, Caddie Network, and Cardinal Club Rooms
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.5";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.5";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches } from "../shared/caddie-magic-compass.js?v=0.4.5";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.5";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.4.5";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.5.0";
+import { getMyActiveCompass } from "../shared/caddie-magic-compass.js?v=0.5.0";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.0";
+import { moonLabelForDate } from "../shared/caddie-magic-moon-calendar.js?v=0.5.0";
+import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations } from "../shared/caddie-magic-network.js?v=0.5.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -15,7 +15,6 @@ const profileCard = $("profileCard");
 const moonDashboardCard = $("moonDashboardCard");
 const portalGrid = $("portalGrid");
 const historyCard = $("historyCard");
-const caddieReviewCard = $("caddieReviewCard");
 const authMessage = $("authMessage");
 const profileMessage = $("profileMessage");
 const roundMessage = $("roundMessage");
@@ -23,11 +22,10 @@ const roundMessage = $("roundMessage");
 let currentUser = null;
 let playerProfile = null;
 let roundLogs = [];
-let playerNotes = [];
-let reviewRequests = [];
 let activeCompass = null;
-let compassAssignments = [];
-let compassDispatches = [];
+let caddieProfile = null;
+let caddieRequests = [];
+let consultations = [];
 let upcomingGolfEvents = [];
 let selectedMoonDayToken = null;
 let entryMode = "round";
@@ -132,15 +130,12 @@ function compassClubCopy(phase = "") {
   return `${match.direction} · ${match.club}`;
 }
 
-function activeAssignmentsSummary() {
-  const active = compassAssignments.filter((item) => item.status !== "completed");
-  const completed = compassAssignments.filter((item) => item.status === "completed");
-  return { active, completed };
+function activeCaddieRequest() {
+  return caddieRequests.find((item) => ["requested", "accepted"].includes(item.status)) || null;
 }
 
-function latestDispatchPreview() {
-  if (!compassDispatches.length) return null;
-  return compassDispatches[compassDispatches.length - 1];
+function nextConsultation() {
+  return consultations.find((item) => item.status === "scheduled" && new Date(item.starts_at) >= new Date()) || null;
 }
 
 function nextUpcomingGolfEvent() {
@@ -149,19 +144,28 @@ function nextUpcomingGolfEvent() {
 
 async function loadCompassSnapshotData() {
   try {
-    const [compass, assignments, dispatches] = await Promise.all([
-      getMyActiveCompass().catch(() => null),
-      playerProfile ? getCompassAssignments(playerProfile.id).catch(() => []) : Promise.resolve([]),
-      playerProfile ? getCompassDispatches(playerProfile.id).catch(() => []) : Promise.resolve([]),
-    ]);
-    activeCompass = compass;
-    compassAssignments = assignments;
-    compassDispatches = dispatches;
+    activeCompass = await getMyActiveCompass();
   } catch (error) {
     console.warn("Compass snapshot data could not be loaded.", error);
     activeCompass = null;
-    compassAssignments = [];
-    compassDispatches = [];
+  }
+}
+
+async function loadNetworkSnapshotData() {
+  try {
+    const [profile, requests, meetings] = await Promise.all([
+      getMyCaddieProfile().catch(() => null),
+      listMyCaddieRequests().catch(() => []),
+      listMyConsultations().catch(() => []),
+    ]);
+    caddieProfile = profile;
+    caddieRequests = requests;
+    consultations = meetings;
+  } catch (error) {
+    console.warn("Caddie Network snapshot data could not be loaded.", error);
+    caddieProfile = null;
+    caddieRequests = [];
+    consultations = [];
   }
 }
 
@@ -185,7 +189,6 @@ function showState(state) {
   moonDashboardCard?.classList.toggle("hidden", state !== "portal");
   portalGrid?.classList.toggle("hidden", state !== "portal");
   historyCard?.classList.toggle("hidden", state !== "portal");
-  caddieReviewCard?.classList.toggle("hidden", state !== "portal");
 }
 
 async function signIn() {
@@ -261,8 +264,9 @@ async function signOut() {
   currentUser = null;
   playerProfile = null;
   roundLogs = [];
-  playerNotes = [];
-  reviewRequests = [];
+  caddieProfile = null;
+  caddieRequests = [];
+  consultations = [];
   selectedMoonDayToken = null;
   showState("auth");
   setMessage(authMessage, "You have left the clubhouse.");
@@ -336,37 +340,14 @@ async function fetchRoundLogs() {
   return data || [];
 }
 
-async function fetchPlayerNotes() {
-  const { data, error } = await supabase
-    .from("caddie_magic_player_notes")
-    .select("*")
-    .eq("player_profile_id", playerProfile.id)
-    .eq("is_visible_to_player", true)
-    .order("created_at", { ascending: false });
-  if (error) throw error;
-  return data || [];
-}
-
-async function fetchReviewRequests() {
-  try {
-    return await getMyCaddieReviewRequests();
-  } catch (error) {
-    const message = String(error?.message || "").toLowerCase();
-    if (message.includes("caddie_magic_review_requests") || message.includes("schema cache")) {
-      console.warn("Caddie Review Service is waiting for migration 041.", error);
-      return [];
-    }
-    throw error;
-  }
-}
-
 async function loadPortalData() {
   if (!playerProfile) return;
-  const [logs, notes, reviews] = await Promise.all([fetchRoundLogs(), fetchPlayerNotes(), fetchReviewRequests()]);
-  roundLogs = logs;
-  playerNotes = notes;
-  reviewRequests = reviews;
-  await Promise.all([loadCompassSnapshotData(), loadUpcomingGolfSnapshotData()]);
+  roundLogs = await fetchRoundLogs();
+  await Promise.all([
+    loadCompassSnapshotData(),
+    loadUpcomingGolfSnapshotData(),
+    loadNetworkSnapshotData(),
+  ]);
 }
 
 async function logRound(event) {
@@ -558,12 +539,21 @@ function renderStats() {
   if (!statGrid) return;
 
   const moon = getMoonMagic(todayISO());
-  const assignmentsSummary = activeAssignmentsSummary();
-  const latestDispatch = latestDispatchPreview();
   const nextEvent = nextUpcomingGolfEvent();
   const nextForecast = Array.isArray(nextEvent?.moon_forecast) ? nextEvent.moon_forecast[0] : null;
   const nextEventTitle = nextEvent?.title || nextEvent?.event_title || "Upcoming Golf";
-  const dispatchOwner = latestDispatch?.sender_role === "caddie" ? "From your Caddie" : "From you";
+  const caddieRequest = activeCaddieRequest();
+  const consultation = nextConsultation();
+  const requestTitle = caddieRequest
+    ? (caddieRequest.status === "accepted" ? caddieRequest.caddie_name : "Awaiting Caddie")
+    : "Choose Your Caddie";
+  const requestCopy = consultation
+    ? `Consultation ${escapeHtml(formatDateTime(consultation.starts_at))}`
+    : caddieRequest?.status === "accepted"
+      ? "Accepted · Open private consultation availability."
+      : caddieRequest?.status === "requested"
+        ? `Request sent to ${escapeHtml(caddieRequest.caddie_name || "your Caddie")}.`
+        : "Browse approved Caddies before your Pebble Beach experience.";
 
   statGrid.innerHTML = `
     <article class="cm-stat">
@@ -576,103 +566,31 @@ function renderStats() {
       <strong>${latestEntry ? `Day ${escapeHtml(latestEntry.moon_day || "—")}` : `Day ${escapeHtml(String(moon.moonDay))}`}</strong>
       <small>${escapeHtml(latestEntry ? shortPhase(latestEntry.moon_phase) : moonLabelForDate(todayISO(), moon.phase))}${compassClubCopy(moon.phase) ? ` · ${escapeHtml(compassClubCopy(moon.phase))}` : ""}</small>
     </article>
-    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#homework">
-      <span>Assignments</span>
-      <strong>${activeCompass ? `${assignmentsSummary.active.length} active` : "Submit Compass"}</strong>
-      <small>${activeCompass ? `${assignmentsSummary.completed.length} completed · Open your current homework.` : "Submit your Compass first so assignments have somewhere to land."}</small>
+    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/">
+      <span>Caddie Compass</span>
+      <strong>${activeCompass ? "Four Clubs Open" : "Set Your Compass"}</strong>
+      <small>${activeCompass ? "Enter North, East, West, or South to study that phase." : "Name your four Cardinal Clubs to open the Club Rooms."}</small>
     </a>
-    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#messages">
-      <span>Messages</span>
-      <strong>${activeCompass ? `${compassDispatches.length} total` : "Compass First"}</strong>
-      <small>${activeCompass ? (latestDispatch ? `${dispatchOwner} · ${escapeHtml(formatDateTime(latestDispatch.created_at))}` : "No Messages yet. Open a private conversation with your Caddie.") : "Messages open after your Caddie Compass is submitted."}</small>
+    <a class="cm-stat cm-stat-link" href="/caddie-magic/caddies/">
+      <span>Caddie Network</span>
+      <strong>${escapeHtml(requestTitle)}</strong>
+      <small>${requestCopy}</small>
     </a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#calendar">
       <span>Calendar</span>
       <strong>${nextEvent ? escapeHtml(nextEventTitle) : "No Upcoming Golf"}</strong>
       <small>${nextEvent ? `${escapeHtml(formatDate(nextEvent.date_start))}${nextEvent.course ? ` · ${escapeHtml(nextEvent.course)}` : ""}${nextForecast ? ` · Day ${escapeHtml(nextForecast.moon_day || "—")} · ${escapeHtml(moonLabelForDate(nextForecast.date, nextForecast.moon_phase))}` : ""}` : "Add your next round, tournament, or trip."}</small>
     </a>
+    ${caddieProfile ? `<a class="cm-stat cm-stat-link" href="/caddie-magic/caddie-desk/"><span>Caddie Desk</span><strong>${escapeHtml((caddieProfile.status || "invited").replaceAll("_", " "))}</strong><small>Your player profile remains separate from your owner-approved Caddie workspace.</small></a>` : ""}
     <article class="cm-stat is-wide">
       <span>Latest Swing Thought</span>
       <strong class="cm-stat-thought">${latestThoughtEntry ? escapeHtml(latestThoughtEntry.swing_thoughts) : "No swing thought logged yet."}</strong>
       <small>${scoredRounds.length} round${scoredRounds.length === 1 ? "" : "s"} logged · Best ${bestScore(scoredRounds) ?? "—"} · Average ${averageScore(scoredRounds) ?? "—"}</small>
     </article>
   `;
+
+  $("heroCaddieDeskButton")?.classList.toggle("hidden", !caddieProfile);
 }
-
-function renderNotes() {
-  const node = $("notesUnderDoor");
-  if (!node) return;
-  if (!playerNotes.length) {
-    node.innerHTML = `<div class="cm-empty">No notes have been left from your Caddie yet, keep logging rounds.</div>`;
-    return;
-  }
-  node.innerHTML = playerNotes.map((note) => `
-    <article class="cm-note">
-      <strong>${escapeHtml(note.note_title || "A Caddie Note")}</strong>
-      <p>${escapeHtml(note.note_body || "")}</p>
-      <small>${formatDate(note.created_at)}</small>
-    </article>
-  `).join("");
-}
-
-function activeReviewRequest() {
-  return reviewRequests.find((request) => request.status === "requested") || null;
-}
-
-function latestCompletedReview() {
-  return reviewRequests.find((request) => request.status === "completed") || null;
-}
-
-function renderReviewService() {
-  const button = $("requestReviewButton");
-  const copy = $("reviewRequestCopy");
-  if (!button || !copy) return;
-
-  const pending = activeReviewRequest();
-  const completed = latestCompletedReview();
-  const hasEntries = roundLogs.length > 0;
-
-  if (pending) {
-    button.disabled = true;
-    button.textContent = "Review Requested";
-    copy.textContent = "Your request is waiting at the Concierge Desk. Your Caddie will review your scores and swing thoughts for patterns.";
-    return;
-  }
-
-  button.disabled = !hasEntries;
-  button.textContent = "Request a Scorecard Review";
-  copy.textContent = hasEntries
-    ? (completed
-      ? "Your last review is complete. Read your newest Caddie Note here, or request a new Scorecard Review when you are ready."
-      : "Ping your Caddie to review your scores and swing thoughts for patterns you may not see yet.")
-    : "Log at least one score or swing thought before requesting a Caddie Review.";
-}
-
-async function requestScoreReview() {
-  const button = $("requestReviewButton");
-  const message = $("reviewRequestMessage");
-  if (!button || button.disabled) return;
-
-  button.disabled = true;
-  button.textContent = "Sending Request...";
-  setMessage(message, "Sending your Scorecard to the Concierge Desk...");
-
-  try {
-    await requestCaddieReview();
-    reviewRequests = await fetchReviewRequests();
-    renderReviewService();
-    setMessage(message, "Your Caddie Review request is waiting at the Concierge Desk.");
-  } catch (error) {
-    console.error("Caddie Review request failed.", error);
-    button.disabled = false;
-    button.textContent = "Request a Scorecard Review";
-    const missingMigration = String(error?.message || "").toLowerCase().includes("caddie_magic_request_score_review");
-    setMessage(message, missingMigration
-      ? "Caddie Review Service is not installed yet. Run migration 041 and refresh."
-      : (error?.message || "Your Caddie Review request could not be sent."), true);
-  }
-}
-
 function renderHistory() {
   const node = $("roundHistory");
   if (!node) return;
@@ -743,8 +661,6 @@ function renderPortal() {
   $("lockerTitle").textContent = displayName();
   renderMoonDashboard();
   renderStats();
-  renderNotes();
-  renderReviewService();
   renderSharingSetting();
   renderHistory();
 }
@@ -828,7 +744,6 @@ function bindEvents() {
   $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
   $("roundModeButton")?.addEventListener("click", () => setEntryMode("round"));
   $("reflectionModeButton")?.addEventListener("click", () => setEntryMode("reflection"));
-  $("requestReviewButton")?.addEventListener("click", requestScoreReview);
   $("lockerRoomSharingToggle")?.addEventListener("change", updateLockerRoomSharing);
   setEntryMode("round");
 }
