@@ -144,3 +144,19 @@ export async function adminUpdateCompassAssignment(assignmentId, updates = {}) {
   if (error) throw error;
   return data;
 }
+
+export async function markPlayerMessagesRead(playerProfileId) {
+  const { data, error } = await supabase.rpc("caddie_magic_mark_player_messages_read", {
+    p_player_profile_id: playerProfileId,
+  });
+  if (error) throw error;
+  return Number(data) || 0;
+}
+
+export async function markAssignmentNoted(assignmentId) {
+  const { data, error } = await supabase.rpc("caddie_magic_mark_assignment_noted", {
+    p_assignment_id: assignmentId,
+  });
+  if (error) throw error;
+  return oneRow(data);
+}

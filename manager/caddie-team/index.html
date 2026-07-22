@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Concierge Team · The Caddie Master</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.5.2" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.70" />
+</head>
+<body>
+  <main class="cm-shell team-profile-shell">
+    <section class="cm-hero team-profile-hero">
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <p class="cm-eyebrow">THE CADDIE MASTER</p>
+      <h1>CADDIE CONCIERGE TEAM</h1>
+      <p class="cm-lead">Private team profile, Compass, availability, Players, calls, and support.</p>
+      <a class="cm-button secondary" href="/manager/?room=caddie-team">← Concierge Desk</a>
+    </section>
+
+    <section class="cm-card" id="teamLoadingCard">
+      <p class="cm-eyebrow">OWNER ACCESS</p>
+      <h2>Opening the Caddie Concierge Team profile.</h2>
+      <p class="cm-message" id="teamMessage">Checking your Caddie Master role...</p>
+    </section>
+
+    <section class="team-profile-page hidden" id="teamProfilePage">
+      <section class="cm-card team-identity-card" id="teamIdentityCard"></section>
+      <section class="team-summary-grid" id="teamSummaryGrid"></section>
+      <section class="cm-card" id="teamCompassCard"></section>
+      <section class="cm-card" id="teamAvailabilityCard"></section>
+      <section class="cm-card" id="teamPlayersCard"></section>
+      <section class="cm-card" id="teamCallsCard"></section>
+      <section class="cm-card" id="messages">
+        <div class="team-section-heading"><div><p class="cm-eyebrow">CADDIE TEAM MESSAGES</p><h2>Private chamber with this Caddie.</h2></div><span class="team-private-pill">PRIVATE</span></div>
+        <div class="team-message-thread" id="teamMessageThread"></div>
+        <form class="team-message-form" id="teamMessageForm">
+          <label for="teamMessageInput">Message from The Caddie Master</label>
+          <textarea id="teamMessageInput" rows="4" maxlength="4000" placeholder="Send a private operational note to this Caddie."></textarea>
+          <button class="cm-button" type="submit">Send Private Message</button>
+        </form>
+        <p class="cm-message" id="teamMessageStatus"></p>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.10.70"></script>
+</body>
+</html>

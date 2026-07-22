@@ -41,7 +41,7 @@
   content:"";
   position:absolute;
   inset:0;
-  background:url('/assets/caddie-magic-map-wheel.png?v=0.5.1') center/contain no-repeat;
+  background:url('/assets/caddie-magic-map-wheel.png?v=0.5.2') center/contain no-repeat;
   filter:drop-shadow(0 12px 18px rgba(0,0,0,.18));
 }
 .cm-map-center span{display:none}
@@ -197,4 +197,23 @@ body.cm-modal-open{overflow:hidden}
   .cm-map-north,.cm-map-east,.cm-map-west,.cm-map-south{grid-column:auto;grid-row:auto;padding:18px 15px;border-right:0}
   .cm-map-north{order:1}.cm-map-east{order:2}.cm-map-west{order:3}.cm-map-south{order:4}
   .cm-map-south{border-bottom:0}
+}
+
+/* Caddie Magic v0.5.2 — Score Map controls use the Locker Room system. */
+.cm-map-toolbar{align-items:flex-start}
+.cm-map-toolbar-controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.cm-map-filters,.cm-map-display-toggle{min-height:40px}
+.cm-filter-button,.cm-display-button{min-height:38px;padding:0 18px;color:var(--gold);font-size:.56rem;letter-spacing:.14em}
+.cm-display-button.is-active,.cm-filter-button.is-active{color:var(--ivory);background:linear-gradient(180deg,var(--green),var(--green-2));box-shadow:none}
+.cm-map-hero-actions .cm-button{min-height:42px}
+@media(max-width:900px){
+  .cm-map-toolbar{display:grid;gap:12px}
+  .cm-map-toolbar-controls{display:grid;grid-template-columns:1fr;gap:10px;width:100%}
+  .cm-map-filters,.cm-map-display-toggle{display:flex;width:100%;max-width:none}
+  .cm-filter-button,.cm-display-button{flex:1 1 0;min-width:0;padding:0 10px;text-align:center}
+  .cm-player-view{display:block;width:100%;justify-self:stretch;text-align:center}
+}
+@media(max-width:700px){
+  .cm-filter-button,.cm-display-button{min-height:44px;padding:0 8px;font-size:.54rem}
+  .cm-map-hero-actions{width:100%}
 }

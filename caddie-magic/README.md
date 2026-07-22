@@ -10,7 +10,7 @@ This directory is the canonical Caddie Magic product surface inside the shared F
 - `/caddie-magic/compass/` — player-owned Caddie Compass and Calendar
 - `/caddie-magic/compass/club/` — personalized North, East, South, or West Cardinal Club room
 - `/caddie-magic/caddies/` — approved Caddie directory, player request, accepted-only availability, and consultation scheduling
-- `/caddie-magic/caddie-desk/` — owner-approved Caddie Profile, player requests, availability, consultations, and read-only preparation
+- `/caddie-magic/caddie-desk/` — owner-approved Caddie Profile, private Caddie Team messages, player requests, availability, consultations, and read-only preparation
 - `/caddie-magic/compass/admin/` — retained legacy owner/admin Compass history surface; not part of Caddie Network permissions
 
 ## Current service boundary
@@ -23,6 +23,7 @@ Caddies may:
 - accept or decline player requests;
 - set simple recurring Calls/Caddying availability and date exceptions;
 - see scheduled consultations and mark completed meetings;
+- privately message The Caddie Master through the Caddie Team chamber;
 - open only the player data consented to for accepted consultation preparation.
 
 Caddies may not:
@@ -50,8 +51,8 @@ Caddie Magic players use the explicit product-access registry introduced in migr
 - `flowtel_access = false`
 - `access_role = 'player'`
 
-Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity.
+Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity. Migration 055 adds the owner Command Center, separate private Caddie Team messages, Upcoming Golf acknowledgment, team profiles, and Compass Consecration.
 
-Current integrated version: **Caddie Magic v0.5.1 / Flowtel v0.10.68.1**.
+Current integrated version: **Caddie Magic v0.5.2 / Flowtel v0.10.70**.
 
 Run `node scripts/validate-caddie-magic.mjs` before shipping a merged release.

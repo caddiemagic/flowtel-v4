@@ -102,3 +102,16 @@
   .snapshot-wrap{padding:30px 18px 20px}
   .snapshot-entry{grid-template-columns:1fr}
 }
+
+.team-message-thread{display:grid;gap:12px;max-height:430px;overflow:auto;margin-top:20px;padding:4px}
+.team-message{max-width:78%;border:1px solid var(--line-soft);border-radius:18px;padding:13px 15px;background:#091a2a}
+.team-message.is-caddie{justify-self:end;border-bottom-right-radius:5px;background:linear-gradient(180deg,var(--green),var(--green-2))}
+.team-message.is-master{justify-self:start;border-bottom-left-radius:5px}
+.team-message span{display:block;color:var(--gold);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.team-message p{margin:7px 0;color:var(--ivory);font:.82rem/1.55 var(--font-body);white-space:pre-wrap}
+.team-message time{color:var(--muted);font:.6rem var(--font-body)}
+.team-message-form{display:grid;gap:10px;margin-top:18px}
+.team-message-form label{color:var(--gold);font:700 .58rem var(--font-body);letter-spacing:.11em;text-transform:uppercase}
+.team-message-form textarea{width:100%;border:1px solid var(--line-soft);border-radius:16px;padding:13px 14px;background:#091a2a;color:var(--ivory);font:.84rem/1.5 var(--font-body);resize:vertical}
+.team-message-form .cm-button{justify-self:end}
+@media(max-width:700px){.team-message{max-width:92%}.team-message-form .cm-button{width:100%;justify-self:stretch}}

@@ -39,12 +39,16 @@ const required = [
   "manager/index.html",
   "manager/app.js",
   "manager/styles.css",
+  "manager/caddie-team/index.html",
+  "manager/caddie-team/app.js",
+  "manager/caddie-team/styles.css",
   "vercel.json",
   "database/migration-044-caddie-magic-player-only-access-private-beta.sql",
   "database/migration-045-caddie-magic-player-invite-code-hotfix.sql",
   "database/migration-052-caddie-magic-caddie-network-foundation.sql",
   "database/migration-052-combined-flowtel-caddie-updates.sql",
   "database/migration-053-caddie-network-reintegration-shared-scheduling.sql",
+  "database/migration-055-caddie-master-command-center.sql",
 ];
 
 const missing = [];
@@ -80,6 +84,9 @@ const files = {
   managerJs: await read("manager/app.js"),
   managerCss: await read("manager/styles.css"),
   migration: await read("database/migration-053-caddie-network-reintegration-shared-scheduling.sql"),
+  commandMigration: await read("database/migration-055-caddie-master-command-center.sql"),
+  teamHtml: await read("manager/caddie-team/index.html"),
+  teamJs: await read("manager/caddie-team/app.js"),
 };
 
 // Version coherence and removal of internal user-facing version pills.
@@ -95,12 +102,12 @@ const caddieHtmlFiles = [
 ];
 for (const file of caddieHtmlFiles) {
   const html = await read(file);
-  assert(html.includes("0.5.1"), `${file}: missing v0.5.1 cache/version wiring.`);
+  assert(html.includes("0.5.2"), `${file}: missing v0.5.2 cache/version wiring.`);
   assert(!html.includes("cm-version"), `${file}: internal version pill is still user-facing.`);
   assert(!/v0\.(4\.6|5\.0)/.test(html), `${file}: stale active Caddie version remains.`);
 }
-assert(files.managerHtml.includes('app.js?v=0.10.69.2'), "Manager loader is not on the current Flowtel release.");
-assert(files.managerJs.includes('caddie-magic-network.js?v=0.5.1'), "Manager Caddie Network wiring is not preserved at v0.5.1.");
+assert(files.managerHtml.includes('app.js?v=0.10.70'), "Manager loader is not on the current Flowtel release.");
+assert(files.managerJs.includes('caddie-magic-network.js?v=0.5.2'), "Manager Caddie Network wiring is not preserved at v0.5.2.");
 
 const vercel = JSON.parse(await read("vercel.json"));
 const rewriteSources = new Set((vercel.rewrites || []).map((item) => item.source));
@@ -119,7 +126,7 @@ const versionHeaders = (vercel.headers || [])
   .flatMap((entry) => entry.headers || [])
   .filter((header) => header.key === "X-Caddie-Magic-Version");
 assert(versionHeaders.length >= 2, "Caddie Magic version headers are missing.");
-assert(versionHeaders.every((header) => header.value === "0.5.1"), "Caddie Magic version headers are not coherent at 0.5.1.");
+assert(versionHeaders.every((header) => header.value === "0.5.2"), "Caddie Magic version headers are not coherent at 0.5.2.");
 
 // Player Profile: exact approved card family plus separate Caddie Master services.
 for (const label of ["Assignments", "Caddie Compass", "Caddie Network", "Calendar"]) {
@@ -135,7 +142,7 @@ assert(files.playerHtml.includes("Messages with The Caddie Master"), "VIP Caddie
 assert(files.playerJs.includes('isPlayer ? "You" : "The Caddie Master"'), "Message thread does not distinguish You and The Caddie Master.");
 assert(files.playerJs.includes("vip_messaging_enabled"), "VIP messaging gate is missing from Player UI.");
 assert(files.playerJs.includes("available_review_credits"), "Scorecard Review credit state is missing from Player UI.");
-assert(files.playerHtml.includes('app.js?v=0.5.1-login-hotfix-1'), "Player Profile login bootstrap cache-bust is missing.");
+assert(files.playerHtml.includes('app.js?v=0.5.2'), "Player Profile login bootstrap cache-bust is missing.");
 assert(/const invitationParams = new URLSearchParams\(window\.location\.search\);[\s\S]*bindEvents\(\);\s*bootPortal\(\);\s*$/.test(files.playerJs), "Player Profile module does not initialize invitation state, bind controls, and restore the remembered session at top level.");
 
 // Compass must be a functional four-door map, not the reverted assignment/message surface.
@@ -276,4 +283,14 @@ for (const [name, css] of Object.entries({ player: files.playerCss, score: files
   assert(balancedCss(css), `${name} CSS is structurally unbalanced.`);
 }
 
-console.log(`Caddie Magic v0.5.1 validation passed (${required.length} canonical files plus routes, roles, SQL, and UI boundaries checked).`);
+assert(files.managerHtml.includes('data-filter="caddie-master"'), "Caddie Master card is missing.");
+assert(files.managerHtml.includes('data-filter="caddie-team"'), "Caddie Concierge Team card is missing.");
+assert(!files.managerHtml.includes('data-filter="caddie-players"'), "Replaced Caddie Players card remains active.");
+assert(files.managerJs.includes('renderCaddieMasterQueue') && files.managerJs.includes('renderCaddieTeamQueue'), "Caddie Master or Team renderer is missing.");
+assert(files.commandMigration.includes('caddie_magic_get_master_command_center'));
+assert(files.commandMigration.includes('caddie_magic_team_messages'));
+assert(files.commandMigration.includes('caddie_magic_acknowledge_upcoming_golf'));
+assert(files.teamJs.includes('currentUserHasConciergeAccess'), "Owner-only Caddie Team page gate is missing.");
+assert((vercel.rewrites||[]).some(row=>row.source==='/manager/caddie-team'&&row.destination==='/manager/caddie-team/index.html'), "Caddie Team route is missing.");
+
+console.log(`Caddie Magic v0.5.2 validation passed (${required.length} canonical files plus routes, roles, SQL, and UI boundaries checked).`);

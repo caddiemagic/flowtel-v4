@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.69" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.70" />
 </head>
 
 <body>
@@ -61,15 +61,20 @@
           <strong id="awaitingTurndownCount">0</strong>
           <em>Waiting for care</em>
         </button>
-        <button class="stat-card" type="button" data-filter="caddie-players">
-          <span>Caddie Players</span>
-          <strong id="caddiePlayerCount">0</strong>
-          <em><b id="caddieInviteCount">0</b> invitations open</em>
+        <button class="stat-card" type="button" data-filter="caddie-master">
+          <span>Caddie Master</span>
+          <strong id="caddieMasterAlertCount">0</strong>
+          <em>Private support alerts</em>
         </button>
         <button class="stat-card" type="button" data-filter="caddie-network">
           <span>Caddie Network</span>
           <strong id="caddieNetworkCount">0</strong>
-          <em><b id="caddieNetworkReviewCount">0</b> profiles awaiting review</em>
+          <em><b id="caddieNetworkReviewCount">0</b> network actions</em>
+        </button>
+        <button class="stat-card" type="button" data-filter="caddie-team">
+          <span>Caddie Concierge Team</span>
+          <strong id="caddieTeamCount">0</strong>
+          <em>Active Caddies</em>
         </button>
         <button class="stat-card" type="button" data-filter="caddie-reviews">
           <span>Scorecard Reviews</span>
@@ -161,7 +166,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.69.2").catch(function(error){
+    import("./app.js?v=0.10.70").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

@@ -18,13 +18,13 @@ const files={
   scoreHtml:await read('caddie-magic/score-map/index.html'),scoreJs:await read('caddie-magic/score-map/app.js'),scoreCss:await read('caddie-magic/score-map/styles.css'),
   collectiveHtml:await read('caddie-magic/collective-map/index.html'),collectiveCss:await read('caddie-magic/collective-map/styles.css'),
   profileJs:await read('profile/app.js'),profileHtml:await read('profile/index.html'),profileCss:await read('profile/styles.css'),
-  memberDirectory:await read('shared/member-directory.js'),profiles:await read('shared/profiles.js'),productAccess:await read('shared/product-access.js'),
+profiles:await read('shared/profiles.js'),productAccess:await read('shared/product-access.js'),
   betaHtml:await read('beta-request/index.html'),betaJs:await read('beta-request/app.js'),betaApi:await read('api/beta-request.js'),
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.69'));
-assert(files.managerHtml.includes('app.js?v=0.10.69.2'));
+assert(files.managerHtml.includes('styles.css?v=0.10.70'));
+assert(files.managerHtml.includes('app.js?v=0.10.70'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -86,12 +86,12 @@ assert(!files.caddieHtml.includes('id="nextNewMoonValue"'));
 assert(!files.caddieHtml.includes('id="nextFullMoonValue"'));
 assert(files.caddieJs.includes('averageValidGolfScore'));
 assert(files.scoreJs.includes('validGolfScore(entry.score) !== null'));
-assert(files.caddieHtml.includes('?v=0.5.1'),'Caddie v0.5.1 cache keys are missing.');
+assert(files.caddieHtml.includes('?v=0.5.2'),'Caddie v0.5.2 cache keys are missing.');
 assert(!files.caddieHtml.includes('cm-version'),'Caddie version pill must not be user-facing.');
 
 assert(files.managerHtml.includes('data-filter="member-directory"'),'Owner Member Directory card is missing.');
 assert(files.managerJs.includes('renderMemberDirectoryQueue'),'Owner Member Directory renderer is missing.');
-assert(files.memberDirectory.includes('flowtel_admin_get_member_directory'),'Member Directory shared RPC wrapper is missing.');
+assert(files.managerJs.includes('flowtel_admin_get_member_directory'),'Embedded Member Directory RPC boundary is missing.');
 assert(files.migration054.includes('flowtel_admin_revoke_member_access'),'Durable revoke function is missing.');
 assert(files.migration054.includes('flowtel_admin_restore_member_access'),'Durable restore function is missing.');
 assert(files.migration054.includes("flowtel_access_status = 'revoked'"),'Durable revocation guard is missing.');

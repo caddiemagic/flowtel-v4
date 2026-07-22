@@ -1,3 +1,21 @@
+## v0.10.70 — Caddie Master Command Center
+
+- Consolidates Player invitations/access and Caddie lifecycle operations into one Caddie Network room and removes the separate Caddie Players card.
+- Adds The Caddie Master attention center for unread Player messages, unread Caddie Team messages, completed Assignments, course-verification requests, and submitted Caddie Profiles.
+- Adds the Caddie Concierge Team directory with Active default, lifecycle/course filters, Player/call/availability intelligence, and dedicated owner-only profiles.
+- Adds owner-granted Compass Consecration after all four Cardinal Clubs are complete.
+- Adds a private Caddie Team ↔ Caddie Master chamber that remains separate from VIP Player messaging.
+- Adds Upcoming Golf acknowledgment with **Send the Caddie Force** and the Player status **The Caddie Force is with you.**
+- Matches Score Map controls to the Locker Room on desktop and mobile.
+- Adds migration 055 and coordinates Caddie Magic v0.5.2.
+- Repairs stale static validators that still referenced the retired standalone Member Directory module after v0.10.69.2 embedded that boundary inside the Concierge app.
+
+## Caddie Magic v0.5.2 — Caddie Master Command Center + Concierge Team
+
+- Preserves every Caddie as a Player first while adding a team-specific private support chamber.
+- Adds owner Caddie Team profiles, lifecycle/course directory filtering, and Compass Consecration.
+- Preserves VIP Player messaging, Scorecard Reviews, Assignments, Player privacy, Caddie consent boundaries, and all historical records.
+
 ## v0.10.69.2 — Member Directory Deployment Boundary Hotfix
 
 - Removes the Member Directory's remaining runtime dependency on a separately deployed `shared/member-directory.js` file.

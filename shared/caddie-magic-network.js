@@ -1,4 +1,4 @@
-// Caddie Magic v0.5.1 — Caddie Network, controlled courses, and shared scheduling.
+// Caddie Magic v0.5.2 — Caddie Network, command center, courses, and shared scheduling.
 
 import { supabase } from "./supabase.js";
 
@@ -307,6 +307,77 @@ export async function setVipCaddieMasterMessaging(playerProfileId, enabled) {
   const { data, error } = await supabase.rpc("caddie_magic_set_vip_messaging", {
     p_player_profile_id: playerProfileId,
     p_enabled: Boolean(enabled),
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+// Caddie Master Command Center + Caddie Concierge Team -----------------------
+
+export async function getCaddieMasterCommandCenter() {
+  const { data, error } = await supabase.rpc("caddie_magic_get_master_command_center");
+  if (error) throw error;
+  return data || {
+    player_messages: [],
+    caddie_team_messages: [],
+    assignments: [],
+    player_message_count: 0,
+    caddie_team_message_count: 0,
+    assignment_count: 0,
+    course_request_count: 0,
+    submitted_profile_count: 0,
+  };
+}
+
+export async function listCaddieConciergeTeam() {
+  const { data, error } = await supabase.rpc("caddie_magic_list_caddie_concierge_team");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getCaddieConciergeProfile(caddieProfileId) {
+  const { data, error } = await supabase.rpc("caddie_magic_get_caddie_concierge_profile", {
+    p_caddie_profile_id: caddieProfileId,
+  });
+  if (error) throw error;
+  return data || null;
+}
+
+export async function setCompassConsecrated(caddieProfileId, consecrated = true) {
+  const { data, error } = await supabase.rpc("caddie_magic_set_compass_consecrated", {
+    p_caddie_profile_id: caddieProfileId,
+    p_consecrated: Boolean(consecrated),
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+export async function getMyCaddieTeamMessages() {
+  const { data, error } = await supabase.rpc("caddie_magic_get_my_team_messages");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function sendMyCaddieTeamMessage(message) {
+  const { data, error } = await supabase.rpc("caddie_magic_send_my_team_message", {
+    p_message: String(message || "").trim(),
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+export async function getCaddieTeamMessages(caddieProfileId) {
+  const { data, error } = await supabase.rpc("caddie_magic_get_caddie_team_messages", {
+    p_caddie_profile_id: caddieProfileId,
+  });
+  if (error) throw error;
+  return data || [];
+}
+
+export async function sendCaddieTeamMessage(caddieProfileId, message) {
+  const { data, error } = await supabase.rpc("caddie_magic_send_caddie_team_message", {
+    p_caddie_profile_id: caddieProfileId,
+    p_message: String(message || "").trim(),
   });
   if (error) throw error;
   return oneRow(data);

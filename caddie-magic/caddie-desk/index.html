@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.5.1" />
-  <link rel="stylesheet" href="./styles.css?v=0.5.1" />
+  <link rel="stylesheet" href="../styles.css?v=0.5.2" />
+  <link rel="stylesheet" href="./styles.css?v=0.5.2" />
 </head>
 <body>
   <main class="cm-shell caddie-desk-shell">
@@ -99,7 +99,7 @@
           </div>
           <label class="accepting-toggle"><input id="acceptingRequestsToggle" type="checkbox" /><span></span><b id="acceptingRequestsLabel">Not accepting requests</b></label>
         </div>
-        <p class="cm-muted">Caddies manage requests, availability, consultations, and consented read-only preparation. Assignments, Messages, Caddie Master Notes, and Scorecard Reviews remain Caddie Master services.</p>
+        <p class="cm-muted">Caddies manage requests, availability, consultations, and consented read-only preparation. Assignments, VIP Player Messages, Caddie Master Notes, and Scorecard Reviews remain Caddie Master services.</p>
       </section>
 
       <section class="cm-card hidden" id="availabilityDeskCard">
@@ -145,6 +145,24 @@
         </div>
       </section>
 
+      <section class="cm-card hidden" id="caddieTeamMessagesCard">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">CADDIE TEAM MESSAGES</p>
+            <h2>Your private chamber with The Caddie Master.</h2>
+            <p class="cm-muted">Use this thread for Caddie Concierge Team questions and operational support. Player conversations remain private and separate.</p>
+          </div>
+          <span class="desk-status">PRIVATE</span>
+        </div>
+        <div class="team-message-thread" id="caddieTeamMessageThread"></div>
+        <form class="team-message-form" id="caddieTeamMessageForm">
+          <label for="caddieTeamMessageInput">Message The Caddie Master</label>
+          <textarea id="caddieTeamMessageInput" rows="4" maxlength="4000" placeholder="Share a question or update with The Caddie Master."></textarea>
+          <button class="cm-button" type="submit">Send Private Message</button>
+        </form>
+        <p class="cm-message" id="caddieTeamMessageStatus"></p>
+      </section>
+
       <section class="cm-card hidden" id="playerRequestsCard">
         <div class="desk-heading">
           <div>
@@ -175,6 +193,6 @@
     <div id="snapshotContent"></div>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.5.1"></script>
+  <script type="module" src="./app.js?v=0.5.2"></script>
 </body>
 </html>

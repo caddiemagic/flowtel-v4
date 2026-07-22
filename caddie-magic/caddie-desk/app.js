@@ -1,6 +1,6 @@
-// Caddie Magic v0.5.1 — simplified Caddie Profile, controlled courses, and shared scheduling.
+// Caddie Magic v0.5.2 — simplified Caddie Profile, controlled courses, and shared scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.1";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
 import {
   getMyCaddieProfile,
   saveMyCaddieProfile,
@@ -19,7 +19,9 @@ import {
   saveMyCaddieSchedule,
   addMyCaddieScheduleException,
   removeMyCaddieScheduleException,
-} from "../../shared/caddie-magic-network.js?v=0.5.1";
+  getMyCaddieTeamMessages,
+  sendMyCaddieTeamMessage,
+} from "../../shared/caddie-magic-network.js?v=0.5.2";
 
 const $ = (id) => document.getElementById(id);
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -35,6 +37,7 @@ let consultations = [];
 let courseCatalog = [];
 let courseSettings = { selected: [], pending: [] };
 let schedule = { weekly: [], exceptions: [], service: { duration_minutes: 45 } };
+let teamMessages = [];
 
 function escapeHtml(value = "") {
   return String(value)
@@ -100,7 +103,7 @@ function hydrateProfile() {
         ? statusLabel(profile.status)
         : "Submit for Approval";
 
-  ["activeDeskControls", "playerRequestsCard", "availabilityDeskCard", "consultationsDeskCard"].forEach((id) => {
+  ["activeDeskControls", "playerRequestsCard", "availabilityDeskCard", "consultationsDeskCard", "caddieTeamMessagesCard"].forEach((id) => {
     $(id)?.classList.toggle("hidden", !active);
   });
   $("acceptingRequestsToggle").checked = Boolean(profile?.accepting_requests);
@@ -405,7 +408,7 @@ async function openSnapshot(requestId) {
       <div class="snapshot-wrap">
         <p class="cm-eyebrow">READ-ONLY CONSULTATION PREPARATION</p>
         <h2>${escapeHtml(player.name || "Player")}</h2>
-        <p class="cm-muted">Study only what this Player consented to share. Caddies cannot edit Player records, create Assignments, send Caddie Master Messages, or leave Caddie Master Notes.</p>
+        <p class="cm-muted">Study only what this Player consented to share. Caddies cannot edit Player records, create Assignments, enter VIP Player ↔ Caddie Master conversations, or leave Caddie Master Notes.</p>
         <section class="snapshot-section"><div class="snapshot-grid">
           <article class="snapshot-data-card"><span>Trip Date</span><strong>${escapeHtml(formatDate(request.anticipated_trip_date))}</strong></article>
           <article class="snapshot-data-card"><span>Score Range</span><strong>${escapeHtml(player.handicap_or_score_range || "Not provided")}</strong></article>
@@ -427,17 +430,41 @@ async function openSnapshot(requestId) {
   }
 }
 
+function renderTeamMessages() {
+  const thread = $("caddieTeamMessageThread");
+  if (!thread) return;
+  thread.innerHTML = teamMessages.length
+    ? teamMessages.map((message) => {
+        const mine = message.sender_role === "caddie";
+        return `<article class="team-message ${mine ? "is-caddie" : "is-master"}">
+          <span>${mine ? "You" : "The Caddie Master"}</span>
+          <p>${escapeHtml(message.message_body || "")}</p>
+          <time>${escapeHtml(formatDateTime(message.created_at))}</time>
+        </article>`;
+      }).join("")
+    : `<div class="desk-empty">No Caddie Team messages yet.</div>`;
+  thread.scrollTop = thread.scrollHeight;
+}
+
+async function refreshTeamMessages() {
+  if (!isActive()) return;
+  teamMessages = await getMyCaddieTeamMessages();
+  renderTeamMessages();
+}
+
 async function reloadOperationalData() {
   if (!isActive()) return;
-  [requests, consultations, schedule] = await Promise.all([
+  [requests, consultations, schedule, teamMessages] = await Promise.all([
     listMyPlayerRequests(),
     listMyConsultations(),
     getMyCaddieSchedule(),
+    getMyCaddieTeamMessages().catch(() => []),
   ]);
   renderRequests();
   renderConsultations();
   renderWeeklySchedule();
   renderScheduleExceptions();
+  renderTeamMessages();
 }
 
 async function boot() {
@@ -479,6 +506,25 @@ $("acceptingRequestsToggle")?.addEventListener("change", async () => {
     $("acceptingRequestsToggle").checked = !$("acceptingRequestsToggle").checked;
     renderAcceptingLabel();
     setMessage($("deskMessage"), error?.message || "The request setting could not be changed.", true);
+  }
+});
+$("caddieTeamMessageForm")?.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const input = $("caddieTeamMessageInput");
+  const button = event.currentTarget.querySelector("button[type=submit]");
+  const message = String(input?.value || "").trim();
+  if (!message) return setMessage($("caddieTeamMessageStatus"), "Write a message before sending.", true);
+  button.disabled = true;
+  setMessage($("caddieTeamMessageStatus"), "Sending your private message...");
+  try {
+    await sendMyCaddieTeamMessage(message);
+    input.value = "";
+    await refreshTeamMessages();
+    setMessage($("caddieTeamMessageStatus"), "Message sent to The Caddie Master.");
+  } catch (error) {
+    setMessage($("caddieTeamMessageStatus"), error?.message || "The private message could not be sent.", true);
+  } finally {
+    button.disabled = false;
   }
 });
 $("saveWeeklyScheduleButton")?.addEventListener("click", saveWeeklySchedule);

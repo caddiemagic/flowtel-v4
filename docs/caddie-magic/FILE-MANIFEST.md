@@ -1,6 +1,6 @@
 # Caddie Magic File Manifest
 
-Latest integrated release: **Caddie Magic v0.5.1** with **Flowtel v0.10.68.1**
+Latest integrated release: **Caddie Magic v0.5.2** with **Flowtel v0.10.70**
 
 ## Application files
 
@@ -14,6 +14,7 @@ Latest integrated release: **Caddie Magic v0.5.1** with **Flowtel v0.10.68.1**
 - `caddie-magic/compass/club/`
 - `caddie-magic/caddies/`
 - `caddie-magic/caddie-desk/`
+- `manager/caddie-team/` — owner-only full Caddie Concierge Team profiles
 
 ## Shared modules
 
@@ -32,6 +33,9 @@ Latest integrated release: **Caddie Magic v0.5.1** with **Flowtel v0.10.68.1**
 - `manager/index.html`
 - `manager/app.js`
 - `manager/styles.css`
+- `manager/caddie-team/index.html`
+- `manager/caddie-team/app.js`
+- `manager/caddie-team/styles.css`
 
 ## Core assets
 
@@ -51,7 +55,8 @@ Latest integrated release: **Caddie Magic v0.5.1** with **Flowtel v0.10.68.1**
 - `database/migration-045-caddie-magic-player-invite-code-hotfix.sql`
 - `database/migration-052-caddie-magic-caddie-network-foundation.sql` — historical and already live
 - `database/migration-052-combined-flowtel-caddie-updates.sql` — historical and already live
-- `database/migration-053-caddie-network-reintegration-shared-scheduling.sql` — run once for v0.5.1/v0.10.68
+- `database/migration-053-caddie-network-reintegration-shared-scheduling.sql` — historical; already live
+- `database/migration-055-caddie-master-command-center.sql` — run once for v0.5.2/v0.10.70
 
 Do not rerun or rename either migration 052 file. Migration 037 remains retired.
 
@@ -60,7 +65,10 @@ Do not rerun or rename either migration 052 file. Migration 037 remains retired.
 - `docs/RELEASE-CADDIE-MAGIC-0.4.6.md`
 - `docs/RELEASE-CADDIE-MAGIC-0.5.0.md`
 - `docs/RELEASE-CADDIE-MAGIC-0.5.1.md`
+- `docs/RELEASE-CADDIE-MAGIC-0.5.2.md`
+- `docs/RELEASE-0.10.70.md`
 - `docs/RELEASE-0.10.68.md`
 - `scripts/validate-caddie-magic.mjs`
+- `scripts/validate-caddie-master-command-center.mjs`
 
-Run `node scripts/validate-caddie-magic.mjs` before shipping.
+Run `node scripts/validate-caddie-magic.mjs` and `node scripts/validate-caddie-master-command-center.mjs` before shipping.

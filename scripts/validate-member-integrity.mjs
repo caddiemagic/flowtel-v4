@@ -18,7 +18,6 @@ const betaJs=await read('beta-request/app.js');
 const betaApi=await read('api/beta-request.js');
 const profiles=await read('shared/profiles.js');
 const productAccess=await read('shared/product-access.js');
-const memberDirectory=await read('shared/member-directory.js');
 const vercel=JSON.parse(await read('vercel.json'));
 
 for(const token of [
@@ -49,8 +48,6 @@ assert(!managerJs.includes('import("../shared/member-directory.js'), 'Concierge 
 assert(managerJs.includes('the rest of the Concierge Desk remains available'), 'Member Directory failure must degrade locally instead of blocking the entire Desk.');
 assert(managerJs.includes('Flowtel Not Granted'),'All view must distinguish non-granted records from active members.');
 assert(managerCss.includes('.member-directory-row'));
-assert(memberDirectory.includes('flowtel_admin_get_member_directory'));
-assert(memberDirectory.includes('flowtel_admin_set_member_verification'));
 
 assert(clientHtml.includes('id="suiteProfileLink"'));
 assert(clientJs.includes('profileNeedsConfirmation'));
@@ -75,4 +72,4 @@ assert((vercel.rewrites||[]).some(row=>row.source==='/profile'&&row.destination=
 function duplicateIds(html){const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);return ids.filter((id,index)=>ids.indexOf(id)!==index);}
 for(const [name,html] of Object.entries({manager:managerHtml,client:clientHtml,profile:profileHtml,beta:betaHtml})) assert.deepEqual(duplicateIds(html),[],`${name} contains duplicate IDs.`);
 
-console.log('Flowtel v0.10.69.2 member integrity and Member Directory deployment validation passed.');
+console.log('Flowtel v0.10.70 member integrity and embedded Member Directory validation passed.');

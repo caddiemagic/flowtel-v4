@@ -87,6 +87,10 @@
       "destination": "/caddie-magic/index.html"
     },
     {
+      "source": "/manager/caddie-team",
+      "destination": "/manager/caddie-team/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },
@@ -182,7 +186,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.1"
+          "value": "0.5.2"
         }
       ]
     },
@@ -195,7 +199,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.1"
+          "value": "0.5.2"
         }
       ]
     },
@@ -208,7 +212,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.1"
+          "value": "0.5.2"
         }
       ]
     },
@@ -221,7 +225,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.1"
+          "value": "0.5.2"
         }
       ]
     },

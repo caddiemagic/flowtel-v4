@@ -27,7 +27,7 @@
 .cm-collective-axis{position:absolute;z-index:3;background:rgba(211,173,105,.55);pointer-events:none}
 .cm-collective-axis-y{top:0;bottom:0;left:50%;width:1px}
 .cm-collective-axis-x{left:0;right:0;top:50%;height:1px}
-.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);display:grid;place-items:center;color:transparent;background:url('/assets/caddie-magic-map-wheel.png?v=0.5.1') center/contain no-repeat;box-shadow:0 0 0 12px rgba(7,23,37,.95)}
+.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);display:grid;place-items:center;color:transparent;background:url('/assets/caddie-magic-map-wheel.png?v=0.5.2') center/contain no-repeat;box-shadow:0 0 0 12px rgba(7,23,37,.95)}
 .cm-collective-quadrant{position:relative;z-index:2;min-height:340px;padding:24px 28px;transition:min-height .2s ease}
 .cm-collective-west,.cm-collective-north{border-bottom:1px solid var(--line-soft)}
 .cm-collective-west,.cm-collective-south{border-right:1px solid var(--line-soft)}

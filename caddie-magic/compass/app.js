@@ -1,10 +1,10 @@
-// Caddie Magic v0.5.1 — player-owned Compass with four Cardinal Club rooms.
+// Caddie Magic v0.5.2 — player-owned Compass with four Cardinal Club rooms.
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.1";
-import { getMyCaddieMagicProfile, getMyActiveCompass, saveMyCompass } from "../../shared/caddie-magic-compass.js?v=0.5.1";
-import { getMyUpcomingGolfEvents, saveUpcomingGolfEvent, deleteUpcomingGolfEvent } from "../../shared/caddie-magic-schedule.js?v=0.5.1";
-import { moonLabelForDate } from "../../shared/caddie-magic-moon-calendar.js?v=0.5.1";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
+import { getMyCaddieMagicProfile, getMyActiveCompass, saveMyCompass } from "../../shared/caddie-magic-compass.js?v=0.5.2";
+import { getMyUpcomingGolfEvents, saveUpcomingGolfEvent, deleteUpcomingGolfEvent } from "../../shared/caddie-magic-schedule.js?v=0.5.2";
+import { moonLabelForDate } from "../../shared/caddie-magic-moon-calendar.js?v=0.5.2";
 
 const $ = (id) => document.getElementById(id);
 let playerProfile = null;
@@ -113,6 +113,7 @@ function golfEventMarkup(event) {
         <button class="golf-event-remove" type="button" data-delete-golf-event="${escapeHtml(event.id)}">Remove</button>
       </div>
       ${event.notes ? `<p class="golf-event-notes">${escapeHtml(event.notes)}</p>` : ""}
+      ${event.caddie_master_acknowledged_at ? `<p class="caddie-force-status">The Caddie Force is with you.</p>` : ""}
       <ol class="golf-moon-forecast">${forecastMarkup(event.moon_forecast)}</ol>
     </article>
   `;

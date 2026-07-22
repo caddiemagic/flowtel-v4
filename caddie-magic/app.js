@@ -1,14 +1,14 @@
-// Caddie Magic v0.5.1 — Network reintegration, Caddie Master services, and review credits
+// Caddie Magic v0.5.2 — Network reintegration, Caddie Master services, and review credits
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.5.1";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.5.1";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.5.1";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.1";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.5.1";
-import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.5.1";
-import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.5.1";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.5.2";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.5.2";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.5.2";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.2";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.5.2";
+import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.5.2";
+import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.5.2";
 
 const $ = (id) => document.getElementById(id);
 
@@ -815,7 +815,7 @@ function renderStats() {
     <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#calendar">
       <span>Calendar</span>
       <strong>${nextEvent ? escapeHtml(nextEventTitle) : "No Upcoming Golf"}</strong>
-      <small>${nextEvent ? `${escapeHtml(formatDate(nextEvent.date_start))}${nextEvent.course ? ` · ${escapeHtml(nextEvent.course)}` : ""}${nextForecast ? ` · Day ${escapeHtml(nextForecast.moon_day || "—")} · ${escapeHtml(moonLabelForDate(nextForecast.date, nextForecast.moon_phase))}` : ""}` : "Add your next round, tournament, or trip."}</small>
+      <small>${nextEvent ? `${escapeHtml(formatDate(nextEvent.date_start))}${nextEvent.course ? ` · ${escapeHtml(nextEvent.course)}` : ""}${nextForecast ? ` · Day ${escapeHtml(nextForecast.moon_day || "—")} · ${escapeHtml(moonLabelForDate(nextForecast.date, nextForecast.moon_phase))}` : ""}${nextEvent.caddie_master_acknowledged_at ? " · The Caddie Force is with you." : ""}` : "Add your next round, tournament, or trip."}</small>
     </a>
   `;
   renderCaddieDeskDoor();

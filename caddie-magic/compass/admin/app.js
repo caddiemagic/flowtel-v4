@@ -1,7 +1,7 @@
-// Caddie Magic v0.4.5 — Owner Compass + Direct Message Reply
+// Caddie Magic v0.5.2 — Owner Compass + Direct Message Reply
 
 import { supabase } from "../../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.5.1";
+import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.5.2";
 import {
   listCompassPlayers,
   getCompassForPlayer,
@@ -10,9 +10,10 @@ import {
   createCompassAssignment,
   sendCompassDispatch,
   adminUpdateCompassAssignment,
-} from "../../../shared/caddie-magic-compass.js?v=0.5.1";
-import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.5.1";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../../shared/caddie-magic-moon-calendar.js?v=0.5.1";
+  markPlayerMessagesRead,
+} from "../../../shared/caddie-magic-compass.js?v=0.5.2";
+import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.5.2";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../../shared/caddie-magic-moon-calendar.js?v=0.5.2";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);
@@ -303,6 +304,7 @@ async function init() {
     compass = loadedCompass;
     assignments = loadedAssignments;
     dispatches = loadedDispatches;
+    await markPlayerMessagesRead(playerProfileId).catch((error) => console.warn("Player message read state could not be updated.", error));
     upcomingGolf = allUpcoming.filter((event) => String(event.player_profile_id) === String(playerProfileId));
     if (!compass) throw new Error("This player has not saved a Caddie Compass yet.");
 

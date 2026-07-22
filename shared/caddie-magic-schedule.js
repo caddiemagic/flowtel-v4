@@ -95,3 +95,11 @@ export async function listUpcomingGolfEvents(startDate, endDate) {
   if (error) throw error;
   return data || [];
 }
+
+export async function acknowledgeUpcomingGolf(eventId) {
+  const { data, error } = await supabase.rpc("caddie_magic_acknowledge_upcoming_golf", {
+    p_event_id: eventId,
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
