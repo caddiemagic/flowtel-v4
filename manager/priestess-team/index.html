@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Priestess Concierge Team · Flowtel</title>
+  <link rel="stylesheet" href="../styles.css?v=0.10.71" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.71" />
+</head>
+<body>
+  <main class="priestess-team-shell">
+    <section class="priestess-team-hero">
+      <img src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <p class="eyebrow">PRIESTESS CONCIERGE TEAM</p>
+      <h1>Priestess Team Profile</h1>
+      <p>Private owner view of identity, Profile Studio status, mentor availability, clients, and Flow FM pathway.</p>
+      <a class="desk-link-button" href="/manager/?room=priestess-team">Return to Concierge Desk</a>
+    </section>
+
+    <section class="priestess-team-loading" id="teamLoadingCard">
+      <p class="eyebrow">OWNER ACCESS</p>
+      <h2>Opening this Priestess Concierge Team profile.</h2>
+      <p id="teamMessage">Checking your Concierge access...</p>
+    </section>
+
+    <section class="priestess-team-page hidden" id="teamProfilePage">
+      <section class="priestess-team-card identity-card" id="teamIdentityCard"></section>
+      <section class="priestess-team-summary" id="teamSummaryGrid"></section>
+      <section class="priestess-team-card" id="profileCard"></section>
+      <section class="priestess-team-card" id="mentorCard"></section>
+      <section class="priestess-team-card" id="clientsCard"></section>
+      <section class="priestess-team-card" id="callsCard"></section>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.10.71"></script>
+</body>
+</html>

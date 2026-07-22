@@ -1,9 +1,9 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { supabase } from "../shared/supabase.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.69";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.71";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.71";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
 import { listUpcomingGolfEvents, acknowledgeUpcomingGolf } from "../shared/caddie-magic-schedule.js?v=0.5.2";
@@ -76,6 +76,12 @@ async function restoreFlowtelMemberAccess(userId,reason=""){
   });
   if(error) throw error;
   return data===true;
+}
+
+async function listPriestessConciergeTeam(){
+  const {data,error}=await supabase.rpc("flowtel_admin_list_priestess_concierge_team");
+  if(error) throw error;
+  return Array.isArray(data)?data:[];
 }
 
 let guestHouseModulePromise=null;
@@ -170,6 +176,10 @@ let currentClientsCount=0;
 let memberDirectoryRows=[];
 let memberDirectoryServiceAvailable=true;
 let memberDirectoryAccessFilter="active";
+let priestessConciergeTeam=[];
+let priestessTeamServiceAvailable=true;
+let priestessTeamStatusFilter="all";
+let priestessTeamMembershipFilter="all";
 let clockInContext=null;
 let currentManagerProfile=null;
 let adminTeamMapRows=[];
@@ -759,7 +769,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","member-directory","caddie-master","caddie-network","caddie-team","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
+  if(["clients","member-directory","priestess-team","caddie-master","caddie-network","caddie-team","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -797,6 +807,8 @@ function updateStats(){
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
   setText("clientConnectionCount",currentConnectionRequestsCount);
+  setText("priestessTeamCount",priestessConciergeTeam.length);
+  setText("priestessTeamProfileCount",priestessConciergeTeam.filter(row=>row.profile_status!=="not_started").length);
   const activeMembers=memberDirectoryRows.filter(row=>row.flowtel_access && row.access_status!=="revoked").length;
   const membersNeedingReview=memberDirectoryRows.filter(row=>["needs_review","not_found","email_mismatch","contact_found"].includes(String(row.verification_status||""))).length;
   setText("flowtelMemberCount",activeMembers);
@@ -833,6 +845,9 @@ function updateStats(){
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
 
+  const priestessTeamCard=document.querySelector('[data-filter="priestess-team"]');
+  if(priestessTeamCard) priestessTeamCard.classList.toggle("has-alert",priestessConciergeTeam.some(row=>row.profile_status==="submitted"));
+
   const memberDirectoryCard=document.querySelector('[data-filter="member-directory"]');
   if(memberDirectoryCard) memberDirectoryCard.classList.toggle("has-alert",membersNeedingReview>0);
 
@@ -866,6 +881,7 @@ function setFilter(filter){
     "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Scorecard Review","As The Caddie Master, review their Score Map and send a private Caddie Master Note."],
     "caddie-compass":["CADDIE COMPASS","Caddie Master Assignments + VIP Messages","Create Player assignments and reply inside the owner-only Caddie Master conversation."],
     "upcoming-golf":["UPCOMING GOLF","Caddie Magic Moon Calendar","See upcoming rounds, tournaments, and trips across each moon-to-moon cycle."],
+    "priestess-team":["PRIESTESS CONCIERGE TEAM","Flow FM + Council Network","See every Flow FM and Council member, Profile Studio status, mentor availability, clients, shared identity, and private team profile."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "member-directory":["MEMBER DIRECTORY","Flowtel Member Integrity","Review identity, membership evidence, last sign-in, last Flowtel check-in, profile confirmation, and Flowtel-only access."],
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
@@ -2441,6 +2457,11 @@ function renderQueue(){
     return;
   }
 
+  if(activeFilter==="priestess-team"){
+    renderPriestessTeamQueue();
+    return;
+  }
+
   if(activeFilter==="queue"){
     renderTurndownServiceQueue();
     return;
@@ -2797,6 +2818,42 @@ function renderMemberDirectoryQueue(){
 }
 
 
+function priestessProfileStatusLabel(value){
+  return ({not_started:"Not Started",draft:"Draft",submitted:"Submitted",approved:"Approved",needs_revision:"Needs Revision"})[String(value||"")]||String(value||"Not Started").replaceAll("_"," ");
+}
+function priestessMembershipLabel(value){return String(value||"flowfm").toLowerCase()==="council"?"Council":"Flow FM";}
+function priestessTeamCard(row){
+  const profileStarted=String(row.profile_status||"not_started")!=="not_started";
+  const image=safeManagerImage(row.profile_photo_url);
+  return `<a class="priestess-team-card" href="/manager/priestess-team/?member=${encodeURIComponent(row.member_id)}">
+    <div class="priestess-team-card-heading"><img src="${escapeHtml(image)}" alt="${escapeHtml(row.display_name||"Flow FM member")}" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(priestessMembershipLabel(row.membership_type))} · ${escapeHtml(priestessProfileStatusLabel(row.profile_status))}</p><h3>${escapeHtml(row.display_name||"Flow FM Member")}</h3><p>${escapeHtml(row.priestess_title||"Flow FM Member")}</p></div><span class="priestess-availability ${row.mentor_accepting_clients?"is-open":""}">${row.mentor_accepting_clients?"Accepting Clients":"Not Accepting"}</span></div>
+    <div class="priestess-team-meta"><span>${escapeHtml(row.email||"")}</span><span>${escapeHtml(row.location||"Location not set")} · ${escapeHtml(row.timezone||"Timezone not set")}</span><span>${Number(row.active_client_count)||0} active client${Number(row.active_client_count)===1?"":"s"} · ${Number(row.pending_request_count)||0} pending request${Number(row.pending_request_count)===1?"":"s"}</span><span>${escapeHtml(row.upcoming_calls_note||"Calendar connection coming soon.")}</span>${profileStarted?"":`<span class="profile-not-started">Profile Studio has not been started yet.</span>`}</div>
+  </a>`;
+}
+function filteredPriestessTeamRows(){
+  return priestessConciergeTeam.filter(row=>{
+    const membershipMatch=priestessTeamMembershipFilter==="all"||String(row.membership_type||"")===priestessTeamMembershipFilter;
+    let statusMatch=true;
+    if(priestessTeamStatusFilter==="accepting")statusMatch=row.mentor_accepting_clients===true;
+    else if(priestessTeamStatusFilter==="not_accepting")statusMatch=row.mentor_accepting_clients!==true;
+    else if(priestessTeamStatusFilter!=="all")statusMatch=String(row.profile_status||"not_started")===priestessTeamStatusFilter;
+    return membershipMatch&&statusMatch;
+  });
+}
+function renderPriestessTeamQueue(){
+  if(!priestessTeamServiceAvailable){queue.innerHTML='<p class="empty-state">The Priestess Concierge Team requires migration 056.</p>';return;}
+  const rows=filteredPriestessTeamRows();
+  const statuses=["all","not_started","draft","submitted","approved","needs_revision","accepting","not_accepting"];
+  queue.innerHTML=`<section class="priestess-team-directory"><div class="directory-toolbar"><div><p class="eyebrow">PRIESTESS CONCIERGE TEAM</p><h3>${rows.length} Flow FM + Council member${rows.length===1?"":"s"}</h3><p>Every woman is included, even before she begins Profile Studio.</p></div><div class="directory-filter-group"><label>Path<select id="priestessMembershipFilter"><option value="all">Flow FM + Council</option><option value="flowfm" ${priestessTeamMembershipFilter==="flowfm"?"selected":""}>Flow FM</option><option value="council" ${priestessTeamMembershipFilter==="council"?"selected":""}>Council</option></select></label><label>Profile / Availability<select id="priestessStatusFilter">${statuses.map(status=>`<option value="${status}" ${status===priestessTeamStatusFilter?"selected":""}>${status==="all"?"All Members":status==="accepting"?"Accepting Clients":status==="not_accepting"?"Not Accepting Clients":priestessProfileStatusLabel(status)}</option>`).join("")}</select></label></div></div><div class="priestess-team-grid">${rows.length?rows.map(priestessTeamCard).join(""):'<p class="desk-empty-state">No women match these filters.</p>'}</div></section>`;
+  document.getElementById("priestessMembershipFilter")?.addEventListener("change",event=>{priestessTeamMembershipFilter=event.target.value;renderPriestessTeamQueue();});
+  document.getElementById("priestessStatusFilter")?.addEventListener("change",event=>{priestessTeamStatusFilter=event.target.value;renderPriestessTeamQueue();});
+}
+async function loadPriestessConciergeTeam(){
+  try{priestessConciergeTeam=await listPriestessConciergeTeam();priestessTeamServiceAvailable=true;}
+  catch(error){console.warn("Priestess Concierge Team is not available yet.",error);priestessConciergeTeam=[];priestessTeamServiceAvailable=false;}
+}
+
+
 async function loadDesk({silent=false}={}){
   if(deskRefreshInFlight) return;
   deskRefreshInFlight=true;
@@ -2805,6 +2862,7 @@ async function loadDesk({silent=false}={}){
     await renderConnectionRequests();
     await renderMyClients();
     await loadMemberDirectory();
+    await loadPriestessConciergeTeam();
     await loadCaddiePlayerAccess();
     await loadCaddieNetworkData();
     await loadCaddieReviews();

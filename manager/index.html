@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.70" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.71" />
 </head>
 
 <body>
@@ -91,6 +91,11 @@
           <strong id="upcomingGolfCount">0</strong>
           <em>Admin calendar</em>
         </button>
+        <button class="stat-card" type="button" data-filter="priestess-team">
+          <span>Priestess Concierge Team</span>
+          <strong id="priestessTeamCount">0</strong>
+          <em><b id="priestessTeamProfileCount">0</b> profiles started</em>
+        </button>
         <button class="stat-card" type="button" data-filter="clients">
           <span>Your Clients</span>
           <strong id="clientsCount">0</strong>
@@ -166,7 +171,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.70").catch(function(error){
+    import("./app.js?v=0.10.71").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

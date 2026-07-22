@@ -2,7 +2,7 @@
 // Flow FM Priestess Profile Studio helpers.
 
 import { supabase } from "./supabase.js";
-import { updateMyFlowtelIdentity } from "./profiles.js?v=0.4.1";
+import { updateMySharedFlowtelIdentity } from "./profiles.js?v=0.10.71";
 
 export const PRIESTESS_PROFILE_STATUSES = [
   { value: "draft", label: "Draft", tone: "draft" },
@@ -78,6 +78,7 @@ export function emptyPriestessProfile(memberId = null) {
     offerings: "",
     location: "",
     timezone: "",
+    hemisphere: "",
     framework_language: "",
     network_opt_in: false,
     revenue_share_opt_in: false,
@@ -113,6 +114,9 @@ function identityPayload(profile = {}) {
     displayName: String(displayName || "").trim(),
     firstName: String(legalFirstName || "").trim(),
     lastName: String(legalLastName || "").trim(),
+    location: String(profile.location || "").trim(),
+    timezone: String(profile.timezone || "America/Los_Angeles").trim(),
+    hemisphere: String(profile.hemisphere || "").trim(),
   };
 }
 
@@ -172,7 +176,7 @@ export async function savePriestessProfileWebsite(websiteUrl = "") {
 
 export async function savePriestessProfileDraft(profile = {}) {
   const identity = identityPayload(profile);
-  await updateMyFlowtelIdentity(identity);
+  await updateMySharedFlowtelIdentity(identity);
   const payload = profilePayload(profile);
   const { data, error } = await supabase.rpc("flow_fm_save_priestess_profile_draft", payload);
   if (error) throw error;
@@ -182,7 +186,7 @@ export async function savePriestessProfileDraft(profile = {}) {
 
 export async function submitPriestessProfile(profile = {}) {
   const identity = identityPayload(profile);
-  await updateMyFlowtelIdentity(identity);
+  await updateMySharedFlowtelIdentity(identity);
   const payload = profilePayload(profile);
   const { data, error } = await supabase.rpc("flow_fm_submit_priestess_profile", payload);
   if (error) throw error;

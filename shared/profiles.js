@@ -3,7 +3,7 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
-import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.69";
+import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.71";
 
 
 export function displayNameForProfile(profile = {}, fallback = "Guest") {
@@ -158,6 +158,59 @@ export async function ensureProfile(profile = {}) {
   return data;
 }
 
+export function normalizeHemisphere(value = "") {
+  const normalized = String(value || "").trim().toLowerCase();
+  return ["northern", "southern", "equatorial"].includes(normalized) ? normalized : "";
+}
+
+export async function updateMySharedFlowtelIdentity({
+  firstName = "",
+  lastName = "",
+  displayName = "",
+  location = "",
+  timezone = "America/Los_Angeles",
+  hemisphere = "",
+} = {}) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("No authenticated user.");
+
+  const payload = {
+    p_first_name: String(firstName || "").trim(),
+    p_last_name: String(lastName || "").trim(),
+    p_display_name: String(displayName || "").trim(),
+    p_location: String(location || "").trim(),
+    p_timezone: String(timezone || "").trim(),
+    p_hemisphere: normalizeHemisphere(hemisphere) || null,
+  };
+
+  const { data, error } = await supabase.rpc("flowtel_update_my_shared_identity", payload);
+  if (error) {
+    const message = String(error?.message || "");
+    if (message.toLowerCase().includes("flowtel_update_my_shared_identity")) {
+      throw new Error("The shared Flowtel identity foundation is not installed yet. Run migration 056, then save again.");
+    }
+    throw error;
+  }
+
+  const saved = Array.isArray(data) ? data[0] || null : data;
+  const metadataUpdate = await supabase.auth.updateUser({
+    data: {
+      first_name: payload.p_first_name,
+      last_name: payload.p_last_name,
+      display_name: payload.p_display_name,
+      full_name: payload.p_display_name,
+      name: payload.p_display_name,
+      location: payload.p_location,
+      timezone: payload.p_timezone,
+      hemisphere: payload.p_hemisphere,
+    },
+  });
+  if (metadataUpdate.error) {
+    console.warn("Flowtel identity saved, but browser Auth metadata could not be refreshed yet.", metadataUpdate.error);
+  }
+  return saved;
+}
+
 export async function updateMyFlowtelIdentity({ firstName = "", lastName = "", displayName = "" } = {}) {
   const user = await getCurrentUser();
 
@@ -221,44 +274,36 @@ export async function updateMyGuestProfile({
   displayName = "",
   location = "",
   timezone = "America/Los_Angeles",
+  hemisphere = "",
 } = {}) {
-  const user = await getCurrentUser();
-  if (!user) throw new Error("No authenticated user.");
+  try {
+    return await updateMySharedFlowtelIdentity({
+      firstName,
+      lastName,
+      displayName,
+      location,
+      timezone,
+      hemisphere,
+    });
+  } catch (error) {
+    const message = String(error?.message || "").toLowerCase();
+    if (!message.includes("shared flowtel identity foundation") && !message.includes("flowtel_update_my_shared_identity")) throw error;
 
-  const payload = {
-    p_first_name: String(firstName || "").trim(),
-    p_last_name: String(lastName || "").trim(),
-    p_display_name: String(displayName || "").trim(),
-    p_location: String(location || "").trim(),
-    p_timezone: String(timezone || "").trim(),
-  };
-
-  const { data, error } = await supabase.rpc("flowtel_update_my_guest_profile", payload);
-  if (error) {
-    const message = String(error?.message || "");
-    if (message.toLowerCase().includes("flowtel_update_my_guest_profile")) {
-      throw new Error("The newest Flowtel profile room is not installed yet. Run migration 054, then save again.");
-    }
-    throw error;
+    // Compatibility fallback for a brief rolling deployment window. Migration
+    // 056 should still be installed before the v0.10.71 website files.
+    const user = await getCurrentUser();
+    if (!user) throw new Error("No authenticated user.");
+    const payload = {
+      p_first_name: String(firstName || "").trim(),
+      p_last_name: String(lastName || "").trim(),
+      p_display_name: String(displayName || "").trim(),
+      p_location: String(location || "").trim(),
+      p_timezone: String(timezone || "").trim(),
+    };
+    const { data, error: legacyError } = await supabase.rpc("flowtel_update_my_guest_profile", payload);
+    if (legacyError) throw legacyError;
+    return Array.isArray(data) ? data[0] || null : data;
   }
-
-  const saved = Array.isArray(data) ? data[0] || null : data;
-  const metadataUpdate = await supabase.auth.updateUser({
-    data: {
-      first_name: payload.p_first_name,
-      last_name: payload.p_last_name,
-      display_name: payload.p_display_name,
-      full_name: payload.p_display_name,
-      name: payload.p_display_name,
-      location: payload.p_location,
-      timezone: payload.p_timezone,
-    },
-  });
-  if (metadataUpdate.error) {
-    console.warn("Flowtel profile saved, but browser Auth metadata could not be refreshed yet.", metadataUpdate.error);
-  }
-
-  return saved;
 }
 
 export async function updatePowderRoomSharing(enabled = true) {

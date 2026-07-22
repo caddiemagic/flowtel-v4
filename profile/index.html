@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Flowtel Profile</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.69" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.71" />
 </head>
 <body>
   <main class="profile-shell">
@@ -55,7 +55,18 @@
           </label>
         </div>
 
-        <p class="privacy-note">Your first and last name, email, location, and timezone remain private to you, the Flowtel owner, and an authorized connected mentor. Your Queendom name remains the visible identity.</p>
+        <label>
+          <span>Hemisphere</span>
+          <select id="hemisphere" name="hemisphere" required>
+            <option value="">Choose your seasonal context</option>
+            <option value="northern">Northern Hemisphere</option>
+            <option value="southern">Southern Hemisphere</option>
+            <option value="equatorial">Equatorial / seasonal context varies</option>
+          </select>
+          <small>This prepares your outer-season context for the future Time and Space view.</small>
+        </label>
+
+        <p class="privacy-note">Your first and last name, email, location, timezone, and hemisphere remain private to you, the Flowtel owner, and an authorized connected mentor. Your Queendom name remains the visible identity.</p>
 
         <p class="profile-message" id="profileMessage" role="status" aria-live="polite"></p>
 
@@ -72,6 +83,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.69"></script>
+  <script type="module" src="./app.js?v=0.10.71"></script>
 </body>
 </html>

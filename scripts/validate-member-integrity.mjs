@@ -72,4 +72,4 @@ assert((vercel.rewrites||[]).some(row=>row.source==='/profile'&&row.destination=
 function duplicateIds(html){const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);return ids.filter((id,index)=>ids.indexOf(id)!==index);}
 for(const [name,html] of Object.entries({manager:managerHtml,client:clientHtml,profile:profileHtml,beta:betaHtml})) assert.deepEqual(duplicateIds(html),[],`${name} contains duplicate IDs.`);
 
-console.log('Flowtel v0.10.70 member integrity and embedded Member Directory validation passed.');
+console.log('Flowtel v0.10.71 member integrity and embedded Member Directory validation passed.');

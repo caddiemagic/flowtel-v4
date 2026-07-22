@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.56 — compact Profile Studio, human timezone preview, and Priestess Audio Mailbox.
+// Flowtel v0.10.71 — shared Flowtel identity, Priestess Network foundation, and Priestess Audio Mailbox.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -39,6 +39,12 @@ const FLOWTEL_TIMEZONE_OPTIONS = [
   { value: 'Europe/London', label: 'UK — Europe/London' },
   { value: 'Europe/Paris', label: 'Central Europe — Europe/Paris' },
   { value: 'Australia/Sydney', label: 'Sydney — Australia/Sydney' },
+];
+const FLOWTEL_HEMISPHERE_OPTIONS = [
+  { value: '', label: 'Choose your seasonal context' },
+  { value: 'northern', label: 'Northern Hemisphere' },
+  { value: 'southern', label: 'Southern Hemisphere' },
+  { value: 'equatorial', label: 'Equatorial / seasonal context varies' },
 ];
 
 const topNav = document.getElementById('topNav');
@@ -174,6 +180,9 @@ function displayLocation(record={}){
   if(typeof record.display_location === 'boolean') return record.display_location;
   return !!String(record.location || '').trim();
 }
+function renderHemisphereOptions(selected=''){
+  return FLOWTEL_HEMISPHERE_OPTIONS.map(item=>`<option value="${escapeHtml(item.value)}" ${item.value===String(selected||'').toLowerCase()?'selected':''}>${escapeHtml(item.label)}</option>`).join('');
+}
 function renderProfileStatusPill(status='draft'){
   const key=String(status || 'draft');
   const label = {draft:'Draft',draft_revision:'Draft Revision',submitted:'Submitted',approved:'Approved',needs_revision:'Needs revision'}[key] || 'Draft';
@@ -226,6 +235,7 @@ function valuesFromForm(form){
     location,
     displayLocation:displayLocationValue,
     timezone:String(data.get('timezone') || 'America/Los_Angeles'),
+    hemisphere:String(data.get('hemisphere') || '').trim().toLowerCase(),
   };
 }
 function payloadFromValues(values){
@@ -248,9 +258,10 @@ function payloadFromValues(values){
     podcastUrl: currentPriestessProfile?.podcast_url || '',
     queendomName: values.displayName ? `${values.displayName}'s Queendom` : 'Your Queendom',
     offerings: values.offerings,
-    location: values.displayLocation ? values.location : '',
+    location: values.location,
     timezone: values.timezone,
-    frameworkLanguage: `Profile Studio selections: title=${values.titleValue}; bio=${values.bioValue}; offerings=${values.offeringValues.join('|')}; display_location=${values.displayLocation}; private_location=${values.location}`,
+    hemisphere: values.hemisphere,
+    frameworkLanguage: `Profile Studio selections: title=${values.titleValue}; bio=${values.bioValue}; offerings=${values.offeringValues.join('|')}; display_location=${values.displayLocation}; private_location=${values.location}; hemisphere=${values.hemisphere}`,
     networkOptIn: !!currentPriestessProfile?.network_opt_in,
     revenueShareOptIn: !!currentPriestessProfile?.revenue_share_opt_in,
   };
@@ -333,7 +344,8 @@ function refreshPreviewFromForm(form,{ markDirty=true }={}){
     website_url:payload.websiteUrl,
     offerings:payload.offerings,
     location:payload.location,
-    timezone:payload.timezone
+    timezone:payload.timezone,
+    hemisphere:payload.hemisphere
   };
   profileStudioPreview.innerHTML=renderDisplayProfile(currentPriestessProfile);
   updateTimezoneClocks();
@@ -487,7 +499,8 @@ function renderProfileStudio(record=currentPriestessProfile){
     <label><span>Bio Template</span><select name="bio_template">${renderBioOptions(titleValue,bioValue)}</select></label>
     <div class="selected-bio-preview" data-selected-bio-preview></div>
     <fieldset class="offering-fieldset"><legend>Offerings</legend><div class="selection-chip-grid">${renderOfferingOptions(offeringValues)}</div></fieldset>
-    <div class="form-grid"><label><span>Location — optional</span><input name="location" value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, CA / Online" /></label><label><span>Your Timezone</span><select name="timezone">${renderTimezoneOptions(timezone)}</select></label></div>
+    <div class="form-grid"><label><span>Location</span><input name="location" required value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, California" /><small class="field-help">City, region, or country only. This shared location also appears in your Guest Flowtel Profile.</small></label><label><span>Your Timezone</span><select name="timezone" required>${renderTimezoneOptions(timezone)}</select></label></div>
+    <label><span>Hemisphere</span><select name="hemisphere" required>${renderHemisphereOptions(profile.hemisphere || currentProfile?.hemisphere || '')}</select><small class="field-help">Used for the future Time and Space view and outer-season context.</small></label>
     <label class="checkbox-row checkbox-row--simple"><input type="checkbox" name="display_location" ${displayLocation(profile) ? 'checked' : ''} /><span>Display my location on my Priestess Profile.</span></label>
     <label><span>External Website URL — optional</span><input name="website_url" type="text" inputmode="url" autocapitalize="off" autocomplete="url" value="${escapeHtml(profile.website_url || '')}" placeholder="yourpriestessprofile.com" /><small class="field-help">Paste your existing Priestess profile link. Flowtel will add https:// when needed.</small></label>
     ${isViewingAnotherMember(currentProfile) ? '' : profilePhotoUploaderMarkup(profile)}
@@ -544,6 +557,18 @@ async function handleProfileAction(form,action){
   if(!String(displayNameInput?.value || '').trim()){
     displayNameInput?.focus();
     setPageMessage('Add the Priestess Display Name you want to use throughout the Flowtel.');
+    return;
+  }
+  const locationInput=form.querySelector('[name="location"]');
+  const hemisphereInput=form.querySelector('[name="hemisphere"]');
+  if(!String(locationInput?.value || '').trim()){
+    locationInput?.focus();
+    setPageMessage('Add your city, region, or country so your shared Flowtel identity stays complete.');
+    return;
+  }
+  if(!String(hemisphereInput?.value || '').trim()){
+    hemisphereInput?.focus();
+    setPageMessage('Choose your hemisphere or equatorial seasonal context.');
     return;
   }
   const websiteInput=form.querySelector('[name="website_url"]');
@@ -724,6 +749,9 @@ async function loadSavedProfile(){
       legal_last_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.last_name || currentPriestessProfile?.legal_last_name || ''),
       first_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.first_name || ''),
       last_name: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.last_name || ''),
+      location: isViewingAnotherMember(currentProfile) ? (profile?.location || '') : (currentProfile?.location || profile?.location || ''),
+      timezone: isViewingAnotherMember(currentProfile) ? (profile?.timezone || 'America/Los_Angeles') : (currentProfile?.timezone || profile?.timezone || 'America/Los_Angeles'),
+      hemisphere: isViewingAnotherMember(currentProfile) ? '' : (currentProfile?.hemisphere || ''),
       display_status:''
     };
     renderProfileStudio(currentPriestessProfile);
@@ -736,7 +764,7 @@ async function loadSavedProfile(){
 }
 async function hydrateFromSupabase(){
   try{
-    api=await import('/shared/flowtel.js?v=0.10.56');
+    api=await import('/shared/flowtel.js?v=0.10.71');
     mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.67');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){

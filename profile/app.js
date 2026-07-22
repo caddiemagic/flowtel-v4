@@ -1,5 +1,5 @@
-import { getCurrentProfile, updateMyGuestProfile } from "../shared/profiles.js?v=0.10.69";
-import { isProductAccessError } from "../shared/product-access.js?v=0.10.69";
+import { getCurrentProfile, updateMyGuestProfile } from "../shared/profiles.js?v=0.10.71";
+import { isProductAccessError } from "../shared/product-access.js?v=0.10.71";
 
 const form = document.getElementById("profileForm");
 const loading = document.getElementById("profileLoading");
@@ -57,6 +57,7 @@ function populate(profile) {
   document.getElementById("displayName").value = profile?.display_name || "";
   document.getElementById("email").value = profile?.email || "";
   document.getElementById("location").value = profile?.location || "";
+  document.getElementById("hemisphere").value = profile?.hemisphere || "";
   renderTimezoneOptions(profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles");
   returnLink.href = returnTarget();
 }
@@ -96,6 +97,7 @@ form?.addEventListener("submit", async (event) => {
       displayName: document.getElementById("displayName").value,
       location: document.getElementById("location").value,
       timezone: timezoneSelect.value,
+      hemisphere: document.getElementById("hemisphere").value,
     });
     try {
       sessionStorage.removeItem(`flowtel:profilePromptShown:${currentProfile?.id || "member"}`);

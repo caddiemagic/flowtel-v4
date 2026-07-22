@@ -91,6 +91,10 @@
       "destination": "/manager/caddie-team/index.html"
     },
     {
+      "source": "/manager/priestess-team",
+      "destination": "/manager/priestess-team/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },

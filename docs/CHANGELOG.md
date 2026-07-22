@@ -1,3 +1,14 @@
+## v0.10.71 — Priestess Network + Shared Identity
+
+- Adds an owner-only Priestess Concierge Team directory containing every Flow FM and Council member, including women who have not started Profile Studio.
+- Adds Flow FM/Council, profile-state, and accepting-client filters plus dedicated owner-only team profiles with membership, profile, mentor settings, consented client relationships, and authorized Client Snapshot links.
+- Displays **Calendar connection coming soon** until the later shared Acuity integration supplies real practitioner calls.
+- Makes `profiles` the canonical source for first name, last name, `display_name`, location, timezone, and hemisphere across Guest Profile and Priestess Profile Studio.
+- Adds compatibility triggers that prevent Priestess Profile identity columns from drifting away from the canonical Flowtel identity.
+- Adds Northern, Southern, and Equatorial seasonal-context selection while intentionally deferring the plotted Time and Space world map and external location autocomplete.
+- Adds migration 056 and preserves all membership, mentor-consent, profile, stay, note, password, and Caddie Magic history.
+- Keeps Caddie Magic at v0.5.2 with no Caddie behavior changes.
+
 ## v0.10.70 — Caddie Master Command Center
 
 - Consolidates Player invitations/access and Caddie lifecycle operations into one Caddie Network room and removes the separate Caddie Players card.
