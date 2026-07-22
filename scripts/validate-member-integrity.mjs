@@ -43,6 +43,9 @@ assert(managerHtml.includes('id="flowtelMemberCount"'));
 assert(managerJs.includes('renderMemberDirectoryQueue'));
 assert(managerJs.includes('Last Sign-In') && managerJs.includes('Last Flowtel Check-In'));
 assert(managerJs.includes('revokeFlowtelMemberAccess') && managerJs.includes('restoreFlowtelMemberAccess'));
+assert(!managerJs.includes('from "../shared/member-directory.js'), 'Member Directory must not be a top-level Concierge dependency.');
+assert(managerJs.includes('ensureMemberDirectoryModule') && managerJs.includes('import("../shared/member-directory.js?v=0.10.69.1")'), 'Member Directory must load behind the resilient lazy boundary.');
+assert(managerJs.includes('the rest of the Concierge Desk remains available'), 'Member Directory failure must degrade locally instead of blocking the entire Desk.');
 assert(managerJs.includes('Flowtel Not Granted'),'All view must distinguish non-granted records from active members.');
 assert(managerCss.includes('.member-directory-row'));
 assert(memberDirectory.includes('flowtel_admin_get_member_directory'));
@@ -71,4 +74,4 @@ assert((vercel.rewrites||[]).some(row=>row.source==='/profile'&&row.destination=
 function duplicateIds(html){const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);return ids.filter((id,index)=>ids.indexOf(id)!==index);}
 for(const [name,html] of Object.entries({manager:managerHtml,client:clientHtml,profile:profileHtml,beta:betaHtml})) assert.deepEqual(duplicateIds(html),[],`${name} contains duplicate IDs.`);
 
-console.log('Flowtel v0.10.69 member integrity and guest profile validation passed.');
+console.log('Flowtel v0.10.69.1 member integrity and Concierge resilience validation passed.');

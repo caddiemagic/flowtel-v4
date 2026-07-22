@@ -24,7 +24,7 @@ const files={
 };
 
 assert(files.managerHtml.includes('styles.css?v=0.10.69'));
-assert(files.managerHtml.includes('app.js?v=0.10.69'));
+assert(files.managerHtml.includes('app.js?v=0.10.69.1'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');

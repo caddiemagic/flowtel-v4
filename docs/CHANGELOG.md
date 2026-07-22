@@ -1,3 +1,10 @@
+## v0.10.69.1 — Concierge Module Load Resilience Hotfix
+
+- Removes the new Member Directory from the Concierge Desk's top-level static module graph so one unavailable dependency can no longer block the entire owner Desk.
+- Lazy-loads the Member Directory with retry-safe failure handling and contains any loading problem to that room.
+- Adds a focused Concierge cache key and validator coverage for the resilient module boundary.
+- Requires no migration; migration 054 must not be rerun.
+
 ## v0.10.69 — Member Integrity + Guest Profiles
 
 - Adds an owner-only Flowtel Member Directory with private legal identity, canonical display name, email, role, membership level, access status, verification status, Last Sign-In, and Last Flowtel Check-In.

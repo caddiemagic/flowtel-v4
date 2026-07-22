@@ -14,7 +14,6 @@ import { createMailboxDownloadUrl, listAdminPriestessMailbox, listPriestessInbox
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
-import { listFlowtelMembers, setFlowtelMemberVerification, revokeFlowtelMemberAccess, restoreFlowtelMemberAccess } from "../shared/member-directory.js?v=0.10.69";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -31,6 +30,23 @@ const DEFAULT_GUEST_HOUSE_STATUS_LABELS=Object.freeze({
 let GUEST_HOUSE_STATUS_LABELS=DEFAULT_GUEST_HOUSE_STATUS_LABELS;
 let guestHouseApi=null;
 let guestHouseCore=null;
+let memberDirectoryModulePromise=null;
+let memberDirectoryModuleLoadError=null;
+
+async function ensureMemberDirectoryModule(){
+  if(!memberDirectoryModulePromise){
+    memberDirectoryModulePromise=import("../shared/member-directory.js?v=0.10.69.1")
+      .then(api=>{memberDirectoryModuleLoadError=null;return api;})
+      .catch(error=>{memberDirectoryModulePromise=null;memberDirectoryModuleLoadError=error;throw error;});
+  }
+  return memberDirectoryModulePromise;
+}
+
+async function listFlowtelMembers(...args){const api=await ensureMemberDirectoryModule();return api.listFlowtelMembers(...args);}
+async function setFlowtelMemberVerification(...args){const api=await ensureMemberDirectoryModule();return api.setFlowtelMemberVerification(...args);}
+async function revokeFlowtelMemberAccess(...args){const api=await ensureMemberDirectoryModule();return api.revokeFlowtelMemberAccess(...args);}
+async function restoreFlowtelMemberAccess(...args){const api=await ensureMemberDirectoryModule();return api.restoreFlowtelMemberAccess(...args);}
+
 let guestHouseModulePromise=null;
 
 function fallbackGuestHouseFileSize(bytes=0){
@@ -2657,7 +2673,10 @@ function bindMemberDirectoryActions(){
 }
 function renderMemberDirectoryQueue(){
   if(!memberDirectoryServiceAvailable){
-    queue.innerHTML='<p class="empty-state">The Member Directory will open after migration 054 is installed.</p>';
+    const detail=memberDirectoryModuleLoadError?.message
+      ? ` The Member Directory module reported: ${escapeHtml(memberDirectoryModuleLoadError.message)}`
+      : "";
+    queue.innerHTML=`<p class="empty-state">The Member Directory could not open, but the rest of the Concierge Desk remains available.${detail}</p>`;
     return;
   }
   const rows=memberAccessRows();
