@@ -99,7 +99,8 @@ for (const file of caddieHtmlFiles) {
   assert(!html.includes("cm-version"), `${file}: internal version pill is still user-facing.`);
   assert(!/v0\.(4\.6|5\.0)/.test(html), `${file}: stale active Caddie version remains.`);
 }
-assert(files.managerHtml.includes('app.js?v=0.10.68-caddie-0.5.1'), "Manager loader is not coordinated with Caddie Magic v0.5.1.");
+assert(files.managerHtml.includes('app.js?v=0.10.69'), "Manager loader is not on the current Flowtel release.");
+assert(files.managerJs.includes('caddie-magic-network.js?v=0.5.1'), "Manager Caddie Network wiring is not preserved at v0.5.1.");
 
 const vercel = JSON.parse(await read("vercel.json"));
 const rewriteSources = new Set((vercel.rewrites || []).map((item) => item.source));

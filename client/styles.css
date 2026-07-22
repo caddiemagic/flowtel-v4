@@ -3818,3 +3818,8 @@ body.personal-room-key-is-open{
 /* Release 0.10.67 — balanced Concierge care buttons */
 #requestTurndownButton,#requestWakeUpTextButton{width:min(100%,300px);justify-content:center}
 @media(max-width:620px){#requestTurndownButton,#requestWakeUpTextButton{width:100%}}
+
+/* Flowtel v0.10.69 — My Profile doorway */
+.suite-arrival .suite-external-actions{gap:10px;flex-wrap:wrap}
+.suite-arrival .suite-external-actions .queendom-return-link{min-width:220px;max-width:310px}
+@media(max-width:640px){.suite-arrival .suite-external-actions .queendom-return-link{max-width:none}}

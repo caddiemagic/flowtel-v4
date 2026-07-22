@@ -47,7 +47,11 @@ export async function requireProductAccess(product, { claimIfMissing = false } =
   if (normalized === "flowtel" && claimIfMissing) {
     const claimed = await claimFlowtelAccess();
     if (!claimed) {
-      throw new ProductAccessError("flowtel", "Your player key opens Caddie Magic, not Flowtel.");
+      const access = await getMyProductAccess();
+      const message = access?.flowtel_access_status === "revoked"
+        ? "Your Flowtel access has been paused by the Concierge. Your history remains safely preserved."
+        : "Your player key opens Caddie Magic, not Flowtel.";
+      throw new ProductAccessError("flowtel", message);
     }
   }
 
@@ -59,7 +63,9 @@ export async function requireProductAccess(product, { claimIfMissing = false } =
 
   if (!allowed) {
     const message = normalized === "flowtel"
-      ? "Your player key opens Caddie Magic, not Flowtel."
+      ? (access?.flowtel_access_status === "revoked"
+        ? "Your Flowtel access has been paused by the Concierge. Your history remains safely preserved."
+        : "Your player key opens Caddie Magic, not Flowtel.")
       : "This account has not been invited into Caddie Magic.";
     throw new ProductAccessError(normalized, message);
   }

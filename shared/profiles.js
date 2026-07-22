@@ -3,7 +3,7 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
-import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.4.1";
+import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.69";
 
 
 export function displayNameForProfile(profile = {}, fallback = "Guest") {
@@ -201,6 +201,64 @@ export async function updateMyFlowtelIdentity({ firstName = "", lastName = "", d
   }
 
   return Array.isArray(data) ? data[0] || null : data;
+}
+
+
+export function profileNeedsConfirmation(profile = {}) {
+  if (!profile || !profile.id) return false;
+  if (profile.profile_confirmation_required === true) return true;
+
+  return !String(profile.first_name || "").trim()
+    || !String(profile.last_name || "").trim()
+    || !String(profile.display_name || "").trim()
+    || !String(profile.location || "").trim()
+    || !String(profile.timezone || "").trim();
+}
+
+export async function updateMyGuestProfile({
+  firstName = "",
+  lastName = "",
+  displayName = "",
+  location = "",
+  timezone = "America/Los_Angeles",
+} = {}) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("No authenticated user.");
+
+  const payload = {
+    p_first_name: String(firstName || "").trim(),
+    p_last_name: String(lastName || "").trim(),
+    p_display_name: String(displayName || "").trim(),
+    p_location: String(location || "").trim(),
+    p_timezone: String(timezone || "").trim(),
+  };
+
+  const { data, error } = await supabase.rpc("flowtel_update_my_guest_profile", payload);
+  if (error) {
+    const message = String(error?.message || "");
+    if (message.toLowerCase().includes("flowtel_update_my_guest_profile")) {
+      throw new Error("The newest Flowtel profile room is not installed yet. Run migration 054, then save again.");
+    }
+    throw error;
+  }
+
+  const saved = Array.isArray(data) ? data[0] || null : data;
+  const metadataUpdate = await supabase.auth.updateUser({
+    data: {
+      first_name: payload.p_first_name,
+      last_name: payload.p_last_name,
+      display_name: payload.p_display_name,
+      full_name: payload.p_display_name,
+      name: payload.p_display_name,
+      location: payload.p_location,
+      timezone: payload.p_timezone,
+    },
+  });
+  if (metadataUpdate.error) {
+    console.warn("Flowtel profile saved, but browser Auth metadata could not be refreshed yet.", metadataUpdate.error);
+  }
+
+  return saved;
 }
 
 export async function updatePowderRoomSharing(enabled = true) {

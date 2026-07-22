@@ -1,3 +1,14 @@
+## v0.10.69 — Member Integrity + Guest Profiles
+
+- Adds an owner-only Flowtel Member Directory with private legal identity, canonical display name, email, role, membership level, access status, verification status, Last Sign-In, and Last Flowtel Check-In.
+- Adds transparent Squarespace-contact evidence plus owner-controlled Queendom, Flow FM, Council, Needs Review, Not Found, Email Mismatch, Inactive, and Manual verification states without automatic revocation.
+- Adds Flowtel-only revoke and restore controls for any non-owner account while preserving Auth, passwords, stays, cycle history, mentor history, files, Caddie Magic access, Guest House access, and all historical records.
+- Adds an append-only access audit and prevents the normal Flowtel claim helper from silently restoring an owner-revoked account.
+- Adds the private `/profile/` room with required first name, last name, Queendom display name, location, timezone, and read-only account email.
+- Gently prompts every existing member to confirm her profile on the first post-release Suite entrance while allowing her to return to the Suite for now.
+- Collects the complete guest-profile foundation during new beta access requests.
+- Adds migration 054. Migration 053 remains installed, both historical migration 052 files remain preserved, and migration 037 remains retired.
+
 ## v0.10.68.1 — Caddie Clubhouse Login Bootstrap Hotfix
 
 - Restores the missing top-level Caddie Magic Player Profile startup sequence.

@@ -253,3 +253,9 @@ body.beta-is-loading{overflow:hidden}
 .beta-loading-line{position:relative;z-index:1;}
 .beta-loading-card h2{margin-top:120px !important;}
 @media(max-width:700px){.beta-loading-card h2{margin-top:108px !important;}}
+
+/* Flowtel v0.10.69 — required guest-profile foundation */
+.beta-field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.beta-field-grid>div{display:grid;gap:12px}
+.profile-privacy-copy{margin:2px 0 8px;padding:12px 14px;border-radius:14px;background:rgba(248,227,223,.38);color:var(--muted);font-size:.86rem;line-height:1.45}
+@media(max-width:640px){.beta-field-grid{grid-template-columns:1fr}}

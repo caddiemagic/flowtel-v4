@@ -1,5 +1,5 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.69";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
@@ -14,6 +14,7 @@ import { createMailboxDownloadUrl, listAdminPriestessMailbox, listPriestessInbox
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
+import { listFlowtelMembers, setFlowtelMemberVerification, revokeFlowtelMemberAccess, restoreFlowtelMemberAccess } from "../shared/member-directory.js?v=0.10.69";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -115,6 +116,9 @@ let upcomingGolfServiceAvailable=true;
 let upcomingGolfCalendarCycleStart="";
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
+let memberDirectoryRows=[];
+let memberDirectoryServiceAvailable=true;
+let memberDirectoryAccessFilter="active";
 let clockInContext=null;
 let currentManagerProfile=null;
 let adminTeamMapRows=[];
@@ -702,7 +706,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","caddie-players","caddie-network","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
+  if(["clients","member-directory","caddie-players","caddie-network","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -737,6 +741,10 @@ function updateStats(){
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
   setText("clientConnectionCount",currentConnectionRequestsCount);
+  const activeMembers=memberDirectoryRows.filter(row=>row.flowtel_access && row.access_status!=="revoked").length;
+  const membersNeedingReview=memberDirectoryRows.filter(row=>["needs_review","not_found","email_mismatch","contact_found"].includes(String(row.verification_status||""))).length;
+  setText("flowtelMemberCount",activeMembers);
+  setText("flowtelMemberReviewCount",membersNeedingReview);
   setText("adminTeamMapCount",adminTeamMapRows.length);
   setText("honorsAvailablePoints",formatPoints(honorsAvailable));
   setText("honorsPractitionerCount",honorsDashboardRows.length);
@@ -769,6 +777,9 @@ function updateStats(){
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
 
+  const memberDirectoryCard=document.querySelector('[data-filter="member-directory"]');
+  if(memberDirectoryCard) memberDirectoryCard.classList.toggle("has-alert",membersNeedingReview>0);
+
   const mailboxCard=document.querySelector('[data-filter="priestess-mailbox"]');
   if(mailboxCard) mailboxCard.classList.toggle("has-alert",mailboxAwaiting>0);
 
@@ -799,6 +810,7 @@ function setFilter(filter){
     "caddie-compass":["CADDIE COMPASS","Caddie Master Assignments + VIP Messages","Create Player assignments and reply inside the owner-only Caddie Master conversation."],
     "upcoming-golf":["UPCOMING GOLF","Caddie Magic Moon Calendar","See upcoming rounds, tournaments, and trips across each moon-to-moon cycle."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
+    "member-directory":["MEMBER DIRECTORY","Flowtel Member Integrity","Review identity, membership evidence, last sign-in, last Flowtel check-in, profile confirmation, and Flowtel-only access."],
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
     "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
     "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
@@ -2311,6 +2323,11 @@ function renderQueue(){
     return;
   }
 
+  if(activeFilter==="member-directory"){
+    renderMemberDirectoryQueue();
+    return;
+  }
+
   if(activeFilter==="queue"){
     renderTurndownServiceQueue();
     return;
@@ -2520,6 +2537,143 @@ async function renderMyClients(){
 }
 
 
+const MEMBER_VERIFICATION_LABELS=Object.freeze({
+  queendom_verified:"Queendom Verified",
+  flowfm_verified:"Flow FM Verified",
+  council_verified:"Council Verified",
+  contact_found:"Contact Found",
+  not_found:"Not Found",
+  inactive:"Inactive",
+  email_mismatch:"Email Mismatch",
+  needs_review:"Needs Review",
+  manually_verified:"Manually Verified",
+});
+
+function memberVerificationLabel(value){
+  return MEMBER_VERIFICATION_LABELS[String(value||"")] || String(value||"Needs Review").replaceAll("_"," ");
+}
+function memberMembershipLabel(value){
+  return ({queendom:"Queendom",flowfm:"Flow FM",council:"Council"})[String(value||"").toLowerCase()] || "Unassigned";
+}
+function memberAccessRows(){
+  if(memberDirectoryAccessFilter==="all") return memberDirectoryRows;
+  if(memberDirectoryAccessFilter==="revoked") return memberDirectoryRows.filter(row=>row.access_status==="revoked");
+  return memberDirectoryRows.filter(row=>row.flowtel_access===true && row.access_status!=="revoked");
+}
+async function loadMemberDirectory(){
+  try{
+    memberDirectoryRows=await listFlowtelMembers("all");
+    memberDirectoryServiceAvailable=true;
+  }catch(error){
+    console.warn("Flowtel Member Directory is not available yet.",error);
+    memberDirectoryRows=[];
+    memberDirectoryServiceAvailable=false;
+  }
+}
+function memberDateTime(value){
+  return value ? managerDateLabel(value,{withTime:true}) : "Never";
+}
+function renderMemberVerificationOptions(selected){
+  return Object.entries(MEMBER_VERIFICATION_LABELS).map(([value,label])=>`<option value="${escapeHtml(value)}" ${value===selected?"selected":""}>${escapeHtml(label)}</option>`).join("");
+}
+function renderMemberMembershipOptions(selected){
+  return [["","Use Profile Level"],["queendom","Queendom"],["flowfm","Flow FM"],["council","Council"]]
+    .map(([value,label])=>`<option value="${value}" ${value===String(selected||"")?"selected":""}>${label}</option>`).join("");
+}
+function renderMemberDirectoryRow(row){
+  const legalName=[row.first_name,row.last_name].filter(Boolean).join(" ") || "Legal name missing";
+  const isOwner=String(row.email||"").toLowerCase()==="mm.johnson@icloud.com" || String(row.role||"").toLowerCase()==="owner";
+  const revoked=row.access_status==="revoked";
+  const active=row.flowtel_access===true && !revoked;
+  const accessLabel=revoked ? "Flowtel Revoked" : active ? "Flowtel Active" : "Flowtel Not Granted";
+  const accessClass=revoked ? "is-revoked" : active ? "is-active" : "is-review";
+  const verification=String(row.verification_status||"needs_review");
+  const verificationClass=["queendom_verified","flowfm_verified","council_verified","manually_verified"].includes(verification)?"is-verified":"is-review";
+  const confirmed=!row.profile_confirmation_required && row.profile_confirmed_at;
+  return `<article class="member-directory-row ${revoked?"is-revoked":""}" data-member-id="${escapeHtml(row.user_id)}">
+    <header>
+      <div>
+        <p class="eyebrow">${escapeHtml(memberMembershipLabel(row.membership_type))} · ${escapeHtml(String(row.role||"member").toUpperCase())}</p>
+        <h3>${escapeHtml(row.display_name||"Flowtel Guest")}</h3>
+        <p>${escapeHtml(legalName)} · ${escapeHtml(row.email||"")}</p>
+      </div>
+      <div class="member-directory-badges">
+        <span class="${verificationClass}">${escapeHtml(memberVerificationLabel(verification))}</span>
+        <span class="${accessClass}">${accessLabel}</span>
+      </div>
+    </header>
+    <div class="member-directory-facts">
+      <div><span>Last Sign-In</span><strong>${escapeHtml(memberDateTime(row.last_sign_in_at))}</strong></div>
+      <div><span>Last Flowtel Check-In</span><strong>${escapeHtml(row.last_checked_in_at?memberDateTime(row.last_checked_in_at):"Never")}</strong></div>
+      <div><span>Location + Timezone</span><strong>${escapeHtml([row.location,row.timezone].filter(Boolean).join(" · ")||"Profile not confirmed")}</strong></div>
+      <div><span>Profile</span><strong>${confirmed?`Confirmed ${escapeHtml(managerDateLabel(row.profile_confirmed_at,{withTime:false}))}`:"Confirmation needed"}</strong></div>
+    </div>
+    ${revoked && row.revoked_at?`<p class="member-revocation-note">Revoked ${escapeHtml(memberDateTime(row.revoked_at))}${row.revoked_by_name?` by ${escapeHtml(row.revoked_by_name)}`:""}${row.revocation_reason?` · ${escapeHtml(row.revocation_reason)}`:""}</p>`:""}
+    <div class="member-directory-controls">
+      <label><span>Verification</span><select data-member-verification>${renderMemberVerificationOptions(verification)}</select></label>
+      <label><span>Verified Level</span><select data-member-membership>${renderMemberMembershipOptions(row.verified_membership_type||row.membership_type)}</select></label>
+      <label class="member-note-field"><span>Owner Note</span><input data-member-note type="text" value="${escapeHtml(row.verification_note||"")}" placeholder="Optional private note" /></label>
+      <button type="button" data-save-member-verification>Save Verification</button>
+      ${isOwner?`<button type="button" class="quiet" disabled>Owner Protected</button>`:`<button type="button" class="${active?"danger":""}" data-${active?"revoke":"restore"}-member-access>${active?"Revoke Flowtel Access":"Restore Flowtel Access"}</button>`}
+    </div>
+  </article>`;
+}
+function bindMemberDirectoryActions(){
+  queue.querySelectorAll("[data-member-directory-filter]").forEach(button=>button.addEventListener("click",()=>{
+    memberDirectoryAccessFilter=button.dataset.memberDirectoryFilter;
+    renderMemberDirectoryQueue();
+  }));
+  queue.querySelectorAll("[data-save-member-verification]").forEach(button=>button.addEventListener("click",async()=>{
+    const card=button.closest("[data-member-id]");
+    const original=button.textContent;button.disabled=true;button.textContent="Saving...";
+    try{
+      await setFlowtelMemberVerification({
+        userId:card.dataset.memberId,
+        status:card.querySelector("[data-member-verification]").value,
+        membershipType:card.querySelector("[data-member-membership]").value||null,
+        note:card.querySelector("[data-member-note]").value,
+      });
+      await loadMemberDirectory();updateStats();renderMemberDirectoryQueue();
+      if(managerMessage) managerMessage.textContent="Member verification saved.";
+    }catch(error){button.disabled=false;button.textContent=original;if(managerMessage) managerMessage.textContent=error?.message||"Member verification could not be saved.";}
+  }));
+  queue.querySelectorAll("[data-revoke-member-access]").forEach(button=>button.addEventListener("click",async()=>{
+    const card=button.closest("[data-member-id]");
+    const reason=window.prompt("Optional private reason for revoking Flowtel access:","");
+    if(reason===null) return;
+    if(!window.confirm("Revoke this account’s Flowtel access while preserving all history and other product access?")) return;
+    button.disabled=true;button.textContent="Revoking...";
+    try{await revokeFlowtelMemberAccess(card.dataset.memberId,reason);await loadMemberDirectory();updateStats();renderMemberDirectoryQueue();if(managerMessage) managerMessage.textContent="Flowtel access revoked. The account and all history were preserved.";}
+    catch(error){button.disabled=false;button.textContent="Revoke Flowtel Access";if(managerMessage) managerMessage.textContent=error?.message||"Flowtel access could not be revoked.";}
+  }));
+  queue.querySelectorAll("[data-restore-member-access]").forEach(button=>button.addEventListener("click",async()=>{
+    const card=button.closest("[data-member-id]");
+    const reason=window.prompt("Optional private note for restoring Flowtel access:","");
+    if(reason===null) return;
+    button.disabled=true;button.textContent="Restoring...";
+    try{await restoreFlowtelMemberAccess(card.dataset.memberId,reason);await loadMemberDirectory();updateStats();renderMemberDirectoryQueue();if(managerMessage) managerMessage.textContent="Flowtel access restored.";}
+    catch(error){button.disabled=false;button.textContent="Restore Flowtel Access";if(managerMessage) managerMessage.textContent=error?.message||"Flowtel access could not be restored.";}
+  }));
+}
+function renderMemberDirectoryQueue(){
+  if(!memberDirectoryServiceAvailable){
+    queue.innerHTML='<p class="empty-state">The Member Directory will open after migration 054 is installed.</p>';
+    return;
+  }
+  const rows=memberAccessRows();
+  queue.innerHTML=`<section class="member-directory-dashboard">
+    <header class="member-directory-toolbar">
+      <div><p class="eyebrow">OWNER-ONLY VIEW</p><h3>${memberDirectoryRows.length} Flowtel accounts</h3><p>Legal identity and account activity remain private inside the Concierge Desk.</p></div>
+      <div class="member-directory-filters" role="group" aria-label="Member access filter">
+        ${["active","revoked","all"].map(value=>`<button type="button" data-member-directory-filter="${value}" class="${memberDirectoryAccessFilter===value?"active":""}">${value.charAt(0).toUpperCase()+value.slice(1)}</button>`).join("")}
+      </div>
+    </header>
+    <div class="member-directory-list">${rows.length?rows.map(renderMemberDirectoryRow).join(""):'<p class="empty-state">No members match this view.</p>'}</div>
+  </section>`;
+  bindMemberDirectoryActions();
+}
+
+
 async function loadDesk({silent=false}={}){
   if(deskRefreshInFlight) return;
   deskRefreshInFlight=true;
@@ -2527,6 +2681,7 @@ async function loadDesk({silent=false}={}){
     allStays=await getFrontDeskStays();
     await renderConnectionRequests();
     await renderMyClients();
+    await loadMemberDirectory();
     await loadCaddiePlayerAccess();
     await loadCaddieNetworkData();
     await loadCaddieReviews();

@@ -7,6 +7,7 @@ const root=process.cwd();
 const read=(file)=>readFile(path.join(root,file),'utf8');
 const files={
   migration:await read('database/migration-052-combined-flowtel-caddie-updates.sql'),
+  migration054:await read('database/migration-054-flowtel-member-integrity-guest-profiles.sql'),
   managerJs:await read('manager/app.js'),managerHtml:await read('manager/index.html'),managerCss:await read('manager/styles.css'),
   clientJs:await read('client/app.js'),clientHtml:await read('client/index.html'),clientCss:await read('client/styles.css'),
   cycleJs:await read('cycle-data/app.js'),cycleHtml:await read('cycle-data/index.html'),cycleCss:await read('cycle-data/styles.css'),
@@ -16,11 +17,14 @@ const files={
   caddieHtml:await read('caddie-magic/index.html'),caddieJs:await read('caddie-magic/app.js'),
   scoreHtml:await read('caddie-magic/score-map/index.html'),scoreJs:await read('caddie-magic/score-map/app.js'),scoreCss:await read('caddie-magic/score-map/styles.css'),
   collectiveHtml:await read('caddie-magic/collective-map/index.html'),collectiveCss:await read('caddie-magic/collective-map/styles.css'),
+  profileJs:await read('profile/app.js'),profileHtml:await read('profile/index.html'),profileCss:await read('profile/styles.css'),
+  memberDirectory:await read('shared/member-directory.js'),profiles:await read('shared/profiles.js'),productAccess:await read('shared/product-access.js'),
+  betaHtml:await read('beta-request/index.html'),betaJs:await read('beta-request/app.js'),betaApi:await read('api/beta-request.js'),
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.68'));
-assert(files.managerHtml.includes('app.js?v=0.10.68-caddie-0.5.1'));
+assert(files.managerHtml.includes('styles.css?v=0.10.69'));
+assert(files.managerHtml.includes('app.js?v=0.10.69'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -85,17 +89,34 @@ assert(files.scoreJs.includes('validGolfScore(entry.score) !== null'));
 assert(files.caddieHtml.includes('?v=0.5.1'),'Caddie v0.5.1 cache keys are missing.');
 assert(!files.caddieHtml.includes('cm-version'),'Caddie version pill must not be user-facing.');
 
+assert(files.managerHtml.includes('data-filter="member-directory"'),'Owner Member Directory card is missing.');
+assert(files.managerJs.includes('renderMemberDirectoryQueue'),'Owner Member Directory renderer is missing.');
+assert(files.memberDirectory.includes('flowtel_admin_get_member_directory'),'Member Directory shared RPC wrapper is missing.');
+assert(files.migration054.includes('flowtel_admin_revoke_member_access'),'Durable revoke function is missing.');
+assert(files.migration054.includes('flowtel_admin_restore_member_access'),'Durable restore function is missing.');
+assert(files.migration054.includes("flowtel_access_status = 'revoked'"),'Durable revocation guard is missing.');
+assert(files.migration054.includes('flowtel_access_audit_log'),'Append-only access audit is missing.');
+assert(files.migration054.includes('flowtel_update_my_guest_profile'),'Guest profile save RPC is missing.');
+assert(files.clientHtml.includes('id="suiteProfileLink"'),'Suite My Profile doorway is missing.');
+assert(files.clientJs.includes('maybeRouteToProfileConfirmation'),'Post-release profile confirmation prompt is missing.');
+assert(files.profileHtml.includes('Name Shown in the Queendom'),'Guest profile canonical display-name field is missing.');
+assert(files.profileJs.includes('updateMyGuestProfile'),'Guest profile save wiring is missing.');
+assert(files.betaHtml.includes('id="firstName"') && files.betaHtml.includes('id="timezone"'),'Access request does not collect the new profile foundation.');
+assert(files.betaApi.includes('profile_confirmation_required: false'),'Access request does not mark complete profiles confirmed.');
+assert((files.vercel.rewrites||[]).some(row=>row.source==='/profile'&&row.destination==='/profile/index.html'),'My Profile rewrite is missing.');
+
 function duplicateIds(html){const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);return ids.filter((id,index)=>ids.indexOf(id)!==index);}
-for(const [name,html] of Object.entries({manager:files.managerHtml,client:files.clientHtml,cycle:files.cycleHtml,availability:files.availabilityHtml,guest:files.guestHtml,caddie:files.caddieHtml,score:files.scoreHtml,collective:files.collectiveHtml})){
+for(const [name,html] of Object.entries({manager:files.managerHtml,client:files.clientHtml,cycle:files.cycleHtml,availability:files.availabilityHtml,guest:files.guestHtml,profile:files.profileHtml,beta:files.betaHtml,caddie:files.caddieHtml,score:files.scoreHtml,collective:files.collectiveHtml})){
   assert.deepEqual(duplicateIds(html),[],`${name} HTML contains duplicate IDs.`);
 }
 
 function balancedCss(text){let depth=0;let quote='';let comment=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(comment){if(c==='*'&&n==='/'){comment=false;i++;}continue;}if(!quote&&c==='/'&&n==='*'){comment=true;i++;continue;}if(quote){if(c==='\\'){i++;continue;}if(c===quote)quote='';continue;}if(c==='"'||c==="'"){quote=c;continue;}if(c==='{')depth++;if(c==='}')depth--;if(depth<0)return false;}return depth===0&&!quote&&!comment;}
-for(const [name,css] of Object.entries({manager:files.managerCss,client:files.clientCss,cycle:files.cycleCss,availability:files.availabilityCss,score:files.scoreCss,collective:files.collectiveCss})) assert(balancedCss(css),`${name} CSS is structurally unbalanced.`);
+for(const [name,css] of Object.entries({manager:files.managerCss,client:files.clientCss,cycle:files.cycleCss,availability:files.availabilityCss,profile:files.profileCss,score:files.scoreCss,collective:files.collectiveCss})) assert(balancedCss(css),`${name} CSS is structurally unbalanced.`);
 
 const dollarQuotes=(files.migration.match(/\$\$/g)||[]).length;
 assert.equal(dollarQuotes%2,0,'Migration 052 has an unmatched SQL dollar quote.');
 assert(files.migration.includes('Migration 037 remains retired'));
+assert.equal((files.migration054.match(/\$\$/g)||[]).length%2,0,'Migration 054 has an unmatched SQL dollar quote.');
 
 async function walk(dir){const out=[];for(const name of await readdir(dir)){const full=path.join(dir,name);const info=await stat(full);if(info.isDirectory())out.push(...await walk(full));else out.push(full);}return out;}
 const all=await walk(root);

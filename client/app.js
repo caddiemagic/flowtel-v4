@@ -1,5 +1,5 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile } from "../shared/profiles.js?v=0.4.1";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.69";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.53";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
@@ -2009,6 +2009,27 @@ function requestedGuestScene(){
   return params.get("lounge")==="1" ? "lounge" : "suite";
 }
 
+function profilePromptStorageKey(){
+  return `flowtel:profilePromptShown:${currentProfile?.id || "member"}`;
+}
+
+function maybeRouteToProfileConfirmation(){
+  if(!currentProfile || !profileNeedsConfirmation(currentProfile)) return false;
+  const params=new URLSearchParams(window.location.search);
+  if(params.get("profileReturn")==="1") return false;
+  try{
+    if(sessionStorage.getItem(profilePromptStorageKey())==="true") return false;
+    sessionStorage.setItem(profilePromptStorageKey(),"true");
+  }catch(error){}
+
+  const returnTo="/client/?suite=1&profileReturn=1";
+  window.setTimeout(()=>{
+    window.location.href=`/profile/?prompt=1&return=${encodeURIComponent(returnTo)}`;
+  },350);
+  return true;
+}
+
+
 function restoreSuiteFromConcierge(){
   const stay=getCachedSuiteStay();
   if(!stay || !isStayForLocalToday(stay) || !stayBelongsToCurrentProfile(stay)){
@@ -2021,6 +2042,7 @@ function restoreSuiteFromConcierge(){
   renderSuite(stay);
   showScene(requestedGuestScene());
   window.scrollTo({top:0,behavior:"smooth"});
+  maybeRouteToProfileConfirmation();
   return true;
 }
 
@@ -2042,6 +2064,7 @@ async function openTodaySuiteIfPresent(){
   renderSuite(stay);
   showScene(requestedGuestScene());
   window.scrollTo({top:0,behavior:"smooth"});
+  maybeRouteToProfileConfirmation();
   return true;
 }
 
@@ -2081,6 +2104,7 @@ async function handleCheckIn(){
       setTimeout(()=>{
         renderSuite(stay);
         showScene("suite");
+        maybeRouteToProfileConfirmation();
       },950);
     },650);
   }catch(error){

@@ -69,18 +69,44 @@ async function autoLoginAndEnter(email, password, membershipType) {
 
 applyMembershipDefault();
 
+const timezoneInput = document.getElementById("timezone");
+try {
+  const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (browserTimezone && Array.from(timezoneInput?.options || []).some(option => option.value === browserTimezone)) {
+    timezoneInput.value = browserTimezone;
+  }
+} catch (error) {}
+
+function syncDisplayNameDefault() {
+  const display = document.getElementById("displayName");
+  if (!display || display.dataset.edited === "true") return;
+  const value = [document.getElementById("firstName")?.value, document.getElementById("lastName")?.value]
+    .map(part => String(part || "").trim())
+    .filter(Boolean)
+    .join(" ");
+  display.value = value;
+}
+document.getElementById("firstName")?.addEventListener("input", syncDisplayNameDefault);
+document.getElementById("lastName")?.addEventListener("input", syncDisplayNameDefault);
+document.getElementById("displayName")?.addEventListener("input", event => { event.currentTarget.dataset.edited = "true"; });
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const payload = {
-    name: document.getElementById("name")?.value?.trim() || "",
+    firstName: document.getElementById("firstName")?.value?.trim() || "",
+    lastName: document.getElementById("lastName")?.value?.trim() || "",
+    displayName: document.getElementById("displayName")?.value?.trim() || "",
+    location: document.getElementById("location")?.value?.trim() || "",
+    timezone: document.getElementById("timezone")?.value || "America/Los_Angeles",
     email: normalizeEmail(document.getElementById("email")?.value),
     membershipType: document.getElementById("membershipType")?.value || membershipFromUrl(),
     betaCode: document.getElementById("betaCode")?.value?.trim() || "",
   };
+  payload.name = [payload.firstName, payload.lastName].filter(Boolean).join(" ");
 
-  if (!payload.name || !payload.email) {
-    setMessage("Please enter your name and email.", "error");
+  if (!payload.firstName || !payload.lastName || !payload.displayName || !payload.location || !payload.timezone || !payload.email) {
+    setMessage("Please complete your name, Queendom name, email, location, and timezone.", "error");
     return;
   }
 
