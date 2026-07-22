@@ -11,6 +11,7 @@ const viewingName=document.getElementById("viewingName");
 const viewerToggle=document.getElementById("viewerToggle");
 const dashboardActions=document.querySelector(".dashboard-actions");
 const filtersTitle=document.getElementById("filtersTitle");
+const filtersCard=document.getElementById("filtersCard");
 const seasonFilter=document.getElementById("seasonFilter");
 const moonPhaseFilter=document.getElementById("moonPhaseFilter");
 const moonCycleFilter=document.getElementById("moonCycleFilter");
@@ -53,6 +54,10 @@ const POWDER_ROOM_COPY={
 let allEntries=[];
 let currentMode="self";
 let currentProfile=null;
+let clientSnapshot=null;
+let clientClockins=[];
+let clientSnapshotRange="current_moon";
+let clientSnapshotSeason="Inner Winter";
 
 function params(){ return new URLSearchParams(window.location.search); }
 function requestedClientId(){ return params().get("client"); }
@@ -215,6 +220,14 @@ async function fetchCycleEntries({subjectId=null,scope="self"}){
   if(error) throw error;
   return data || [];
 }
+async function fetchClientSnapshot(subjectId){
+  const {data,error}=await supabase.rpc("flowtel_get_cycle_subject_snapshot",{p_subject_id:subjectId});
+  if(error) throw error;return data||null;
+}
+async function fetchClientClockins(subjectId){
+  const {data,error}=await supabase.rpc("flowtel_get_cycle_subject_clockins",{p_subject_id:subjectId});
+  if(error) throw error;return data||[];
+}
 async function fetchSeasonReflections(season){
   const { data, error } = await supabase.rpc("flowtel_get_collective_season_reflections",{
     p_inner_season: season || null,
@@ -240,6 +253,45 @@ function renderMetrics(rows){
     metric("Latest Check-In",latest?.checkin_date ? formatDate(latest.checkin_date) : "—"),
     metric("Moon Phase",topLabel(rows,"moon_phase")),
   ].join("");
+}
+function uniqueStayRows(rows=[]){
+  const map=new Map();rows.forEach((row,index)=>{const key=row.stay_id||`${row.checkin_date||''}-${index}`;if(!map.has(key))map.set(key,row);});return [...map.values()];
+}
+function yearlySeasonForDate(value){
+  const month=Number(String(value||'').slice(5,7));
+  if([11,12,1].includes(month))return 'Inner Winter';if(month>=2&&month<=4)return 'Inner Spring';if(month>=5&&month<=7)return 'Inner Summer';if(month>=8&&month<=10)return 'Inner Autumn';return '';
+}
+function clientMoonStarts(){return uniqueSorted(allEntries,'moon_cycle_start_date').sort().reverse();}
+function rowMatchesClientRange(row){
+  if(clientSnapshotRange==='all_time')return true;
+  if(clientSnapshotRange==='inner_season')return row.inner_season===clientSnapshotSeason;
+  if(clientSnapshotRange==='yearly_season')return yearlySeasonForDate(row.checkin_date)===clientSnapshotSeason;
+  const cycles=clientMoonStarts();const target=clientSnapshotRange==='last_moon'?cycles[1]:cycles[0];return target?row.moon_cycle_start_date===target:true;
+}
+function clockinMatchesClientRange(row){
+  if(clientSnapshotRange==='all_time')return true;
+  if(clientSnapshotRange==='inner_season')return row.inner_season===clientSnapshotSeason;
+  if(clientSnapshotRange==='yearly_season')return yearlySeasonForDate(row.checkin_date||row.clocked_in_at)===clientSnapshotSeason;
+  const cycles=clientMoonStarts();const target=clientSnapshotRange==='last_moon'?cycles[1]:cycles[0];
+  if(!target)return true;const next=clientMoonStarts().find(date=>date>target);const day=String(row.checkin_date||row.clocked_in_at||'').slice(0,10);return day>=target&&(!next||day<next);
+}
+function clientFilteredRows(){return allEntries.filter(rowMatchesClientRange);}
+function clientFilterLabel(){
+  if(clientSnapshotRange==='all_time')return 'All Time';if(clientSnapshotRange==='inner_season')return clientSnapshotSeason;if(clientSnapshotRange==='yearly_season')return `${clientSnapshotSeason.replace('Inner ','')} months`;return clientSnapshotRange==='last_moon'?'Last Moon':'Current Moon';
+}
+function renderClientSnapshot(){
+  const subject=clientSnapshot?.subject||{};const current=clientSnapshot?.current||{};const rows=uniqueStayRows(clientFilteredRows());const clockins=clientClockins.filter(clockinMatchesClientRange);
+  snapshotTitle.textContent='Guest Chart';
+  snapshotCopy.innerHTML=`<span class="client-chart-line"><strong>${escapeHtml(subject.display_name||viewingName.textContent)}</strong><span>${escapeHtml(subject.email||'No email recorded')}</span></span><span class="client-account-match">${escapeHtml(subject.account_match_status||'Account status unavailable')}</span><span class="client-current-state">Current Cycle Day ${escapeHtml(current.cycle_day??'—')} · ${escapeHtml(current.inner_season||'Inner Season unavailable')} · Last check-in ${escapeHtml(current.latest_checkin_date?formatDate(current.latest_checkin_date):'—')}</span>`;
+  const seasonOrder=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
+  metricGrid.classList.add('client-quadrant-grid');
+  metricGrid.innerHTML=`<div class="client-chart-filters"><label>Witness this pattern<select id="clientSnapshotRange"><option value="current_moon">Current Moon</option><option value="last_moon">Last Moon</option><option value="inner_season">Inner Season</option><option value="yearly_season">Yearly Season</option><option value="all_time">All Time</option></select></label><label id="clientSnapshotSeasonWrap" ${['inner_season','yearly_season'].includes(clientSnapshotRange)?'':'hidden'}>Choose a season<select id="clientSnapshotSeason">${SEASONS.map(season=>`<option value="${season}" ${season===clientSnapshotSeason?'selected':''}>${season}</option>`).join('')}</select></label><span>${escapeHtml(clientFilterLabel())}</span></div>${seasonOrder.map(season=>{
+    const checkins=rows.filter(row=>row.inner_season===season).length;const clocks=clockins.filter(row=>row.inner_season===season).length;
+    return `<button type="button" class="client-season-quadrant" data-client-season="${escapeHtml(season)}"><small>${escapeHtml(season)}</small><strong>${checkins}</strong><span>${checkins===1?'check-in':'check-ins'} · ${clocks} ${clocks===1?'clock-in':'clock-ins'}</span></button>`;
+  }).join('')}`;
+  const range=document.getElementById('clientSnapshotRange');range.value=clientSnapshotRange;range.addEventListener('change',()=>{clientSnapshotRange=range.value;renderClientSnapshot();renderEntries(clientFilteredRows(),{title:'Client Cycle Entries'});});
+  document.getElementById('clientSnapshotSeason')?.addEventListener('change',event=>{clientSnapshotSeason=event.target.value;renderClientSnapshot();renderEntries(clientFilteredRows(),{title:'Client Cycle Entries'});});
+  metricGrid.querySelectorAll('[data-client-season]').forEach(button=>button.addEventListener('click',()=>{clientSnapshotRange='inner_season';clientSnapshotSeason=button.dataset.clientSeason;renderClientSnapshot();renderEntries(clientFilteredRows(),{title:`${clientSnapshotSeason} Entries`});document.querySelector('.entry-log-card')?.scrollIntoView({behavior:'smooth',block:'start'});}));
 }
 function renderFlowMap(rows,activeSeason=""){
   const counts=countBy(rows,"inner_season");
@@ -309,7 +361,9 @@ function renderEntries(rows,{anonymous=false,title="Entries",eyebrow="CHECK-IN L
     : `<div class="empty-state"><p>No entries match this view yet.</p></div>`;
 }
 function rerenderStandard(){
+  if(currentMode==="client"){renderClientSnapshot();renderFlowMap(clientFilteredRows(),clientSnapshotRange==="inner_season"?clientSnapshotSeason:"");renderEntries(clientFilteredRows(),{title:"Client Cycle Entries"});return;}
   const rows=filteredEntries();
+  metricGrid.classList.remove("client-quadrant-grid");
   renderMetrics(rows);
   renderFlowMap(rows,seasonFilter.value);
   renderEntries(rows,{title:currentMode==="all"?"Collective Client Entries":"Cycle Entries"});
@@ -415,11 +469,11 @@ async function init(){
         throw new Error("This cycle dashboard is only available for connected clients.");
       }
       const client=relationship?.client || { id:targetId };
-      intro.textContent="Consent-aware client view is open.";
+      intro.textContent="Consent-aware guest chart is open.";
       viewingName.textContent=fullName(client);
-      snapshotTitle.textContent="Client Flow Map";
-      snapshotCopy.textContent="This guest invited mentor access to their Flowtel cycle data, check-ins, reflections, and stay history while connected.";
-      allEntries=await fetchCycleEntries({subjectId:targetId,scope:"client"});
+      pageTitle.textContent="Client Snapshot";
+      if(filtersCard) filtersCard.classList.add("hidden");
+      [allEntries,clientSnapshot,clientClockins]=await Promise.all([fetchCycleEntries({subjectId:targetId,scope:"client"}),fetchClientSnapshot(targetId),fetchClientClockins(targetId)]);
     }else{
       intro.textContent="Your own Flowtel cycle data lives here first.";
       viewingName.textContent=fullName(currentProfile);

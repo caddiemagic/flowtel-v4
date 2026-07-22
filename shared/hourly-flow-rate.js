@@ -60,6 +60,24 @@ export async function saveHourlyFlowRateDestination({
   });
 }
 
+export async function saveHourlyFlowRateWorkshopSeason({
+  seasonId,
+  city = '',
+  region = '',
+  country = '',
+  lodgingIdea = '',
+  callingReflection = '',
+}){
+  return call('flowtel_hfr_save_workshop_season', {
+    p_season_id: seasonId,
+    p_city: city,
+    p_region: region,
+    p_country: country,
+    p_lodging_idea: lodgingIdea,
+    p_calling_reflection: callingReflection,
+  });
+}
+
 export async function saveHourlyFlowRateCostEntry({
   planId,
   seasonId,

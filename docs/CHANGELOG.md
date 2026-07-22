@@ -1,18 +1,25 @@
-## Caddie Magic v0.5.0 — Caddie Network Foundation + Cardinal Club Rooms
+## v0.10.67 — Combined Flowtel + Caddie Magic Experience Update
 
-- Adds an owner-approved Caddie pathway attached to an existing Caddie Magic Player account; the Player identity, Scorecard, Score Map, Locker Room, Compass, and Calendar remain intact.
-- Adds separate **My Player Profile** and **Caddie Desk** doorways for invited Caddies.
-- Adds professional Caddie Profiles with invited, draft, submitted, approved, active, paused, and declined states.
-- Adds the player **Find a Caddie** directory for active Caddies who are accepting requests.
-- Adds one-open-request relationship rules, Pebble Beach consultation intake, and explicit consent for Scorecard, Score Map, Compass, and upcoming-golf preparation data.
-- Keeps availability private until the Caddie accepts the player request.
-- Adds exact Caddie availability, one-at-a-time consultation scheduling, meeting links, completion, and cancellation flows; ending a relationship safely cancels its scheduled meeting and reopens future availability.
-- Gives accepted Caddies consent-scoped, read-only preparation data without assignments, portal messages, Caddie Notes, or player-record editing.
-- Reworks the player Caddie Compass into four clickable Cardinal Club rooms personalized to the player’s North, East, South, and West clubs.
-- Adds **Only Mine / Everyone’s** and **Thoughts + Scores / Scores Only** room views; collective entries remain anonymous and follow Locker Room sharing.
-- Removes visible legacy Caddie Review and Assignments + Messages cards from the owner Concierge Desk and adds an owner **Caddie Network** invitation/approval queue.
-- Carries the v0.4.6 full-width mobile Score Map controls into the latest Flowtel source.
-- Adds migration 052 with restrictive Caddie Magic product-access policies and RPC guards. The broader Concierge role-architecture redesign remains future work; the current manager source remains owner-only.
+- Adds four independently saved seasonal-location, lodging-idea, and private-note cards beneath the Flow FM Lounge workshop video, stored inside the member’s existing Hourly Flow Rate plan.
+- Adds the private `/flow-fm/availability/` four-week map with 28 independently saved availability days, dates, Moon context, weekday planets, and optional client-facing availability notes.
+- Removes the Guest House account banner, updates the Queendom invitation copy, and repairs collapsed request bodies so only one replay request opens at a time.
+- Matches Guest Suite Concierge button widths on desktop and mobile.
+- Rebuilds the connected-client Cycle Data view as a private mentor Guest Chart with account/Queendom match status, current cycle state, check-in and clock-in quadrants, and Current Moon, Last Moon, Inner Season, Yearly Season, and All Time filters.
+- Repairs the visible Flow Map `note_entries.reflection_created_at` schema/code mismatch without rewriting historical notes.
+- Adds owner-to-Priestess private file delivery through the existing private Priestess Inbox and preserves the established practitioner audio workflow.
+- Corrects owner 28-Day Team Map quadrants to Autumn/Summer/Winter/Spring.
+- Integrates Caddie Magic v0.4.6 with corrected cardinal quadrants, simplified Player Profile/actions, revised Swing Thoughts copy, one next-relevant Moon card, and valid-score-only average/best calculations.
+- Adds migration 052. Migration 037 remains retired and must never be rerun.
+
+## Caddie Magic v0.4.6 — Quadrants, Player Profile, and Score Calculation Repair
+
+- Corrects Score Map and Locker Room quadrants to North/East/West/South in the approved top-left, top-right, bottom-left, bottom-right geometry.
+- Removes Latest Score, Moon Data, and Latest Swing Thought from the Player Profile summary.
+- Keeps only Log a Round and Score Map in the top action pill.
+- Changes the Swing Thoughts prompt to “What went well? What went wrong? What did you notice?”
+- Removes Last New Moon and displays only the next relevant Full Moon or New Moon.
+- Excludes blank, null, swing-thought-only, invalid, and zero values from average and best score calculations.
+- Preserves Player-Only Access, invitations, Caddie relationships, Compass, Upcoming Golf, and all historical player data.
 
 ## v0.10.66 — Squarespace Replay Notes Session Bridge
 

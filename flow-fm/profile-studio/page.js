@@ -601,8 +601,8 @@ function groupMailboxThreads(rows=[]){
 function mailboxThreadStatus(thread){
   const returned=thread.files.filter(file=>file.direction==='to_practitioner');
   const originals=thread.files.filter(file=>file.direction==='to_admin');
-  if(returned.some(file=>!file.downloaded_at)) return 'Your edited audio is ready';
-  if(returned.length && returned.every(file=>file.downloaded_at)) return 'Returned and received';
+  if(returned.some(file=>!file.downloaded_at)) return 'A private file is ready';
+  if(returned.length && returned.every(file=>file.downloaded_at)) return 'Private file received';
   if(originals.some(file=>file.received_at)) return 'Received by Megan';
   return 'Traveling to Megan';
 }
@@ -612,8 +612,8 @@ function mailboxFileMarkup(file){
     ? (file.downloaded_at?'Downloaded':'Ready for you')
     : (file.received_at?'Received by Megan':'Sent to Megan');
   return `<article class="mailbox-file ${isReturn?'is-return':'is-original'}">
-    <div><p class="mailbox-file-direction">${isReturn?'RETURNED TO YOU':'SENT TO MEGAN'}</p><h4>${escapeHtml(file.original_filename || 'Audio file')}</h4><p>${escapeHtml(fileSizeLabel(file.size_bytes))} · ${escapeHtml(mailboxDateLabel(file.uploaded_at))}</p>${file.file_note?`<p class="mailbox-file-note">${escapeHtml(file.file_note)}</p>`:''}</div>
-    <div class="mailbox-file-action"><span>${escapeHtml(state)}</span>${isReturn?`<button type="button" data-mailbox-download="${escapeHtml(file.file_id)}" data-mailbox-path="${escapeHtml(file.storage_path)}">${file.downloaded_at?'Download Again':'Download Returned Audio'}</button>`:''}</div>
+    <div><p class="mailbox-file-direction">${isReturn?'DELIVERED TO YOU':'SENT TO MEGAN'}</p><h4>${escapeHtml(file.original_filename || 'Private file')}</h4><p>${escapeHtml(fileSizeLabel(file.size_bytes))} · ${escapeHtml(mailboxDateLabel(file.uploaded_at))}</p>${file.file_note?`<p class="mailbox-file-note">${escapeHtml(file.file_note)}</p>`:''}</div>
+    <div class="mailbox-file-action"><span>${escapeHtml(state)}</span>${isReturn?`<button type="button" data-mailbox-download="${escapeHtml(file.file_id)}" data-mailbox-path="${escapeHtml(file.storage_path)}">${file.downloaded_at?'Download Again':'Download Private File'}</button>`:''}</div>
   </article>`;
 }
 function renderPriestessMailbox(){
@@ -621,7 +621,7 @@ function renderPriestessMailbox(){
   const threads=groupMailboxThreads(mailboxRows);
   priestessMailboxSection.classList.remove('hidden');
   priestessMailboxSection.innerHTML=`
-    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS MAILBOX</p><h2>Send your audio through the Flowtel.</h2><p>Leave a recording for Megan to download and tend. When the edited version is ready—with music, polish, or production—it will return to this same private thread.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
+    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS INBOX</p><h2>Private files move through the Flowtel.</h2><p>Leave audio for Megan to tend, receive edited recordings, and find private files delivered directly to you through this same protected room.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
     <div class="priestess-mailbox-layout">
       <form class="priestess-mailbox-form" id="priestessMailboxForm">
         <label><span>Audio title</span><input name="subject" maxlength="120" placeholder="Womb Wealth meditation" /></label>
@@ -630,7 +630,7 @@ function renderPriestessMailbox(){
         <button type="submit">SEND AUDIO TO MEGAN</button>
         <p class="mailbox-form-status" id="priestessMailboxStatus" role="status"></p>
       </form>
-      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Audio for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first audio handoff will appear here.</p></div>'}</section>
+      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Audio for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first private file handoff will appear here.</p></div>'}</section>
     </div>`;
   bindPriestessMailbox();
 }
@@ -737,7 +737,7 @@ async function loadSavedProfile(){
 async function hydrateFromSupabase(){
   try{
     api=await import('/shared/flowtel.js?v=0.10.56');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.56');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.67');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({

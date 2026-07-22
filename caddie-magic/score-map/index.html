@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.5.0" />
-  <link rel="stylesheet" href="./styles.css?v=0.5.0" />
+  <link rel="stylesheet" href="../styles.css?v=0.4.6" />
+  <link rel="stylesheet" href="./styles.css?v=0.4.6" />
 </head>
 <body class="cm-map-page">
   <main class="cm-shell cm-score-map-shell">
     <section class="cm-hero cm-map-hero">
-      <span class="cm-version">v0.5.0</span>
+      <span class="cm-version">v0.4.6</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -53,14 +53,6 @@
           <span class="cm-map-marker cm-map-marker-w" aria-hidden="true">◆</span>
           <div class="cm-map-center" aria-hidden="true"><span>◐</span></div>
 
-          <article class="cm-map-quadrant cm-map-west" data-phase="New Moon Phase">
-            <header>
-              <p>New Moon Phase · Days 27–5</p>
-              <h2>West Club</h2>
-            </header>
-            <div class="cm-map-notes" id="notesWest"></div>
-          </article>
-
           <article class="cm-map-quadrant cm-map-north" data-phase="Half New Moon Phase">
             <header>
               <p>Last Quarter Phase · Days 20–26</p>
@@ -68,21 +60,26 @@
             </header>
             <div class="cm-map-notes" id="notesNorth"></div>
           </article>
-
-          <article class="cm-map-quadrant cm-map-south" data-phase="Half Full Moon Phase">
-            <header>
-              <p>First Quarter Phase · Days 6–11</p>
-              <h2>South Club</h2>
-            </header>
-            <div class="cm-map-notes" id="notesSouth"></div>
-          </article>
-
           <article class="cm-map-quadrant cm-map-east" data-phase="Full Moon Phase">
             <header>
               <p>Full Moon Phase · Days 12–19</p>
               <h2>East Club</h2>
             </header>
             <div class="cm-map-notes" id="notesEast"></div>
+          </article>
+          <article class="cm-map-quadrant cm-map-west" data-phase="New Moon Phase">
+            <header>
+              <p>New Moon Phase · Days 27–5</p>
+              <h2>West Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesWest"></div>
+          </article>
+          <article class="cm-map-quadrant cm-map-south" data-phase="Half Full Moon Phase">
+            <header>
+              <p>First Quarter Phase · Days 6–11</p>
+              <h2>South Club</h2>
+            </header>
+            <div class="cm-map-notes" id="notesSouth"></div>
           </article>
         </section>
 
@@ -117,6 +114,6 @@
 
     <p class="cm-message" id="scoreMapMessage"></p>
   </main>
-  <script type="module" src="./app.js?v=0.5.0"></script>
+  <script type="module" src="./app.js?v=0.4.6"></script>
 </body>
 </html>

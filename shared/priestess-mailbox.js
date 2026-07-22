@@ -1,10 +1,13 @@
 // Flowtel v0.10.56 — private, bi-directional Priestess Audio Mailbox helpers.
 
 import { supabase } from './supabase.js';
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
 
 export const PRIESTESS_MAILBOX_BUCKET = 'flowtel-priestess-mailbox';
 export const PRIESTESS_MAILBOX_MAX_BYTES = 250 * 1024 * 1024;
 export const PRIESTESS_MAILBOX_EXTENSIONS = ['mp3','wav','m4a','aac','ogg'];
+export const PRIESTESS_INBOX_FILE_EXTENSIONS=['pdf','txt','csv','zip','doc','docx','xls','xlsx','ppt','pptx','jpg','jpeg','png','webp','gif','mp3','wav','m4a','aac','ogg','mp4','mov','m4v','webm'];
+
 const MIME_TYPES = new Set([
   'audio/mpeg','audio/mp3','audio/mpeg3','audio/x-mpeg-3','audio/wav','audio/x-wav','audio/wave','audio/vnd.wave',
   'audio/mp4','audio/m4a','audio/x-m4a','audio/aac','audio/x-aac','audio/ogg','application/octet-stream','',
@@ -146,4 +149,40 @@ export async function markReturnedAudioDownloaded(fileId){
   });
   if(error) throw error;
   return data;
+}
+
+
+function directStorageEndpoint(){
+  const url=new URL(SUPABASE_URL);
+  if(/\.supabase\.co$/i.test(url.hostname) && !/\.storage\.supabase\.co$/i.test(url.hostname)) url.hostname=url.hostname.replace(/\.supabase\.co$/i,'.storage.supabase.co');
+  return `${url.origin}/storage/v1/upload/resumable`;
+}
+export function validatePriestessInboxFile(file){
+  if(!(file instanceof File)) throw new Error('Choose a private file first.');
+  if(!PRIESTESS_INBOX_FILE_EXTENSIONS.includes(extensionFor(file.name))) throw new Error('Choose a document, image, audio, video, spreadsheet, presentation, or ZIP file.');
+  if(file.size<=0) throw new Error('This private file appears to be empty.');
+  if(file.size>PRIESTESS_MAILBOX_MAX_BYTES) throw new Error('Choose a private file smaller than 250 MB.');
+}
+async function uploadPrivateFile(path,file,onProgress){
+  if(file.size<=6*1024*1024){
+    onProgress?.(3);
+    const {error}=await supabase.storage.from(PRIESTESS_MAILBOX_BUCKET).upload(path,file,{upsert:false,contentType:file.type||'application/octet-stream',cacheControl:'3600'});
+    if(error) throw error;onProgress?.(100);return;
+  }
+  const {data,error}=await supabase.auth.getSession();if(error)throw error;if(!data?.session)throw new Error('Enter through the Flowtel before sending a private file.');
+  const tusModule=await import('https://cdn.jsdelivr.net/npm/tus-js-client@4/+esm');const Upload=tusModule.Upload||tusModule.default?.Upload;if(!Upload)throw new Error('Flowtel could not open the private file uploader.');
+  await new Promise((resolve,reject)=>{
+    const upload=new Upload(file,{endpoint:directStorageEndpoint(),retryDelays:[0,3000,5000,10000,20000],headers:{authorization:`Bearer ${data.session.access_token}`,apikey:SUPABASE_PUBLISHABLE_KEY,'x-upsert':'false'},uploadDataDuringCreation:true,removeFingerprintOnSuccess:true,chunkSize:6*1024*1024,metadata:{bucketName:PRIESTESS_MAILBOX_BUCKET,objectName:path,contentType:file.type||'application/octet-stream',cacheControl:'3600'},onError(error){reject(new Error(error?.originalResponse?.getBody?.()||error?.message||'The private file upload stopped.'));},onProgress(uploaded,total){onProgress?.(Math.max(1,Math.min(total?Math.round(uploaded/total*100):0,99)));},onSuccess(){onProgress?.(100);resolve();}});
+    upload.findPreviousUploads().then(previous=>{if(previous?.length)upload.resumeFromPreviousUpload(previous[0]);upload.start();}).catch(reject);
+  });
+}
+export async function listPriestessInboxRecipients(){
+  const {data,error}=await supabase.rpc('flowtel_mailbox_admin_list_recipients');if(error)throw error;return data||[];
+}
+export async function sendPrivateFileToPriestess({recipientId,file,subject='',message='',note='',onProgress}={}){
+  if(!recipientId)throw new Error('Choose a Priestess to receive this file.');validatePriestessInboxFile(file);
+  const threadId=randomId();const fileId=randomId();const path=`${recipientId}/${threadId}/to-practitioner/${fileId}-${safeFilename(file.name)}`;
+  await uploadPrivateFile(path,file,onProgress);
+  const {data,error}=await supabase.rpc('flowtel_mailbox_admin_send_file',{p_recipient_id:recipientId,p_thread_id:threadId,p_subject:subject||null,p_message:message||null,p_storage_path:path,p_original_filename:file.name,p_mime_type:file.type||null,p_size_bytes:file.size,p_file_note:note||null});
+  if(error){await supabase.storage.from(PRIESTESS_MAILBOX_BUCKET).remove([path]).catch(()=>{});throw error;}return data;
 }

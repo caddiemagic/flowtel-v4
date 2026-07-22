@@ -3,14 +3,13 @@ import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1"
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
 import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.50";
-import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.0";
-import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.5.0";
-import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.0";
-import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, normalizeCaddieMoonPhase, shortCalendarDate } from "../shared/caddie-magic-moon-calendar.js?v=0.5.0";
-import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.0";
-import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus } from "../shared/caddie-magic-network.js?v=0.5.0";
+import { listCaddieReviewRequests, completeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.4.6";
+import { listCompassPlayers } from "../shared/caddie-magic-compass.js?v=0.4.6";
+import { listUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.6";
+import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, normalizeCaddieMoonPhase, shortCalendarDate } from "../shared/caddie-magic-moon-calendar.js?v=0.4.6";
+import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.4.6";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { createMailboxDownloadUrl, listAdminPriestessMailbox, markMailboxFileReceived, returnEditedAudio } from "../shared/priestess-mailbox.js?v=0.10.56";
+import { createMailboxDownloadUrl, listAdminPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnEditedAudio, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.67";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
@@ -102,8 +101,6 @@ let allStays=[], activeFilter="queue";
 let caddiePlayers=[];
 let caddiePlayerInvitations=[];
 let caddiePlayerAccessAvailable=true;
-let caddieNetworkProfiles=[];
-let caddieNetworkServiceAvailable=true;
 let caddieReviewRequests=[];
 let caddieReviewServiceAvailable=true;
 let caddieCompassPlayers=[];
@@ -122,7 +119,12 @@ let honorsDashboardRows=[];
 let honorsLedgerRows=[];
 let honorsServiceAvailable=true;
 let priestessMailboxRows=[];
+let priestessMailboxRecipients=[];
 let priestessMailboxServiceAvailable=true;
+let priestessInboxDraft={file:null,recipient:'',subject:'',note:''};
+let priestessInboxUploadInFlight=false;
+let priestessInboxFilePickerOpen=false;
+let priestessInboxFilePickerReleaseTimer=null;
 let guestHouseRequests=[];
 let guestHouseServiceAvailable=true;
 let guestHouseExpandedRequestId=null;
@@ -695,7 +697,7 @@ function visibleStays(){
   if(activeFilter==="in-house") return todayOpenStays();
   if(activeFilter==="queue") return awaitingTurndownStays();
   if(activeFilter==="extended") return allStays.filter(isExtended);
-  if(["clients","caddie-players","caddie-network","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
+  if(["clients","caddie-players","caddie-reviews","caddie-compass","upcoming-golf","admin-team-map","honors","priestess-mailbox","guest-house","workshop-notes","lounge-video"].includes(activeFilter)) return [];
   return allStays;
 }
 function setText(id,value){const el=document.getElementById(id);if(el) el.textContent=value;}
@@ -708,8 +710,6 @@ function updateStats(){
   const caddieReviewCount=caddieReviewRequests.filter(request=>request.status==="requested").length;
   const caddieInviteCount=caddiePlayerInvitations.filter(invite=>invite.status==="invited").length;
   const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
-  const caddieNetworkActiveCount=caddieNetworkProfiles.filter(profile=>profile.status==="active").length;
-  const caddieNetworkReviewCount=caddieNetworkProfiles.filter(profile=>profile.status==="submitted").length;
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO()).length;
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
   const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
@@ -723,8 +723,6 @@ function updateStats(){
   setText("caddieReviewCount",caddieReviewCount);
   setText("caddieCompassCount",caddieCompassReplyCount);
   setText("caddieCompassPlayerCount",caddieCompassPlayers.length);
-  setText("caddieNetworkCount",caddieNetworkActiveCount);
-  setText("caddieNetworkReviewCount",caddieNetworkReviewCount);
   setText("upcomingGolfCount",upcomingGolfCount);
   setText("guestsInHouse",inHouse);
   setText("extendedStay",extendedCount);
@@ -746,9 +744,6 @@ function updateStats(){
 
   const caddiePlayersCard=document.querySelector('[data-filter="caddie-players"]');
   if(caddiePlayersCard) caddiePlayersCard.classList.toggle("has-alert",caddieInviteCount>0);
-
-  const caddieNetworkCard=document.querySelector('[data-filter="caddie-network"]');
-  if(caddieNetworkCard) caddieNetworkCard.classList.toggle("has-alert",caddieNetworkReviewCount>0);
 
   const caddieReviewCard=document.querySelector('[data-filter="caddie-reviews"]');
   if(caddieReviewCard) caddieReviewCard.classList.toggle("has-alert",caddieReviewCount>0);
@@ -786,8 +781,9 @@ function setFilter(filter){
     "queue":["AWAITING TURNDOWN","Guests Awaiting Turndown Service",ownerReceivesAllTurndownRequests()
       ? "Every active request from today’s Flowtel is routed to the owner Concierge."
       : "These guests are in your assigned wing and have requested extra care."],
-    "caddie-players":["CADDIE MAGIC PLAYERS","Private Beta Invitations + Player Access","Invite player-only testers, copy their clubhouse link, manage access, and elevate an existing player into the Caddie Network."],
-    "caddie-network":["CADDIE NETWORK","Caddie Invitations, Profiles + Activation","Review invited players as they complete a Caddie Profile. Approve, activate, pause, or decline service access without changing their Player identity."],
+    "caddie-players":["CADDIE MAGIC PLAYERS","Private Beta Invitations + Player Access","Invite player-only testers, copy their clubhouse link, and manage Caddie Magic access without opening Flowtel."],
+    "caddie-reviews":["CADDIE MAGIC","Players Awaiting a Caddie Review","Review their Score Map, study the patterns, and send a private Caddie Note back."],
+    "caddie-compass":["CADDIE COMPASS","Assignments + Messages","Open each player’s five-club map, create assignments, and reply to private Messages."],
     "upcoming-golf":["UPCOMING GOLF","Caddie Magic Moon Calendar","See upcoming rounds, tournaments, and trips across each moon-to-moon cycle."],
     "clients":["MENTOR RELATIONSHIPS","Your Clients + Mentor Requests","Connected clients and new mentor requests live here."],
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
@@ -984,7 +980,6 @@ function renderCaddiePlayerRow(player){
       </div>
       <div class="caddie-player-actions">
         ${player.player_profile_id ? `<a href="/caddie-magic/score-map/?player=${encodeURIComponent(player.player_profile_id)}&from=manager">Open Score Map</a>` : ""}
-        ${player.player_profile_id ? `<button type="button" data-invite-caddie-network="${player.player_profile_id}">${caddieNetworkProfiles.some(profile=>profile.player_profile_id===player.player_profile_id) ? "Caddie Pathway Open" : "Invite as Caddie"}</button>` : ""}
         <button type="button" data-toggle-caddie-player="${player.user_id}" data-enabled="${enabled ? "1" : "0"}">${enabled ? "Pause Access" : "Restore Access"}</button>
       </div>
     </article>`;
@@ -1074,26 +1069,6 @@ function bindCaddiePlayerActions(){
     updateStats();
   }));
 
-  document.querySelectorAll("[data-invite-caddie-network]").forEach(button=>button.addEventListener("click",async()=>{
-    if(caddieNetworkProfiles.some(profile=>profile.player_profile_id===button.dataset.inviteCaddieNetwork)){
-      setFilter("caddie-network");
-      return;
-    }
-    button.disabled=true;
-    const original=button.textContent;
-    button.textContent="Inviting…";
-    try{
-      await invitePlayerToCaddieNetwork(button.dataset.inviteCaddieNetwork);
-      await loadCaddieNetworkProfiles();
-      renderCaddiePlayersQueue();
-      updateStats();
-    }catch(error){
-      button.disabled=false;
-      button.textContent=original;
-      if(managerMessage) managerMessage.textContent=error?.message||"The Caddie Network invitation could not be created.";
-    }
-  }));
-
   document.querySelectorAll("[data-toggle-caddie-player]").forEach(button=>button.addEventListener("click",async()=>{
     const currentlyEnabled=button.dataset.enabled==="1";
     await setCaddieMagicPlayerAccess(button.dataset.toggleCaddiePlayer,!currentlyEnabled);
@@ -1115,71 +1090,6 @@ async function loadCaddiePlayerAccess(){
     caddiePlayers=[];
     caddiePlayerInvitations=[];
     caddiePlayerAccessAvailable=false;
-  }
-}
-
-function caddieNetworkStatusLabel(status=""){
-  return ({invited:"Invited",draft:"Draft",submitted:"Awaiting Review",approved:"Approved",active:"Active",paused:"Paused",declined:"Declined"})[status] || status;
-}
-
-function renderCaddieNetworkProfile(profile){
-  const status=String(profile.status||"invited");
-  const actions=[];
-  if(["invited","draft","submitted","declined"].includes(status)) actions.push(`<button type="button" data-caddie-network-status="approved" data-caddie-profile="${profile.caddie_profile_id}">Approve</button>`);
-  if(["approved","paused"].includes(status)) actions.push(`<button type="button" data-caddie-network-status="active" data-caddie-profile="${profile.caddie_profile_id}">Activate</button>`);
-  if(status==="active") actions.push(`<button type="button" data-caddie-network-status="paused" data-caddie-profile="${profile.caddie_profile_id}">Pause</button>`);
-  if(status!=="declined") actions.push(`<button type="button" data-caddie-network-status="declined" data-caddie-profile="${profile.caddie_profile_id}">Decline</button>`);
-  return `<article class="guest-row caddie-network-admin-row ${status==="submitted"?"needs-review":""}">
-    <div>
-      <h3>${escapeHtml(profile.display_name||profile.player_name||"Caddie Candidate")}</h3>
-      <p>${escapeHtml(profile.email||"")} · ${escapeHtml(caddieNetworkStatusLabel(status))}${profile.professional_title?` · ${escapeHtml(profile.professional_title)}`:""}${profile.city?` · ${escapeHtml(profile.city)}`:""}</p>
-      <p>${profile.years_experience!=null?`${escapeHtml(profile.years_experience)} years experience · `:""}${profile.accepting_requests?"Accepting player requests":"Not accepting requests"}</p>
-    </div>
-    <div class="caddie-player-actions">${actions.join("")}</div>
-  </article>`;
-}
-
-function renderCaddieNetworkQueue(){
-  if(!caddieNetworkServiceAvailable){
-    queue.innerHTML="<p>Caddie Network is not installed yet. Run database/migration-052-caddie-magic-caddie-network-foundation.sql.</p>";
-    return;
-  }
-  const submitted=caddieNetworkProfiles.filter(profile=>profile.status==="submitted");
-  const active=caddieNetworkProfiles.filter(profile=>profile.status==="active");
-  const developing=caddieNetworkProfiles.filter(profile=>!["submitted","active"].includes(profile.status));
-  queue.innerHTML=`
-    <section class="relationship-queue caddie-network-admin-queue">
-      <section><p class="eyebrow">AWAITING REVIEW · ${submitted.length}</p>${submitted.length?submitted.map(renderCaddieNetworkProfile).join(""):"<p>No Caddie Profiles are waiting for review.</p>"}</section>
-      <section><p class="eyebrow">ACTIVE CADDIES · ${active.length}</p>${active.length?active.map(renderCaddieNetworkProfile).join(""):"<p>No Caddies are active in the directory yet.</p>"}</section>
-      <section><p class="eyebrow">INVITED, DRAFT, APPROVED + PAUSED</p>${developing.length?developing.map(renderCaddieNetworkProfile).join(""):"<p>No additional Caddie candidates.</p>"}</section>
-    </section>`;
-  document.querySelectorAll("[data-caddie-network-status]").forEach(button=>button.addEventListener("click",async()=>{
-    const next=button.dataset.caddieNetworkStatus;
-    if(next==="declined" && !window.confirm("Decline this Caddie Profile? Their Player Profile and score history will remain untouched.")) return;
-    button.disabled=true;
-    const original=button.textContent;
-    button.textContent="Saving…";
-    try{
-      await setCaddieProfileStatus(button.dataset.caddieProfile,next);
-      await loadCaddieNetworkProfiles();
-      updateStats();
-      renderCaddieNetworkQueue();
-    }catch(error){
-      button.disabled=false;
-      button.textContent=original;
-      if(managerMessage) managerMessage.textContent=error?.message||"The Caddie Profile status could not be updated.";
-    }
-  }));
-}
-
-async function loadCaddieNetworkProfiles(){
-  try{
-    caddieNetworkProfiles=await listCaddieNetworkProfiles();
-    caddieNetworkServiceAvailable=true;
-  }catch(error){
-    console.warn("Caddie Network is not available yet.",error);
-    caddieNetworkProfiles=[];
-    caddieNetworkServiceAvailable=false;
   }
 }
 
@@ -1485,7 +1395,7 @@ function renderAdminTeamMap(){
     queue.innerHTML='<div class="service-notice"><h3>The 28-Day Team Map is waiting for migration 046.</h3><p>No member-facing Team Map data has been changed.</p></div>';
     return;
   }
-  const seasons=['Inner Winter','Inner Spring','Inner Summer','Inner Autumn'];
+  const seasons=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring'];
   const labels={
     'Inner Winter':'WEST · INNER WINTER',
     'Inner Spring':'SOUTH · INNER SPRING',
@@ -1638,6 +1548,26 @@ function mailboxFileAdminMarkup(file){
   const returned=file.direction==='to_practitioner';
   return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Audio file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:`<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">${file.received_at?'DOWNLOAD AGAIN':'DOWNLOAD + MARK RECEIVED'}</button><span>${file.received_at?`Received ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}`:'Awaiting download'}</span>`}</div></article>`;
 }
+function priestessInboxEditorProtected(){
+  return priestessInboxUploadInFlight || priestessInboxFilePickerOpen || (activeFilter==='priestess-mailbox' && !!(priestessInboxDraft.file || priestessInboxDraft.recipient || priestessInboxDraft.subject || priestessInboxDraft.note));
+}
+function beginPriestessInboxFilePicker(){
+  window.clearTimeout(priestessInboxFilePickerReleaseTimer);
+  priestessInboxFilePickerOpen=true;
+  document.body.dataset.priestessInboxFilePicker='open';
+}
+function endPriestessInboxFilePicker(){
+  window.clearTimeout(priestessInboxFilePickerReleaseTimer);
+  priestessInboxFilePickerReleaseTimer=window.setTimeout(()=>{
+    priestessInboxFilePickerOpen=false;
+    delete document.body.dataset.priestessInboxFilePicker;
+  },1200);
+}
+function priestessInboxSelectedMarkup(){
+  const file=priestessInboxDraft.file;
+  if(!file) return '';
+  return `<div class="admin-mailbox-send-selected"><div><p>READY FOR PRIVATE DELIVERY</p><strong>${escapeHtml(file.name)}</strong><span>${escapeHtml(managerFileSize(file.size))} · This selection will stay here until you send or clear it.</span></div><button class="quiet" type="button" data-priestess-inbox-clear>CLEAR FILE</button></div>`;
+}
 function renderPriestessMailboxQueue(){
   if(!priestessMailboxServiceAvailable){
     queue.innerHTML='<div class="service-notice"><h3>The Priestess Mailbox is waiting for migration 046.</h3><p>No files are deleted, and no existing Profile Studio data has changed.</p></div>';
@@ -1645,7 +1575,10 @@ function renderPriestessMailboxQueue(){
   }
   const threads=groupAdminMailboxRows(priestessMailboxRows);
   const awaiting=priestessMailboxRows.filter(row=>row.direction==='to_admin'&&!row.received_at).length;
-  queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIVATE AUDIO HANDOFFS</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Download the original, keep the thread intact, then return your edited audio to the same Priestess. Files remain preserved after receipt.</p></div><span>${threads.length} THREADS</span></header><div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Audio for Megan')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return edited audio</span><input type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" data-return-audio /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your edited journey is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND EDITED AUDIO BACK</button><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess audio has arrived yet.</p>'}</div></section>`;
+  const recipientOptions=priestessMailboxRecipients.map(recipient=>`<option value="${escapeHtml(recipient.member_id)}" ${String(recipient.member_id)===String(priestessInboxDraft.recipient)?'selected':''}>${escapeHtml(recipient.display_name||recipient.email)}${recipient.email?` · ${escapeHtml(recipient.email)}`:''}</option>`).join('');
+  queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIESTESS INBOX</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Receive practitioner audio, return edited recordings, or send a private file directly to another woman inside Flow FM.</p></div><span>${threads.length} THREADS</span></header>
+  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her existing Profile Studio mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept=".pdf,.txt,.csv,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.gif,.mp3,.wav,.m4a,.aac,.ogg,.mp4,.mov,.m4v,.webm,audio/*,video/*,image/*,application/pdf" required /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
+  <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return edited audio</span><input type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" data-return-audio /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your edited journey is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND EDITED AUDIO BACK</button><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
   bindAdminMailboxControls();
 }
 async function adminDownloadMailbox(button){
@@ -1678,6 +1611,28 @@ async function adminDownloadMailbox(button){
   }
 }
 function bindAdminMailboxControls(){
+  const sendForm=document.getElementById('adminMailboxSendForm');
+  const inboxFileInput=sendForm?.querySelector('input[name="file"]');
+  inboxFileInput?.addEventListener('pointerdown',beginPriestessInboxFilePicker);
+  inboxFileInput?.addEventListener('click',beginPriestessInboxFilePicker);
+  inboxFileInput?.addEventListener('change',()=>{
+    endPriestessInboxFilePicker();
+    priestessInboxDraft.file=inboxFileInput.files?.[0]||null;
+    priestessInboxDraft.recipient=sendForm.elements.recipient?.value||'';
+    priestessInboxDraft.subject=sendForm.elements.subject?.value||'';
+    priestessInboxDraft.note=sendForm.elements.note?.value||'';
+    renderPriestessMailboxQueue();
+  });
+  sendForm?.elements.recipient?.addEventListener('change',event=>{priestessInboxDraft.recipient=event.target.value;});
+  sendForm?.elements.subject?.addEventListener('input',event=>{priestessInboxDraft.subject=event.target.value;});
+  sendForm?.elements.note?.addEventListener('input',event=>{priestessInboxDraft.note=event.target.value;});
+  sendForm?.querySelector('[data-priestess-inbox-clear]')?.addEventListener('click',()=>{priestessInboxDraft={...priestessInboxDraft,file:null};renderPriestessMailboxQueue();});
+  if(sendForm) sendForm.addEventListener('submit',async(event)=>{
+    event.preventDefault();const button=sendForm.querySelector('button[type="submit"]');const output=sendForm.querySelector('p[role="status"]');const progress=sendForm.querySelector('.admin-mailbox-send-progress');const bar=progress?.querySelector('span');const data=new FormData(sendForm);const file=priestessInboxDraft.file||data.get('file');priestessInboxDraft={file,recipient:String(data.get('recipient')||''),subject:String(data.get('subject')||''),note:String(data.get('note')||'')};button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';output.textContent='Preparing this private delivery…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
+    try{await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':`Uploading privately… ${value}%`;}});priestessInboxDraft={file:null,recipient:'',subject:'',note:''};await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();if(managerMessage)managerMessage.textContent='The private file was delivered to her Priestess Inbox.';}
+    catch(error){button.disabled=false;button.textContent='SEND THROUGH THE FLOWTEL';output.textContent=error?.message||'This private file could not be delivered.';}
+    finally{priestessInboxUploadInFlight=false;delete document.body.dataset.priestessInboxUpload;}
+  });
   queue.querySelectorAll('[data-admin-mailbox-download]').forEach(button=>button.addEventListener('click',()=>adminDownloadMailbox(button)));
   queue.querySelectorAll('[data-return-thread]').forEach(button=>button.addEventListener('click',async()=>{
     const card=button.closest('[data-mailbox-thread]');
@@ -1697,11 +1652,11 @@ function bindAdminMailboxControls(){
 }
 async function loadPriestessMailboxData(){
   try{
-    priestessMailboxRows=await listAdminPriestessMailbox();
+    [priestessMailboxRows,priestessMailboxRecipients]=await Promise.all([listAdminPriestessMailbox(),listPriestessInboxRecipients()]);
     priestessMailboxServiceAvailable=true;
   }catch(error){
     console.warn('Priestess Mailbox queue is not available yet.',error);
-    priestessMailboxRows=[];priestessMailboxServiceAvailable=false;
+    priestessMailboxRows=[];priestessMailboxRecipients=[];priestessMailboxServiceAvailable=false;
   }
 }
 
@@ -1945,7 +1900,7 @@ function guestHouseEditorProtected(){
   return guestHouseUploadActive() || guestHouseFilePickerOpen || (activeFilter==='guest-house' && guestHouseDraftActive());
 }
 function conciergeEditorProtected(){
-  return guestHouseEditorProtected() || loungeVideoEditorProtected();
+  return guestHouseEditorProtected() || loungeVideoEditorProtected() || priestessInboxEditorProtected();
 }
 function beginGuestHouseUpload(requestId){
   guestHouseExpandedRequestId=requestId;
@@ -2208,8 +2163,13 @@ function renderQueue(){
     return;
   }
 
-  if(activeFilter==="caddie-network"){
-    renderCaddieNetworkQueue();
+  if(activeFilter==="caddie-reviews"){
+    renderCaddieReviewQueue();
+    return;
+  }
+
+  if(activeFilter==="caddie-compass"){
+    renderCaddieCompassQueue();
     return;
   }
 
@@ -2405,7 +2365,8 @@ async function loadDesk({silent=false}={}){
     await renderConnectionRequests();
     await renderMyClients();
     await loadCaddiePlayerAccess();
-    await loadCaddieNetworkProfiles();
+    await loadCaddieReviews();
+    await loadCaddieCompassPlayers();
     await loadUpcomingGolfEvents();
     await loadAdminTeamMap();
     await loadHonorsData();
@@ -2538,6 +2499,7 @@ document.addEventListener("visibilitychange",()=>window.setTimeout(refreshDeskWh
 window.addEventListener("focus",()=>{
   if(guestHouseFilePickerOpen) endGuestHouseFilePicker();
   if(loungeVideoFilePickerOpen) endLoungeVideoFilePicker();
+  if(priestessInboxFilePickerOpen) endPriestessInboxFilePicker();
   window.setTimeout(refreshDeskWhenVisible,1400);
 });
 window.addEventListener("beforeunload",event=>{

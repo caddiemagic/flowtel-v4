@@ -29,6 +29,7 @@ const message=document.getElementById('message');
 
 const SUPPORT_DOORS=[
   { href:'/flow-fm/hourly-flow-rate/', eyebrow:'BIG VISION', title:'Open Your Hourly Flow Rate', copy:'Choose four seasonal locations, find a home, and watch your receiving standard emerge as the vision expands.', motif:'sunburst' },
+  { href:'/flow-fm/availability/', eyebrow:'AVAILABILITY', title:'Map your 28-day rhythm', copy:'Witness when your body naturally opens for clients, visibility, creation, and rest.', motif:'planning' },
   { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
   { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
   { href:'/flow-fm/team-map/', eyebrow:'THE LIVING MAP', title:'Witness the Flow FM field', copy:'See where the women of Flow FM are rooted today—and where their multidimensional selves are traveling.', motif:'living-map' },

@@ -5,6 +5,7 @@ import { membershipFromUrl, labelForMembership, normalizeMembership } from "../s
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
+import { loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateWorkshopSeason } from "../shared/hourly-flow-rate.js?v=0.10.67";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -38,6 +39,8 @@ let passwordRecoveryHandled=false;
 let currentProfile=null;
 let loungeWorkshopLoadPromise=null;
 let loungeWorkshopLoadedVideoId=null;
+let loungeSeasonPlan=null;
+let loungeSeasonPlannerBusy=false;
 let currentMentorRelationship=null;
 let currentStay=null;
 let unreadConciergeStays=[];
@@ -50,7 +53,7 @@ function updatePhaseOneSuiteLinks(){
   const workshopCard=document.getElementById("flowFmWorkshopLoungeCard");
   const workshopAllowed=effectiveFlowFmRank(currentProfile || {})>=2;
   if(workshopCard) workshopCard.classList.toggle("hidden", !workshopAllowed);
-  if(workshopAllowed) void prepareLoungeWorkshopVideo();
+  if(workshopAllowed){ void prepareLoungeWorkshopVideo(); void prepareLoungeSeasonPlanner(); }
   renderSuiteClockInButton();
 }
 
@@ -2262,6 +2265,59 @@ const loungeWorkshopVideoStatus=document.getElementById("loungeWorkshopVideoStat
 const loungeWorkshopTitle=document.getElementById("loungeWorkshopTitle");
 const loungeWorkshopIntro=document.getElementById("loungeWorkshopIntro");
 const loungeReplayNotes=document.getElementById("loungeReplayNotes");
+const loungeSeasonPlanner=document.getElementById("loungeSeasonPlanner");
+const loungeSeasonPlannerGrid=document.getElementById("loungeSeasonPlannerGrid");
+const loungeSeasonPlannerStatus=document.getElementById("loungeSeasonPlannerStatus");
+
+const LOUNGE_SEASON_COPY={
+  winter:'Where would you like to rest, retreat, or be held?',
+  spring:'Where would you like to explore, play, or feel inspired?',
+  summer:'Where would you like to be seen, social, or expansive?',
+  autumn:'Where would you like to simplify, refine, or prepare?',
+};
+function loungeEscape(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));}
+function loungeSeasonLabel(value){return `Inner ${String(value||'').charAt(0).toUpperCase()+String(value||'').slice(1)}`;}
+function loungeSeasonDateRange(season){
+  const format=value=>{const [y,m,d]=String(value||'').slice(0,10).split('-').map(Number);return y?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d))):'—';};
+  return `${format(season.starts_on)} – ${format(season.ends_on)}`;
+}
+function renderLoungeSeasonPlanner(){
+  if(!loungeSeasonPlanner || !loungeSeasonPlannerGrid || !loungeSeasonPlan?.seasons?.length) return;
+  loungeSeasonPlanner.hidden=false;
+  loungeSeasonPlannerGrid.innerHTML=loungeSeasonPlan.seasons.map(season=>`<form class="lounge-season-card" data-lounge-season="${loungeEscape(season.id)}">
+    <p class="eyebrow">${loungeEscape(loungeSeasonLabel(season.season_key))}</p>
+    <h4>${loungeEscape(LOUNGE_SEASON_COPY[season.season_key]||'Where is this season calling you?')}</h4>
+    <small>${loungeEscape(loungeSeasonDateRange(season))}</small>
+    <div class="lounge-season-location-row">
+      <label>City<input name="city" value="${loungeEscape(season.city||'')}" placeholder="City" /></label>
+      <label>Region<input name="region" value="${loungeEscape(season.region||'')}" placeholder="State or region" /></label>
+      <label>Country<input name="country" value="${loungeEscape(season.country||'')}" placeholder="Country" /></label>
+    </div>
+    <label>Lodging idea<input name="lodging_idea" value="${loungeEscape(season.lodging_idea||'')}" placeholder="A hotel, Airbnb, neighborhood, or home to research" /></label>
+    <label>Seasonal note<textarea name="calling_reflection" rows="3" placeholder="What would this place make possible?">${loungeEscape(season.calling_reflection||'')}</textarea></label>
+    <button type="submit">Save ${loungeEscape(loungeSeasonLabel(season.season_key))}</button>
+    <p role="status"></p>
+  </form>`).join('');
+  loungeSeasonPlannerGrid.querySelectorAll('[data-lounge-season]').forEach(form=>form.addEventListener('submit',saveLoungeSeasonCard));
+}
+async function saveLoungeSeasonCard(event){
+  event.preventDefault();if(loungeSeasonPlannerBusy)return;
+  const form=event.currentTarget;const output=form.querySelector('p[role="status"]');const button=form.querySelector('button');
+  loungeSeasonPlannerBusy=true;button.disabled=true;button.textContent='SAVING…';output.textContent='';
+  try{
+    const data=new FormData(form);
+    const payload=await saveHourlyFlowRateWorkshopSeason({seasonId:form.dataset.loungeSeason,city:data.get('city'),region:data.get('region'),country:data.get('country'),lodgingIdea:data.get('lodging_idea'),callingReflection:data.get('calling_reflection')});
+    loungeSeasonPlan=normalizedHourlyFlowRatePayload(payload);
+    renderLoungeSeasonPlanner();
+    const restored=loungeSeasonPlannerGrid.querySelector(`[data-lounge-season="${CSS.escape(form.dataset.loungeSeason)}"] p[role="status"]`);if(restored)restored.textContent='This season is resting safely in your BIG VISION.';
+  }catch(error){output.textContent=error?.message||'This season could not be saved just now.';button.disabled=false;button.textContent='SAVE SEASON';}
+  finally{loungeSeasonPlannerBusy=false;}
+}
+async function prepareLoungeSeasonPlanner(){
+  if(!loungeSeasonPlanner)return;
+  try{loungeSeasonPlan=normalizedHourlyFlowRatePayload(await loadHourlyFlowRatePlan({createIfMissing:true}));renderLoungeSeasonPlanner();}
+  catch(error){console.warn('The Lounge seasonal planner could not open.',error);loungeSeasonPlanner.hidden=false;if(loungeSeasonPlannerStatus)loungeSeasonPlannerStatus.textContent=error?.message||'Your seasonal rooms could not open just now.';}
+}
 
 function setLoungeReplayNotesSource(video){
   if(!loungeReplayNotes || !video) return;

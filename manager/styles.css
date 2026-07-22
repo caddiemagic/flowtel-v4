@@ -864,3 +864,19 @@
 .lounge-video-uploader>p[role="status"],.lounge-video-pending>p[role="status"]{grid-column:1/-1;margin:0;color:var(--rose);font-style:italic}
 .lounge-video-archive{display:grid;gap:10px}.lounge-video-archive>.eyebrow{margin:4px 0 0}
 @media(max-width:800px){.lounge-video-admin>header,.lounge-video-uploader,.lounge-video-selected,.lounge-video-pending,.lounge-video-admin-row{grid-template-columns:1fr}.lounge-video-description{grid-column:auto}.lounge-video-admin-row>div:last-child,.lounge-video-pending>div:nth-child(2){justify-content:stretch}.lounge-video-admin-row button,.lounge-video-pending button,.lounge-video-selected button{width:100%}}
+
+/* Flowtel v0.10.67 — collapsed Guest House bodies must stay collapsed even when grid styles apply. */
+.guest-house-request-body[hidden]{display:none!important}
+
+/* Release 0.10.67 — owner-to-Priestess private file delivery */
+.admin-mailbox-send{display:grid;grid-template-columns:minmax(240px,1.1fr) repeat(3,minmax(180px,1fr)) auto;gap:12px;align-items:end;padding:20px;border:1px solid rgba(216,168,79,.22);border-radius:20px;background:rgba(255,248,232,.45)}
+.admin-mailbox-send>div:first-child{align-self:center}.admin-mailbox-send>div:first-child h3{margin:0 0 6px}.admin-mailbox-send>div:first-child p:last-child{margin:0;color:var(--soft-brown);font-size:.8rem}
+.admin-mailbox-send label{display:grid;gap:6px;color:var(--soft-brown);font:700 .57rem Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}.admin-mailbox-send input,.admin-mailbox-send select{width:100%;margin:0;padding:11px;border:1px solid rgba(109,78,65,.16);border-radius:12px;background:#fff;color:var(--brown);font:400 .82rem Georgia,serif;text-transform:none;letter-spacing:0}.admin-mailbox-send button{min-height:44px;white-space:nowrap}.admin-mailbox-send>p{grid-column:1/-1;min-height:18px;margin:0;color:var(--rose);font-style:italic}.admin-mailbox-send-progress{grid-column:1/-1;height:7px;overflow:hidden;border-radius:999px;background:rgba(216,168,79,.16)}.admin-mailbox-send-progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--rose),var(--gold));transition:width .18s ease}
+@media(max-width:1180px){.admin-mailbox-send{grid-template-columns:repeat(2,minmax(0,1fr))}.admin-mailbox-send>div:first-child{grid-column:1/-1}.admin-mailbox-send button{width:100%}}
+@media(max-width:680px){.admin-mailbox-send{grid-template-columns:1fr;padding:16px}.admin-mailbox-send>div:first-child{grid-column:auto}.admin-mailbox-send>p,.admin-mailbox-send-progress{grid-column:auto}}
+.admin-mailbox-send-selected{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 15px;border:1px solid rgba(216,168,79,.3);border-radius:15px;background:#fff9ed}
+.admin-mailbox-send-selected p{margin:0 0 5px;color:var(--rose);font:700 .55rem Arial,sans-serif;letter-spacing:.1em}
+.admin-mailbox-send-selected strong{display:block;margin-bottom:4px}
+.admin-mailbox-send-selected span{color:var(--soft-brown);font-size:.75rem}
+.admin-mailbox-send-selected button{min-height:38px}
+@media(max-width:680px){.admin-mailbox-send-selected{grid-template-columns:1fr}.admin-mailbox-send-selected button{width:100%}}

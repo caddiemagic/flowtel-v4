@@ -77,6 +77,7 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Initiation Hall' },
   { key: 'hourly-flow-rate', href: '/flow-fm/hourly-flow-rate/', label: 'Hourly Flow Rate' },
+  { key: 'availability', href: '/flow-fm/availability/', label: 'Availability Map' },
   { key: 'planning-room', href: '/flow-fm/planning-room/', label: 'Planning Room' },
   { key: 'profile-studio', href: '/flow-fm/profile-studio/', label: 'Profile Studio' },
   { key: 'living-map', href: '/flow-fm/team-map/', label: 'Living Map' },

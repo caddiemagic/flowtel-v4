@@ -1,8 +1,9 @@
-// Caddie Magic v0.4.5 — 28-Day Pattern Window + Mobile Controls
+// Caddie Magic v0.4.6 — 28-Day Pattern Window + Mobile Controls
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.0";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.4.6";
 import { getMoonMagic } from "../../shared/moon.js";
+import { averageValidGolfScore, validGolfScore } from "../../shared/caddie-magic-score-calculations.js?v=0.4.6";
 
 const $ = (id) => document.getElementById(id);
 
@@ -142,9 +143,7 @@ function rangeLabel() {
 }
 
 function averageScore(logs) {
-  const scores = logs.filter((log) => log.score !== null && log.score !== "").map((log) => Number(log.score)).filter(Number.isFinite);
-  if (!scores.length) return null;
-  return Math.round((scores.reduce((sum, score) => sum + score, 0) / scores.length) * 10) / 10;
+  return averageValidGolfScore(logs);
 }
 
 function phaseDefinitions() {
@@ -181,7 +180,7 @@ function noteMarkup(entry) {
 
 function renderQuadrants(logs) {
   const visibleLogs = activeDisplayMode === "scores"
-    ? logs.filter((entry) => entry.score !== null && entry.score !== "" && Number.isFinite(Number(entry.score)))
+    ? logs.filter((entry) => validGolfScore(entry.score) !== null)
     : logs;
 
   phaseDefinitions().forEach((definition) => {
@@ -235,7 +234,7 @@ function renderInsights(logs) {
 
   const groups = phaseDefinitions().map((definition) => {
     const phaseLogs = logs.filter((log) => normalizePhase(log.moon_phase) === definition.phase);
-    return { ...definition, logs: phaseLogs, scored: phaseLogs.filter((entry) => entry.score !== null && entry.score !== ""), average: averageScore(phaseLogs) };
+    return { ...definition, logs: phaseLogs, scored: phaseLogs.filter((entry) => validGolfScore(entry.score) !== null), average: averageScore(phaseLogs) };
   });
   const scoredGroups = groups.filter((group) => group.average !== null);
   const lowest = [...scoredGroups].sort((a, b) => a.average - b.average)[0];
