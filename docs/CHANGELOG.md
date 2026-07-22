@@ -1,3 +1,10 @@
+## v0.10.69.2 — Member Directory Deployment Boundary Hotfix
+
+- Removes the Member Directory's remaining runtime dependency on a separately deployed `shared/member-directory.js` file.
+- Embeds the owner-only Member Directory RPC adapter inside the already-loaded Concierge application while preserving database authorization and local failure containment.
+- Adds a focused Concierge cache key and validation that prevents this fragile module boundary from returning.
+- Requires no migration; migration 054 must not be rerun.
+
 ## v0.10.69.1 — Concierge Module Load Resilience Hotfix
 
 - Removes the new Member Directory from the Concierge Desk's top-level static module graph so one unavailable dependency can no longer block the entire owner Desk.

@@ -1,4 +1,5 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
+import { supabase } from "../shared/supabase.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.69";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
@@ -30,22 +31,52 @@ const DEFAULT_GUEST_HOUSE_STATUS_LABELS=Object.freeze({
 let GUEST_HOUSE_STATUS_LABELS=DEFAULT_GUEST_HOUSE_STATUS_LABELS;
 let guestHouseApi=null;
 let guestHouseCore=null;
-let memberDirectoryModulePromise=null;
-let memberDirectoryModuleLoadError=null;
+let memberDirectoryServiceLoadError=null;
 
-async function ensureMemberDirectoryModule(){
-  if(!memberDirectoryModulePromise){
-    memberDirectoryModulePromise=import("../shared/member-directory.js?v=0.10.69.1")
-      .then(api=>{memberDirectoryModuleLoadError=null;return api;})
-      .catch(error=>{memberDirectoryModulePromise=null;memberDirectoryModuleLoadError=error;throw error;});
-  }
-  return memberDirectoryModulePromise;
+function unwrapMemberDirectorySingle(data){
+  return Array.isArray(data) ? data[0] || null : data;
 }
 
-async function listFlowtelMembers(...args){const api=await ensureMemberDirectoryModule();return api.listFlowtelMembers(...args);}
-async function setFlowtelMemberVerification(...args){const api=await ensureMemberDirectoryModule();return api.setFlowtelMemberVerification(...args);}
-async function revokeFlowtelMemberAccess(...args){const api=await ensureMemberDirectoryModule();return api.revokeFlowtelMemberAccess(...args);}
-async function restoreFlowtelMemberAccess(...args){const api=await ensureMemberDirectoryModule();return api.restoreFlowtelMemberAccess(...args);}
+async function listFlowtelMembers(accessFilter="all"){
+  const normalized=["all","active","revoked"].includes(String(accessFilter||"").toLowerCase())
+    ? String(accessFilter).toLowerCase()
+    : "all";
+  const {data,error}=await supabase.rpc("flowtel_admin_get_member_directory",{p_access_filter:normalized});
+  if(error) throw error;
+  return Array.isArray(data)?data:[];
+}
+
+async function setFlowtelMemberVerification({userId,status,membershipType=null,note=null}={}){
+  if(!userId) throw new Error("Choose a Flowtel member.");
+  const {data,error}=await supabase.rpc("flowtel_admin_set_member_verification",{
+    p_user_id:userId,
+    p_verification_status:status,
+    p_verified_membership_type:membershipType||null,
+    p_owner_note:note||null,
+  });
+  if(error) throw error;
+  return unwrapMemberDirectorySingle(data);
+}
+
+async function revokeFlowtelMemberAccess(userId,reason=""){
+  if(!userId) throw new Error("Choose a Flowtel member.");
+  const {data,error}=await supabase.rpc("flowtel_admin_revoke_member_access",{
+    p_user_id:userId,
+    p_reason:String(reason||"").trim()||null,
+  });
+  if(error) throw error;
+  return data===true;
+}
+
+async function restoreFlowtelMemberAccess(userId,reason=""){
+  if(!userId) throw new Error("Choose a Flowtel member.");
+  const {data,error}=await supabase.rpc("flowtel_admin_restore_member_access",{
+    p_user_id:userId,
+    p_reason:String(reason||"").trim()||null,
+  });
+  if(error) throw error;
+  return data===true;
+}
 
 let guestHouseModulePromise=null;
 
@@ -2580,10 +2611,12 @@ async function loadMemberDirectory(){
   try{
     memberDirectoryRows=await listFlowtelMembers("all");
     memberDirectoryServiceAvailable=true;
+    memberDirectoryServiceLoadError=null;
   }catch(error){
     console.warn("Flowtel Member Directory is not available yet.",error);
     memberDirectoryRows=[];
     memberDirectoryServiceAvailable=false;
+    memberDirectoryServiceLoadError=error;
   }
 }
 function memberDateTime(value){
@@ -2673,8 +2706,8 @@ function bindMemberDirectoryActions(){
 }
 function renderMemberDirectoryQueue(){
   if(!memberDirectoryServiceAvailable){
-    const detail=memberDirectoryModuleLoadError?.message
-      ? ` The Member Directory module reported: ${escapeHtml(memberDirectoryModuleLoadError.message)}`
+    const detail=memberDirectoryServiceLoadError?.message
+      ? ` The Member Directory service reported: ${escapeHtml(memberDirectoryServiceLoadError.message)}`
       : "";
     queue.innerHTML=`<p class="empty-state">The Member Directory could not open, but the rest of the Concierge Desk remains available.${detail}</p>`;
     return;
