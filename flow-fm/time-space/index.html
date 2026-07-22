@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Flowtel Time + Space — a private global view for the approved Priestess Concierge Team." />
+  <title>Time + Space | Flowtel</title>
+  <link rel="stylesheet" href="/flow-fm/time-space/styles.css?v=0.10.72" />
+</head>
+<body>
+  <main class="time-space-shell">
+    <nav class="time-space-nav" aria-label="Time and Space navigation">
+      <a href="/flow-fm/">Return to Initiation Hall</a>
+      <a href="/client/?suite=1">Return to Suite</a>
+    </nav>
+
+    <section class="time-space-hero">
+      <div class="time-space-emblem" aria-hidden="true">
+        <img src="/assets/queendom-scarab-sundisk-transparent.png" alt="" />
+      </div>
+      <div>
+        <p class="eyebrow">PRIESTESS CONCIERGE TEAM</p>
+        <h1>Time + Space</h1>
+        <p>Meet the women tending the Flowtel across locations, time zones, hemispheres, and outer seasons.</p>
+      </div>
+      <div class="time-space-now">
+        <span>FLOWTEL TIME</span>
+        <strong id="flowtelClock">Opening the clocks…</strong>
+        <small id="flowtelDate"></small>
+      </div>
+    </section>
+
+    <section class="time-space-intro">
+      <div>
+        <p class="eyebrow">THE GLOBAL TEAM</p>
+        <h2 id="teamSummary">Gathering the approved Priestess Concierge Team…</h2>
+        <p>Location is member-entered. The plotted world map and location autocomplete remain intentionally deferred while this first view establishes the team rhythm.</p>
+      </div>
+      <span class="privacy-seal">PRIVATE TEAM VIEW</span>
+    </section>
+
+    <section class="time-space-grid" id="timeSpaceGrid" aria-live="polite"></section>
+
+    <section class="time-space-empty" id="timeSpaceEmpty" hidden>
+      <p class="eyebrow">THE ROOM IS QUIET</p>
+      <h2>No approved team profiles are visible yet.</h2>
+      <p>Once a Priestess Profile is approved and Living Map visibility is on, her Time + Space card can appear here.</p>
+    </section>
+
+    <section class="time-space-gate" id="timeSpaceGate" hidden>
+      <p class="eyebrow">PRIVATE CONCIERGE TEAM ROOM</p>
+      <h2>This room has not opened for your profile.</h2>
+      <p id="gateMessage">The Time + Space view is reserved for the Flowtel owner and approved Priestess Concierge Team members.</p>
+      <a href="/flow-fm/profile-studio/">Open Profile Studio</a>
+    </section>
+
+    <p class="time-space-message" id="timeSpaceMessage" role="status"></p>
+  </main>
+  <script type="module" src="/flow-fm/time-space/page.js?v=0.10.72"></script>
+</body>
+</html>

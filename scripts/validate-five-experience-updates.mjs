@@ -71,10 +71,12 @@ assert(files.replayShared.includes('flowtel_save_workshop_replay_note'),'Replay-
 assert(files.managerJs.includes('listAdminWorkshopReplayNotes'),'Concierge owner replay-note reporting is missing.');
 assert(files.managerHtml.includes('data-filter="workshop-notes"'),'Concierge Workshop Notes doorway is missing.');
 
-// Lounge video, Flow FM gate, and embedded living note portal.
+// Lounge video and Flow FM gate. The Four Seasons workshop intentionally
+// hides its embedded replay-note form in v0.10.72; the Replay Notes product,
+// route, owner archive, and consent-aware Flow Map integration remain intact.
 assert(files.loungeHtml.includes('id="loungeWorkshopVideo"'),'Approved Lounge video player is missing.');
 assert(files.loungeHtml.includes('id="flowFmWorkshopLoungeCard"'),'Flow FM Lounge video card is missing.');
-assert(files.loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Embedded replay notes are missing beneath the Lounge video.');
+assert(!files.loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Four Seasons Lounge should not embed Replay Notes in v0.10.72.');
 assert(files.loungeJs.includes('effectiveFlowFmRank(currentProfile || {})>=2'),'Lounge workshop is not gated to Flow FM members.');
 assert(files.loungeJs.includes('openActiveLoungeVideo'),'Lounge does not load the private active transmission.');
 assert(files.loungeShared.includes('flowtel_get_active_lounge_video'),'Private Lounge video helper is missing.');

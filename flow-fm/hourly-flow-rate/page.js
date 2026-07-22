@@ -21,10 +21,11 @@ import {
 } from '/shared/hourly-flow-rate-calculations.js';
 import {
   deleteHourlyFlowRateCostEntry,
+  hourlyFlowRateSeasonLocation,
   loadHourlyFlowRatePlan,
   normalizedHourlyFlowRatePayload,
   saveHourlyFlowRateCostEntry,
-  saveHourlyFlowRateDestination,
+  saveHourlyFlowRateSeasonLocation,
   saveHourlyFlowRateHomeBase,
   saveHourlyFlowRatePlanState,
   setHourlyFlowRateBaseCurrency,
@@ -182,7 +183,7 @@ function renderSeasonMap(){
   seasonMap.innerHTML = state.seasons.map((season) => {
     const status = seasonStatus({ season, costEntries: state.costEntries });
     const selected = season.id === activeSeasonId;
-    const destination = [season.city, season.region, season.country].filter(Boolean).join(', ');
+    const destination = hourlyFlowRateSeasonLocation(season);
     return `<button type="button" class="hfr-season-card ${selected ? 'active' : ''}" data-season-id="${escapeHtml(season.id)}" aria-pressed="${selected}">
       <span class="hfr-season-number">${String(season.sort_order).padStart(2, '0')}</span>
       <p class="eyebrow">${Number(season.sort_order) === 1 ? 'SUGGESTED FIRST' : 'OPEN SEASON'}</p>
@@ -195,13 +196,10 @@ function renderSeasonMap(){
 }
 
 function destinationForm(season){
+  const locationLabel = hourlyFlowRateSeasonLocation(season);
   return `<form id="destinationForm" class="hfr-form hfr-destination-form">
-    <div class="hfr-form-heading"><div><p class="eyebrow">MOMENT 1 — DREAM</p><h3>Where does this season call you?</h3></div><p>City and country mark the destination chosen. Everything else may arrive later.</p></div>
-    <div class="hfr-grid hfr-grid--three">
-      <label><span>City</span><input name="city" autocomplete="address-level2" value="${escapeHtml(season.city || '')}" placeholder="Carmel-by-the-Sea" /></label>
-      <label><span>State / province / region</span><input name="region" autocomplete="address-level1" value="${escapeHtml(season.region || '')}" placeholder="California" /></label>
-      <label><span>Country</span><input name="country" autocomplete="country-name" value="${escapeHtml(season.country || '')}" placeholder="United States" /></label>
-    </div>
+    <div class="hfr-form-heading"><div><p class="eyebrow">MOMENT 1 — DREAM</p><h3>Where does this season call you?</h3></div><p>Use one location for now. Lodging, dates, and money can arrive in the rooms below.</p></div>
+    <label><span>${escapeHtml(String(season.season_key || 'season').replace(/^./, (letter) => letter.toUpperCase()))} Location</span><input name="location_label" value="${escapeHtml(locationLabel)}" placeholder="Carmel-by-the-Sea, California" maxlength="220" /></label>
     <label><span>Why this place calls me <small>private</small></span><textarea name="calling_reflection" rows="3" placeholder="What might become possible here?">${escapeHtml(season.calling_reflection || '')}</textarea></label>
     <label><span>Inspiration link <small>optional</small></span><input name="inspiration_url" type="url" value="${escapeHtml(season.inspiration_url || '')}" placeholder="https://…" /></label>
     <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save this destination</button><span id="destinationMessage" class="hfr-inline-message"></span></div>
@@ -605,11 +603,10 @@ function bindEvents(){
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const inline = event.currentTarget.querySelector('.hfr-inline-message');
-    runAction(() => saveHourlyFlowRateDestination({
+    runAction(() => saveHourlyFlowRateSeasonLocation({
       seasonId: season.id,
-      city: data.get('city'),
-      region: data.get('region'),
-      country: data.get('country'),
+      locationLabel: data.get('location_label'),
+      lastOpenSection: `season-${season.id}`,
       callingReflection: data.get('calling_reflection'),
       inspirationUrl: data.get('inspiration_url'),
     }), 'This seasonal destination is resting safely in your map.', inline);

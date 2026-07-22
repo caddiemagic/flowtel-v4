@@ -39,7 +39,8 @@ assert.equal(guestHouseReplayExpirationCopy(end,start),'This replay will be dele
 
 const loungeHtml=await readFile('client/index.html','utf8');
 assert(loungeHtml.includes('id="loungeWorkshopVideo"'),'Lounge workshop player is missing.');
-assert(loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Embedded replay-notes portal is missing.');
+assert(!loungeHtml.includes('/replay-notes/?workshop=four-seasons-flowtel-workshop'),'Four Seasons Lounge should intentionally hide the replay-notes form.');
+await access('replay-notes/index.html');
 const guestHouseHtml=await readFile('guest-house/index.html','utf8');
 assert(!guestHouseHtml.includes('The Guest House is a threshold. The Queendom is the world beyond it.'),'Large Guest House threshold headline was not removed.');
 assert(/AN INVITATION BEYOND THE GUEST HOUSE/i.test(guestHouseHtml),'Guest House invitation eyebrow must remain.');
@@ -49,7 +50,7 @@ const caddieCss=await readFile('caddie-magic/compass/styles.css','utf8');
 assert(caddieCss.includes('Upcoming Golf practical calendar typography'),'Caddie Magic calendar font clarity rules are missing.');
 assert(caddieCss.includes('"Helvetica Neue",Arial,sans-serif'),'Caddie Magic practical calendar font stack is missing.');
 
-console.log('Lounge workshop media is supplied through private Storage.');
+console.log('Lounge workshop media is supplied through private Storage; Replay Notes remain available outside this intentionally simplified workshop.');
 
 
 console.log('Five-experience update behavior tests passed.');

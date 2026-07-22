@@ -48,7 +48,7 @@ assert(!/update\s+auth\.users[\s\S]{0,260}encrypted_password/i.test(sql), "Migra
 assert.equal((sql.match(/\$\$/g) || []).length % 2, 0, "Migration 056 has unmatched dollar quotes.");
 
 assert(managerHtml.includes('data-filter="priestess-team"'), "Priestess Concierge Team card is missing.");
-assert(managerHtml.includes('styles.css?v=0.10.71') && managerHtml.includes('app.js?v=0.10.71'), "Concierge cache keys are not on v0.10.71.");
+assert(managerHtml.includes('styles.css?v=0.10.72') && managerHtml.includes('app.js?v=0.10.72'), "Concierge cache keys are not on v0.10.71.");
 assert(managerJs.includes("flowtel_admin_list_priestess_concierge_team"), "Concierge does not contain the resilient Priestess Team RPC boundary.");
 assert(!managerJs.includes('from "../shared/priestess-concierge-team.js'), "Optional Priestess Team code must not be a required top-level Concierge dependency.");
 for (const token of ["renderPriestessTeamQueue", "Every woman is included", "Calendar connection coming soon.", "Accepting Clients", "Profile Studio has not been started yet."]) {

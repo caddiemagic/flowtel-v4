@@ -156,6 +156,15 @@ export function buildFutureSeasonCycle(flowtelToday = new Date()) {
   });
 }
 
+export function seasonLocationLabel(season = {}) {
+  const explicit = String(season.location_label || season.locationLabel || '').trim();
+  if(explicit) return explicit;
+  return [season.city, season.region, season.country]
+    .map((value) => String(value || '').trim())
+    .filter(Boolean)
+    .join(', ');
+}
+
 export function seasonDisplayName(season = {}) {
   const key = String(season.season_key || season.seasonKey || "").toLowerCase();
   const name = FLOWTEL_SEASONS.find((item) => item.key === key)?.name || "Season";
@@ -288,7 +297,7 @@ export function isFullyEnvisioned({ seasons = [], costEntries = [], monthlyHomeB
 export function seasonStatus({ season = {}, costEntries = [] } = {}) {
   const seasonId = season.id || season.seasonId;
   const totals = layerTotals(costEntries);
-  const destinationChosen = Boolean(String(season.city || "").trim() && String(season.country || "").trim());
+  const destinationChosen = Boolean(seasonLocationLabel(season));
   const lodging = totals.get(`${seasonId}:lodging`) || 0;
   const additionalLayers = SEASONAL_MONEY_LAYERS
     .filter((key) => key !== "lodging")

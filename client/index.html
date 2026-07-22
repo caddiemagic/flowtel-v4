@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.69" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.72" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -270,19 +270,14 @@
           <section class="lounge-season-planner" id="loungeSeasonPlanner" hidden>
             <header>
               <p class="eyebrow">YOUR FOUR SEASONS</p>
-              <h3>Capture the places calling you while you watch.</h3>
-              <p>Choose a location, remember a lodging idea, and leave a note for each season. These rooms return inside your Hourly Flow Rate plan.</p>
+              <h3>Where would you love to spend each season?</h3>
             </header>
-            <div class="lounge-season-planner-grid" id="loungeSeasonPlannerGrid"></div>
+            <form class="lounge-season-planner-form" id="loungeSeasonPlannerForm">
+              <div class="lounge-season-planner-grid" id="loungeSeasonPlannerGrid"></div>
+              <button class="lounge-season-save" id="saveLoungeSeasonLocations" type="submit">Save My Four Locations</button>
+            </form>
             <p class="lounge-season-planner-status" id="loungeSeasonPlannerStatus" role="status"></p>
           </section>
-          <iframe
-            class="lounge-replay-notes"
-            id="loungeReplayNotes"
-            title="Four Seasons Flowtel Workshop replay notes"
-            loading="lazy"
-            src="/replay-notes/?workshop=four-seasons-flowtel-workshop&amp;title=Four%20Seasons%20Flowtel%20Workshop&amp;source=flowtel-lounge-video%3Aactive&amp;embed=1"
-          ></iframe>
         </section>
 
         <section class="profile-lounge-card">
@@ -353,6 +348,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.69"></script>
+  <script type="module" src="./app.js?v=0.10.72"></script>
 </body>
 </html>

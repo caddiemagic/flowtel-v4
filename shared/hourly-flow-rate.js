@@ -6,6 +6,7 @@ import {
   calculateHourlyFlowRate,
   normalizeCurrencyCode,
   roundMoney,
+  seasonLocationLabel,
 } from './hourly-flow-rate-calculations.js';
 
 function asPayload(data){
@@ -40,6 +41,33 @@ export async function setHourlyFlowRateBaseCurrency({ planId, baseCurrency }){
     p_plan_id: planId,
     p_base_currency: normalizeCurrencyCode(baseCurrency),
   });
+}
+
+
+export { seasonLocationLabel as hourlyFlowRateSeasonLocation };
+
+export async function saveHourlyFlowRateSeasonLocation({
+  seasonId,
+  locationLabel = '',
+  lastOpenSection = null,
+  callingReflection = null,
+  inspirationUrl = null,
+}){
+  return call('flowtel_hfr_save_season_location', {
+    p_season_id: seasonId,
+    p_location_label: locationLabel,
+    p_last_open_section: lastOpenSection,
+    p_calling_reflection: callingReflection,
+    p_inspiration_url: inspirationUrl,
+  });
+}
+
+export async function saveHourlyFlowRateFourSeasonLocations(locations = {}){
+  const normalized = {};
+  for(const key of ['winter','spring','summer','autumn']){
+    if(Object.prototype.hasOwnProperty.call(locations, key)) normalized[key] = String(locations[key] || '').trim();
+  }
+  return call('flowtel_hfr_save_four_season_locations', { p_locations: normalized });
 }
 
 export async function saveHourlyFlowRateDestination({
@@ -142,7 +170,12 @@ export async function saveHourlyFlowRateHomeBase({
 
 export function normalizedHourlyFlowRatePayload(payload = {}){
   const plan = payload?.plan || null;
-  const seasons = Array.isArray(payload?.seasons) ? payload.seasons : [];
+  const seasons = Array.isArray(payload?.seasons)
+    ? payload.seasons.map((season) => ({
+        ...season,
+        location_label: seasonLocationLabel(season) || null,
+      }))
+    : [];
   const costEntries = Array.isArray(payload?.cost_entries) ? payload.cost_entries : [];
   const homeBase = payload?.home_base || null;
   const snapshots = Array.isArray(payload?.snapshots) ? payload.snapshots : [];

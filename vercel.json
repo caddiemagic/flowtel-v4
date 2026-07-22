@@ -155,6 +155,10 @@
       "destination": "/flow-fm/review/index.html"
     },
     {
+      "source": "/flow-fm/time-space",
+      "destination": "/flow-fm/time-space/index.html"
+    },
+    {
       "source": "/flow-fm/team-map",
       "destination": "/flow-fm/team-map/index.html"
     },
@@ -168,6 +172,19 @@
     }
   ],
   "headers": [
+    {
+      "source": "/flow-fm/time-space",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
     {
       "source": "/profile",
       "headers": [

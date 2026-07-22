@@ -33,6 +33,7 @@ const SUPPORT_DOORS=[
   { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
   { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
   { href:'/flow-fm/team-map/', eyebrow:'THE LIVING MAP', title:'Witness the Flow FM field', copy:'See where the women of Flow FM are rooted today—and where their multidimensional selves are traveling.', motif:'living-map' },
+  { href:'/flow-fm/time-space/', eyebrow:'TIME + SPACE', title:'Meet the global Concierge Team', copy:'See each approved Priestess in her location, time zone, hemisphere, and current outer season.', motif:'sunburst' },
 ];
 const PORTAL_DOOR_THEMES=['winged','cartouche','sunburst','lotus'];
 

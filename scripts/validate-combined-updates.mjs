@@ -8,12 +8,13 @@ const read=(file)=>readFile(path.join(root,file),'utf8');
 const files={
   migration:await read('database/migration-052-combined-flowtel-caddie-updates.sql'),
   migration054:await read('database/migration-054-flowtel-member-integrity-guest-profiles.sql'),
+  migration057:await read('database/migration-057-four-seasons-time-space.sql'),
   managerJs:await read('manager/app.js'),managerHtml:await read('manager/index.html'),managerCss:await read('manager/styles.css'),
   clientJs:await read('client/app.js'),clientHtml:await read('client/index.html'),clientCss:await read('client/styles.css'),
   cycleJs:await read('cycle-data/app.js'),cycleHtml:await read('cycle-data/index.html'),cycleCss:await read('cycle-data/styles.css'),
   guestHtml:await read('guest-house/index.html'),
   availabilityJs:await read('flow-fm/availability/page.js'),availabilityHtml:await read('flow-fm/availability/index.html'),availabilityCss:await read('flow-fm/availability/styles.css'),
-  mailbox:await read('shared/priestess-mailbox.js'),hfr:await read('shared/hourly-flow-rate.js'),
+  mailbox:await read('shared/priestess-mailbox.js'),hfr:await read('shared/hourly-flow-rate.js'),hfrCore:await read('shared/hourly-flow-rate-calculations.js'),
   caddieHtml:await read('caddie-magic/index.html'),caddieJs:await read('caddie-magic/app.js'),
   scoreHtml:await read('caddie-magic/score-map/index.html'),scoreJs:await read('caddie-magic/score-map/app.js'),scoreCss:await read('caddie-magic/score-map/styles.css'),
   collectiveHtml:await read('caddie-magic/collective-map/index.html'),collectiveCss:await read('caddie-magic/collective-map/styles.css'),
@@ -23,16 +24,22 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.71'));
-assert(files.managerHtml.includes('app.js?v=0.10.71'));
+assert(files.managerHtml.includes('styles.css?v=0.10.72'));
+assert(files.managerHtml.includes('app.js?v=0.10.72'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
 assert(files.managerJs.includes("const seasonOrder=['Inner Autumn','Inner Summer','Inner Winter','Inner Spring']")||files.managerJs.includes("['Inner Autumn','Inner Summer','Inner Winter','Inner Spring']"),'Owner Team Map quadrants are not Autumn, Summer, Winter, Spring.');
 
 assert(files.clientHtml.includes('id="loungeSeasonPlanner"'),'Lounge seasonal planner is missing.');
-for(const field of ['city','region','country','lodging_idea','calling_reflection']) assert(files.clientJs.includes(field),`Lounge planner field missing: ${field}`);
-assert(files.hfr.includes('flowtel_hfr_save_workshop_season'));
+assert(files.clientHtml.includes('id="loungeSeasonPlannerForm"'),'Simplified Four Seasons form is missing.');
+for(const label of ['Winter Location','Spring Location','Summer Location','Autumn Location']) assert(files.clientJs.includes(label),`Lounge location field missing: ${label}`);
+assert(!files.clientJs.includes('lodging_idea') && !files.clientJs.includes('calling_reflection'),'Detailed seasonal planning fields returned to the Lounge.');
+assert(!files.clientHtml.includes('id="loungeReplayNotes"'),'Replay Notes should be hidden only from the Four Seasons workshop.');
+assert(files.clientJs.includes('saveHourlyFlowRateFourSeasonLocations'),'Lounge does not write the canonical four-season locations.');
+assert(files.hfr.includes('flowtel_hfr_save_four_season_locations') && files.hfr.includes('flowtel_hfr_save_season_location'),'Canonical seasonal-location RPC wrappers are missing.');
+assert(files.hfrCore.includes('seasonLocationLabel'),'Canonical seasonal-location display helper is missing.');
+assert(files.migration057.includes('location_label') && files.migration057.includes('flowtel_get_time_and_space_team'),'Migration 057 foundations are missing.');
 assert(files.clientCss.includes('#requestTurndownButton,#requestWakeUpTextButton'),'Concierge button width match is missing.');
 
 assert(files.availabilityHtml.includes('FOUR-WEEK MAP'));

@@ -1,3 +1,16 @@
+## v0.10.72 — Four Seasons + Time and Space
+
+- Simplifies the Four Seasons Lounge workshop to one free-text Winter, Spring, Summer, and Autumn location field with one save action.
+- Hides Replay Notes only beneath this Four Seasons workshop while preserving the Replay Notes product, owner archive, consent-aware Flow Map integration, and historical notes.
+- Adds `location_label` as the canonical seasonal destination shared bidirectionally by the Lounge and Hourly Flow Rate while preserving all older structured location, lodging, note, date, cost, and snapshot data.
+- Keeps legacy seasonal RPCs backward-compatible so older cached pages refresh the same canonical location rather than creating a second source of truth.
+- Adds the private Time + Space team-card view for the owner and approved Priestess Concierge Team members with profile photo, display identity, location, timezone, live local time, hemisphere, and outer season.
+- Uses Flowtel’s established Northern cadence—Winter Nov–Jan, Spring Feb–Apr, Summer May–Jul, Autumn Aug–Oct—with Southern reversal and an Equatorial local-season state.
+- Respects Living Map visibility and excludes legal names, email, clients, cycle data, and administrative status from the team view.
+- Adds Flow FM and owner Concierge doorways plus private/no-store/noindex route handling.
+- Intentionally defers location autocomplete and the plotted world map.
+- Adds migration 057 and keeps Caddie Magic at v0.5.2 with no Caddie behavior changes.
+
 ## v0.10.71 — Priestess Network + Shared Identity
 
 - Adds an owner-only Priestess Concierge Team directory containing every Flow FM and Council member, including women who have not started Profile Studio.
