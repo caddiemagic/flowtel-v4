@@ -1,6 +1,6 @@
-// Caddie Magic v0.5.0 — player Caddie directory, request, and accepted-only consultation scheduling.
+// Caddie Magic v0.5.1 — player Caddie directory, request, and accepted-only consultation scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.0";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.1";
 import {
   listAvailableCaddies,
   requestCaddie,
@@ -10,7 +10,7 @@ import {
   bookConsultation,
   listMyConsultations,
   cancelConsultation,
-} from "../../shared/caddie-magic-network.js?v=0.5.0";
+} from "../../shared/caddie-magic-network.js?v=0.5.1";
 
 const $ = (id) => document.getElementById(id);
 let caddies = [];
@@ -34,23 +34,19 @@ function caddieCard(caddie) {
   const disabled = Boolean(request);
   const meta = [
     caddie.city,
-    caddie.years_experience != null ? `${caddie.years_experience} years` : "",
-    caddie.consultation_duration_minutes ? `${caddie.consultation_duration_minutes}-minute consultation` : "",
+    "45-minute consultation",
   ].filter(Boolean);
   return `<article class="caddie-network-card">
-    ${caddie.profile_photo_url ? `<img class="caddie-network-avatar" src="${escapeHtml(caddie.profile_photo_url)}" alt="${escapeHtml(caddie.display_name)}" />` : `<div class="caddie-network-avatar placeholder" aria-hidden="true">${escapeHtml(initials(caddie.display_name))}</div>`}
+    <div class="caddie-network-avatar placeholder" aria-hidden="true">${escapeHtml(initials(caddie.display_name))}</div>
     <div>
       <h3>${escapeHtml(caddie.display_name || "Caddie")}</h3>
       <p class="caddie-title">${escapeHtml(caddie.professional_title || "Caddie Magic Caddie")}</p>
-      ${caddie.philosophy ? `<p>${escapeHtml(caddie.philosophy)}</p>` : ""}
-      ${caddie.pebble_beach_experience ? `<p><strong>Pebble Beach:</strong> ${escapeHtml(caddie.pebble_beach_experience)}</p>` : ""}
-      ${caddie.courses_served ? `<p><strong>Courses:</strong> ${escapeHtml(caddie.courses_served)}</p>` : ""}
-      <div class="caddie-network-meta">${meta.map((item)=>`<span>${escapeHtml(item)}</span>`).join("")}</div>
+      ${caddie.courses_served ? `<p><strong>Approved Courses:</strong> ${escapeHtml(caddie.courses_served)}</p>` : `<p>Approved courses will appear as this Caddie completes the course directory.</p>`}
+      <div class="caddie-network-meta">${meta.map((item) => `<span>${escapeHtml(item)}</span>`).join("")}</div>
       <button class="cm-button" type="button" data-request-caddie="${escapeHtml(caddie.caddie_profile_id)}" ${disabled ? "disabled" : ""}>${disabled ? "Request Already Open" : "Request This Caddie"}</button>
     </div>
   </article>`;
 }
-
 function renderDirectory() {
   $("caddieCardGrid").innerHTML = caddies.length
     ? caddies.map(caddieCard).join("")
@@ -119,7 +115,7 @@ function renderAvailability() {
 
 function renderConsultations() {
   $("consultationList").innerHTML = consultations.length
-    ? consultations.map((item)=>`<article class="consultation-row"><div><h3>${escapeHtml(item.caddie_name || "Caddie Consultation")}</h3><p>${escapeHtml(formatDateTime(item.starts_at))} · ${escapeHtml(item.consultation_method || "Consultation details will be confirmed")}</p><p>Status: ${escapeHtml(item.status)}</p></div><div>${item.status === "scheduled" && item.meeting_link ? `<a class="cm-button" href="${escapeHtml(item.meeting_link)}" target="_blank" rel="noopener">Open Meeting</a>` : ""}${item.status === "scheduled" ? `<button class="cm-button secondary" type="button" data-cancel-consultation="${escapeHtml(item.consultation_id)}">Cancel</button>` : ""}</div></article>`).join("")
+    ? consultations.map((item)=>`<article class="consultation-row"><div><h3>${escapeHtml(item.caddie_name || "Caddie Consultation")}</h3><p>${escapeHtml(formatDateTime(item.starts_at))} · 45-minute Caddie Consultation · Acuity and Zoom details follow acceptance</p><p>Status: ${escapeHtml(item.status)}</p></div><div>${item.status === "scheduled" && item.meeting_link ? `<a class="cm-button" href="${escapeHtml(item.meeting_link)}" target="_blank" rel="noopener">Open Meeting</a>` : ""}${item.status === "scheduled" ? `<button class="cm-button secondary" type="button" data-cancel-consultation="${escapeHtml(item.consultation_id)}">Cancel</button>` : ""}</div></article>`).join("")
     : `<div class="directory-empty">No consultations have been scheduled yet.</div>`;
   document.querySelectorAll("[data-cancel-consultation]").forEach((button)=>button.addEventListener("click",async()=>{
     if (!window.confirm("Cancel this consultation? The time will return to the Caddie’s availability.")) return;

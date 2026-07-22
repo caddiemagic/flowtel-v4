@@ -1,4 +1,4 @@
-// Caddie Magic v0.5.0 — Caddie Network relationships, availability, and consultations.
+// Caddie Magic v0.5.1 — Caddie Network, controlled courses, and shared scheduling.
 
 import { supabase } from "./supabase.js";
 
@@ -25,18 +25,18 @@ export async function saveMyCaddieProfile(profile, { submit = false } = {}) {
   const { data, error } = await supabase.rpc("caddie_magic_save_my_caddie_profile", {
     p_display_name: String(profile?.displayName || "").trim(),
     p_professional_title: String(profile?.professionalTitle || "").trim() || null,
-    p_profile_photo_url: String(profile?.profilePhotoUrl || "").trim() || null,
-    p_years_experience: profile?.yearsExperience === "" || profile?.yearsExperience == null
-      ? null
-      : Number(profile.yearsExperience),
-    p_courses_served: String(profile?.coursesServed || "").trim() || null,
-    p_pebble_beach_experience: String(profile?.pebbleBeachExperience || "").trim() || null,
+    // Historical parameters remain in the RPC signature so migration 052 callers stay compatible.
+    // v0.5.1 deliberately leaves these retired values untouched.
+    p_profile_photo_url: null,
+    p_years_experience: null,
+    p_courses_served: null,
+    p_pebble_beach_experience: null,
     p_city: String(profile?.city || "").trim() || null,
     p_timezone: String(profile?.timezone || "America/Los_Angeles").trim(),
-    p_philosophy: String(profile?.philosophy || "").trim() || null,
-    p_consultation_method: String(profile?.consultationMethod || "").trim() || null,
-    p_consultation_duration_minutes: Number(profile?.consultationDurationMinutes || 30),
-    p_meeting_link: String(profile?.meetingLink || "").trim() || null,
+    p_philosophy: null,
+    p_consultation_method: null,
+    p_consultation_duration_minutes: 45,
+    p_meeting_link: null,
     p_submit: Boolean(submit),
   });
   if (error) throw error;
@@ -102,6 +102,7 @@ export async function respondToPlayerRequest(requestId, response) {
   return oneRow(data);
 }
 
+// Legacy exact-slot helpers remain available for historical records and safe rollback.
 export async function listMyAvailabilitySlots() {
   const profile = await getMyCaddieProfile();
   if (!profile) return [];
@@ -196,6 +197,116 @@ export async function setCaddieProfileStatus(caddieProfileId, status) {
   const { data, error } = await supabase.rpc("caddie_magic_set_caddie_profile_status", {
     p_caddie_profile_id: caddieProfileId,
     p_status: status,
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+// Controlled course catalog --------------------------------------------------
+
+export async function listCourseCatalog() {
+  const { data, error } = await supabase.rpc("caddie_magic_list_course_catalog");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getMyCourseSettings() {
+  const { data, error } = await supabase.rpc("caddie_magic_get_my_course_settings");
+  if (error) throw error;
+  return data || { selected: [], pending: [] };
+}
+
+export async function saveMyCourses(courseIds = []) {
+  const { data, error } = await supabase.rpc("caddie_magic_save_my_courses", {
+    p_course_ids: Array.isArray(courseIds) ? courseIds : [],
+  });
+  if (error) throw error;
+  return data || { selected: [], pending: [] };
+}
+
+export async function requestCourse(courseName) {
+  const { data, error } = await supabase.rpc("caddie_magic_request_course", {
+    p_course_name: String(courseName || "").trim(),
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+export async function listCourseRequests() {
+  const { data, error } = await supabase.rpc("caddie_magic_list_course_requests");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function reviewCourseRequest(requestId, decision) {
+  const { data, error } = await supabase.rpc("caddie_magic_review_course_request", {
+    p_request_id: requestId,
+    p_decision: decision,
+  });
+  if (error) throw error;
+  return oneRow(data);
+}
+
+// Shared weekly scheduling ---------------------------------------------------
+
+export async function getMyCaddieSchedule() {
+  const { data, error } = await supabase.rpc("caddie_magic_get_my_schedule");
+  if (error) throw error;
+  return data || { weekly: [], exceptions: [], service: { duration_minutes: 45 } };
+}
+
+export async function saveMyCaddieSchedule(schedule = []) {
+  const { data, error } = await supabase.rpc("caddie_magic_save_my_weekly_schedule", {
+    p_schedule: Array.isArray(schedule) ? schedule : [],
+  });
+  if (error) throw error;
+  return data || { weekly: [], exceptions: [] };
+}
+
+export async function addMyCaddieScheduleException({
+  startsOn,
+  endsOn,
+  blockCalls = true,
+  blockCaddying = true,
+  note = "",
+} = {}) {
+  const { data, error } = await supabase.rpc("caddie_magic_add_my_schedule_exception", {
+    p_starts_on: startsOn,
+    p_ends_on: endsOn || startsOn,
+    p_block_calls: Boolean(blockCalls),
+    p_block_caddying: Boolean(blockCaddying),
+    p_note: String(note || "").trim() || null,
+  });
+  if (error) throw error;
+  return data || { weekly: [], exceptions: [] };
+}
+
+export async function removeMyCaddieScheduleException(exceptionId) {
+  const { data, error } = await supabase.rpc("caddie_magic_remove_my_schedule_exception", {
+    p_exception_id: exceptionId,
+  });
+  if (error) throw error;
+  return data || { weekly: [], exceptions: [] };
+}
+
+// Caddie Master access -------------------------------------------------------
+
+export async function getMyCaddieMasterAccess() {
+  const { data, error } = await supabase.rpc("caddie_magic_get_my_master_access");
+  if (error) throw error;
+  return data || null;
+}
+
+export async function listCaddieMasterAccess() {
+  const { data, error } = await supabase.rpc("caddie_magic_list_master_access");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function setVipCaddieMasterMessaging(playerProfileId, enabled) {
+  const { data, error } = await supabase.rpc("caddie_magic_set_vip_messaging", {
+    p_player_profile_id: playerProfileId,
+    p_enabled: Boolean(enabled),
   });
   if (error) throw error;
   return oneRow(data);

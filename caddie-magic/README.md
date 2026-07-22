@@ -21,15 +21,15 @@ Caddies may:
 
 - maintain a professional Caddie Profile;
 - accept or decline player requests;
-- publish exact consultation availability;
+- set simple recurring Calls/Caddying availability and date exceptions;
 - see scheduled consultations and mark completed meetings;
 - open only the player data consented to for accepted consultation preparation.
 
 Caddies may not:
 
 - create assignments;
-- send portal messages;
-- leave Caddie Notes;
+- enter VIP Caddie Master conversations;
+- leave Caddie Master Notes or complete Scorecard Reviews;
 - edit player Scorecard, Score Map, Compass, or Calendar records;
 - access Flowtel unless separately granted Flowtel product access.
 
@@ -50,6 +50,8 @@ Caddie Magic players use the explicit product-access registry introduced in migr
 - `flowtel_access = false`
 - `access_role = 'player'`
 
-Migration 052 adds a separate Caddie service profile without replacing the Player identity.
+Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity.
+
+Current integrated version: **Caddie Magic v0.5.1 / Flowtel v0.10.68**.
 
 Run `node scripts/validate-caddie-magic.mjs` before shipping a merged release.

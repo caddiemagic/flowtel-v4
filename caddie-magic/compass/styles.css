@@ -3,7 +3,7 @@
 .compass-hero h1{font-size:clamp(1.7rem,3.7vw,2.55rem)}
 .compass-back{position:absolute;right:26px;bottom:24px;min-height:36px;font-size:.55rem}
 .compass-loading{text-align:center}
-.compass-page{display:grid;gap:22px}
+.compass-page{display:grid;gap:28px;padding-top:10px}
 .compass-page>.cm-card{margin-top:0}
 .compass-section-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
 .compass-status,.assignment-count{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border:1px solid var(--line);border-radius:999px;padding:0 14px;color:var(--gold);background:#071725;font:700 .55rem var(--font-body);letter-spacing:.13em;text-transform:uppercase;white-space:nowrap}
@@ -13,7 +13,7 @@
 .compass-staff-field strong{color:var(--ivory);font:500 1.2rem var(--font-display)}
 .compass-form .cm-button{justify-self:start;min-width:230px}
 
-/* Caddie Magic v0.5.0 — functional four-door Cardinal Club map. */
+/* Caddie Magic v0.5.1 — functional four-door Cardinal Club map. */
 .personal-compass{position:relative;width:min(100%,940px);min-height:690px;margin:28px auto 10px;display:grid;grid-template-columns:minmax(190px,235px) minmax(330px,430px) minmax(190px,235px);grid-template-rows:minmax(130px,auto) minmax(330px,430px) minmax(130px,auto);gap:24px 34px;align-items:center;justify-content:center}
 .compass-center{grid-column:2;grid-row:2;position:relative;width:min(100%,420px);aspect-ratio:1;display:grid;place-items:center;pointer-events:none}
 .compass-center::before{content:"";position:absolute;inset:10%;border:1px solid rgba(211,173,105,.22);border-radius:50%;box-shadow:0 0 45px rgba(211,173,105,.08)}
@@ -48,11 +48,14 @@
 .golf-event-card p,.golf-event-notes{color:var(--text);line-height:1.55}
 .golf-event-card p{margin:7px 0 0}.golf-event-notes{margin:14px 0 0}
 .golf-event-card details{margin-top:14px}.golf-event-card summary{cursor:pointer;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
-.golf-event-forecast{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
-.golf-event-forecast li{border:1px solid var(--line-soft);border-radius:15px;padding:11px 12px;background:#071725;display:grid;gap:5px}
-.golf-event-forecast span{color:var(--muted);font:700 .52rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
-.golf-event-forecast strong{color:var(--ivory);font:600 .82rem var(--font-body)}
-.golf-schedule-form,.golf-schedule-list,.golf-event-card,.golf-event-forecast{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
+/* Upcoming Golf practical calendar typography */
+.golf-moon-forecast{list-style:none;margin:12px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:9px}
+.golf-moon-forecast li{border:1px solid var(--line-soft);border-radius:15px;padding:11px 12px;background:#071725;display:grid;gap:5px}
+.golf-moon-date{color:var(--ivory);font:700 .78rem/1.4 Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
+.golf-moon-day,.golf-moon-phase{color:var(--muted);font:700 .52rem/1.45 Inter,Manrope,"Helvetica Neue",Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.golf-event-remove{min-width:112px;min-height:38px;border:1px solid var(--line);border-radius:999px;padding:0 16px;background:transparent;color:var(--gold);font:700 .52rem var(--font-body);letter-spacing:.11em;text-transform:uppercase;cursor:pointer;transition:background .18s ease,color .18s ease,border-color .18s ease}
+.golf-event-remove:hover,.golf-event-remove:focus-visible{background:rgba(211,173,105,.1);border-color:var(--gold);color:var(--ivory);outline:none}
+.golf-schedule-form,.golf-schedule-list,.golf-event-card,.golf-moon-forecast{font-family:Inter,Manrope,"Helvetica Neue",Arial,sans-serif}
 
 @media(max-width:1050px){
   .personal-compass{grid-template-columns:minmax(170px,210px) minmax(310px,390px) minmax(170px,210px);column-gap:22px}
@@ -78,7 +81,7 @@
   .compass-direction.north{grid-column:1;grid-row:1}.compass-direction.east{grid-column:2;grid-row:1}.compass-direction.west{grid-column:1;grid-row:3}.compass-direction.south{grid-column:2;grid-row:3}
   .compass-direction strong{font-size:1.12rem}.compass-direction small{font-size:.46rem}.compass-direction b{font-size:.45rem}
   .golf-event-heading{display:grid}.golf-event-heading .cm-button{width:100%}
-  .golf-event-forecast{grid-template-columns:1fr}
+  .golf-moon-forecast{grid-template-columns:1fr}
 }
 @media(max-width:390px){
   .personal-compass{grid-template-columns:1fr}

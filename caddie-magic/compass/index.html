@@ -7,13 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.4.6" />
-  <link rel="stylesheet" href="./styles.css?v=0.4.6" />
+  <link rel="stylesheet" href="../styles.css?v=0.5.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.5.1" />
 </head>
 <body>
   <main class="cm-shell compass-shell">
     <section class="cm-hero compass-hero">
-      <span class="cm-version">v0.4.6</span>
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <div class="cm-hero-copy">
@@ -25,7 +24,7 @@
 
     <section class="cm-card compass-loading" id="compassLoadingCard">
       <p class="cm-eyebrow">OPENING YOUR COMPASS</p>
-      <h2>Finding your clubs and current initiation.</h2>
+      <h2>Finding your clubs and moon map.</h2>
       <p class="cm-message" id="compassPageMessage">Checking your Caddie Magic access...</p>
     </section>
 
@@ -35,27 +34,27 @@
           <div>
             <p class="cm-eyebrow">YOUR CADDIE COMPASS</p>
             <h2>Name the first four clubs you would pull from your bag.</h2>
-            <p class="cm-muted">Your instinctive selection sets the directions.</p>
+            <p class="cm-muted">Your instinctive selection sets the directions. You may return and update your clubs as your game evolves.</p>
           </div>
           <span class="compass-status" id="compassStatus">Draft</span>
         </div>
         <form class="cm-form compass-form" id="compassForm">
           <div class="compass-club-fields">
-            <label>Club 1 · North
+            <label>North · Last Quarter Phase
               <input id="northClub" type="text" required placeholder="7 Iron" />
             </label>
-            <label>Club 2 · East
+            <label>East · Full Moon Phase
               <input id="eastClub" type="text" required placeholder="Driver" />
             </label>
-            <label>Club 3 · West
+            <label>West · New Moon Phase
               <input id="westClub" type="text" required placeholder="Sand Wedge" />
             </label>
-            <label>Club 4 · South
+            <label>South · First Quarter Phase
               <input id="southClub" type="text" required placeholder="5 Wood" />
             </label>
           </div>
           <div class="compass-staff-field">
-            <span>Club 5 · Center Staff</span>
+            <span>Center Staff</span>
             <strong>Putter</strong>
           </div>
           <button class="cm-button" id="saveCompassButton" type="submit">Save My Caddie Compass</button>
@@ -66,22 +65,23 @@
       <section class="cm-card compass-map-card hidden" id="compassMapCard">
         <div class="compass-section-heading">
           <div>
-            <p class="cm-eyebrow">YOUR FIVE-CLUB MAP</p>
+            <p class="cm-eyebrow">YOUR CADDIE COMPASS</p>
             <h2 id="compassOwnerName">Your Caddie Compass</h2>
+            <p class="cm-muted">Open a directional club to study the scores and swing thoughts gathered in that phase.</p>
           </div>
-          <span class="compass-status" id="compassMapStatus">Draft</span>
+          <span class="compass-status" id="compassMapStatus">Four Rooms Open</span>
         </div>
         <div class="personal-compass" aria-label="Personal Caddie Compass">
-          <article class="compass-direction north"><span>North</span><strong id="northClubDisplay">—</strong><small>Last Quarter Phase</small></article>
-          <article class="compass-direction east"><span>East</span><strong id="eastClubDisplay">—</strong><small>Full Moon Phase</small></article>
-          <article class="compass-direction west"><span>West</span><strong id="westClubDisplay">—</strong><small>New Moon Phase</small></article>
-          <article class="compass-direction south"><span>South</span><strong id="southClubDisplay">—</strong><small>First Quarter Phase</small></article>
+          <a class="compass-direction north" href="/caddie-magic/compass/club/?direction=north"><span>North Club</span><strong id="northClubDisplay">—</strong><small>Last Quarter Phase · Days 20–26</small><b>Open North Club →</b></a>
+          <a class="compass-direction east" href="/caddie-magic/compass/club/?direction=east"><span>East Club</span><strong id="eastClubDisplay">—</strong><small>Full Moon Phase · Days 12–19</small><b>Open East Club →</b></a>
+          <a class="compass-direction west" href="/caddie-magic/compass/club/?direction=west"><span>West Club</span><strong id="westClubDisplay">—</strong><small>New Moon Phase · Days 27–5</small><b>Open West Club →</b></a>
+          <a class="compass-direction south" href="/caddie-magic/compass/club/?direction=south"><span>South Club</span><strong id="southClubDisplay">—</strong><small>First Quarter Phase · Days 6–11</small><b>Open South Club →</b></a>
           <div class="compass-center">
-            <img src="/assets/caddie-magic-map-wheel.png?v=0.4.6" alt="" aria-hidden="true" />
+            <img src="/assets/caddie-magic-map-wheel.png?v=0.5.1" alt="" aria-hidden="true" />
           </div>
         </div>
         <div class="compass-staff-summary"><span>Center Staff</span><strong id="staffClubDisplay">Putter</strong></div>
-        <p class="compass-seal-note" id="compassSealNote">Your compass remains editable until your first assignment is sent.</p>
+        <p class="compass-seal-note" id="compassSealNote">Your Compass remains editable. Every directional card opens its own Cardinal Club Room.</p>
       </section>
 
       <section class="cm-card compass-schedule-card" id="calendar">
@@ -128,43 +128,8 @@
         <p class="cm-message" id="golfScheduleMessage"></p>
         <div class="golf-schedule-list" id="golfScheduleList"></div>
       </section>
-
-      <section class="cm-card compass-assignments-card" id="homework">
-        <div class="compass-section-heading">
-          <div>
-            <p class="cm-eyebrow">HOMEWORK</p>
-            <h2>Your personalized assignments.</h2>
-          </div>
-          <span class="assignment-count" id="activeAssignmentCount">0 active</span>
-        </div>
-        <div class="assignment-list" id="activeAssignments"></div>
-      </section>
-
-      <section class="cm-card compass-dispatch-card" id="messages">
-        <div class="compass-section-heading">
-          <div>
-            <p class="cm-eyebrow">MESSAGES</p>
-            <h2>Private messages with your Caddie.</h2>
-            <p class="cm-muted" id="dispatchIntro">First submit your Caddie Compass. Then you can send private messages here.</p>
-          </div>
-        </div>
-        <div class="dispatch-thread" id="dispatchThread"></div>
-        <form class="dispatch-form" id="dispatchForm">
-          <label>Your Message
-            <textarea id="dispatchMessage" rows="4" required placeholder="Send an update, ask a question, or share what the assignment revealed."></textarea>
-          </label>
-          <button class="cm-button" type="submit">Send Message</button>
-        </form>
-        <p class="cm-message" id="dispatchMessageStatus"></p>
-      </section>
-
-      <section class="cm-card compass-history-card">
-        <p class="cm-eyebrow">INITIATION HISTORY</p>
-        <h2>Completed assignments.</h2>
-        <div class="assignment-list" id="completedAssignments"></div>
-      </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.4.6"></script>
+  <script type="module" src="./app.js?v=0.5.1"></script>
 </body>
 </html>

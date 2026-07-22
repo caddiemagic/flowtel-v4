@@ -1,64 +1,491 @@
-// Caddie Magic v0.5.0 — owner-approved Caddie Desk with requests, availability, and consultations only.
+// Caddie Magic v0.5.1 — simplified Caddie Profile, controlled courses, and shared scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.0";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.1";
 import {
   getMyCaddieProfile,
   saveMyCaddieProfile,
   setAcceptingPlayerRequests,
   listMyPlayerRequests,
   respondToPlayerRequest,
-  listMyAvailabilitySlots,
-  addMyAvailabilitySlot,
-  removeMyAvailabilitySlot,
   listMyConsultations,
   cancelConsultation,
   completeConsultation,
   getPlayerConsultationSnapshot,
-} from "../../shared/caddie-magic-network.js?v=0.5.0";
+  listCourseCatalog,
+  getMyCourseSettings,
+  saveMyCourses,
+  requestCourse,
+  getMyCaddieSchedule,
+  saveMyCaddieSchedule,
+  addMyCaddieScheduleException,
+  removeMyCaddieScheduleException,
+} from "../../shared/caddie-magic-network.js?v=0.5.1";
 
-const $ = (id)=>document.getElementById(id);
-let profile=null, requests=[], slots=[], consultations=[];
-function escapeHtml(value=""){return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
-function setMessage(node,text="",error=false){if(node){node.textContent=text;node.classList.toggle("error",error);}}
-function formatDate(value){if(!value)return "—";const d=new Date(`${String(value).slice(0,10)}T12:00:00`);return new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric"}).format(d);}
-function formatDateTime(value){if(!value)return "—";return new Intl.DateTimeFormat(undefined,{weekday:"short",month:"short",day:"numeric",hour:"numeric",minute:"2-digit",timeZoneName:"short"}).format(new Date(value));}
-function statusLabel(value=""){return String(value).replaceAll("_"," ").replace(/\b\w/g,(m)=>m.toUpperCase());}
-function active(){return profile?.status==="active";}
+const $ = (id) => document.getElementById(id);
+const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DAYPARTS = [
+  { key: "morning", label: "Morning", times: "9:00 · 10:00 · 11:00" },
+  { key: "afternoon", label: "Afternoon", times: "1:00 · 2:00 · 3:00" },
+  { key: "evening", label: "Evening", times: "5:00 · 6:00 · 7:00" },
+];
 
-function hydrateProfile(){
-  $("caddieDisplayName").value=profile?.display_name||"";$("caddieProfessionalTitle").value=profile?.professional_title||"";$("caddieYearsExperience").value=profile?.years_experience??"";$("caddieCity").value=profile?.city||"";$("caddieTimezone").value=profile?.timezone||"America/Los_Angeles";$("caddieProfilePhotoUrl").value=profile?.profile_photo_url||"";$("caddieCoursesServed").value=profile?.courses_served||"";$("caddiePebbleExperience").value=profile?.pebble_beach_experience||"";$("caddiePhilosophy").value=profile?.philosophy||"";$("caddieConsultationMethod").value=profile?.consultation_method||"";$("caddieConsultationDuration").value=String(profile?.consultation_duration_minutes||30);$("caddieMeetingLink").value=profile?.meeting_link||"";
-  $("caddieProfileStatus").textContent=statusLabel(profile?.status||"invited");
-  const locked=["submitted"].includes(profile?.status);$("submitCaddieProfileButton").disabled=locked||active();$("submitCaddieProfileButton").textContent=locked?"Awaiting Approval":active()?"Profile Active":"Submit for Approval";
-  $("activeDeskControls").classList.toggle("hidden",!active());$("playerRequestsCard").classList.toggle("hidden",!active());$("availabilityDeskCard").classList.toggle("hidden",!active());$("consultationsDeskCard").classList.toggle("hidden",!active());
-  $("acceptingRequestsToggle").checked=Boolean(profile?.accepting_requests);renderAcceptingLabel();
-}
-function profilePayload(){return{displayName:$("caddieDisplayName").value,professionalTitle:$("caddieProfessionalTitle").value,yearsExperience:$("caddieYearsExperience").value,city:$("caddieCity").value,timezone:$("caddieTimezone").value,profilePhotoUrl:$("caddieProfilePhotoUrl").value,coursesServed:$("caddieCoursesServed").value,pebbleBeachExperience:$("caddiePebbleExperience").value,philosophy:$("caddiePhilosophy").value,consultationMethod:$("caddieConsultationMethod").value,consultationDurationMinutes:$("caddieConsultationDuration").value,meetingLink:$("caddieMeetingLink").value};}
-async function saveProfile(submit=false){const button=submit?$("submitCaddieProfileButton"):$("saveCaddieDraftButton");button.disabled=true;setMessage($("profileMessage"),submit?"Submitting your Caddie Profile...":"Saving your Caddie Profile...");try{profile=await saveMyCaddieProfile(profilePayload(),{submit});setMessage($("profileMessage"),submit?"Profile submitted for owner approval.":"Caddie Profile saved.");}catch(error){setMessage($("profileMessage"),error?.message||"The Caddie Profile could not be saved.",true);}finally{button.disabled=false;if(profile)hydrateProfile();}}
-function renderAcceptingLabel(){$("acceptingRequestsLabel").textContent=$("acceptingRequestsToggle").checked?"Accepting player requests":"Not accepting requests";}
+let profile = null;
+let requests = [];
+let consultations = [];
+let courseCatalog = [];
+let courseSettings = { selected: [], pending: [] };
+let schedule = { weekly: [], exceptions: [], service: { duration_minutes: 45 } };
 
-function consentMarkup(row){return[row.share_scorecard&&"Scorecard",row.share_score_map&&"Score Map",row.share_compass&&"Compass",row.share_upcoming_golf&&"Calendar"].filter(Boolean).map((v)=>`<span>${escapeHtml(v)}</span>`).join("")||"<span>Profile only</span>";}
-function renderRequests(){const waiting=requests.filter((r)=>r.status==="requested").length;$("requestCount").textContent=`${waiting} waiting`;$("requestList").innerHTML=requests.length?requests.map((r)=>`<article class="desk-request-row"><div><h3>${escapeHtml(r.player_name||"Player")}</h3><p>${r.anticipated_trip_date?`Pebble Beach date ${escapeHtml(formatDate(r.anticipated_trip_date))} · `:""}${escapeHtml(r.consultation_goal||"Consultation request")}</p>${r.course_itinerary?`<p>${escapeHtml(r.course_itinerary)}</p>`:""}<div class="request-consent">${consentMarkup(r)}</div></div><div class="desk-row-actions">${r.status==="requested"?`<button class="cm-button" data-respond-request="${escapeHtml(r.request_id)}" data-response="accepted">Accept</button><button class="cm-button secondary" data-respond-request="${escapeHtml(r.request_id)}" data-response="declined">Decline</button>`:r.status==="accepted"?`<button class="cm-button" data-open-snapshot="${escapeHtml(r.request_id)}">Open Read-Only Preparation</button>`:`<span class="desk-status">${escapeHtml(statusLabel(r.status))}</span>`}</div></article>`).join(""):`<div class="desk-empty">No player requests have arrived yet.</div>`;
-  document.querySelectorAll("[data-respond-request]").forEach((b)=>b.addEventListener("click",async()=>{b.disabled=true;try{await respondToPlayerRequest(b.dataset.respondRequest,b.dataset.response);await reloadOperationalData();}catch(error){setMessage($("deskMessage"),error?.message||"The request could not be updated.",true);b.disabled=false;}}));
-  document.querySelectorAll("[data-open-snapshot]").forEach((b)=>b.addEventListener("click",()=>openSnapshot(b.dataset.openSnapshot)));
-}
-function renderSlots(){$("slotList").innerHTML=slots.length?slots.map((s)=>`<article class="desk-slot-row"><div><h3>${escapeHtml(formatDateTime(s.starts_at))}</h3><p>Ends ${escapeHtml(formatDateTime(s.ends_at))} · ${escapeHtml(statusLabel(s.status))}</p></div><div class="desk-row-actions">${s.status==="available"?`<button class="cm-button secondary" data-remove-slot="${escapeHtml(s.id)}">Remove</button>`:""}</div></article>`).join(""):`<div class="desk-empty">No consultation availability has been posted.</div>`;document.querySelectorAll("[data-remove-slot]").forEach((b)=>b.addEventListener("click",async()=>{if(!window.confirm("Remove this open time?"))return;b.disabled=true;try{await removeMyAvailabilitySlot(b.dataset.removeSlot);await reloadOperationalData();}catch(error){setMessage($("availabilityStatus"),error?.message||"The availability could not be removed.",true);b.disabled=false;}}));}
-function renderConsultations(){
-  const caddieConsultations=consultations.filter((c)=>c.viewer_role==="caddie");
-  $("deskConsultationList").innerHTML=caddieConsultations.length?caddieConsultations.map((c)=>{
-    const mayComplete=c.status==="scheduled"&&new Date(c.starts_at).getTime()<=Date.now();
-    return `<article class="desk-consultation-row"><div><h3>${escapeHtml(c.player_name||"Player Consultation")}</h3><p>${escapeHtml(formatDateTime(c.starts_at))} · ${escapeHtml(c.consultation_method||"Consultation")}</p><p>Status: ${escapeHtml(statusLabel(c.status))}</p></div><div class="desk-row-actions">${c.status==="scheduled"&&c.meeting_link?`<a class="cm-button" href="${escapeHtml(c.meeting_link)}" target="_blank" rel="noopener">Open Meeting</a>`:""}${mayComplete?`<button class="cm-button" data-complete-consultation="${escapeHtml(c.consultation_id)}">Mark Complete</button>`:""}${c.status==="scheduled"?`<button class="cm-button secondary" data-cancel-consultation="${escapeHtml(c.consultation_id)}">Cancel</button>`:""}</div></article>`;
-  }).join(""):`<div class="desk-empty">No consultations are scheduled.</div>`;
-  document.querySelectorAll("[data-complete-consultation]").forEach((b)=>b.addEventListener("click",async()=>{if(!window.confirm("Mark this consultation complete?"))return;b.disabled=true;try{await completeConsultation(b.dataset.completeConsultation);await reloadOperationalData();}catch(error){setMessage($("deskMessage"),error?.message||"The consultation could not be completed.",true);b.disabled=false;}}));
-  document.querySelectorAll("[data-cancel-consultation]").forEach((b)=>b.addEventListener("click",async()=>{if(!window.confirm("Cancel this consultation?"))return;b.disabled=true;try{await cancelConsultation(b.dataset.cancelConsultation);await reloadOperationalData();}catch(error){setMessage($("deskMessage"),error?.message||"The consultation could not be cancelled.",true);b.disabled=false;}}));
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
-function snapshotEntries(entries=[]){return entries.length?`<div class="snapshot-entry-list">${entries.slice(0,20).map((e)=>`<article class="snapshot-entry"><time>${escapeHtml(formatDate(e.round_date))}${e.moon_day?` · Day ${escapeHtml(e.moon_day)}`:""}</time><p>${escapeHtml(e.swing_thoughts||e.course_played||"Score logged")}</p>${e.score!=null?`<strong>${escapeHtml(e.score)}</strong>`:""}</article>`).join("")}</div>`:`<div class="desk-empty">No shared entries are available.</div>`;}
-async function openSnapshot(requestId){$("snapshotContent").innerHTML=`<div class="snapshot-wrap"><p class="cm-eyebrow">CONSULTATION PREPARATION</p><h2>Opening read-only player data...</h2></div>`;$("snapshotDialog").showModal();try{const s=await getPlayerConsultationSnapshot(requestId);const player=s?.player||{},request=s?.request||{},compass=s?.compass||null,upcoming=Array.isArray(s?.upcoming_golf)?s.upcoming_golf:[];$("snapshotContent").innerHTML=`<div class="snapshot-wrap"><p class="cm-eyebrow">READ-ONLY CONSULTATION PREPARATION</p><h2>${escapeHtml(player.name||"Player")}</h2><p class="cm-muted">You can study what the player consented to share. You cannot edit records, send notes, create assignments, or message the player inside Caddie Magic.</p><section class="snapshot-section"><div class="snapshot-grid"><article class="snapshot-data-card"><span>Trip Date</span><strong>${escapeHtml(formatDate(request.anticipated_trip_date))}</strong></article><article class="snapshot-data-card"><span>Score Range</span><strong>${escapeHtml(player.handicap_or_score_range||"Not provided")}</strong></article><article class="snapshot-data-card"><span>Home Course</span><strong>${escapeHtml(player.home_course||"Not provided")}</strong></article><article class="snapshot-data-card"><span>Consultation Goal</span><p>${escapeHtml(request.consultation_goal||"Not provided")}</p></article></div></section>${compass?`<section class="snapshot-section"><p class="cm-eyebrow">CADDIE COMPASS</p><div class="snapshot-grid"><article class="snapshot-data-card"><span>North Club</span><strong>${escapeHtml(compass.north_club)}</strong></article><article class="snapshot-data-card"><span>East Club</span><strong>${escapeHtml(compass.east_club)}</strong></article><article class="snapshot-data-card"><span>West Club</span><strong>${escapeHtml(compass.west_club)}</strong></article><article class="snapshot-data-card"><span>South Club</span><strong>${escapeHtml(compass.south_club)}</strong></article></div></section>`:""}${Array.isArray(s?.scorecard)&&s.scorecard.length?`<section class="snapshot-section"><p class="cm-eyebrow">SCORECARD</p>${snapshotEntries(s.scorecard)}</section>`:""}${Array.isArray(s?.score_map)&&s.score_map.length?`<section class="snapshot-section"><p class="cm-eyebrow">SCORE MAP</p>${snapshotEntries(s.score_map)}</section>`:""}${upcoming.length?`<section class="snapshot-section"><p class="cm-eyebrow">UPCOMING GOLF</p>${upcoming.map((e)=>`<article class="snapshot-entry"><time>${escapeHtml(formatDate(e.date_start))}</time><p>${escapeHtml(e.title||e.course||"Upcoming Golf")}</p><strong>${escapeHtml(e.event_type||"")}</strong></article>`).join("")}</section>`:""}</div>`;}catch(error){$("snapshotContent").innerHTML=`<div class="snapshot-wrap"><p class="cm-message error">${escapeHtml(error?.message||"The preparation view could not be opened.")}</p></div>`;}}
+function setMessage(node, text = "", error = false) {
+  if (!node) return;
+  node.textContent = text;
+  node.classList.toggle("error", error);
+}
 
-async function reloadOperationalData(){if(!active())return;[requests,slots,consultations]=await Promise.all([listMyPlayerRequests(),listMyAvailabilitySlots(),listMyConsultations()]);renderRequests();renderSlots();renderConsultations();}
-async function boot(){try{await requireCaddieMagicAccess();profile=await getMyCaddieProfile();$("deskLoadingCard").classList.add("hidden");if(!profile){$("notInvitedCard").classList.remove("hidden");return;}$("deskPage").classList.remove("hidden");hydrateProfile();await reloadOperationalData();}catch(error){setMessage($("deskMessage"),error?.message||"The Caddie Desk could not be opened.",true);}}
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(`${String(value).slice(0, 10)}T12:00:00`);
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(date);
+}
 
-$("saveCaddieDraftButton")?.addEventListener("click",()=>saveProfile(false));$("submitCaddieProfileButton")?.addEventListener("click",()=>saveProfile(true));$("acceptingRequestsToggle")?.addEventListener("change",async()=>{renderAcceptingLabel();try{profile=await setAcceptingPlayerRequests($("acceptingRequestsToggle").checked);}catch(error){$("acceptingRequestsToggle").checked=!$("acceptingRequestsToggle").checked;renderAcceptingLabel();setMessage($("deskMessage"),error?.message||"The request setting could not be changed.",true);}});
-$("availabilityForm")?.addEventListener("submit",async(event)=>{event.preventDefault();const button=event.currentTarget.querySelector("button");button.disabled=true;setMessage($("availabilityStatus"),"Adding availability...");try{const start=$("availabilityStart").value,end=$("availabilityEnd").value;await addMyAvailabilitySlot(new Date(start).toISOString(),new Date(end).toISOString());event.currentTarget.reset();setMessage($("availabilityStatus"),"Availability added.");await reloadOperationalData();}catch(error){setMessage($("availabilityStatus"),error?.message||"The availability could not be added.",true);}finally{button.disabled=false;}});
-$("snapshotDialogClose")?.addEventListener("click",()=>$("snapshotDialog").close());$("snapshotDialog")?.addEventListener("click",(event)=>{if(event.target===$("snapshotDialog"))$("snapshotDialog").close();});
+function formatDateTime(value) {
+  if (!value) return "—";
+  return new Intl.DateTimeFormat(undefined, {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZoneName: "short",
+  }).format(new Date(value));
+}
+
+function statusLabel(value = "") {
+  return String(value).replaceAll("_", " ").replace(/\b\w/g, (letter) => letter.toUpperCase());
+}
+
+function isActive() {
+  return profile?.status === "active";
+}
+
+function hydrateProfile() {
+  $("caddieDisplayName").value = profile?.display_name || "";
+  $("caddieProfessionalTitle").value = profile?.professional_title || "";
+  $("caddieCity").value = profile?.city || "";
+  $("caddieTimezone").value = profile?.timezone || "America/Los_Angeles";
+  $("caddieProfileStatus").textContent = statusLabel(profile?.status || "invited");
+
+  const submitted = profile?.status === "submitted";
+  const active = isActive();
+  const approved = profile?.status === "approved";
+  const pausedOrDeclined = ["paused", "declined"].includes(profile?.status);
+  $("saveCaddieDraftButton").disabled = submitted || pausedOrDeclined;
+  $("submitCaddieProfileButton").disabled = submitted || approved || active || pausedOrDeclined;
+  $("submitCaddieProfileButton").textContent = submitted
+    ? "Awaiting Approval"
+    : active
+      ? "Profile Active"
+      : approved
+        ? "Approved · Awaiting Activation"
+        : pausedOrDeclined
+        ? statusLabel(profile.status)
+        : "Submit for Approval";
+
+  ["activeDeskControls", "playerRequestsCard", "availabilityDeskCard", "consultationsDeskCard"].forEach((id) => {
+    $(id)?.classList.toggle("hidden", !active);
+  });
+  $("acceptingRequestsToggle").checked = Boolean(profile?.accepting_requests);
+  renderAcceptingLabel();
+}
+
+function profilePayload() {
+  return {
+    displayName: $("caddieDisplayName").value,
+    professionalTitle: $("caddieProfessionalTitle").value,
+    city: $("caddieCity").value,
+    timezone: $("caddieTimezone").value,
+  };
+}
+
+function selectedCourseIds() {
+  return [...document.querySelectorAll("[data-course-choice]:checked")].map((input) => input.value);
+}
+
+async function saveProfile(submit = false) {
+  const button = submit ? $("submitCaddieProfileButton") : $("saveCaddieDraftButton");
+  button.disabled = true;
+  setMessage($("profileMessage"), submit ? "Submitting your Caddie Profile..." : "Saving your Caddie Profile...");
+  try {
+    profile = await saveMyCaddieProfile(profilePayload(), { submit });
+    courseSettings = await saveMyCourses(selectedCourseIds());
+    renderCourseCatalog();
+    setMessage($("profileMessage"), submit ? "Profile submitted for Caddie Master approval." : "Caddie Profile saved.");
+  } catch (error) {
+    setMessage($("profileMessage"), error?.message || "The Caddie Profile could not be saved.", true);
+  } finally {
+    button.disabled = false;
+    if (profile) hydrateProfile();
+  }
+}
+
+function renderCourseCatalog() {
+  const selected = new Set((courseSettings.selected || []).map((item) => String(item.course_id)));
+  $("courseCatalog").innerHTML = courseCatalog.length
+    ? courseCatalog.map((course) => `
+      <label class="course-choice">
+        <input type="checkbox" data-course-choice value="${escapeHtml(course.course_id)}" ${selected.has(String(course.course_id)) ? "checked" : ""} />
+        <span><strong>${escapeHtml(course.course_name)}</strong><small>${escapeHtml([course.city, course.region].filter(Boolean).join(", "))}</small></span>
+      </label>`).join("")
+    : `<div class="desk-empty">The approved course catalog will appear after migration 053 is installed.</div>`;
+
+  const pending = courseSettings.pending || [];
+  $("pendingCourseList").innerHTML = pending.length
+    ? `<p class="course-pending-title">Pending Verification</p>${pending.map((item) => `<span class="pending-course">${escapeHtml(item.requested_name)} · Pending Verification</span>`).join("")}`
+    : "";
+}
+
+async function requestAnotherCourse() {
+  const input = $("courseRequestName");
+  const button = $("requestCourseButton");
+  const value = String(input.value || "").trim();
+  if (!value) {
+    setMessage($("profileMessage"), "Enter the course you want The Caddie Master to verify.", true);
+    return;
+  }
+  button.disabled = true;
+  try {
+    await requestCourse(value);
+    courseSettings = await getMyCourseSettings();
+    input.value = "";
+    renderCourseCatalog();
+    setMessage($("profileMessage"), "Course requested. It appears privately as Pending Verification until approved.");
+  } catch (error) {
+    setMessage($("profileMessage"), error?.message || "The course request could not be sent.", true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderAcceptingLabel() {
+  $("acceptingRequestsLabel").textContent = $("acceptingRequestsToggle").checked
+    ? "Accepting Player requests"
+    : "Not accepting requests";
+}
+
+function weeklyValue(weekday, daypart) {
+  return (schedule.weekly || []).find((item) => Number(item.weekday) === weekday && item.daypart === daypart) || {
+    calls: false,
+    caddying: false,
+  };
+}
+
+function renderWeeklySchedule() {
+  $("weeklyScheduleGrid").innerHTML = WEEKDAYS.map((day, weekday) => `
+    <article class="schedule-day">
+      <div class="schedule-day-heading"><h3>${day}</h3><small>Same every week</small></div>
+      ${DAYPARTS.map((part) => {
+        const value = weeklyValue(weekday, part.key);
+        return `<div class="schedule-daypart">
+          <div><strong>${part.label}</strong><small>${part.times}</small></div>
+          <label><input type="checkbox" data-schedule-calls data-weekday="${weekday}" data-daypart="${part.key}" ${value.calls ? "checked" : ""} /> Calls</label>
+          <label><input type="checkbox" data-schedule-caddying data-weekday="${weekday}" data-daypart="${part.key}" ${value.caddying ? "checked" : ""} /> Caddying</label>
+        </div>`;
+      }).join("")}
+    </article>`).join("");
+}
+
+function collectWeeklySchedule() {
+  const rows = [];
+  WEEKDAYS.forEach((_, weekday) => {
+    DAYPARTS.forEach((part) => {
+      const calls = document.querySelector(`[data-schedule-calls][data-weekday="${weekday}"][data-daypart="${part.key}"]`)?.checked || false;
+      const caddying = document.querySelector(`[data-schedule-caddying][data-weekday="${weekday}"][data-daypart="${part.key}"]`)?.checked || false;
+      rows.push({ weekday, daypart: part.key, calls, caddying });
+    });
+  });
+  return rows;
+}
+
+async function saveWeeklySchedule() {
+  const button = $("saveWeeklyScheduleButton");
+  button.disabled = true;
+  setMessage($("scheduleStatus"), "Saving your recurring weekly availability...");
+  try {
+    schedule = await saveMyCaddieSchedule(collectWeeklySchedule());
+    renderWeeklySchedule();
+    renderScheduleExceptions();
+    setMessage($("scheduleStatus"), "Weekly availability saved. Call slots were refreshed eight weeks ahead.");
+  } catch (error) {
+    setMessage($("scheduleStatus"), error?.message || "Your weekly availability could not be saved.", true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function renderScheduleExceptions() {
+  const rows = schedule.exceptions || [];
+  $("scheduleExceptionList").innerHTML = rows.length
+    ? rows.map((item) => `
+      <article class="exception-row">
+        <div>
+          <h3>${escapeHtml(formatDate(item.starts_on))}${item.ends_on !== item.starts_on ? ` – ${escapeHtml(formatDate(item.ends_on))}` : ""}</h3>
+          <p>${item.block_calls ? "Calls" : ""}${item.block_calls && item.block_caddying ? " + " : ""}${item.block_caddying ? "Caddying" : ""}${item.note ? ` · ${escapeHtml(item.note)}` : ""}</p>
+        </div>
+        <button class="cm-button secondary" type="button" data-remove-exception="${escapeHtml(item.id)}">Remove</button>
+      </article>`).join("")
+    : `<div class="desk-empty">No calendar blocks are active.</div>`;
+  document.querySelectorAll("[data-remove-exception]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        schedule = await removeMyCaddieScheduleException(button.dataset.removeException);
+        renderScheduleExceptions();
+        setMessage($("scheduleStatus"), "Calendar block removed.");
+      } catch (error) {
+        setMessage($("scheduleStatus"), error?.message || "The calendar block could not be removed.", true);
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+async function addScheduleException(event) {
+  event.preventDefault();
+  const button = event.currentTarget.querySelector('button[type="submit"]');
+  const startsOn = $("exceptionStartDate").value;
+  const endsOn = $("exceptionEndDate").value || startsOn;
+  const blockCalls = $("exceptionBlockCalls").checked;
+  const blockCaddying = $("exceptionBlockCaddying").checked;
+  button.disabled = true;
+  try {
+    schedule = await addMyCaddieScheduleException({
+      startsOn,
+      endsOn,
+      blockCalls,
+      blockCaddying,
+      note: $("exceptionNote").value,
+    });
+    event.currentTarget.reset();
+    $("exceptionBlockCalls").checked = true;
+    $("exceptionBlockCaddying").checked = true;
+    renderScheduleExceptions();
+    setMessage($("scheduleStatus"), "Calendar block added.");
+  } catch (error) {
+    setMessage($("scheduleStatus"), error?.message || "The calendar block could not be added.", true);
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function consentMarkup(row) {
+  return [
+    row.share_scorecard && "Scorecard",
+    row.share_score_map && "Score Map",
+    row.share_compass && "Compass",
+    row.share_upcoming_golf && "Calendar",
+  ].filter(Boolean).map((value) => `<span>${escapeHtml(value)}</span>`).join("") || "<span>Profile only</span>";
+}
+
+function renderRequests() {
+  const waiting = requests.filter((row) => row.status === "requested").length;
+  $("requestCount").textContent = `${waiting} waiting`;
+  $("requestList").innerHTML = requests.length
+    ? requests.map((row) => `
+      <article class="desk-request-row">
+        <div>
+          <h3>${escapeHtml(row.player_name || "Player")}</h3>
+          <p>${row.anticipated_trip_date ? `Trip date ${escapeHtml(formatDate(row.anticipated_trip_date))} · ` : ""}${escapeHtml(row.consultation_goal || "Consultation request")}</p>
+          ${row.course_itinerary ? `<p>${escapeHtml(row.course_itinerary)}</p>` : ""}
+          <div class="request-consent">${consentMarkup(row)}</div>
+        </div>
+        <div class="desk-row-actions">
+          ${row.status === "requested"
+            ? `<button class="cm-button" data-respond-request="${escapeHtml(row.request_id)}" data-response="accepted">Accept</button><button class="cm-button secondary" data-respond-request="${escapeHtml(row.request_id)}" data-response="declined">Decline</button>`
+            : row.status === "accepted"
+              ? `<button class="cm-button" data-open-snapshot="${escapeHtml(row.request_id)}">Open Read-Only Preparation</button>`
+              : `<span class="desk-status">${escapeHtml(statusLabel(row.status))}</span>`}
+        </div>
+      </article>`).join("")
+    : `<div class="desk-empty">No Player requests have arrived yet.</div>`;
+
+  document.querySelectorAll("[data-respond-request]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        await respondToPlayerRequest(button.dataset.respondRequest, button.dataset.response);
+        await reloadOperationalData();
+      } catch (error) {
+        setMessage($("deskMessage"), error?.message || "The request could not be updated.", true);
+        button.disabled = false;
+      }
+    });
+  });
+  document.querySelectorAll("[data-open-snapshot]").forEach((button) => {
+    button.addEventListener("click", () => openSnapshot(button.dataset.openSnapshot));
+  });
+}
+
+function renderConsultations() {
+  const rows = consultations.filter((item) => item.viewer_role === "caddie");
+  $("deskConsultationList").innerHTML = rows.length
+    ? rows.map((item) => {
+        const mayComplete = item.status === "scheduled" && new Date(item.starts_at).getTime() <= Date.now();
+        return `<article class="desk-consultation-row">
+          <div>
+            <h3>${escapeHtml(item.player_name || "Player Consultation")}</h3>
+            <p>${escapeHtml(formatDateTime(item.starts_at))} · 45-minute Caddie Consultation</p>
+            <p>Status: ${escapeHtml(statusLabel(item.status))}</p>
+          </div>
+          <div class="desk-row-actions">
+            ${mayComplete ? `<button class="cm-button" data-complete-consultation="${escapeHtml(item.consultation_id)}">Mark Complete</button>` : ""}
+            ${item.status === "scheduled" ? `<button class="cm-button secondary" data-cancel-consultation="${escapeHtml(item.consultation_id)}">Cancel</button>` : ""}
+          </div>
+        </article>`;
+      }).join("")
+    : `<div class="desk-empty">No consultations are scheduled.</div>`;
+
+  document.querySelectorAll("[data-complete-consultation]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!window.confirm("Mark this consultation complete?")) return;
+      button.disabled = true;
+      try {
+        await completeConsultation(button.dataset.completeConsultation);
+        await reloadOperationalData();
+      } catch (error) {
+        setMessage($("deskMessage"), error?.message || "The consultation could not be completed.", true);
+        button.disabled = false;
+      }
+    });
+  });
+  document.querySelectorAll("[data-cancel-consultation]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (!window.confirm("Cancel this consultation?")) return;
+      button.disabled = true;
+      try {
+        await cancelConsultation(button.dataset.cancelConsultation);
+        await reloadOperationalData();
+      } catch (error) {
+        setMessage($("deskMessage"), error?.message || "The consultation could not be cancelled.", true);
+        button.disabled = false;
+      }
+    });
+  });
+}
+
+function snapshotEntries(entries = []) {
+  return entries.length
+    ? `<div class="snapshot-entry-list">${entries.slice(0, 20).map((entry) => `
+      <article class="snapshot-entry">
+        <time>${escapeHtml(formatDate(entry.round_date))}${entry.moon_day ? ` · Day ${escapeHtml(entry.moon_day)}` : ""}</time>
+        <p>${escapeHtml(entry.swing_thoughts || entry.course_played || "Score logged")}</p>
+        ${entry.score != null ? `<strong>${escapeHtml(entry.score)}</strong>` : ""}
+      </article>`).join("")}</div>`
+    : `<div class="desk-empty">No shared entries are available.</div>`;
+}
+
+async function openSnapshot(requestId) {
+  $("snapshotContent").innerHTML = `<div class="snapshot-wrap"><p class="cm-eyebrow">CONSULTATION PREPARATION</p><h2>Opening read-only Player data...</h2></div>`;
+  $("snapshotDialog").showModal();
+  try {
+    const snapshot = await getPlayerConsultationSnapshot(requestId);
+    const player = snapshot?.player || {};
+    const request = snapshot?.request || {};
+    const compass = snapshot?.compass || null;
+    const upcoming = Array.isArray(snapshot?.upcoming_golf) ? snapshot.upcoming_golf : [];
+    $("snapshotContent").innerHTML = `
+      <div class="snapshot-wrap">
+        <p class="cm-eyebrow">READ-ONLY CONSULTATION PREPARATION</p>
+        <h2>${escapeHtml(player.name || "Player")}</h2>
+        <p class="cm-muted">Study only what this Player consented to share. Caddies cannot edit Player records, create Assignments, send Caddie Master Messages, or leave Caddie Master Notes.</p>
+        <section class="snapshot-section"><div class="snapshot-grid">
+          <article class="snapshot-data-card"><span>Trip Date</span><strong>${escapeHtml(formatDate(request.anticipated_trip_date))}</strong></article>
+          <article class="snapshot-data-card"><span>Score Range</span><strong>${escapeHtml(player.handicap_or_score_range || "Not provided")}</strong></article>
+          <article class="snapshot-data-card"><span>Home Course</span><strong>${escapeHtml(player.home_course || "Not provided")}</strong></article>
+          <article class="snapshot-data-card"><span>Consultation Goal</span><p>${escapeHtml(request.consultation_goal || "Not provided")}</p></article>
+        </div></section>
+        ${compass ? `<section class="snapshot-section"><p class="cm-eyebrow">CADDIE COMPASS</p><div class="snapshot-grid">
+          <article class="snapshot-data-card"><span>North Club</span><strong>${escapeHtml(compass.north_club)}</strong></article>
+          <article class="snapshot-data-card"><span>East Club</span><strong>${escapeHtml(compass.east_club)}</strong></article>
+          <article class="snapshot-data-card"><span>West Club</span><strong>${escapeHtml(compass.west_club)}</strong></article>
+          <article class="snapshot-data-card"><span>South Club</span><strong>${escapeHtml(compass.south_club)}</strong></article>
+        </div></section>` : ""}
+        ${Array.isArray(snapshot?.scorecard) && snapshot.scorecard.length ? `<section class="snapshot-section"><p class="cm-eyebrow">SCORECARD</p>${snapshotEntries(snapshot.scorecard)}</section>` : ""}
+        ${Array.isArray(snapshot?.score_map) && snapshot.score_map.length ? `<section class="snapshot-section"><p class="cm-eyebrow">SCORE MAP</p>${snapshotEntries(snapshot.score_map)}</section>` : ""}
+        ${upcoming.length ? `<section class="snapshot-section"><p class="cm-eyebrow">UPCOMING GOLF</p>${upcoming.map((event) => `<article class="snapshot-entry"><time>${escapeHtml(formatDate(event.date_start))}</time><p>${escapeHtml(event.title || event.course || "Upcoming Golf")}</p><strong>${escapeHtml(event.event_type || "")}</strong></article>`).join("")}</section>` : ""}
+      </div>`;
+  } catch (error) {
+    $("snapshotContent").innerHTML = `<div class="snapshot-wrap"><p class="cm-message error">${escapeHtml(error?.message || "The preparation view could not be opened.")}</p></div>`;
+  }
+}
+
+async function reloadOperationalData() {
+  if (!isActive()) return;
+  [requests, consultations, schedule] = await Promise.all([
+    listMyPlayerRequests(),
+    listMyConsultations(),
+    getMyCaddieSchedule(),
+  ]);
+  renderRequests();
+  renderConsultations();
+  renderWeeklySchedule();
+  renderScheduleExceptions();
+}
+
+async function boot() {
+  try {
+    await requireCaddieMagicAccess();
+    profile = await getMyCaddieProfile();
+    $("deskLoadingCard").classList.add("hidden");
+    if (!profile) {
+      $("notInvitedCard").classList.remove("hidden");
+      return;
+    }
+    $("deskPage").classList.remove("hidden");
+    [courseCatalog, courseSettings] = await Promise.all([
+      listCourseCatalog().catch(() => []),
+      getMyCourseSettings().catch(() => ({ selected: [], pending: [] })),
+    ]);
+    hydrateProfile();
+    renderCourseCatalog();
+    await reloadOperationalData();
+  } catch (error) {
+    setMessage($("deskMessage"), error?.message || "The Caddie Desk could not be opened.", true);
+  }
+}
+
+$("saveCaddieDraftButton")?.addEventListener("click", () => saveProfile(false));
+$("submitCaddieProfileButton")?.addEventListener("click", () => saveProfile(true));
+$("requestCourseButton")?.addEventListener("click", requestAnotherCourse);
+$("courseRequestName")?.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    requestAnotherCourse();
+  }
+});
+$("acceptingRequestsToggle")?.addEventListener("change", async () => {
+  renderAcceptingLabel();
+  try {
+    profile = await setAcceptingPlayerRequests($("acceptingRequestsToggle").checked);
+  } catch (error) {
+    $("acceptingRequestsToggle").checked = !$("acceptingRequestsToggle").checked;
+    renderAcceptingLabel();
+    setMessage($("deskMessage"), error?.message || "The request setting could not be changed.", true);
+  }
+});
+$("saveWeeklyScheduleButton")?.addEventListener("click", saveWeeklySchedule);
+$("scheduleExceptionForm")?.addEventListener("submit", addScheduleException);
+$("snapshotDialogClose")?.addEventListener("click", () => $("snapshotDialog").close());
+$("snapshotDialog")?.addEventListener("click", (event) => {
+  if (event.target === $("snapshotDialog")) $("snapshotDialog").close();
+});
+
 boot();

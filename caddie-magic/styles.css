@@ -68,19 +68,6 @@ button,input,textarea{font:inherit}
   padding:24px 44px 30px;
   text-align:center;
 }
-.cm-version{
-  position:absolute;
-  top:20px;
-  right:24px;
-  border:1px solid rgba(211,173,105,.46);
-  border-radius:999px;
-  padding:8px 13px;
-  color:var(--gold);
-  background:rgba(3,10,18,.55);
-  font:700 .62rem/1 var(--font-body);
-  letter-spacing:.16em;
-  text-transform:uppercase;
-}
 .cm-scarab-mark{display:block;width:82px;margin:2px auto 8px;filter:sepia(1) saturate(1.08) brightness(1.08) drop-shadow(0 10px 16px rgba(211,173,105,.16))}
 .cm-progress-wrap{height:4px;border-radius:999px;max-width:100%;margin:0 auto 16px;background:rgba(211,173,105,.16);overflow:hidden}
 .cm-progress-wrap span{display:block;width:24%;height:100%;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft));border-radius:inherit}
@@ -230,7 +217,7 @@ h3{font-size:1.14rem;line-height:1.15}
 @media(max-width:700px){
   .cm-shell{width:min(calc(100% - 18px),1200px);padding:12px 0 40px}
   .cm-hero,.cm-card{border-radius:24px;padding:22px}
-  .cm-version{top:16px;right:16px;font-size:.54rem}
+
   .cm-scarab-mark{width:68px}
   .cm-hero-copy{max-width:100%}
   .cm-hero-actions,.cm-button-row,.cm-two-col,.cm-snapshot-grid,.cm-stat-grid,.cm-round-fields{grid-template-columns:1fr}
@@ -316,7 +303,59 @@ h3{font-size:1.14rem;line-height:1.15}
 /* v0.4.1 private-beta invitation */
 .cm-invite-field small{color:var(--muted);font:500 .72rem/1.4 var(--font-body);letter-spacing:0;text-transform:none}
 
-/* Caddie Magic v0.4.6 — verified Player Profile links */
+/* Caddie Magic v0.5.1 — verified Player Profile links */
 .cm-stat-link{display:block;color:inherit;text-decoration:none;transition:border-color .18s ease,transform .18s ease,background-color .18s ease}
 .cm-stat-link:hover,.cm-stat-link:focus-visible{transform:translateY(-1px);border-color:rgba(211,173,105,.52);background:#0d2235;outline:none}
 .cm-snapshot-subcopy:empty{display:none}
+
+/* Caddie Magic v0.5.1 — Player Profile, Caddie Master services, and Network lifecycle */
+.cm-caddie-desk-door{grid-column:1/-1;margin-top:16px}
+.cm-caddie-desk-link,.cm-caddie-desk-status{min-height:122px;border:1px solid var(--line);border-radius:22px;padding:20px;display:grid;align-content:center;gap:7px;background:linear-gradient(180deg,#102d45,#0a2033);text-decoration:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.cm-caddie-desk-link{transition:transform .18s ease,border-color .18s ease}
+.cm-caddie-desk-link:hover,.cm-caddie-desk-link:focus-visible{transform:translateY(-2px);border-color:var(--gold-soft);outline:none}
+.cm-caddie-desk-link span,.cm-caddie-desk-status span{color:var(--gold);font:800 .58rem var(--font-body);letter-spacing:.16em;text-transform:uppercase}
+.cm-caddie-desk-link strong,.cm-caddie-desk-status strong{color:var(--ivory);font:500 1.45rem var(--font-display)}
+.cm-caddie-desk-link small,.cm-caddie-desk-status small{color:var(--muted);font:.82rem/1.5 var(--font-body)}
+.cm-section-heading,.cm-assignment-topline,.cm-master-messages-heading{display:flex;justify-content:space-between;gap:18px;align-items:flex-start}
+.cm-status-pill{display:inline-flex;align-items:center;justify-content:center;min-height:34px;border:1px solid var(--line);border-radius:999px;padding:0 13px;color:var(--gold);background:#071725;font:700 .52rem var(--font-body);letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+.cm-assignment-list,.cm-assignment-group{display:grid;gap:14px}
+.cm-assignment-list{margin-top:20px}
+.cm-assignment-group>h3{color:var(--gold-soft);font:600 1rem var(--font-body)}
+.cm-assignment{border:1px solid var(--line-soft);border-radius:20px;padding:18px;background:#091a2a}
+.cm-assignment.is-completed{opacity:.82}
+.cm-assignment.is-busy{opacity:.62;pointer-events:none}
+.cm-assignment-meta{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}
+.cm-assignment-meta span{display:inline-flex;border:1px solid rgba(211,173,105,.24);border-radius:999px;padding:5px 8px;color:var(--gold);font:700 .48rem var(--font-body);letter-spacing:.09em;text-transform:uppercase}
+.cm-assignment>p{margin:12px 0;color:var(--text);line-height:1.6}
+.cm-assignment-response{display:grid;gap:12px;margin-top:14px}
+.cm-assignment-response textarea{width:100%;border:1px solid var(--line-soft);border-radius:14px;padding:12px;background:#071725;color:var(--ivory);resize:vertical}
+.cm-assignment-actions{display:flex;gap:10px;flex-wrap:wrap}
+.cm-assignment-completion{margin-top:13px;border-left:2px solid var(--green);padding-left:13px;color:var(--text)}
+.cm-assignment-completion strong{color:var(--gold-soft)}
+.cm-assignment-completion p{margin:6px 0 0}
+.cm-completed-assignments{border:1px solid var(--line-soft);border-radius:18px;background:#071725}
+.cm-completed-assignments summary{padding:14px 16px;color:var(--gold);cursor:pointer;font:700 .58rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
+.cm-completed-assignments .cm-assignment-group{padding:0 14px 14px}
+.cm-review-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.cm-master-messages{grid-column:1/-1;border:1px solid var(--line-soft);border-radius:22px;padding:20px;background:#091a2a}
+.cm-message-lock{margin:12px 0;color:var(--muted);font:.84rem/1.55 var(--font-body)}
+.cm-message-lock p{margin:0}
+.cm-master-thread{max-height:400px;overflow:auto;display:grid;gap:10px;border:1px solid var(--line-soft);border-radius:18px;padding:14px;background:#061420}
+.cm-thread-message{max-width:min(78%,620px);border:1px solid var(--line-soft);border-radius:18px;padding:12px 14px;background:#0b2134}
+.cm-thread-message.is-player{justify-self:end;border-bottom-right-radius:5px;background:#173324}
+.cm-thread-message.is-master{justify-self:start;border-bottom-left-radius:5px}
+.cm-thread-message span{display:block;color:var(--gold);font:700 .48rem var(--font-body);letter-spacing:.1em;text-transform:uppercase}
+.cm-thread-message p{margin:7px 0 0;color:var(--ivory);line-height:1.55}
+.cm-master-message-form{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:end;margin-top:12px}
+.cm-master-message-form label{grid-column:1/-1;color:var(--gold);font:700 .55rem var(--font-body);letter-spacing:.12em;text-transform:uppercase}
+.cm-master-message-form textarea{width:100%;min-height:86px;border:1px solid var(--line-soft);border-radius:14px;padding:12px;background:#071725;color:var(--ivory);resize:vertical}
+.cm-review-progress{display:grid;gap:8px;margin:16px 0 4px}
+.cm-review-progress-track{height:8px;border-radius:999px;background:#071725;border:1px solid var(--line-soft);overflow:hidden}
+.cm-review-progress-track span{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold-deep),var(--gold-soft));transition:width .25s ease}
+.cm-review-progress>strong{color:var(--gold-soft);font:700 .6rem var(--font-body);letter-spacing:.09em;text-transform:uppercase}
+@media(max-width:700px){
+  .cm-section-heading,.cm-assignment-topline,.cm-master-messages-heading{display:grid}
+  .cm-assignment-actions,.cm-master-message-form{display:grid;grid-template-columns:1fr}
+  .cm-master-message-form label{grid-column:auto}
+  .cm-thread-message{max-width:92%}
+}

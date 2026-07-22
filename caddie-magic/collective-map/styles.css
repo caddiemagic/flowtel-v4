@@ -27,7 +27,7 @@
 .cm-collective-axis{position:absolute;z-index:3;background:rgba(211,173,105,.55);pointer-events:none}
 .cm-collective-axis-y{top:0;bottom:0;left:50%;width:1px}
 .cm-collective-axis-x{left:0;right:0;top:50%;height:1px}
-.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);display:grid;place-items:center;color:transparent;background:url('/assets/caddie-magic-map-wheel.png?v=0.4.6') center/contain no-repeat;box-shadow:0 0 0 12px rgba(7,23,37,.95)}
+.cm-collective-center{position:absolute;z-index:4;left:50%;top:50%;width:112px;height:112px;transform:translate(-50%,-50%);display:grid;place-items:center;color:transparent;background:url('/assets/caddie-magic-map-wheel.png?v=0.5.1') center/contain no-repeat;box-shadow:0 0 0 12px rgba(7,23,37,.95)}
 .cm-collective-quadrant{position:relative;z-index:2;min-height:340px;padding:24px 28px;transition:min-height .2s ease}
 .cm-collective-west,.cm-collective-north{border-bottom:1px solid var(--line-soft)}
 .cm-collective-west,.cm-collective-south{border-right:1px solid var(--line-soft)}
@@ -75,7 +75,7 @@
 .cm-collective-note.is-score-only strong{color:var(--gold-soft);font:500 2rem/1 var(--font-display)}
 @media(max-width:900px){.cm-collective-controls{display:grid;grid-template-columns:1fr}.cm-collective-filters{width:100%}.cm-collective-filter{flex:1}}
 
-/* Caddie Magic v0.4.6 — cardinal moon quadrants */
+/* Caddie Magic v0.5.1 — preserved cardinal moon quadrants */
 .cm-collective-north{grid-column:1;grid-row:1}
 .cm-collective-east{grid-column:2;grid-row:1}
 .cm-collective-west{grid-column:1;grid-row:2}

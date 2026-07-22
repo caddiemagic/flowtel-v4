@@ -880,3 +880,13 @@
 .admin-mailbox-send-selected span{color:var(--soft-brown);font-size:.75rem}
 .admin-mailbox-send-selected button{min-height:38px}
 @media(max-width:680px){.admin-mailbox-send-selected{grid-template-columns:1fr}.admin-mailbox-send-selected button{width:100%}}
+
+/* Flowtel v0.10.68 / Caddie Magic v0.5.1 — owner Caddie Network queue */
+.caddie-network-admin-queue{display:grid;gap:26px}
+.caddie-network-admin-queue>section{display:grid;gap:10px}
+.caddie-network-admin-row,.caddie-course-request-row{grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.caddie-network-admin-row.needs-review{border-color:rgba(183,129,55,.46);box-shadow:0 14px 34px rgba(183,129,55,.11)}
+.caddie-network-admin-row h3,.caddie-course-request-row h3{margin:0;color:var(--brown);font-family:Georgia,"Times New Roman",serif;font-size:1.3rem;font-weight:400}
+.caddie-network-admin-row p,.caddie-course-request-row p{margin:5px 0 0;color:var(--muted);line-height:1.45}
+.caddie-network-admin-row .caddie-player-actions button,.caddie-course-request-row .caddie-player-actions button{min-width:112px}
+@media(max-width:760px){.caddie-network-admin-row,.caddie-course-request-row{grid-template-columns:1fr}.caddie-network-admin-row .caddie-player-actions,.caddie-course-request-row .caddie-player-actions{display:grid;justify-content:stretch}.caddie-network-admin-row .caddie-player-actions button,.caddie-course-request-row .caddie-player-actions button{width:100%}}

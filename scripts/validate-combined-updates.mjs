@@ -19,8 +19,8 @@ const files={
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.67'));
-assert(files.managerHtml.includes('app.js?v=0.10.67-caddie-0.4.6'));
+assert(files.managerHtml.includes('styles.css?v=0.10.68'));
+assert(files.managerHtml.includes('app.js?v=0.10.68-caddie-0.5.1'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -82,7 +82,8 @@ assert(!files.caddieHtml.includes('id="nextNewMoonValue"'));
 assert(!files.caddieHtml.includes('id="nextFullMoonValue"'));
 assert(files.caddieJs.includes('averageValidGolfScore'));
 assert(files.scoreJs.includes('validGolfScore(entry.score) !== null'));
-assert(files.caddieHtml.includes('v0.4.6'));
+assert(files.caddieHtml.includes('?v=0.5.1'),'Caddie v0.5.1 cache keys are missing.');
+assert(!files.caddieHtml.includes('cm-version'),'Caddie version pill must not be user-facing.');
 
 function duplicateIds(html){const ids=[...html.matchAll(/\bid=["']([^"']+)["']/g)].map(match=>match[1]);return ids.filter((id,index)=>ids.indexOf(id)!==index);}
 for(const [name,html] of Object.entries({manager:files.managerHtml,client:files.clientHtml,cycle:files.cycleHtml,availability:files.availabilityHtml,guest:files.guestHtml,caddie:files.caddieHtml,score:files.scoreHtml,collective:files.collectiveHtml})){

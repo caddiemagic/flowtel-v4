@@ -1,3 +1,23 @@
+## v0.10.68 — Caddie Network Reintegration + Shared Scheduling Foundation
+
+- Reconciles the preserved Caddie Magic v0.5.0 Network foundation into current Flowtel HEAD while preserving all v0.4.6 geometry, mobile, Moon-data, profile, and valid-score repairs.
+- Establishes the permanent Caddie Master versus paired Caddie role boundary.
+- Restores Assignments, Caddie Compass, Caddie Network, Calendar, Locker Room Sharing, lifecycle-aware Caddie Desk access, Find a Caddie, and Cardinal Club Rooms.
+- Adds 28-entry Scorecard Review credits with safe consumption/restoration and owner-gated VIP Caddie Master Messages.
+- Simplifies the Caddie Profile and adds a controlled multi-course catalog with private Pending Verification requests.
+- Adds a shared Flowtel/Caddie provider scheduling foundation, seven-day Calls/Caddying templates, date exceptions, 45-minute Caddie Consultation slots, and future Acuity/Zoom mapping fields. External Acuity/Zoom booking is not activated.
+- Restores owner Caddie Network operations, explicit Vercel routes, coherent v0.5.1 cache/version wiring, and expanded validation.
+- Repairs duplicate static IDs in `tracker/index.html`.
+- Adds migration 053. Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 037 remains retired.
+
+## Caddie Magic v0.5.1 — Network Reintegration + Caddie Master Service Boundaries
+
+- Restores the v0.5.0 Caddie directory, Caddie Desk, owner approval flow, accepted-only availability, consultation preparation, and Cardinal Club Rooms.
+- Preserves v0.4.6 Score Map/Locker Room geometry, valid-score calculations, future-date protection, and mobile/Upcoming Golf fixes.
+- Separates owner Caddie Master Assignments, VIP Messages, Notes, and Reviews from paired Caddie permissions.
+- Adds controlled courses, recurring Calls/Caddying availability, calendar blocks, and 45-minute consultation slot materialization.
+- Removes the user-facing version pill and aligns active routes, headers, cache keys, manifest, and validator at v0.5.1.
+
 ## v0.10.67 — Combined Flowtel + Caddie Magic Experience Update
 
 - Adds four independently saved seasonal-location, lodging-idea, and private-note cards beneath the Flow FM Lounge workshop video, stored inside the member’s existing Hourly Flow Rate plan.

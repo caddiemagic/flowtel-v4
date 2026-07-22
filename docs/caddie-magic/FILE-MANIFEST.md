@@ -1,50 +1,46 @@
 # Caddie Magic File Manifest
 
-Latest integrated release: **Caddie Magic v0.4.6**
+Latest integrated release: **Caddie Magic v0.5.1** with **Flowtel v0.10.68**
 
 ## Application files
 
 - `caddie-magic/index.html`
 - `caddie-magic/app.js`
 - `caddie-magic/styles.css`
-- `caddie-magic/score-map/index.html`
-- `caddie-magic/score-map/app.js`
-- `caddie-magic/score-map/styles.css`
-- `caddie-magic/score-map/printable/index.html`
-- `caddie-magic/score-map/printable/styles.css`
-- `caddie-magic/collective-map/index.html`
-- `caddie-magic/collective-map/app.js`
-- `caddie-magic/collective-map/styles.css`
-- `caddie-magic/compass/index.html`
-- `caddie-magic/compass/app.js`
-- `caddie-magic/compass/styles.css`
-- `caddie-magic/compass/admin/index.html`
-- `caddie-magic/compass/admin/app.js`
-- `caddie-magic/compass/admin/styles.css`
+- `caddie-magic/score-map/`
+- `caddie-magic/collective-map/`
+- `caddie-magic/compass/`
+- `caddie-magic/compass/admin/`
+- `caddie-magic/compass/club/`
+- `caddie-magic/caddies/`
+- `caddie-magic/caddie-desk/`
 
 ## Shared modules
 
 - `shared/caddie-magic-access.js`
 - `shared/caddie-magic-reviews.js`
 - `shared/caddie-magic-compass.js`
+- `shared/caddie-magic-network.js`
 - `shared/caddie-magic-schedule.js`
 - `shared/caddie-magic-moon-calendar.js`
 - `shared/caddie-magic-score-calculations.js`
 - `shared/product-access.js`
 - `shared/supabase.js`
 
-## Manager integration
+## Owner integration
 
 - `manager/index.html`
 - `manager/app.js`
 - `manager/styles.css`
 
-## Assets
+## Core assets
 
+- `assets/caddie-magic-medicine-wheel-directions.png`
+- `assets/caddie-magic-map-wheel.png`
 - `assets/caddie-magic-wheel-center.png`
 - `assets/queendom-scarab-sundisk-transparent.png`
 
-## Database migrations
+## Database history
 
 - `database/migration-030-caddie-magic-moon-score-tracker.sql`
 - `database/migration-040-caddie-magic-reflections-collective-swing-map.sql`
@@ -53,5 +49,18 @@ Latest integrated release: **Caddie Magic v0.4.6**
 - `database/migration-043-caddie-magic-v0.4.0-portal-polish-upcoming-golf.sql`
 - `database/migration-044-caddie-magic-player-only-access-private-beta.sql`
 - `database/migration-045-caddie-magic-player-invite-code-hotfix.sql`
+- `database/migration-052-caddie-magic-caddie-network-foundation.sql` — historical and already live
+- `database/migration-052-combined-flowtel-caddie-updates.sql` — historical and already live
+- `database/migration-053-caddie-network-reintegration-shared-scheduling.sql` — run once for v0.5.1/v0.10.68
 
-The uploaded `flowtel-v4(36).zip` retained the v0.4.0 page files but was missing migration 043. Migration 043 was restored before v0.4.1 was built.
+Do not rerun or rename either migration 052 file. Migration 037 remains retired.
+
+## Release and validation files
+
+- `docs/RELEASE-CADDIE-MAGIC-0.4.6.md`
+- `docs/RELEASE-CADDIE-MAGIC-0.5.0.md`
+- `docs/RELEASE-CADDIE-MAGIC-0.5.1.md`
+- `docs/RELEASE-0.10.68.md`
+- `scripts/validate-caddie-magic.mjs`
+
+Run `node scripts/validate-caddie-magic.mjs` before shipping.

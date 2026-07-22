@@ -1048,11 +1048,11 @@
       .cycle-results-screen{
         width:min(100%,1080px) !important;
       }
-      #cycleSnapshotCard.result-card{
+      .cycle-snapshot-card.result-card{
         padding:clamp(24px,4vw,42px) !important;
         border-radius:34px !important;
       }
-      #cycleSnapshotCard .tracker-dashboard{
+      .cycle-snapshot-card .tracker-dashboard{
         padding:0 !important;
         border:0 !important;
         box-shadow:none !important;
@@ -1060,7 +1060,7 @@
         gap:clamp(20px,4vw,34px) !important;
         grid-template-columns:minmax(280px,380px) 1fr !important;
       }
-      #cycleSnapshotCard .stat-grid{
+      .cycle-snapshot-card .stat-grid{
         align-content:start !important;
       }
       .mini-wheel{
@@ -1102,7 +1102,7 @@
         box-shadow:0 0 0 5px rgba(216,168,79,.14),0 8px 18px rgba(109,78,65,.08) !important;
       }
       @media(max-width:780px){
-        #cycleSnapshotCard .tracker-dashboard{
+        .cycle-snapshot-card .tracker-dashboard{
           grid-template-columns:1fr !important;
         }
         .mini-wheel{
@@ -1136,8 +1136,8 @@
     .question{border-radius:30px !important;}
     #cycleResults.question{padding:0 !important;background:transparent !important;border:0 !important;box-shadow:none !important;}
     #cycleResultsContent{width:100% !important;}
-    #cycleSnapshotCard.result-card{padding:clamp(28px,5vw,56px) !important;border-radius:38px !important;}
-    #cycleSnapshotCard .tracker-dashboard{grid-template-columns:minmax(300px,420px) 1fr !important;align-items:center !important;}
+    .cycle-snapshot-card.result-card{padding:clamp(28px,5vw,56px) !important;border-radius:38px !important;}
+    .cycle-snapshot-card .tracker-dashboard{grid-template-columns:minmax(300px,420px) 1fr !important;align-items:center !important;}
     .mini-wheel{width:min(100%,390px) !important;}
     .mini-wheel::before{width:64% !important;height:64% !important;border-width:2.8px !important;}
     .mini-wheel::after{width:92% !important;height:92% !important;border-width:2.8px !important;}
@@ -1150,7 +1150,7 @@
       .tracker-hero{padding:34px 18px 36px !important;}
       .tracker-hero h1{font-size:clamp(3rem,16vw,4.8rem) !important;}
       .cycle-widget{padding:28px 16px 36px !important;}
-      #cycleSnapshotCard .tracker-dashboard{grid-template-columns:1fr !important;}
+      .cycle-snapshot-card .tracker-dashboard{grid-template-columns:1fr !important;}
       .mini-wheel{width:min(100%,338px) !important;}
       .mini-day{width:25px !important;height:25px !important;font-size:.60rem !important;}
       .action-row{grid-template-columns:1fr;}
@@ -1168,9 +1168,9 @@
       body.printing-cycle-snapshot #cycleTrackerApp,
       body.printing-cycle-snapshot #cycleResults,
       body.printing-cycle-snapshot #cycleResultsContent,
-      body.printing-cycle-snapshot #cycleSnapshotCard{width:100% !important;margin:0 !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:#fff !important;}
-      body.printing-cycle-snapshot #cycleSnapshotCard{padding:.45in !important;}
-      body.printing-cycle-snapshot #cycleSnapshotCard .tracker-dashboard{display:grid !important;grid-template-columns:40% 1fr !important;gap:.28in !important;}
+      body.printing-cycle-snapshot .cycle-snapshot-card{width:100% !important;margin:0 !important;padding:0 !important;border:0 !important;box-shadow:none !important;background:#fff !important;}
+      body.printing-cycle-snapshot .cycle-snapshot-card{padding:.45in !important;}
+      body.printing-cycle-snapshot .cycle-snapshot-card .tracker-dashboard{display:grid !important;grid-template-columns:40% 1fr !important;gap:.28in !important;}
       body.printing-cycle-snapshot .mini-wheel{width:3.6in !important;max-width:100% !important;}
       body.printing-cycle-snapshot .tracker-cta,
       body.printing-cycle-snapshot .day-detail{display:none !important;}
@@ -1311,17 +1311,17 @@
       cursor:pointer;
     }
     .season-button-grid button:last-child{grid-column:1/-1;}
-    #cycleSnapshotCard.result-card{
+    .cycle-snapshot-card.result-card{
       background:
         radial-gradient(circle at 88% 8%,rgba(216,168,79,.11),transparent 24%),
         linear-gradient(145deg,rgba(255,253,249,.99),rgba(251,247,241,.92)) !important;
       border:1px solid rgba(216,168,79,.25) !important;
     }
-    #cycleSnapshotCard .result-topline{
+    .cycle-snapshot-card .result-topline{
       color:#c87570 !important;
       letter-spacing:.22em !important;
     }
-    #cycleSnapshotCard.result-card h2{
+    .cycle-snapshot-card.result-card h2{
       font-size:clamp(2.2rem,5.4vw,4.6rem) !important;
       text-transform:none !important;
       letter-spacing:.01em !important;
@@ -1436,7 +1436,7 @@
       margin-bottom:22px !important;
     }
 
-    #cycleSnapshotCard.result-card h2,
+    .cycle-snapshot-card.result-card h2,
     #cycleResults #cycleMainHeading,
     .result-card h2{
       font-size:clamp(1.35rem,3.1vw,2.2rem) !important;
@@ -1496,7 +1496,7 @@
         font-size:clamp(1.25rem,7vw,1.75rem) !important;
       }
 
-      #cycleSnapshotCard.result-card h2,
+      .cycle-snapshot-card.result-card h2,
       #cycleResults #cycleMainHeading,
       .result-card h2{
         font-size:clamp(1.18rem,6vw,1.55rem) !important;
@@ -1537,7 +1537,7 @@
         background:#fffdf9 !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard{
+      body.printing-cycle-snapshot .cycle-snapshot-card{
         width:100% !important;
         min-height:0 !important;
         padding:.24in !important;
@@ -1547,29 +1547,29 @@
         page-break-inside:avoid !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard .result-topline{
+      body.printing-cycle-snapshot .cycle-snapshot-card .result-topline{
         font-size:.58rem !important;
         margin-bottom:.08in !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard h2{
+      body.printing-cycle-snapshot .cycle-snapshot-card h2{
         font-size:1.28rem !important;
         line-height:1.12 !important;
         margin:0 0 .08in !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard > p{
+      body.printing-cycle-snapshot .cycle-snapshot-card > p{
         font-size:.82rem !important;
         line-height:1.32 !important;
         margin:0 0 .12in !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard .tracker-dashboard{
+      body.printing-cycle-snapshot .cycle-snapshot-card .tracker-dashboard{
         display:block !important;
         margin:.10in 0 !important;
       }
 
-      body.printing-cycle-snapshot #cycleSnapshotCard .stat-grid{
+      body.printing-cycle-snapshot .cycle-snapshot-card .stat-grid{
         display:grid !important;
         grid-template-columns:repeat(2,minmax(0,1fr)) !important;
         gap:.10in !important;
@@ -2010,7 +2010,7 @@
 
       function addDayClickInvite(){
         const wheel = $("trackerMiniWheel");
-        const detail = $("trackerDayDetail");
+        const detail = document.querySelector(".tracker-day-detail");
         if(!wheel || !detail) return;
         wheel.querySelectorAll("[data-day]").forEach(btn => {
           btn.addEventListener("click", () => {
@@ -2084,7 +2084,7 @@
         cycleShowScreen("cycleResults");
 
         $("cycleResultsContent").innerHTML = `
-          <div class="result-card" id="cycleSnapshotCard">
+          <div class="result-card cycle-snapshot-card">
             <div class="result-topline">Cycle data • ${new Date().toLocaleDateString()}</div>
             <h2>You’re on Day ${cycleDay} of your cycle</h2>
             <p>${bestieLine(wombSeason, moon.moonSeason)}</p>
@@ -2108,7 +2108,7 @@
               <div class="framework-item"><strong>Inner Summer <span>Days 12–19</span></strong> Fully land in the new timeline, be seen, and make decisions as the version of you who holds the vision.</div>
               <div class="framework-item"><strong>Inner Autumn <span>Days 20–26</span></strong> Revise what no longer aligns, celebrate the release, and prepare for winter.</div>
             </div>
-            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
+            <div class="day-detail tracker-day-detail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
           </div>
         `;
@@ -2136,7 +2136,7 @@
         });
 
         $("cycleResultsContent").innerHTML = `
-          <div class="result-card" id="cycleSnapshotCard">
+          <div class="result-card cycle-snapshot-card">
             <div class="result-topline">Moon cycle data • ${new Date().toLocaleDateString()}</div>
             <h2>You’re on Day ${moon.moonDay}</h2>
             <p>${reasonText}</p>
@@ -2159,7 +2159,7 @@
               <div class="framework-item"><strong>Full Moon <span>Days 12–19</span></strong> Witness your magic and be seen.</div>
               <div class="framework-item"><strong>Half New Moon <span>Days 20–26</span></strong> Audit and revise what you have created, then prepare for the next cycle.</div>
             </div>
-            <div class="day-detail" id="trackerDayDetail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
+            <div class="day-detail tracker-day-detail">Click a day on the wheel to preview how that room can become part of your living cycle map.</div>
             ${inviteHtml()}
           </div>
         `;

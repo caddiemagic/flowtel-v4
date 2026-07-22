@@ -1,4 +1,4 @@
-// Caddie Magic v0.4.6 — shared valid-score calculations.
+// Caddie Magic v0.5.1 — preserved shared valid-score calculations.
 
 export function validGolfScore(value){
   if(value === null || value === undefined || value === '') return null;

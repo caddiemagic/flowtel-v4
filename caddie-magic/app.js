@@ -1,13 +1,14 @@
-// Caddie Magic v0.4.6 — Compass Query + Medicine Wheel Hotfix
+// Caddie Magic v0.5.1 — Network reintegration, Caddie Master services, and review credits
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.4.6";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.4.6";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches } from "../shared/caddie-magic-compass.js?v=0.4.6";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.4.6";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.4.6";
-import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.4.6";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.5.1";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.5.1";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.5.1";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.1";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.5.1";
+import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.5.1";
+import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.5.1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -17,6 +18,7 @@ const moonDashboardCard = $("moonDashboardCard");
 const portalGrid = $("portalGrid");
 const historyCard = $("historyCard");
 const caddieReviewCard = $("caddieReviewCard");
+const assignmentsCard = $("assignmentsCard");
 const authMessage = $("authMessage");
 const profileMessage = $("profileMessage");
 const roundMessage = $("roundMessage");
@@ -30,6 +32,11 @@ let activeCompass = null;
 let compassAssignments = [];
 let compassDispatches = [];
 let upcomingGolfEvents = [];
+let caddieProfile = null;
+let caddieRequests = [];
+let consultations = [];
+let caddieMasterAccess = null;
+let masterMessagesExpanded = false;
 let selectedMoonDayToken = null;
 let entryMode = "round";
 
@@ -66,6 +73,12 @@ function formatDateTime(value) {
     hour: "numeric",
     minute: "2-digit",
   }).format(new Date(value));
+}
+
+function titleCase(value = "") {
+  return String(value || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function clean(value) {
@@ -180,13 +193,46 @@ async function loadUpcomingGolfSnapshotData() {
   }
 }
 
+async function loadNetworkSnapshotData() {
+  try {
+    const [profile, requests, booked, access] = await Promise.all([
+      getMyCaddieProfile().catch(() => null),
+      listMyCaddieRequests().catch(() => []),
+      listMyConsultations().catch(() => []),
+      getMyCaddieMasterAccess().catch(() => null),
+    ]);
+    caddieProfile = profile;
+    caddieRequests = requests || [];
+    consultations = booked || [];
+    caddieMasterAccess = access;
+  } catch (error) {
+    console.warn("Caddie Network snapshot data could not be loaded.", error);
+    caddieProfile = null;
+    caddieRequests = [];
+    consultations = [];
+    caddieMasterAccess = null;
+  }
+}
+
+function activeCaddieRequest() {
+  return caddieRequests.find((request) => ["requested", "accepted"].includes(request.status)) || null;
+}
+
+function nextConsultation() {
+  return consultations
+    .filter((item) => item.status === "scheduled" && new Date(item.starts_at).getTime() >= Date.now())
+    .sort((a, b) => new Date(a.starts_at) - new Date(b.starts_at))[0] || null;
+}
+
 function showState(state) {
+  const isPortal = state === "portal";
   authCard?.classList.toggle("hidden", state !== "auth");
   profileCard?.classList.toggle("hidden", state !== "profile");
-  moonDashboardCard?.classList.toggle("hidden", state !== "portal");
-  portalGrid?.classList.toggle("hidden", state !== "portal");
-  historyCard?.classList.toggle("hidden", state !== "portal");
-  caddieReviewCard?.classList.toggle("hidden", state !== "portal");
+  moonDashboardCard?.classList.toggle("hidden", !isPortal);
+  portalGrid?.classList.toggle("hidden", !isPortal);
+  historyCard?.classList.toggle("hidden", !isPortal);
+  caddieReviewCard?.classList.toggle("hidden", !isPortal);
+  assignmentsCard?.classList.toggle("hidden", !isPortal);
 }
 
 async function signIn() {
@@ -354,7 +400,7 @@ async function fetchReviewRequests() {
   } catch (error) {
     const message = String(error?.message || "").toLowerCase();
     if (message.includes("caddie_magic_review_requests") || message.includes("schema cache")) {
-      console.warn("Caddie Review Service is waiting for migration 041.", error);
+      console.warn("Scorecard Review Service is waiting for migration 041.", error);
       return [];
     }
     throw error;
@@ -363,11 +409,19 @@ async function fetchReviewRequests() {
 
 async function loadPortalData() {
   if (!playerProfile) return;
-  const [logs, notes, reviews] = await Promise.all([fetchRoundLogs(), fetchPlayerNotes(), fetchReviewRequests()]);
+  const [logs, notes, reviews] = await Promise.all([
+    fetchRoundLogs(),
+    fetchPlayerNotes(),
+    fetchReviewRequests(),
+  ]);
   roundLogs = logs;
   playerNotes = notes;
   reviewRequests = reviews;
-  await Promise.all([loadCompassSnapshotData(), loadUpcomingGolfSnapshotData()]);
+  await Promise.all([
+    loadCompassSnapshotData(),
+    loadUpcomingGolfSnapshotData(),
+    loadNetworkSnapshotData(),
+  ]);
 }
 
 async function logRound(event) {
@@ -551,27 +605,212 @@ function renderMoonDashboard() {
   renderMoonWheel(moon.moonDay);
 }
 
+function caddieProfileLifecycle() {
+  return String(caddieProfile?.status || "").toLowerCase();
+}
+
+function renderCaddieDeskDoor() {
+  const node = $("caddieDeskDoor");
+  if (!node) return;
+  if (!caddieProfile) {
+    node.classList.add("hidden");
+    node.innerHTML = "";
+    return;
+  }
+  const status = caddieProfileLifecycle();
+  node.classList.remove("hidden");
+  if (["invited", "draft", "submitted"].includes(status)) {
+    node.innerHTML = `
+      <a class="cm-caddie-desk-link" href="/caddie-magic/caddie-desk/">
+        <span>Caddie Network Invitation</span>
+        <strong>Complete Your Caddie Profile</strong>
+        <small>${status === "submitted" ? "Your profile is submitted for Caddie Master review." : "Build and submit the professional profile connected to your Player account."}</small>
+      </a>`;
+    return;
+  }
+  if (["approved", "active"].includes(status)) {
+    node.innerHTML = `
+      <a class="cm-caddie-desk-link" href="/caddie-magic/caddie-desk/">
+        <span>Caddie Concierge Team</span>
+        <strong>Enter the Caddie Desk</strong>
+        <small>Manage your Caddie profile, Player requests, availability, and consultations.</small>
+      </a>`;
+    return;
+  }
+  node.innerHTML = `
+    <div class="cm-caddie-desk-status">
+      <span>Caddie Desk · ${escapeHtml(titleCase(status || "Status"))}</span>
+      <strong>${status === "paused" ? "Your Caddie service access is paused." : "Your Caddie pathway is not active."}</strong>
+      <small>Your Player Profile and history remain available.</small>
+    </div>`;
+}
+
+function assignmentClub(assignment) {
+  if (assignment.assigned_club) return assignment.assigned_club;
+  if (assignment.direction === "center") return "Putter";
+  if (assignment.direction === "general") return "Whole Compass";
+  return titleCase(assignment.direction);
+}
+
+function assignmentMarkup(assignment, completed = false) {
+  const due = assignment.due_date ? `Due ${formatDate(assignment.due_date)}` : "No fixed due date";
+  const direction = assignment.direction === "general" ? "Compass Assignment" : `${titleCase(assignment.direction)} · ${assignmentClub(assignment)}`;
+  const response = assignment.player_response || "";
+  return `
+    <article class="cm-assignment ${completed ? "is-completed" : ""}" data-assignment-card="${escapeHtml(assignment.id)}">
+      <div class="cm-assignment-topline">
+        <div>
+          <div class="cm-assignment-meta">
+            ${assignment.moon_phase ? `<span>${escapeHtml(assignment.moon_phase)}</span>` : ""}
+            <span>${escapeHtml(direction)}</span>
+            <span>${escapeHtml(due)}</span>
+          </div>
+          <h3>${escapeHtml(assignment.title)}</h3>
+        </div>
+        <span class="cm-status-pill">${escapeHtml(titleCase(assignment.status))}</span>
+      </div>
+      <p>${escapeHtml(assignment.instructions || "")}</p>
+      ${completed
+        ? `<div class="cm-assignment-completion"><strong>Your completion note</strong><p>${response ? escapeHtml(response) : "Completed without a written reflection."}</p></div>`
+        : `<div class="cm-assignment-response">
+            <textarea rows="3" data-assignment-response="${escapeHtml(assignment.id)}" placeholder="What did you notice? What changed?">${escapeHtml(response)}</textarea>
+            <div class="cm-assignment-actions">
+              ${assignment.status === "assigned" ? `<button class="cm-button secondary" type="button" data-assignment-start="${escapeHtml(assignment.id)}">Begin Assignment</button>` : ""}
+              <button class="cm-button" type="button" data-assignment-complete="${escapeHtml(assignment.id)}">Complete Assignment</button>
+            </div>
+          </div>`}
+    </article>`;
+}
+
+function renderAssignments() {
+  const node = $("assignmentList");
+  if (!node) return;
+  const { active, completed } = activeAssignmentsSummary();
+  $("assignmentCount").textContent = `${active.length} active`;
+  node.innerHTML = `
+    <div class="cm-assignment-group">
+      <h3>Current Assignments</h3>
+      ${active.length ? active.map((item) => assignmentMarkup(item)).join("") : `<div class="cm-empty">No active assignments from The Caddie Master.</div>`}
+    </div>
+    <details class="cm-completed-assignments">
+      <summary>Completed Assignments · ${completed.length}</summary>
+      <div class="cm-assignment-group">${completed.length ? completed.map((item) => assignmentMarkup(item, true)).join("") : `<div class="cm-empty">Completed assignments will be preserved here.</div>`}</div>
+    </details>`;
+  document.querySelectorAll("[data-assignment-start]").forEach((button) => {
+    button.addEventListener("click", () => updateAssignment(button.dataset.assignmentStart, "in_progress"));
+  });
+  document.querySelectorAll("[data-assignment-complete]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const id = button.dataset.assignmentComplete;
+      const response = document.querySelector(`[data-assignment-response="${CSS.escape(id)}"]`)?.value || "";
+      updateAssignment(id, "completed", response);
+    });
+  });
+}
+
+async function updateAssignment(id, status, response = "") {
+  const card = document.querySelector(`[data-assignment-card="${CSS.escape(id)}"]`);
+  card?.classList.add("is-busy");
+  setMessage($("assignmentMessage"), "Saving your assignment...");
+  try {
+    await updateMyCompassAssignment(id, status, response);
+    compassAssignments = await getCompassAssignments(playerProfile.id);
+    renderAssignments();
+    renderStats();
+    setMessage($("assignmentMessage"), status === "completed" ? "Assignment completed." : "Assignment started.");
+  } catch (error) {
+    setMessage($("assignmentMessage"), error?.message || "The assignment could not be updated.", true);
+  } finally {
+    card?.classList.remove("is-busy");
+  }
+}
+
+function renderMasterMessages() {
+  const lock = $("masterMessagesLock");
+  const thread = $("masterMessagesThread");
+  const form = $("masterMessageForm");
+  const button = $("toggleMasterMessagesButton");
+  if (!lock || !thread || !form || !button) return;
+  const enabled = Boolean(caddieMasterAccess?.vip_messaging_enabled);
+  button.disabled = !enabled;
+  button.textContent = enabled ? (masterMessagesExpanded ? "Close Messages" : "Messages") : "VIP Access Locked";
+  lock.innerHTML = enabled
+    ? `<p>Your private luxury-concierge channel with The Caddie Master is open until access is revoked.</p>`
+    : `<p>VIP messaging is reserved for Players granted personalized Caddie Master access.</p>`;
+  thread.classList.toggle("hidden", !enabled || !masterMessagesExpanded);
+  form.classList.toggle("hidden", !enabled || !masterMessagesExpanded);
+  if (!enabled || !masterMessagesExpanded) return;
+  thread.innerHTML = compassDispatches.length
+    ? compassDispatches.map((dispatch) => {
+        const isPlayer = dispatch.sender_role === "player";
+        return `<article class="cm-thread-message ${isPlayer ? "is-player" : "is-master"}">
+          <span>${isPlayer ? "You" : "The Caddie Master"} · ${escapeHtml(formatDateTime(dispatch.created_at))}</span>
+          <p>${escapeHtml(dispatch.message_body || "")}</p>
+        </article>`;
+      }).join("")
+    : `<div class="cm-empty">Your private conversation is ready.</div>`;
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function toggleMasterMessages() {
+  if (!caddieMasterAccess?.vip_messaging_enabled) return;
+  masterMessagesExpanded = !masterMessagesExpanded;
+  renderMasterMessages();
+}
+
+async function sendMasterMessage(event) {
+  event?.preventDefault();
+  const input = $("masterMessageInput");
+  const message = clean(input?.value);
+  if (!message || !playerProfile) return;
+  setMessage($("masterMessageStatus"), "Sending your message...");
+  try {
+    await sendCompassDispatch(playerProfile.id, message);
+    compassDispatches = await getCompassDispatches(playerProfile.id);
+    if (input) input.value = "";
+    renderMasterMessages();
+    setMessage($("masterMessageStatus"), "Message sent to The Caddie Master.");
+  } catch (error) {
+    setMessage($("masterMessageStatus"), error?.message || "Your message could not be sent.", true);
+  }
+}
+
 function renderStats() {
   const statGrid = $("statGrid");
   if (!statGrid) return;
 
   const assignmentsSummary = activeAssignmentsSummary();
-  const latestDispatch = latestDispatchPreview();
   const nextEvent = nextUpcomingGolfEvent();
   const nextForecast = Array.isArray(nextEvent?.moon_forecast) ? nextEvent.moon_forecast[0] : null;
   const nextEventTitle = nextEvent?.title || nextEvent?.event_title || "Upcoming Golf";
-  const dispatchOwner = latestDispatch?.sender_role === "caddie" ? "From your Caddie" : "From you";
+  const caddieRequest = activeCaddieRequest();
+  const consultation = nextConsultation();
+  const requestTitle = caddieRequest
+    ? (caddieRequest.status === "accepted" ? (caddieRequest.caddie_name || "Caddie Accepted") : "Request Pending")
+    : "Find a Caddie";
+  const requestCopy = consultation
+    ? `Consultation ${escapeHtml(formatDateTime(consultation.starts_at))}`
+    : caddieRequest?.status === "accepted"
+      ? "Accepted · Open private consultation availability."
+      : caddieRequest?.status === "requested"
+        ? `Request sent to ${escapeHtml(caddieRequest.caddie_name || "your Caddie")}.`
+        : "Browse approved Caddies and prepare for your golf experience.";
 
   statGrid.innerHTML = `
-    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#homework">
+    <a class="cm-stat cm-stat-link" href="#assignmentsCard">
       <span>Assignments</span>
-      <strong>${activeCompass ? `${assignmentsSummary.active.length} active` : "Submit Compass"}</strong>
-      <small>${activeCompass ? `${assignmentsSummary.completed.length} completed · Open your current homework.` : "Submit your Compass first so assignments have somewhere to land."}</small>
+      <strong>${assignmentsSummary.active.length} active</strong>
+      <small>${assignmentsSummary.completed.length} completed · Work from The Caddie Master.</small>
     </a>
-    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#messages">
-      <span>Messages</span>
-      <strong>${activeCompass ? `${compassDispatches.length} total` : "Compass First"}</strong>
-      <small>${activeCompass ? (latestDispatch ? `${dispatchOwner} · ${escapeHtml(formatDateTime(latestDispatch.created_at))}` : "No Messages yet. Open a private conversation with your Caddie.") : "Messages open after your Caddie Compass is submitted."}</small>
+    <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/">
+      <span>Caddie Compass</span>
+      <strong>${activeCompass ? "Four Clubs Open" : "Set Your Compass"}</strong>
+      <small>${activeCompass ? "Enter North, East, South, or West to study that phase." : "Name your four Cardinal Clubs to open the Club Rooms."}</small>
+    </a>
+    <a class="cm-stat cm-stat-link" href="/caddie-magic/caddies/">
+      <span>Caddie Network</span>
+      <strong>${escapeHtml(requestTitle)}</strong>
+      <small>${requestCopy}</small>
     </a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/#calendar">
       <span>Calendar</span>
@@ -579,18 +818,19 @@ function renderStats() {
       <small>${nextEvent ? `${escapeHtml(formatDate(nextEvent.date_start))}${nextEvent.course ? ` · ${escapeHtml(nextEvent.course)}` : ""}${nextForecast ? ` · Day ${escapeHtml(nextForecast.moon_day || "—")} · ${escapeHtml(moonLabelForDate(nextForecast.date, nextForecast.moon_phase))}` : ""}` : "Add your next round, tournament, or trip."}</small>
     </a>
   `;
+  renderCaddieDeskDoor();
 }
 
 function renderNotes() {
   const node = $("notesUnderDoor");
   if (!node) return;
   if (!playerNotes.length) {
-    node.innerHTML = `<div class="cm-empty">No notes have been left from your Caddie yet, keep logging rounds.</div>`;
+    node.innerHTML = `<div class="cm-empty">No Scorecard Review notes from The Caddie Master yet. Keep logging entries toward your next review credit.</div>`;
     return;
   }
   node.innerHTML = playerNotes.map((note) => `
     <article class="cm-note">
-      <strong>${escapeHtml(note.note_title || "A Caddie Note")}</strong>
+      <strong>${escapeHtml(note.note_title || "A Caddie Master Note")}</strong>
       <p>${escapeHtml(note.note_body || "")}</p>
       <small>${formatDate(note.created_at)}</small>
     </article>
@@ -608,26 +848,35 @@ function latestCompletedReview() {
 function renderReviewService() {
   const button = $("requestReviewButton");
   const copy = $("reviewRequestCopy");
+  const progress = $("reviewProgressBar");
+  const label = $("reviewProgressLabel");
   if (!button || !copy) return;
 
   const pending = activeReviewRequest();
   const completed = latestCompletedReview();
-  const hasEntries = roundLogs.length > 0;
+  const total = Number(caddieMasterAccess?.total_entries ?? roundLogs.length);
+  const towardNext = Number(caddieMasterAccess?.entries_toward_next_credit ?? (total % 28));
+  const available = Number(caddieMasterAccess?.available_review_credits ?? Math.max(0, Math.floor(total / 28) - reviewRequests.filter((item) => item.status === "completed").length));
+  const progressValue = available > 0 ? 28 : towardNext;
+  if (progress) progress.style.width = `${Math.min(100, (progressValue / 28) * 100)}%`;
+  if (label) label.textContent = available > 0
+    ? `${available} review credit${available === 1 ? "" : "s"} ready`
+    : `${towardNext} of 28 entries toward your next review`;
 
   if (pending) {
     button.disabled = true;
     button.textContent = "Review Requested";
-    copy.textContent = "Your request is waiting at the Concierge Desk. Your Caddie will review your scores and swing thoughts for patterns.";
+    copy.textContent = "Your request is waiting with The Caddie Master. One request may be pending at a time.";
     return;
   }
 
-  button.disabled = !hasEntries;
-  button.textContent = "Request a Scorecard Review";
-  copy.textContent = hasEntries
-    ? (completed
-      ? "Your last review is complete. Read your newest Caddie Note here, or request a new Scorecard Review when you are ready."
-      : "Ping your Caddie to review your scores and swing thoughts for patterns you may not see yet.")
-    : "Log at least one score or swing thought before requesting a Caddie Review.";
+  button.disabled = available < 1;
+  button.textContent = available > 0 ? "Use One Review Credit" : "Request a Scorecard Review";
+  copy.textContent = available > 0
+    ? `You have ${available} Scorecard Review credit${available === 1 ? "" : "s"}. One credit is used when you submit this request.`
+    : completed
+      ? "Your last review is complete. Every 28 new entries earns another review credit."
+      : "Log any combination of scores and swing thoughts. Every 28 entries earns one Scorecard Review credit.";
 }
 
 async function requestScoreReview() {
@@ -636,22 +885,23 @@ async function requestScoreReview() {
   if (!button || button.disabled) return;
 
   button.disabled = true;
-  button.textContent = "Sending Request...";
-  setMessage(message, "Sending your Scorecard to the Concierge Desk...");
+  button.textContent = "Using Review Credit...";
+  setMessage(message, "Sending your Scorecard to The Caddie Master...");
 
   try {
     await requestCaddieReview();
-    reviewRequests = await fetchReviewRequests();
+    const [reviews, access] = await Promise.all([
+      fetchReviewRequests(),
+      getMyCaddieMasterAccess(),
+    ]);
+    reviewRequests = reviews;
+    caddieMasterAccess = access;
     renderReviewService();
-    setMessage(message, "Your Caddie Review request is waiting at the Concierge Desk.");
+    setMessage(message, "Your Scorecard Review request is waiting with The Caddie Master.");
   } catch (error) {
-    console.error("Caddie Review request failed.", error);
-    button.disabled = false;
-    button.textContent = "Request a Scorecard Review";
-    const missingMigration = String(error?.message || "").toLowerCase().includes("caddie_magic_request_score_review");
-    setMessage(message, missingMigration
-      ? "Caddie Review Service is not installed yet. Run migration 041 and refresh."
-      : (error?.message || "Your Caddie Review request could not be sent."), true);
+    console.error("Scorecard Review request failed.", error);
+    renderReviewService();
+    setMessage(message, error?.message || "Your Scorecard Review request could not be sent.", true);
   }
 }
 
@@ -725,8 +975,10 @@ function renderPortal() {
   $("lockerTitle").textContent = displayName();
   renderMoonDashboard();
   renderStats();
+  renderAssignments();
   renderNotes();
   renderReviewService();
+  renderMasterMessages();
   renderSharingSetting();
   renderHistory();
 }
@@ -812,17 +1064,7 @@ function bindEvents() {
   $("reflectionModeButton")?.addEventListener("click", () => setEntryMode("reflection"));
   $("requestReviewButton")?.addEventListener("click", requestScoreReview);
   $("lockerRoomSharingToggle")?.addEventListener("change", updateLockerRoomSharing);
+  $("toggleMasterMessagesButton")?.addEventListener("click", toggleMasterMessages);
+  $("masterMessageForm")?.addEventListener("submit", sendMasterMessage);
   setEntryMode("round");
 }
-
-const invitationParams = new URLSearchParams(window.location.search);
-const invitationCode = invitationParams.get("invite");
-const invitationEmail = invitationParams.get("email");
-if (invitationCode && $("authInviteCode")) $("authInviteCode").value = invitationCode;
-if (invitationEmail && $("authEmail")) $("authEmail").value = invitationEmail;
-if (new URLSearchParams(window.location.search).get("access") === "player-only") {
-  setMessage(authMessage, "Your player key opens Caddie Magic. Flowtel remains separate from this account.");
-}
-
-bindEvents();
-bootPortal();

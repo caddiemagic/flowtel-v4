@@ -59,6 +59,18 @@
       "destination": "/caddie-magic/collective-map/index.html"
     },
     {
+      "source": "/caddie-magic/caddies",
+      "destination": "/caddie-magic/caddies/index.html"
+    },
+    {
+      "source": "/caddie-magic/caddie-desk",
+      "destination": "/caddie-magic/caddie-desk/index.html"
+    },
+    {
+      "source": "/caddie-magic/compass/club",
+      "destination": "/caddie-magic/compass/club/index.html"
+    },
+    {
       "source": "/caddie-magic/compass/admin",
       "destination": "/caddie-magic/compass/admin/index.html"
     },
@@ -153,7 +165,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.4.6"
+          "value": "0.5.1"
         }
       ]
     },
@@ -166,7 +178,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.4.6"
+          "value": "0.5.1"
         }
       ]
     },
@@ -179,7 +191,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.4.6"
+          "value": "0.5.1"
         }
       ]
     },
@@ -192,7 +204,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.4.6"
+          "value": "0.5.1"
         }
       ]
     },
