@@ -52,6 +52,6 @@ Caddie Magic players use the explicit product-access registry introduced in migr
 
 Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity.
 
-Current integrated version: **Caddie Magic v0.5.1 / Flowtel v0.10.68**.
+Current integrated version: **Caddie Magic v0.5.1 / Flowtel v0.10.68.1**.
 
 Run `node scripts/validate-caddie-magic.mjs` before shipping a merged release.

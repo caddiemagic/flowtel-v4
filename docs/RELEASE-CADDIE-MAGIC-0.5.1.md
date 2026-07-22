@@ -86,3 +86,7 @@ Migration 037 remains retired and must never be rerun.
 ## Live validation required
 
 Static validators can confirm syntax, files, routes, version coherence, HTML/CSS structure, and required role/data wiring. They cannot prove hosted Supabase RLS, authenticated role behavior, Acuity behavior, email delivery, or Zoom hosting. Complete the live account matrix in the Flowtel v0.10.68 release note before treating the Network as production-confirmed.
+
+## Hotfix 1 — Clubhouse login bootstrap
+
+Flowtel v0.10.68.1 restores the top-level Player Profile initialization accidentally omitted from v0.10.68. The repair binds the login/create-account controls, restores invitation query handling, and runs `bootPortal()` so remembered sessions reopen the Player Profile after refresh or return navigation. The root Caddie validator now asserts this complete startup sequence. No migration is required.

@@ -1068,3 +1068,15 @@ function bindEvents() {
   $("masterMessageForm")?.addEventListener("submit", sendMasterMessage);
   setEntryMode("round");
 }
+
+const invitationParams = new URLSearchParams(window.location.search);
+const invitationCode = invitationParams.get("invite");
+const invitationEmail = invitationParams.get("email");
+if (invitationCode && $("authInviteCode")) $("authInviteCode").value = invitationCode;
+if (invitationEmail && $("authEmail")) $("authEmail").value = invitationEmail;
+if (invitationParams.get("access") === "player-only") {
+  setMessage(authMessage, "Your player key opens Caddie Magic. Flowtel remains separate from this account.");
+}
+
+bindEvents();
+bootPortal();

@@ -1,3 +1,11 @@
+## v0.10.68.1 — Caddie Clubhouse Login Bootstrap Hotfix
+
+- Restores the missing top-level Caddie Magic Player Profile startup sequence.
+- Reconnects **Enter the Clubhouse**, account creation, invitation-prefill, remembered-session restoration, and return navigation from Score Map.
+- Adds a focused Player Profile JavaScript cache-bust so browsers do not retain the broken module.
+- Extends the Caddie validator to require the actual event-binding and portal-bootstrap calls, preventing this failure from passing static validation again.
+- Requires no migration; migration 053 must not be rerun.
+
 ## v0.10.68 — Caddie Network Reintegration + Shared Scheduling Foundation
 
 - Reconciles the preserved Caddie Magic v0.5.0 Network foundation into current Flowtel HEAD while preserving all v0.4.6 geometry, mobile, Moon-data, profile, and valid-score repairs.

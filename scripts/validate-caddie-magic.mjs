@@ -134,6 +134,8 @@ assert(files.playerHtml.includes("Messages with The Caddie Master"), "VIP Caddie
 assert(files.playerJs.includes('isPlayer ? "You" : "The Caddie Master"'), "Message thread does not distinguish You and The Caddie Master.");
 assert(files.playerJs.includes("vip_messaging_enabled"), "VIP messaging gate is missing from Player UI.");
 assert(files.playerJs.includes("available_review_credits"), "Scorecard Review credit state is missing from Player UI.");
+assert(files.playerHtml.includes('app.js?v=0.5.1-login-hotfix-1'), "Player Profile login bootstrap cache-bust is missing.");
+assert(/const invitationParams = new URLSearchParams\(window\.location\.search\);[\s\S]*bindEvents\(\);\s*bootPortal\(\);\s*$/.test(files.playerJs), "Player Profile module does not initialize invitation state, bind controls, and restore the remembered session at top level.");
 
 // Compass must be a functional four-door map, not the reverted assignment/message surface.
 for (const direction of ["north", "east", "south", "west"]) {
