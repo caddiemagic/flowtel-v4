@@ -1,6 +1,6 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.73";
-import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.73";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.75";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.75";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
@@ -2293,7 +2293,7 @@ const loungeSeasonPlannerGrid=document.getElementById("loungeSeasonPlannerGrid")
 const loungeSeasonPlannerForm=document.getElementById("loungeSeasonPlannerForm");
 const loungeSeasonPlannerStatus=document.getElementById("loungeSeasonPlannerStatus");
 
-const LOUNGE_SEASON_ORDER=['winter','spring','summer','autumn'];
+const LOUNGE_SEASON_ORDER=['autumn','summer','winter','spring'];
 const LOUNGE_SEASON_LABELS={winter:'Winter Location',spring:'Spring Location',summer:'Summer Location',autumn:'Autumn Location'};
 const LOUNGE_SEASON_PLACEHOLDERS={
   winter:'Pacific Grove, California',

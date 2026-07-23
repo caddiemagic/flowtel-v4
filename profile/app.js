@@ -1,4 +1,5 @@
-import { getCurrentProfile, updateMyGuestProfile, updateMyFlowFmStartDate } from "../shared/profiles.js?v=0.10.73";
+import { getCurrentProfile, updateMyGuestProfile, updateMyFlowFmStartDate } from "../shared/profiles.js?v=0.10.75";
+import { flowtelTodayISO } from "../shared/flowtel-date.js?v=0.10.75";
 import { isProductAccessError } from "../shared/product-access.js?v=0.10.73";
 
 const form = document.getElementById("profileForm");
@@ -70,7 +71,7 @@ function populate(profile) {
   const flowFm = isFlowFmMember(profile);
   flowFmStartDateField.hidden = !flowFm;
   flowFmStartDate.required = flowFm;
-  flowFmStartDate.max = new Date().toISOString().slice(0, 10);
+  flowFmStartDate.max = flowtelTodayISO();
   flowFmStartDate.value = String(profile?.flowfm_started_at || "").slice(0, 10);
   renderTimezoneOptions(profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles");
   returnLink.href = returnTarget();

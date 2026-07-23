@@ -6,9 +6,9 @@ import {
   getWombWorkModule,
   getFlowFmAssignmentForMoon,
   getMoonDatesForPortal,
-} from '/shared/flowtel.js?v=0.10.73';
+} from '/shared/flowtel.js?v=0.10.75';
 import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum, canAccessHourlyFlowRate } from '/shared/rollout.js';
-import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.73';
+import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.75';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');
@@ -30,7 +30,7 @@ const message=document.getElementById('message');
 
 const SUPPORT_DOORS=[
   { href:'/flow-fm/hourly-flow-rate/', eyebrow:'BIG VISION', title:'Open Your Hourly Flow Rate', copy:'Choose four locations, enter seasonal lodging costs, and include your current expenses.', motif:'sunburst' },
-  { href:'/flow-fm/availability/', eyebrow:'CLIENT-FACING CALLS', title:'Set your seasonal call availability', copy:'Choose the weekly time windows you want to offer for 1:1 client-facing calls in each Inner Season.', motif:'planning' },
+  { href:'/flow-fm/availability/', eyebrow:'AVAILABILITY', title:'Set your availability', copy:'Choose the weekly time windows you want to offer for calls in each Inner Season.', motif:'planning' },
   { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
   { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
   { href:'/flow-fm/team-map/', eyebrow:'THE LIVING MAP', title:'Witness the Flow FM field', copy:'See where the women of Flow FM are rooted today—and where their multidimensional selves are traveling.', motif:'living-map' },
@@ -140,9 +140,9 @@ function renderStatus(profile){
   currentPortalLink.textContent=curriculumOpen ? 'Open Current Moon Portal' : hourlyFlowRateOpen ? 'Open Hourly Flow Rate' : 'Open Profile Studio';
   nextDoorTitle.textContent=curriculumOpen ? `Open ${currentPortal.name} Portal` : hourlyFlowRateOpen ? 'Cultivate Your BIG VISION' : 'Open Your Profile Studio';
   nextDoorCopy.textContent=curriculumOpen
-    ? 'Your moon portal gathers the training, womb work practice, business assignment, and next doorway in one place.'
+    ? 'Your Moon portal gathers the current training, womb work, business assignment, and next step in one place.'
     : hourlyFlowRateOpen
-      ? 'The Hourly Flow Rate room begins with four future seasonal locations and reveals the revenue capacity required to resource the vision.'
+      ? 'The Hourly Flow Rate begins with four seasonal locations and the revenue required to support them.'
       : 'Phase 1 beta is focused on the guest journey and your profile submission flow. The rest of the curriculum is staying sealed for now.';
   currentModuleTitle.textContent=curriculumOpen ? (currentModule?.title || 'Womb Work Module') : 'Phase 1 testing focus';
   currentModuleCopy.innerHTML=curriculumOpen
@@ -171,9 +171,9 @@ async function init(){
     const state=renderAccessState(profile);
     heroCopy.textContent=profile
       ? (canAccessFlowFmCurriculum(profile)
-          ? 'Welcome back. Your temple doors are open. Enter your current portal first, then move through the hallway as your body says yes.'
-          : 'Welcome back. The guest journey, Profile Studio, and Hourly Flow Rate BIG VISION room are open. The wider curriculum remains sealed while we localize testing.')
-      : 'Preview the Flow FM hallway, then sign in to open your personalized moon portal.';
+          ? 'Your current Moon, practices, and planning rooms are organized here. Begin with the current Moon, then open only the tools you need.'
+          : 'The guest journey, Profile Studio, and Hourly Flow Rate are open. Additional Moon rooms remain sealed while beta testing is localized.')
+      : 'Preview the Flow FM rooms, then sign in to open your personalized Moon path.';
     setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');
   }catch(error){
     console.error(error);

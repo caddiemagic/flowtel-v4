@@ -27,8 +27,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.74.2'));
-assert(files.managerHtml.includes('app.js?v=0.10.74.2'));
+assert(files.managerHtml.includes('styles.css?v=0.10.75'));
+assert(files.managerHtml.includes('app.js?v=0.10.75'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -40,6 +40,7 @@ for(const label of ['Winter Location','Spring Location','Summer Location','Autum
 assert(!files.clientJs.includes('lodging_idea') && !files.clientJs.includes('calling_reflection'),'Detailed seasonal planning fields returned to the Lounge.');
 assert(!files.clientHtml.includes('id="loungeReplayNotes"'),'Replay Notes should be hidden only from the Four Seasons workshop.');
 assert(files.clientJs.includes('saveHourlyFlowRateFourSeasonLocations'),'Lounge does not write the canonical four-season locations.');
+assert(files.clientJs.includes("const LOUNGE_SEASON_ORDER=['autumn','summer','winter','spring'];"),'Lounge Four Seasons quadrants are not Autumn, Summer, Winter, Spring.');
 assert(files.hfr.includes('flowtel_hfr_save_four_season_locations') && files.hfr.includes('flowtel_hfr_save_season_location'),'Canonical seasonal-location RPC wrappers are missing.');
 assert(files.hfrCore.includes('seasonLocationLabel'),'Canonical seasonal-location display helper is missing.');
 assert(files.migration057.includes('location_label') && files.migration057.includes('flowtel_get_time_and_space_team'),'Migration 057 foundations are missing.');

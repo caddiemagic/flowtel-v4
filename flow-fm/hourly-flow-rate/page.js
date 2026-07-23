@@ -1,7 +1,7 @@
-import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.73';
+import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.75';
 import { canAccessHourlyFlowRate } from '/shared/rollout.js?v=0.10.73';
 import { isProductAccessError, redirectForDeniedProduct } from '/shared/product-access.js?v=0.10.73';
-import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.73';
+import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.75';
 import {
   CURRENCY_OPTIONS,
   LAYER_LABELS,

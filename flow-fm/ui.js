@@ -3,8 +3,9 @@ import {
   labelForAssignmentStatus,
   toneForPriestessProfileStatus,
   labelForPriestessProfileStatus,
-} from '/shared/flowtel.js?v=0.10.73';
+} from '/shared/flowtel.js?v=0.10.75';
 import { FLOWTEL_ROLLOUT } from '/shared/rollout.js';
+import { formatDateOnly } from '/shared/flowtel-date.js?v=0.10.75';
 
 export function params(){ return new URLSearchParams(window.location.search); }
 export function requestedMemberId(){ return params().get('member') || params().get('client') || null; }
@@ -46,10 +47,7 @@ export function safeHref(value){
   return '';
 }
 export function formatDate(value){
-  if(!value) return '—';
-  const date = new Date(value);
-  if(Number.isNaN(date.getTime())) return String(value).slice(0,10);
-  return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}).format(date);
+  return formatDateOnly(value, { month:'short', day:'numeric', year:'numeric' }, 'en-US');
 }
 export function setMessage(node, text=''){
   if(node) node.textContent = text;
@@ -77,7 +75,7 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Initiation Hall' },
   { key: 'hourly-flow-rate', href: '/flow-fm/hourly-flow-rate/', label: 'Hourly Flow Rate' },
-  { key: 'availability', href: '/flow-fm/availability/', label: 'Client-Facing Calls' },
+  { key: 'availability', href: '/flow-fm/availability/', label: 'Availability' },
   { key: 'planning-room', href: '/flow-fm/planning-room/', label: 'Planning Room' },
   { key: 'profile-studio', href: '/flow-fm/profile-studio/', label: 'Profile Studio' },
   { key: 'living-map', href: '/flow-fm/team-map/', label: 'Living Map' },

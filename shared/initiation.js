@@ -3,6 +3,7 @@
 // Source: FLOW FM Onboarding Guide pages 7–12.
 
 import { WOMB_WORK_MODULES, getWombWorkModule } from './womb-work.js';
+import { calendarDateParts, dateOnlyToLocalNoon } from './flowtel-date.js?v=0.10.75';
 
 export const FLOW_FM_MOONS = [
   { index: 1, month: 'NOV', name: 'Temple Moon', wing: 'West Wing', season: 'Winter', theme: 'Shadow work, feminine arts, reflection, and radical self-honesty.' },
@@ -98,13 +99,18 @@ function monthIndexForMoon(portal){
 
 export function getMoonDatesForPortal(portal = {}, nowDate = new Date()){
   const status = portal.status || {};
-  const startedAt = status.startedAt instanceof Date ? status.startedAt : (status.startedAt ? new Date(status.startedAt) : nowDate);
+  const startParts = status.startedDateParts
+    || calendarDateParts(status.startedDateISO || status.startedAt || nowDate);
+  const nowParts = calendarDateParts(nowDate);
   const offset = Math.max(0, Number(portal.portalIndex || 1) - 1);
-  const workingDate = new Date(startedAt.getFullYear(), startedAt.getMonth() + offset, 1);
+  const absoluteMonth = ((startParts?.year || nowParts?.year || 2026) * 12)
+    + ((startParts?.month || nowParts?.month || 1) - 1)
+    + offset;
+  const workingYear = Math.floor(absoluteMonth / 12);
   const monthIndex = monthIndexForMoon(portal);
   const year = portal.isOuroboros
-    ? workingDate.getFullYear()
-    : (Number.isFinite(monthIndex) ? workingDate.getFullYear() : nowDate.getFullYear());
+    ? workingYear
+    : (Number.isFinite(monthIndex) ? workingYear : (nowParts?.year || 2026));
   const newMoonISO = approximateNewMoonForMonth(year, monthIndex);
   const fullMoonISO = addDaysISO(newMoonISO, 14);
   return {
@@ -125,13 +131,17 @@ export function getFlowFmArcForMoon(moonIndex){
 }
 
 function monthDiff(start, now) {
-  return (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+  const startParts = calendarDateParts(start);
+  const nowParts = calendarDateParts(now);
+  if (!startParts || !nowParts) return 0;
+  return (nowParts.year - startParts.year) * 12 + (nowParts.month - startParts.month);
 }
 
 export function getFlowFmAnchorFromDate(startDate = new Date()) {
-  const date = startDate instanceof Date ? startDate : new Date(startDate);
-  const baseIndex = GREGORIAN_MONTH_TO_CANONICAL[date.getMonth()] || 1;
-  const useNextMoon = date.getDate() > DEFAULT_FULL_MOON_THRESHOLD_DAY;
+  const parts = calendarDateParts(startDate);
+  if (!parts) throw new Error('A valid Flow FM start date is required.');
+  const baseIndex = GREGORIAN_MONTH_TO_CANONICAL[parts.month - 1] || 1;
+  const useNextMoon = parts.day > DEFAULT_FULL_MOON_THRESHOLD_DAY;
   const anchorIndex = useNextMoon ? ((baseIndex % 12) + 1) : baseIndex;
   const anchorMoon = FLOW_FM_MOONS.find(item => item.index === anchorIndex) || FLOW_FM_MOONS[0];
   return {
@@ -160,9 +170,12 @@ export function getFlowFmMoonForProgress(anchorIndex = 1, monthNumber = 1) {
 
 export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
   const started = profile.flowfm_started_at || profile.flow_fm_started_at || profile.initiation_started_at || null;
-  const startedAt = started ? new Date(started) : null;
+  const startedDateParts = started ? calendarDateParts(started) : null;
+  const startedAt = startedDateParts
+    ? (dateOnlyToLocalNoon(startedDateParts.iso) || new Date(started))
+    : null;
 
-  if (!startedAt || Number.isNaN(startedAt.getTime())) {
+  if (!startedDateParts || !startedAt || Number.isNaN(startedAt.getTime())) {
     return {
       hasStartDate: false,
       moonIndex: 1,
@@ -179,8 +192,8 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
     };
   }
 
-  const elapsed = Math.max(0, monthDiff(startedAt, nowDate));
-  const anchor = getFlowFmAnchorFromDate(startedAt);
+  const elapsed = Math.max(0, monthDiff(startedDateParts.iso, nowDate));
+  const anchor = getFlowFmAnchorFromDate(startedDateParts.iso);
   const progressMonth = Math.min(13, elapsed + 1);
   const moon = getFlowFmMoonForProgress(anchor.anchorIndex, progressMonth);
   const isInitiated = progressMonth >= 13 || !!profile?.is_initiated;
@@ -192,6 +205,8 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
   return {
     hasStartDate: true,
     startedAt,
+    startedDateISO: startedDateParts.iso,
+    startedDateParts,
     elapsedMoons: elapsed,
     moonIndex: moon.index,
     moon,

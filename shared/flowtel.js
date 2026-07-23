@@ -1,5 +1,5 @@
 // shared/flowtel.js
-export { getCurrentProfile, ensureProfile, displayNameForProfile, firstNameForProfile, updateMyFlowtelIdentity, updateMySharedFlowtelIdentity, updateMyGuestProfile, normalizeHemisphere, profileNeedsConfirmation } from "./profiles.js?v=0.10.73";
+export { getCurrentProfile, ensureProfile, displayNameForProfile, firstNameForProfile, updateMyFlowtelIdentity, updateMySharedFlowtelIdentity, updateMyGuestProfile, normalizeHemisphere, profileNeedsConfirmation } from "./profiles.js?v=0.10.75";
 export {
   createStay,
   getCycleDayConfirmationContext,
@@ -21,10 +21,10 @@ export { getMoonMagic } from "./moon.js";
 export { getDayContent } from "./content.js";
 export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./seasons.js";
 
-export { getFlowFmInitiationStatus, flowFmProgressPercent, getPersonalizedMoonPath, getPersonalizedMoonPortal, FLOW_FM_MOONS, FLOW_FM_ASSIGNMENTS, FLOW_FM_ARCS, getFlowFmAssignmentForMoon, getFlowFmArcForMoon, getMoonDatesForPortal } from "./initiation.js?v=0.10.73";
+export { getFlowFmInitiationStatus, flowFmProgressPercent, getPersonalizedMoonPath, getPersonalizedMoonPortal, FLOW_FM_MOONS, FLOW_FM_ASSIGNMENTS, FLOW_FM_ARCS, getFlowFmAssignmentForMoon, getFlowFmArcForMoon, getMoonDatesForPortal } from "./initiation.js?v=0.10.75";
 export { FLOW_FM_ASSIGNMENT_STATUSES, normalizeAssignmentStatus, labelForAssignmentStatus, toneForAssignmentStatus, assignmentStatusCopy, emptyAssignmentRecord, mergeAssignmentRecords, assignmentProgress, listFlowFmAssignmentStatuses, saveFlowFmAssignmentDraft, submitFlowFmAssignment, listFlowFmAssignmentReviewQueue, reviewFlowFmAssignment } from "./assignments.js";
 
-export { PRIESTESS_PROFILE_STATUSES, normalizePriestessProfileStatus, labelForPriestessProfileStatus, toneForPriestessProfileStatus, priestessProfileStatusCopy, emptyPriestessProfile, mergePriestessProfile, normalizeExternalProfileUrl, getPriestessProfile, savePriestessProfileWebsite, savePriestessProfileDraft, submitPriestessProfile, listPriestessProfileReviewQueue, reviewPriestessProfile, PRIESTESS_PROFILE_PHOTO_BUCKET, PRIESTESS_PROFILE_PHOTO_MAX_BYTES, PRIESTESS_PROFILE_PHOTO_TYPES, uploadPriestessProfilePhoto, removePriestessProfilePhoto } from "./priestess-profiles.js?v=0.10.73";
+export { PRIESTESS_PROFILE_STATUSES, normalizePriestessProfileStatus, labelForPriestessProfileStatus, toneForPriestessProfileStatus, priestessProfileStatusCopy, emptyPriestessProfile, mergePriestessProfile, normalizeExternalProfileUrl, getPriestessProfile, savePriestessProfileWebsite, savePriestessProfileDraft, submitPriestessProfile, listPriestessProfileReviewQueue, reviewPriestessProfile, PRIESTESS_PROFILE_PHOTO_BUCKET, PRIESTESS_PROFILE_PHOTO_MAX_BYTES, PRIESTESS_PROFILE_PHOTO_TYPES, uploadPriestessProfilePhoto, removePriestessProfilePhoto } from "./priestess-profiles.js?v=0.10.75";
 
 export { membershipFromUrl, normalizeMembership, labelForMembership, roleForMembership, resolveMembership } from "./membership.js";
 

@@ -1,3 +1,13 @@
+## v0.10.75 — Queendom Beta Launch Experience
+
+- Repairs the Flow FM Start Date one-day shift by treating the value as a calendar date rather than a timezone-converted timestamp.
+- Applies date-only handling to member and owner editing, owner summary labels, Flow FM initiation calculations, and Flowtel Time maximum-date validation.
+- Rebuilds the Initiation Hall with a quiet-luxury visual rhythm, compact navigation, restrained typography, logical Moon-path cards, and cleaner support-room cards.
+- Renames **The Doors Ahead** to **13 Moons** and changes the Flow FM navigation label **Client-Facing Calls** to **Availability**.
+- Preserves the scarab and wax seal while removing oversized, sentimental, and coronation-style hero treatment.
+- Corrects the Four Seasons Lounge quadrant order to Autumn/Summer/Winter/Spring.
+- Requires no new migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.74.2 — Guest House Recording Choice Continuity
 
 - Restores the compact **Change which recordings I am sharing** editor after a Guest House offering is saved.

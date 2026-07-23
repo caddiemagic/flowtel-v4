@@ -1,6 +1,6 @@
-import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.73';
+import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.75';
 import { effectiveFlowFmRank } from '/shared/rollout.js?v=0.10.64';
-import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.73';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.75';
 import { loadFlowFmAvailability, saveFlowFmAvailabilitySeason } from '/shared/flow-fm-availability.js?v=0.10.73';
 import { FLOW_FM_INNER_SEASONS, FLOW_FM_WEEKDAYS } from '/shared/flow-fm-availability-core.js?v=0.10.73';
 
