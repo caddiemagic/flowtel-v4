@@ -10,10 +10,11 @@ const files={
   migration054:await read('database/migration-054-flowtel-member-integrity-guest-profiles.sql'),
   migration057:await read('database/migration-057-four-seasons-time-space.sql'),
   migration058:await read('database/migration-058-flow-fm-initiation-readiness.sql'),
+  migration059:await read('database/migration-059-guest-house-flow-fm-training-consent.sql'),
   managerJs:await read('manager/app.js'),managerHtml:await read('manager/index.html'),managerCss:await read('manager/styles.css'),
   clientJs:await read('client/app.js'),clientHtml:await read('client/index.html'),clientCss:await read('client/styles.css'),
   cycleJs:await read('cycle-data/app.js'),cycleHtml:await read('cycle-data/index.html'),cycleCss:await read('cycle-data/styles.css'),
-  guestHtml:await read('guest-house/index.html'),
+  guestHtml:await read('guest-house/index.html'),guestJs:await read('guest-house/app.js'),guestCss:await read('guest-house/styles.css'),
   availabilityJs:await read('flow-fm/availability/page.js'),availabilityHtml:await read('flow-fm/availability/index.html'),availabilityCss:await read('flow-fm/availability/styles.css'),
   mailbox:await read('shared/priestess-mailbox.js'),hfr:await read('shared/hourly-flow-rate.js'),hfrCore:await read('shared/hourly-flow-rate-calculations.js'),
   caddieHtml:await read('caddie-magic/index.html'),caddieJs:await read('caddie-magic/app.js'),
@@ -25,8 +26,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.73'));
-assert(files.managerHtml.includes('app.js?v=0.10.73'));
+assert(files.managerHtml.includes('styles.css?v=0.10.74'));
+assert(files.managerHtml.includes('app.js?v=0.10.74'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -55,6 +56,11 @@ assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/
 
 assert(!files.guestHtml.includes('A Guest House account, not a Flowtel membership.'));
 assert(files.guestHtml.includes('Your replay will be shared here soon. When you feel called to enter the Flowtel experience, your Queendom is waiting.'));
+assert(files.guestHtml.includes('app.js?v=0.10.74') && files.guestHtml.includes('styles.css?v=0.10.74'),'Guest House cache keys are stale.');
+assert(files.guestJs.includes('flowtel_guest_house_submit_training_consent'),'Guest House training permission is missing.');
+assert(files.guestJs.includes('GUEST_HOUSE_TRAINING_COUPON_CODE') && files.guestJs.includes('GUEST_HOUSE_TRAINING_SCHEDULE_URL'),'Guest House complimentary session gift wiring is missing.');
+assert(files.managerJs.includes('multiple accept=') && files.managerJs.includes('UPLOAD SELECTED REPLAYS'),'Owner multi-replay upload is missing.');
+assert(files.migration059.includes('flowtel_guest_house_training_consents') && files.migration059.includes('training_consent_granted'),'Migration 059 training permission foundation is missing.');
 
 for(const label of ['Current Moon','Last Moon','Inner Season','Yearly Season','All Time']) assert(files.cycleJs.includes(label),`Client Snapshot filter missing: ${label}`);
 assert(files.cycleJs.includes('flowtel_get_cycle_subject_snapshot'));
@@ -122,12 +128,13 @@ for(const [name,html] of Object.entries({manager:files.managerHtml,client:files.
 }
 
 function balancedCss(text){let depth=0;let quote='';let comment=false;for(let i=0;i<text.length;i++){const c=text[i],n=text[i+1];if(comment){if(c==='*'&&n==='/'){comment=false;i++;}continue;}if(!quote&&c==='/'&&n==='*'){comment=true;i++;continue;}if(quote){if(c==='\\'){i++;continue;}if(c===quote)quote='';continue;}if(c==='"'||c==="'"){quote=c;continue;}if(c==='{')depth++;if(c==='}')depth--;if(depth<0)return false;}return depth===0&&!quote&&!comment;}
-for(const [name,css] of Object.entries({manager:files.managerCss,client:files.clientCss,cycle:files.cycleCss,availability:files.availabilityCss,profile:files.profileCss,score:files.scoreCss,collective:files.collectiveCss})) assert(balancedCss(css),`${name} CSS is structurally unbalanced.`);
+for(const [name,css] of Object.entries({manager:files.managerCss,client:files.clientCss,cycle:files.cycleCss,guest:files.guestCss,availability:files.availabilityCss,profile:files.profileCss,score:files.scoreCss,collective:files.collectiveCss})) assert(balancedCss(css),`${name} CSS is structurally unbalanced.`);
 
 const dollarQuotes=(files.migration.match(/\$\$/g)||[]).length;
 assert.equal(dollarQuotes%2,0,'Migration 052 has an unmatched SQL dollar quote.');
 assert(files.migration.includes('Migration 037 remains retired'));
 assert.equal((files.migration054.match(/\$\$/g)||[]).length%2,0,'Migration 054 has an unmatched SQL dollar quote.');
+assert.equal((files.migration059.match(/\$\$/g)||[]).length%2,0,'Migration 059 has an unmatched SQL dollar quote.');
 
 async function walk(dir){const out=[];for(const name of await readdir(dir)){const full=path.join(dir,name);const info=await stat(full);if(info.isDirectory())out.push(...await walk(full));else out.push(full);}return out;}
 const all=await walk(root);

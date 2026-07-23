@@ -108,8 +108,8 @@ async function ensureGuestHouseModules(){
   if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
   if(!guestHouseModulePromise){
     guestHouseModulePromise=Promise.all([
-      import("../shared/guest-house.js?v=0.10.64"),
-      import("../shared/guest-house-core.js?v=0.10.64"),
+      import("../shared/guest-house.js?v=0.10.74"),
+      import("../shared/guest-house-core.js?v=0.10.74"),
     ]).then(([api,core])=>{
       const required=[
         "createGuestHouseOwnerDownloadUrl",
@@ -2121,6 +2121,21 @@ function guestHouseFileMarkup(file){
   if(Number(file.download_count)>0) receipts.push(`${Number(file.download_count)} download${Number(file.download_count)===1?'':'s'}`);
   return `<article class="guest-house-admin-file ${available?'':'is-removed'}"><div><p>${state}</p><h4>${escapeHtml(file.display_title||file.original_filename||'Call replay')}</h4><span>${escapeHtml(guestHouseFileSize(file.size_bytes))} · Uploaded ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.expires_at?`<em>${escapeHtml(guestHouseReplayExpirationCopy(file.expires_at))}</em>`:''}${receipts.length?`<em>${escapeHtml(receipts.join(' · '))}</em>`:''}${file.note_to_guest?`<em>${escapeHtml(file.note_to_guest)}</em>`:''}${file.deletion_status==='delete_failed'?`<em>Storage cleanup will try again on the next Concierge visit.</em>`:''}</div><div>${available?`<button type="button" data-guest-house-owner-download="${escapeHtml(file.storage_path)}">DOWNLOAD</button><button class="quiet" type="button" data-guest-house-deactivate-file="${escapeHtml(file.file_id)}">REMOVE FROM ROOM</button>`:''}</div></article>`;
 }
+function guestHouseTrainingConsentMarkup(request,files=[]){
+  const consent=request?.training_consent || null;
+  const status=String(consent?.status || '');
+  const fileIds=Array.isArray(consent?.file_ids)?consent.file_ids.map(String):[];
+  const selected=files.filter(file=>fileIds.includes(String(file.file_id)));
+  const selectedNames=selected.map(file=>file.display_title || file.original_filename || 'Call replay');
+  if(status==='granted'){
+    return `<section class="guest-house-training-consent is-granted"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>Permission granted</h4><span>${selectedNames.length?escapeHtml(selectedNames.join(' · ')):'Selected replay permission is preserved.'}</span></div><div><strong>WITNESSED</strong><span>Complimentary session gift revealed ${consent.gift_granted_at?escapeHtml(managerDateLabel(consent.gift_granted_at,{withTime:false})):'to the guest'}.</span></div></section>`;
+  }
+  if(status==='withdrawn'){
+    return `<section class="guest-house-training-consent is-withdrawn"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>Permission withdrawn</h4><span>Do not share these recordings in Flow FM unless the guest grants a new permission receipt.</span></div>${consent?.gift_granted?'<div><strong>GIFT PRESERVED</strong><span>The complimentary session remains hers.</span></div>':''}</section>`;
+  }
+  return `<section class="guest-house-training-consent"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>No permission recorded</h4><span>The guest may opt in privately from her Replay Room after a recording is available.</span></div></section>`;
+}
+
 function guestHousePendingMarkup(requestId){
   const pending=getPendingGuestHouseUpload(requestId);
   if(!pending) return '';
@@ -2132,21 +2147,30 @@ function guestHouseUploadActive(){
 function guestHouseDraftFor(requestId){
   return guestHouseUploadDrafts.get(requestId) || null;
 }
+function guestHouseDraftFiles(draft){
+  if(Array.isArray(draft?.files)) return draft.files.filter(Boolean);
+  return draft?.file ? [draft.file] : [];
+}
 function syncGuestHouseDraftFlag(){
-  const hasSelectedFile=[...guestHouseUploadDrafts.values()].some(draft=>draft?.file);
+  const hasSelectedFile=[...guestHouseUploadDrafts.values()].some(draft=>guestHouseDraftFiles(draft).length>0);
   if(hasSelectedFile) document.body.dataset.guestHouseDraft='selected';
   else delete document.body.dataset.guestHouseDraft;
 }
 function rememberGuestHouseDraft(requestId,patch={}){
   if(!requestId) return null;
   guestHouseExpandedRequestId=requestId;
-  const previous=guestHouseDraftFor(requestId) || {file:null,title:'',note:''};
+  const previous=guestHouseDraftFor(requestId) || {files:[],title:'',note:''};
+  const nextFiles=Object.prototype.hasOwnProperty.call(patch,'files')
+    ? (Array.isArray(patch.files)?patch.files.filter(Boolean):[])
+    : Object.prototype.hasOwnProperty.call(patch,'file')
+      ? (patch.file?[patch.file]:[])
+      : guestHouseDraftFiles(previous);
   const next={
-    file:Object.prototype.hasOwnProperty.call(patch,'file') ? patch.file : previous.file,
+    files:nextFiles,
     title:Object.prototype.hasOwnProperty.call(patch,'title') ? String(patch.title || '') : previous.title,
     note:Object.prototype.hasOwnProperty.call(patch,'note') ? String(patch.note || '') : previous.note,
   };
-  if(!next.file && !next.title && !next.note) guestHouseUploadDrafts.delete(requestId);
+  if(!next.files.length && !next.title && !next.note) guestHouseUploadDrafts.delete(requestId);
   else guestHouseUploadDrafts.set(requestId,next);
   syncGuestHouseDraftFlag();
   return guestHouseDraftFor(requestId);
@@ -2156,7 +2180,18 @@ function clearGuestHouseDraft(requestId){
   syncGuestHouseDraftFlag();
 }
 function guestHouseDraftActive(){
-  return [...guestHouseUploadDrafts.values()].some(draft=>draft?.file);
+  return [...guestHouseUploadDrafts.values()].some(draft=>guestHouseDraftFiles(draft).length>0);
+}
+function showGuestHouseSelectedFiles(card,files=[]){
+  const selected=Array.isArray(files)?files.filter(Boolean):[];
+  const selectedPanel=card?.querySelector('[data-guest-house-selected-file]');
+  const selectedList=card?.querySelector('[data-guest-house-selected-list]');
+  const selectedSize=card?.querySelector('[data-guest-house-selected-size]');
+  if(!selectedPanel || !selectedList || !selectedSize) return;
+  selectedPanel.hidden=!selected.length;
+  selectedList.innerHTML=selected.map(file=>`<strong>${escapeHtml(file.name)}</strong>`).join('');
+  const total=selected.reduce((sum,file)=>sum+(Number(file?.size)||0),0);
+  selectedSize.textContent=selected.length ? `${selected.length} ${selected.length===1?'file':'files'} · ${guestHouseFileSize(total)} total · This selection will stay here until you upload or clear it.` : '';
 }
 function beginGuestHouseFilePicker(){
   window.clearTimeout(guestHouseFilePickerReleaseTimer);
@@ -2186,9 +2221,16 @@ function endGuestHouseUpload(requestId){
   if(!guestHouseUploadsInFlight.size) delete document.body.dataset.guestHouseUpload;
 }
 function guestHouseSelectedFileMarkup(requestId){
-  const draft=guestHouseDraftFor(requestId);
-  const file=draft?.file;
-  return `<div class="guest-house-selected-file" data-guest-house-selected-file ${file?'':'hidden'}><div><span>READY TO UPLOAD</span><strong data-guest-house-selected-name>${file?escapeHtml(file.name):''}</strong><em data-guest-house-selected-size>${file?`${escapeHtml(guestHouseFileSize(file.size))} · This selection will stay here until you upload or clear it.`:''}</em></div><button class="quiet" type="button" data-guest-house-clear-file>CLEAR FILE</button></div>`;
+  const files=guestHouseDraftFiles(guestHouseDraftFor(requestId));
+  const total=files.reduce((sum,file)=>sum+(Number(file?.size)||0),0);
+  const list=files.map(file=>`<strong>${escapeHtml(file.name)}</strong>`).join('');
+  return `<div class="guest-house-selected-file" data-guest-house-selected-file ${files.length?'':'hidden'}><div><span>READY TO UPLOAD</span><div class="guest-house-selected-list" data-guest-house-selected-list>${list}</div><em data-guest-house-selected-size>${files.length?`${files.length} ${files.length===1?'file':'files'} · ${escapeHtml(guestHouseFileSize(total))} total · This selection will stay here until you upload or clear it.`:''}</em></div><button class="quiet" type="button" data-guest-house-clear-file>CLEAR FILES</button></div>`;
+}
+function guestHouseUploadDisplayTitle(title,file,totalFiles){
+  const base=String(file?.name || 'Call replay').replace(/\.[^.]+$/,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim() || 'Call replay';
+  const prefix=String(title || '').trim();
+  if(totalFiles<=1) return prefix;
+  return `${prefix?`${prefix} — `:''}${base}`.slice(0,240);
 }
 function guestHouseAccessMarkup(request){
   if(request.auth_user_id){
@@ -2213,7 +2255,7 @@ function renderGuestHouseQueue(){
       ? (request.member_id?'GUEST HOUSE ACCOUNT · EXISTING FLOWTEL IDENTITY PRESERVED':'GUEST HOUSE ACCOUNT')
       : 'LEGACY GUEST HOUSE REQUEST';
     const requestId=String(request.request_id||'');
-    const expanded=guestHouseExpandedRequestId===requestId || !!guestHouseDraftFor(requestId)?.file || !!getPendingGuestHouseUpload(requestId) || guestHouseUploadsInFlight.has(requestId);
+    const expanded=guestHouseExpandedRequestId===requestId || guestHouseDraftFiles(guestHouseDraftFor(requestId)).length>0 || !!getPendingGuestHouseUpload(requestId) || guestHouseUploadsInFlight.has(requestId);
     const statusLabel=GUEST_HOUSE_STATUS_LABELS[request.request_status] || 'Concierge is locating the recording';
     return `<article class="guest-house-request-card ${expanded?'is-expanded':'is-collapsed'}" data-guest-house-request="${escapeHtml(requestId)}">
       <button class="guest-house-request-toggle" type="button" data-guest-house-toggle="${escapeHtml(requestId)}" aria-expanded="${expanded?'true':'false'}">
@@ -2224,7 +2266,8 @@ function renderGuestHouseQueue(){
       <div class="guest-house-request-body" ${expanded?'':'hidden'}>
         <div class="guest-house-request-details guest-house-memory-only"><div><span>WHAT THE CLIENT REMEMBERS ABOUT THE CALL</span><p>${escapeHtml(request.call_topic||'No call memory was provided on this legacy request.')}</p></div></div>
         <div class="guest-house-owner-care"><label><span>Guest House status</span><select data-guest-house-status>${guestHouseStatusOptions(request.request_status)}</select></label><label><span>Private Concierge note</span><textarea rows="3" maxlength="3000" data-guest-house-owner-note placeholder="Where the replay may be stored, identity checks, or a private internal note">${escapeHtml(request.owner_note||'')}</textarea></label><button type="button" data-guest-house-save="${escapeHtml(requestId)}">SAVE CONCIERGE CARE</button><p role="status"></p></div>
-        <section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in the Replay Room`:'No active replay in the Replay Room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED OR EXPIRED · `:''}28-DAY STAY</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(requestId)}<div class="guest-house-upload"><label><span>Choose the audio or video replay</span><input type="file" accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" value="${escapeHtml(guestHouseDraftFor(requestId)?.title||'')}" data-guest-house-title /></label><label><span>Note inside the Replay Room — optional</span><input type="text" maxlength="1000" placeholder="A note the client will see above the player" value="${escapeHtml(guestHouseDraftFor(requestId)?.note||'')}" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(requestId)}">UPLOAD REPLAY</button>${guestHouseSelectedFileMarkup(requestId)}<div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>
+        <section class="guest-house-files"><div class="guest-house-section-heading"><div><p class="eyebrow">CALL REPLAYS</p><h4>${activeFiles.length?`${activeFiles.length} private ${activeFiles.length===1?'file':'files'} in the Replay Room`:'No active replay in the Replay Room'}</h4></div><span>${files.length-activeFiles.length?`${files.length-activeFiles.length} PRESERVED OR EXPIRED · `:''}28-DAY STAY</span></div>${files.length?files.map(guestHouseFileMarkup).join(''):''}${guestHousePendingMarkup(requestId)}<div class="guest-house-upload"><label><span>Choose one or more audio or video replays</span><input type="file" multiple accept=".mp4,.mov,.m4v,.webm,.mp3,.wav,.m4a,.aac,.ogg,video/*,audio/*" data-guest-house-file /></label><label><span>Replay title — optional</span><input type="text" maxlength="240" placeholder="Your Womb Wealth Call Replay" value="${escapeHtml(guestHouseDraftFor(requestId)?.title||'')}" data-guest-house-title /><small>For several files, Flowtel adds each cleaned filename to this title.</small></label><label><span>Note inside the Replay Room — optional</span><input type="text" maxlength="1000" placeholder="A note the client will see above each player" value="${escapeHtml(guestHouseDraftFor(requestId)?.note||'')}" data-guest-house-note /></label><button type="button" data-guest-house-upload="${escapeHtml(requestId)}">UPLOAD SELECTED REPLAYS</button>${guestHouseSelectedFileMarkup(requestId)}<div class="guest-house-progress" hidden><span></span></div><p role="status"></p></div></section>
+        ${guestHouseTrainingConsentMarkup(request,files)}
         ${guestHouseAccessMarkup(request)}
         <footer><span>Requested ${escapeHtml(managerDateLabel(request.request_created_at,{withTime:true}))}</span>${request.last_accessed_at?`<span>Guest House opened ${escapeHtml(managerDateLabel(request.last_accessed_at,{withTime:true}))} · ${escapeHtml(String(request.access_count||0))} visits</span>`:'<span>Guest House not opened yet</span>'}</footer>
       </div>
@@ -2270,27 +2313,18 @@ function bindGuestHouseControls(){
     const fileInput=card.querySelector('[data-guest-house-file]');
     const titleInput=card.querySelector('[data-guest-house-title]');
     const noteInput=card.querySelector('[data-guest-house-note]');
-    const selectedPanel=card.querySelector('[data-guest-house-selected-file]');
-    const selectedName=card.querySelector('[data-guest-house-selected-name]');
-    const selectedSize=card.querySelector('[data-guest-house-selected-size]');
     const clearButton=card.querySelector('[data-guest-house-clear-file]');
     const output=card.querySelector('.guest-house-upload p[role="status"]');
-
-    const showSelectedFile=file=>{
-      if(!selectedPanel || !selectedName || !selectedSize) return;
-      selectedPanel.hidden=!file;
-      selectedName.textContent=file?.name || '';
-      selectedSize.textContent=file ? `${guestHouseFileSize(file.size)} · This selection will stay here until you upload or clear it.` : '';
-    };
 
     fileInput?.addEventListener('click',beginGuestHouseFilePicker,{capture:true});
     fileInput?.addEventListener('cancel',endGuestHouseFilePicker);
     fileInput?.addEventListener('change',()=>{
-      const file=fileInput.files?.[0] || null;
-      if(file){
-        rememberGuestHouseDraft(requestId,{file,title:titleInput?.value||'',note:noteInput?.value||''});
-        showSelectedFile(file);
-        if(output) output.textContent=`${file.name} (${guestHouseFileSize(file.size)}) is selected and will remain here until you upload or clear it.`;
+      const files=Array.from(fileInput.files || []);
+      if(files.length){
+        rememberGuestHouseDraft(requestId,{files,title:titleInput?.value||'',note:noteInput?.value||''});
+        showGuestHouseSelectedFiles(card,files);
+        const total=files.reduce((sum,file)=>sum+(Number(file?.size)||0),0);
+        if(output) output.textContent=`${files.length} ${files.length===1?'replay is':'replays are'} selected (${guestHouseFileSize(total)} total) and will remain here until you upload or clear them.`;
       }
       endGuestHouseFilePicker();
     });
@@ -2299,21 +2333,22 @@ function bindGuestHouseControls(){
     clearButton?.addEventListener('click',()=>{
       clearGuestHouseDraft(requestId);
       if(fileInput) fileInput.value='';
-      showSelectedFile(null);
-      if(output) output.textContent='The replay selection was cleared.';
+      showGuestHouseSelectedFiles(card,[]);
+      if(output) output.textContent='The replay selections were cleared.';
     });
 
     const draft=guestHouseDraftFor(requestId);
-    if(draft?.file){
-      showSelectedFile(draft.file);
+    const draftFiles=guestHouseDraftFiles(draft);
+    if(draftFiles.length){
+      showGuestHouseSelectedFiles(card,draftFiles);
       try{
         if(fileInput && !fileInput.files?.length && typeof DataTransfer==='function'){
           const transfer=new DataTransfer();
-          transfer.items.add(draft.file);
+          draftFiles.forEach(file=>transfer.items.add(file));
           fileInput.files=transfer.files;
         }
       }catch(_error){
-        // The preserved in-memory File is still used by the Upload Replay button.
+        // The preserved in-memory Files are still used by the upload button.
       }
     }
   });
@@ -2327,7 +2362,8 @@ function bindGuestHouseControls(){
       const card=button.closest('[data-guest-house-request]');
       const requestId=button.dataset.guestHouseUpload;
       const draft=guestHouseDraftFor(requestId);
-      const file=card?.querySelector('[data-guest-house-file]')?.files?.[0] || draft?.file;
+      const inputFiles=Array.from(card?.querySelector('[data-guest-house-file]')?.files || []);
+      const files=inputFiles.length?inputFiles:guestHouseDraftFiles(draft);
       const title=card?.querySelector('[data-guest-house-title]')?.value ?? draft?.title ?? '';
       const note=card?.querySelector('[data-guest-house-note]')?.value ?? draft?.note ?? '';
       const progress=button.parentElement.querySelector('.guest-house-progress');
@@ -2335,39 +2371,59 @@ function bindGuestHouseControls(){
       const output=button.parentElement.querySelector('p[role="status"]');
       const original=button.textContent;
 
-      if(!file){
-        if(output) output.textContent='Choose the audio or video replay first.';
+      if(!files.length){
+        if(output) output.textContent='Choose one or more audio or video replays first.';
         return;
       }
 
-      rememberGuestHouseDraft(requestId,{file,title,note});
+      let remaining=[...files];
+      rememberGuestHouseDraft(requestId,{files:remaining,title,note});
+      const fileInput=card?.querySelector('[data-guest-house-file]');
+      if(fileInput) fileInput.value='';
       beginGuestHouseUpload(requestId);
       button.disabled=true;
-      button.textContent='UPLOADING…';
       if(progress) progress.hidden=false;
       if(bar) bar.style.width='0%';
-      if(output) output.textContent=`Preparing ${file.name} (${guestHouseFileSize(file.size)})… Keep this tab open.`;
 
       try{
-        await uploadGuestHouseReplay({
-          requestId,
-          file,
-          displayTitle:title,
-          noteToGuest:note,
-          onProgress:value=>{
-            if(bar) bar.style.width=`${value}%`;
-            if(output) output.textContent=`Uploading privately… ${value}% · Keep this tab open.`;
-          },
-          onStage:stage=>{
-            if(stage==='finalizing'){
-              button.textContent='FINISHING…';
-              if(output) output.textContent='Upload complete. Finishing the private Replay Room record…';
+        for(let index=0;index<files.length;index+=1){
+          const file=files[index];
+          const position=index+1;
+          button.textContent=`UPLOADING ${position} OF ${files.length}…`;
+          if(output) output.textContent=`Preparing ${file.name} (${guestHouseFileSize(file.size)}) · ${position} of ${files.length}. Keep this tab open.`;
+          try{
+            await uploadGuestHouseReplay({
+              requestId,
+              file,
+              displayTitle:guestHouseUploadDisplayTitle(title,file,files.length),
+              noteToGuest:note,
+              onProgress:value=>{
+                const overall=Math.round(((index+(Number(value)||0)/100)/files.length)*100);
+                if(bar) bar.style.width=`${overall}%`;
+                if(output) output.textContent=`Uploading ${position} of ${files.length} privately… ${overall}% overall · Keep this tab open.`;
+              },
+              onStage:stage=>{
+                if(stage==='finalizing'){
+                  button.textContent=`FINISHING ${position} OF ${files.length}…`;
+                  if(output) output.textContent=`${file.name} reached private Storage. Finishing its Replay Room record…`;
+                }
+              },
+            });
+            remaining=remaining.filter(candidate=>candidate!==file);
+            rememberGuestHouseDraft(requestId,{files:remaining,title,note});
+            showGuestHouseSelectedFiles(card,remaining);
+          }catch(error){
+            if(error?.code==='GUEST_HOUSE_FINALIZE_PENDING'){
+              remaining=remaining.filter(candidate=>candidate!==file);
+              rememberGuestHouseDraft(requestId,{files:remaining,title,note});
+              showGuestHouseSelectedFiles(card,remaining);
             }
-          },
-        });
+            throw error;
+          }
+        }
         endGuestHouseUpload(requestId);
         clearGuestHouseDraft(requestId);
-        await reloadGuestHouse('The call replay is waiting safely in the Guest House.');
+        await reloadGuestHouse(`${files.length} ${files.length===1?'call replay is':'call replays are'} waiting safely in the Guest House.`);
       }catch(error){
         endGuestHouseUpload(requestId);
         if(error?.code==='GUEST_HOUSE_FINALIZE_PENDING'){
@@ -2377,8 +2433,8 @@ function bindGuestHouseControls(){
         }
         button.disabled=false;
         button.textContent=original;
-        if(output) output.textContent=error?.message||'This replay could not be uploaded.';
-        if(managerMessage) managerMessage.textContent=error?.message||'This replay could not be uploaded.';
+        if(output) output.textContent=error?.message||'The selected replay upload could not be completed.';
+        if(managerMessage) managerMessage.textContent=error?.message||'The selected replay upload could not be completed.';
       }
     });
   });

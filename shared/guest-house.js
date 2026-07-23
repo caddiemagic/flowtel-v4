@@ -1,4 +1,4 @@
-// Flowtel v0.10.64 — resilient owner Concierge helpers with 28-day replay cleanup.
+// Flowtel v0.10.74 — resilient owner Guest House helpers with multi-replay uploads and 28-day cleanup.
 
 import { supabase } from './supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
@@ -11,7 +11,7 @@ import {
   hashGuestHouseToken,
   safeGuestHouseFilename,
   validateGuestHouseReplayMetadata,
-} from './guest-house-core.js?v=0.10.64';
+} from './guest-house-core.js?v=0.10.74';
 
 const PENDING_UPLOAD_KEY='flowtel_guest_house_pending_uploads_v1';
 const pendingUploadMemory=new Map();

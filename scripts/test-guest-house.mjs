@@ -2,6 +2,10 @@ import assert from 'node:assert/strict';
 import {
   GUEST_HOUSE_MAX_BYTES,
   GUEST_HOUSE_STATUS_LABELS,
+  GUEST_HOUSE_TRAINING_CONSENT_COPY,
+  GUEST_HOUSE_TRAINING_CONSENT_VERSION,
+  GUEST_HOUSE_TRAINING_COUPON_CODE,
+  GUEST_HOUSE_TRAINING_SCHEDULE_URL,
   buildGuestHouseReplayUrl,
   createGuestHouseToken,
   guestHouseExpirationDate,
@@ -10,8 +14,10 @@ import {
   guestHouseReplayExpirationCopy,
   guestHouseMediaKind,
   guestHouseProjectLimitMessage,
+  guestHouseReplayTitle,
   hashGuestHouseToken,
   normalizeGuestHouseEmail,
+  normalizeGuestHouseTrainingFileIds,
   safeGuestHouseFilename,
   validateGuestHouseReplayMetadata,
   validateGuestHouseRequest,
@@ -30,6 +36,14 @@ assert.throws(()=>validateGuestHouseRequest({firstName:'Mara',lastName:'Rose',ca
 assert.equal(GUEST_HOUSE_STATUS_LABELS.locating,'Concierge is locating the recording');
 assert.equal(GUEST_HOUSE_STATUS_LABELS.ready,'Replay Room is ready');
 assert.equal(GUEST_HOUSE_STATUS_LABELS.unable_to_locate,"Concierge couldn't find the replay");
+
+assert.equal(GUEST_HOUSE_TRAINING_CONSENT_VERSION,'flow-fm-training-v1-2026-07-23');
+assert.equal(GUEST_HOUSE_TRAINING_COUPON_CODE,'WITNESSED');
+assert.equal(GUEST_HOUSE_TRAINING_SCHEDULE_URL,'https://meganmichele.as.me/energyreading');
+assert.match(GUEST_HOUSE_TRAINING_CONSENT_COPY,/Moon Priestess training/);
+assert.match(GUEST_HOUSE_TRAINING_CONSENT_COPY,/complimentary gift session/);
+assert.equal(guestHouseReplayTitle('Mara_Womb-Wealth-Session.mp4'),'Mara Womb Wealth Session');
+assert.deepEqual(normalizeGuestHouseTrainingFileIds(['file-1',' file-1 ','','file-2']),['file-1','file-2']);
 
 assert.equal(guestHouseMediaKind('call.mp4','video/mp4'),'video');
 assert.equal(guestHouseMediaKind('call.m4a','audio/mp4'),'audio');
@@ -63,4 +77,4 @@ assert.equal(guestHouseReplayExpirationCopy(replayEnd,replayStart),'This replay 
 assert.equal(guestHouseReplayExpirationCopy(replayStart,replayStart),'This replay has reached the end of its 28-day Guest House stay.');
 
 
-console.log('Guest House account request, status, file, token, expiration, and private-link tests passed.');
+console.log('Guest House account request, status, multi-file title, training consent, gift, expiration, and private-link tests passed.');

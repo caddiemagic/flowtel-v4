@@ -63,6 +63,10 @@ try{
       id:'file-1',storage_path:'request-1/file.mp4',original_filename:'call.mp4',display_title:'Your Call Replay',
       mime_type:'video/mp4',media_kind:'video',size_bytes:1024,note_to_guest:'Held for you.',uploaded_at:'2026-07-20T00:00:00Z',
     }]);
+    if(value.includes('/flowtel_guest_house_training_consents?select=')) return jsonResponse([{
+      consent_action:'granted',selected_file_ids:['file-1'],consent_version:'flow-fm-training-v1-2026-07-23',
+      gift_coupon_code:'WITNESSED',gift_schedule_url:'https://meganmichele.as.me/energyreading',created_at:'2026-07-22T00:00:00Z',
+    }]);
     if(value.includes('/storage/v1/object/sign/flowtel-guest-house-replays/request-1/file.mp4')) return jsonResponse({signedURL:'/object/sign/flowtel-guest-house-replays/request-1/file.mp4?token=signed'});
     if(value.includes('/flowtel_guest_house_requests?id=eq.request-1')) return jsonResponse({});
     if(value.endsWith('/rest/v1/flowtel_guest_house_events')) return jsonResponse({});
@@ -73,6 +77,8 @@ try{
   assert.equal(portalRes.statusCode,200);
   assert.equal(portalRes.body.request.status,'ready');
   assert.equal(portalRes.body.request.files[0].mediaKind,'video');
+  assert.equal(portalRes.body.request.trainingConsent.status,'granted');
+  assert.equal(portalRes.body.request.trainingConsent.couponCode,'WITNESSED');
   assert.match(portalRes.body.request.files[0].streamUrl,/storage\/v1\/object\/sign/);
   assert.equal('storage_path' in portalRes.body.request.files[0],false,'Private Storage paths must not be exposed to Guest House accounts.');
   assert(portalCalls.some(call=>call.url.endsWith('/auth/v1/user')),'Guest House portal must verify the signed-in Auth user.');
@@ -99,7 +105,7 @@ try{
   await accessHandler({method:'POST',headers:{},body:{token,action:'room'}},accessRes);
   assert.equal(accessRes.statusCode,200,'Existing private Replay Room links must remain preserved.');
 
-  console.log('Guest House account creation, authenticated portal, legacy-link preservation, and signed-media API tests passed.');
+  console.log('Guest House account creation, authenticated portal training gift, legacy-link preservation, and signed-media API tests passed.');
 } finally {
   globalThis.fetch=originalFetch;
 }

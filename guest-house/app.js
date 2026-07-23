@@ -1,7 +1,14 @@
-// Flowtel v0.10.64 — remembered Guest House accounts, replay requests, status, and private media.
+// Flowtel v0.10.74 — remembered Guest House accounts, private replays, and optional Flow FM training permission.
 
 import { supabase } from '../shared/supabase.js';
-import { guestHouseFileSize, guestHouseReplayExpirationCopy } from '../shared/guest-house-core.js?v=0.10.64';
+import {
+  GUEST_HOUSE_TRAINING_CONSENT_COPY,
+  GUEST_HOUSE_TRAINING_COUPON_CODE,
+  GUEST_HOUSE_TRAINING_SCHEDULE_URL,
+  guestHouseFileSize,
+  guestHouseReplayExpirationCopy,
+  normalizeGuestHouseTrainingFileIds,
+} from '../shared/guest-house-core.js?v=0.10.74';
 
 const accountCard=document.getElementById('accountCard');
 const portal=document.getElementById('guestHousePortal');
@@ -118,12 +125,68 @@ function mediaMarkup(file,index){
     ? `<video controls playsinline preload="metadata" data-replay-media="${escapeHtml(file.id)}"><source src="${escapeHtml(file.streamUrl)}" type="${escapeHtml(file.mimeType || 'video/mp4')}" />Your browser could not open this private video.</video>`
     : `<audio controls preload="metadata" data-replay-media="${escapeHtml(file.id)}"><source src="${escapeHtml(file.streamUrl)}" type="${escapeHtml(file.mimeType || 'audio/mpeg')}" />Your browser could not open this private audio.</audio>`;
   return `<article class="replay-file-card">
-    <header><div><p class="eyebrow">${file.mediaKind==='video'?'PRIVATE VIDEO REPLAY':'PRIVATE AUDIO REPLAY'}${index>0?` · PART ${index+1}`:''}</p><h4>${escapeHtml(file.title || 'Your 1:1 Call Replay')}</h4></div><span>${escapeHtml(guestHouseFileSize(file.sizeBytes))}</span></header>
+    <header><div><p class="eyebrow">${file.mediaKind==='video'?'PRIVATE VIDEO REPLAY':'PRIVATE AUDIO REPLAY'}</p><h4>${escapeHtml(file.title || 'Your 1:1 Call Replay')}</h4></div><span>${escapeHtml(guestHouseFileSize(file.sizeBytes))}</span></header>
     ${file.note?`<p class="replay-note">${escapeHtml(file.note)}</p>`:''}
     ${file.expiresAt?`<p class="replay-expiration-note">${escapeHtml(guestHouseReplayExpirationCopy(file.expiresAt))}</p>`:''}
     <div class="media-frame">${player}</div>
     <div class="replay-actions"><a href="${escapeHtml(file.downloadUrl)}" data-download-file="${escapeHtml(file.id)}" download>DOWNLOAD THIS REPLAY</a><small>The secure player and download link refresh whenever you reopen your Guest House room.</small></div>
   </article>`;
+}
+
+function trainingFileChoices(files,selectedIds=[]){
+  const selected=new Set(normalizeGuestHouseTrainingFileIds(selectedIds));
+  return files.map(file=>`<label class="training-file-choice">
+    <input type="checkbox" name="training_file_id" value="${escapeHtml(file.id)}" ${selected.has(String(file.id))?'checked':''} />
+    <span><strong>${escapeHtml(file.title || 'Your 1:1 Call Replay')}</strong><small>${file.mediaKind==='video'?'Video':'Audio'} recording</small></span>
+  </label>`).join('');
+}
+
+function trainingConsentFormMarkup(files,selectedIds=[],buttonLabel='SHARE MY SELECTED SESSION'){
+  if(!files.length) return '';
+  return `<form class="training-consent-form" id="guestHouseTrainingConsentForm" novalidate>
+    <div class="training-file-choices" role="group" aria-label="Choose session recordings">${trainingFileChoices(files,selectedIds)}</div>
+    <label class="confirmation-row training-confirmation"><input name="training_confirmed" type="checkbox" required /><span>${escapeHtml(GUEST_HOUSE_TRAINING_CONSENT_COPY)}</span></label>
+    <button class="primary-button" type="submit">${escapeHtml(buttonLabel)}</button>
+    <p class="form-status" id="trainingConsentStatus" role="status" aria-live="polite"></p>
+  </form>`;
+}
+
+function trainingGiftMarkup(consent={}){
+  if(!consent?.giftGranted) return '';
+  const code=String(consent.couponCode || GUEST_HOUSE_TRAINING_COUPON_CODE);
+  const scheduleUrl=String(consent.schedulingUrl || GUEST_HOUSE_TRAINING_SCHEDULE_URL);
+  return `<aside class="training-gift" aria-label="Complimentary session gift">
+    <div><p class="eyebrow">A GIFT FOR BEING WITNESSED</p><h4>Your complimentary session is ready.</h4><p>Use code <strong>${escapeHtml(code)}</strong> when you schedule. Your gift remains yours even if you later change your sharing permission.</p></div>
+    <div class="training-gift-actions"><button class="quiet-button" type="button" data-copy-training-code="${escapeHtml(code)}">COPY CODE</button><a class="secondary-button" href="${escapeHtml(scheduleUrl)}" target="_blank" rel="noopener">SCHEDULE MY GIFT SESSION</a></div>
+    <p class="training-copy-status" role="status" aria-live="polite"></p>
+  </aside>`;
+}
+
+function trainingConsentMarkup(files,consent){
+  const status=String(consent?.status || '');
+  const selectedIds=normalizeGuestHouseTrainingFileIds(consent?.fileIds || []);
+  const selectedTitles=files.filter(file=>selectedIds.includes(String(file.id))).map(file=>file.title || 'Your 1:1 Call Replay');
+  const gift=trainingGiftMarkup(consent || {});
+
+  if(status==='granted'){
+    return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
+      <p class="eyebrow">FLOW FM TRAINING PERMISSION</p>
+      <h4 id="trainingConsentTitle">Thank you for allowing this session to be witnessed.</h4>
+      <p>Your permission currently includes ${selectedTitles.length?escapeHtml(selectedTitles.join(', ')):'the recording(s) you selected'}. Moon Priestesses in training may watch them privately for educational purposes.</p>
+      <div class="training-consent-actions"><button class="quiet-button" type="button" id="withdrawTrainingConsent">WITHDRAW PERMISSION</button></div>
+      ${files.length?`<details class="training-permission-details"><summary>Change which recordings I am sharing</summary>${trainingConsentFormMarkup(files,selectedIds,'UPDATE MY PERMISSION')}</details>`:''}
+      ${gift}
+    </section>`;
+  }
+
+  return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
+    <p class="eyebrow">A GENTLE INVITATION</p>
+    <h4 id="trainingConsentTitle">Would you like this session to be witnessed?</h4>
+    <p>This choice is completely optional. You may allow selected recordings to be placed inside the private Flow FM Mastermind portal, where Moon Priestesses in training can watch for educational purposes. As a thank-you, you will receive another recorded session at no cost.</p>
+    ${status==='withdrawn'?'<p class="training-withdrawn-note">Your earlier permission has been withdrawn. You may opt in again whenever it feels aligned.</p>':''}
+    ${trainingConsentFormMarkup(files,[])}
+    ${gift}
+  </section>`;
 }
 
 function renderPortal(){
@@ -141,11 +204,13 @@ function renderPortal(){
 
   if(request.status==='ready'){
     const files=Array.isArray(request.files)?request.files:[];
-    const replayInner=files.length
+    const replayFilesMarkup=files.length
       ? `<section class="replay-files">${files.map(mediaMarkup).join('')}</section>`
       : data.request?.replayExpired
         ? '<p class="gentle-note">Your replay completed its 28-day Guest House stay and has been deleted from private storage.</p>'
         : '<p class="gentle-note">Your room has been marked ready, and the private player is still being prepared. Check again shortly.</p>';
+    const trainingMarkup=(files.length || request.trainingConsent)?trainingConsentMarkup(files,request.trainingConsent):'';
+    const replayInner=`${replayFilesMarkup}${trainingMarkup}`;
     portalContent.innerHTML=statusShell({
       eyebrow:'YOUR REPLAY ROOM',
       title:'Your Replay Room is ready',
@@ -188,6 +253,7 @@ function bindStatusRefresh(){
 
 function bindReadyRoom(){
   bindStatusRefresh();
+  bindTrainingConsent();
   portalContent.querySelectorAll('[data-replay-media]').forEach(player=>{
     let recorded=false;
     player.addEventListener('play',()=>{
@@ -198,6 +264,69 @@ function bindReadyRoom(){
   });
   portalContent.querySelectorAll('[data-download-file]').forEach(link=>link.addEventListener('click',()=>{
     recordEvent(link.dataset.downloadFile,'download_requested');
+  }));
+}
+
+function bindTrainingConsent(){
+  const form=document.getElementById('guestHouseTrainingConsentForm');
+  const output=document.getElementById('trainingConsentStatus');
+  form?.addEventListener('submit',async event=>{
+    event.preventDefault();
+    const button=form.querySelector('button[type="submit"]');
+    const original=button.textContent;
+    const values=new FormData(form);
+    const fileIds=normalizeGuestHouseTrainingFileIds(values.getAll('training_file_id'));
+    const confirmed=values.get('training_confirmed')==='on';
+    if(!fileIds.length){output.textContent='Choose at least one session recording.';return;}
+    if(!confirmed){output.textContent='Confirm your permission before continuing.';return;}
+    button.disabled=true;
+    button.textContent='SAVING YOUR CHOICE…';
+    output.textContent='';
+    try{
+      const {error}=await supabase.rpc('flowtel_guest_house_submit_training_consent',{
+        p_file_ids:fileIds,
+        p_confirmed:true,
+      });
+      if(error) throw error;
+      await loadPortal();
+    }catch(error){
+      output.textContent=error?.message || 'Your permission could not be saved just now.';
+      button.disabled=false;
+      button.textContent=original;
+    }
+  });
+
+  document.getElementById('withdrawTrainingConsent')?.addEventListener('click',async event=>{
+    if(!window.confirm('Withdraw permission for future Flow FM training use? Your complimentary session gift will remain yours.')) return;
+    const button=event.currentTarget;
+    const original=button.textContent;
+    button.disabled=true;
+    button.textContent='WITHDRAWING…';
+    try{
+      const {error}=await supabase.rpc('flowtel_guest_house_withdraw_training_consent',{p_confirmed:true});
+      if(error) throw error;
+      await loadPortal();
+    }catch(error){
+      button.disabled=false;
+      button.textContent=original;
+      const status=portalContent.querySelector('.training-consent-actions')?.appendChild(document.createElement('p'));
+      if(status){status.className='form-status';status.textContent=error?.message || 'Your permission could not be changed just now.';}
+    }
+  });
+
+  portalContent.querySelectorAll('[data-copy-training-code]').forEach(button=>button.addEventListener('click',async()=>{
+    const code=String(button.dataset.copyTrainingCode || GUEST_HOUSE_TRAINING_COUPON_CODE);
+    const output=button.closest('.training-gift')?.querySelector('.training-copy-status');
+    try{
+      if(navigator.clipboard?.writeText) await navigator.clipboard.writeText(code);
+      else{
+        const input=document.createElement('input');
+        input.value=code;document.body.appendChild(input);input.select();
+        if(!document.execCommand('copy')) throw new Error('Copy failed.');
+        input.remove();
+      }
+      if(output) output.textContent=`${code} copied.`;
+    }catch(_error){if(output) output.textContent=`Your code is ${code}.`;}
   }));
 }
 

@@ -1,4 +1,4 @@
-// Flowtel v0.10.64 — authenticated Guest House portal with 28-day replay stays.
+// Flowtel v0.10.74 — authenticated Guest House portal with replay stays and Flow FM training permission.
 
 const {
   fetchJson,normalizeEmail,readRequestBody,requireUser,sendError,serviceHeaders,setPublicCors,trimTo,
@@ -10,6 +10,16 @@ function encodedStoragePath(path=''){
 function daysRemaining(expiresAt){
   if(!expiresAt) return null;
   return Math.max(0,Math.ceil((new Date(expiresAt).getTime()-Date.now())/86400000));
+}
+function replayTitle(file={}){
+  const explicit=String(file.display_title || '').trim();
+  if(explicit) return explicit;
+  const fromName=String(file.original_filename || '')
+    .replace(/\.[^.]+$/,'')
+    .replace(/[_-]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+  return fromName || 'Your 1:1 Call Replay';
 }
 function publicStatus(value=''){
   const status=String(value || '').toLowerCase();
@@ -35,7 +45,7 @@ async function signedMedia({supabaseUrl,serviceKey,file}){
   const streamUrl=String(relative).startsWith('http') ? relative : `${supabaseUrl}/storage/v1${relative.startsWith('/')?'':'/'}${relative}`;
   const joiner=streamUrl.includes('?')?'&':'?';
   return {
-    id:file.id,title:file.display_title || 'Your 1:1 Call Replay',filename:file.original_filename,
+    id:file.id,title:replayTitle(file),filename:file.original_filename,
     mediaKind:file.media_kind,mimeType:file.mime_type || '',sizeBytes:Number(file.size_bytes)||0,
     note:file.note_to_guest || '',uploadedAt:file.uploaded_at,expiresAt:file.expires_at,
     daysRemaining:daysRemaining(file.expires_at),streamUrl,
@@ -63,6 +73,26 @@ async function requestFiles(context,requestId){
     {method:'GET',headers:serviceHeaders(context.serviceKey)}
   );
   return Array.isArray(rows)?rows:[];
+}
+async function trainingConsent(context,requestId){
+  const rows=await fetchJson(
+    `${context.supabaseUrl}/rest/v1/flowtel_guest_house_training_consents?select=consent_action,selected_file_ids,consent_version,gift_coupon_code,gift_schedule_url,created_at&request_id=eq.${encodeURIComponent(requestId)}&order=created_at.desc,id.desc&limit=50`,
+    {method:'GET',headers:serviceHeaders(context.serviceKey)}
+  );
+  const receipts=Array.isArray(rows)?rows:[];
+  if(!receipts.length) return null;
+  const latest=receipts[0];
+  const gift=receipts.slice().reverse().find(row=>row.consent_action==='granted') || null;
+  return {
+    status:String(latest.consent_action || ''),
+    fileIds:latest.consent_action==='granted' && Array.isArray(latest.selected_file_ids)?latest.selected_file_ids:[],
+    consentVersion:latest.consent_version || '',
+    updatedAt:latest.created_at || null,
+    giftGranted:!!gift,
+    giftGrantedAt:gift?.created_at || null,
+    couponCode:gift?.gift_coupon_code || null,
+    schedulingUrl:gift?.gift_schedule_url || null,
+  };
 }
 async function recordFileReceipt(context,file,eventType,requestId){
   const now=new Date().toISOString();
@@ -117,6 +147,7 @@ module.exports=async function handler(req,res){
 
     const normalizedStatus=request?publicStatus(request.status):null;
     const signedFiles=[];
+    const consent=request?await trainingConsent(context,request.id):null;
     let replayExpired=false;
     let replayExpiresAt=null;
     if(request && normalizedStatus==='ready'){
@@ -147,7 +178,7 @@ module.exports=async function handler(req,res){
     return res.status(200).json({ok:true,account:{firstName:guest.first_name,lastName:guest.last_name,email:guest.email},request:request?{
       id:request.id,reference:String(request.id).slice(0,8).toUpperCase(),status:normalizedStatus,
       callMemory:request.call_topic || '',createdAt:request.created_at,readyAt:request.ready_at,
-      replayExpiresAt,daysRemaining:daysRemaining(replayExpiresAt),replayExpired,files:signedFiles,
+      replayExpiresAt,daysRemaining:daysRemaining(replayExpiresAt),replayExpired,files:signedFiles,trainingConsent:consent,
     }:null});
   }catch(error){return sendError(res,error,'The Guest House portal could not be opened.');}
 };

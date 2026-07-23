@@ -1,3 +1,14 @@
+## v0.10.74 — Guest House Witnessed Sessions
+
+- Adds an optional signed-in Guest House invitation allowing clients to grant file-scoped permission for selected session recordings to be used privately inside Flow FM for Moon Priestess training.
+- Stores exact, append-only consent and withdrawal receipts without overwriting prior history or preselecting permission.
+- Immediately reveals the shared **WITNESSED** coupon and Megan’s Energy Reading scheduling link after the first permission grant; the gift remains available after a later withdrawal.
+- Shows the owner whether permission is unchosen, granted for named files, or withdrawn, while leaving automatic Flow FM training-library publication deferred.
+- Allows the owner to select and upload multiple Guest House replay files in one batch with sequential progress, retry-safe preserved drafts, and existing finalization recovery.
+- Removes misleading Part 2 / Part 3 labels from independent replay recordings and uses cleaned filenames for distinct multi-file titles.
+- Preserves private Storage, 28-day expiration, signed playback, legacy room keys, Guest House-only product access, passwords, sessions, and all historical records.
+- Adds migration 059. Migration 058 is confirmed live. Caddie Magic remains v0.5.2.
+
 ## v0.10.73 — Flow FM Initiation Readiness
 
 - Refines the Flow FM Initiation Hall hero with the scarab image, moderate shared hero typography, and removal of the striped side treatment.

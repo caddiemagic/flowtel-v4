@@ -1,10 +1,14 @@
-// Flowtel v0.10.64 — Guest House account, replay-file, expiration, and private-room helpers.
+// Flowtel v0.10.74 — Guest House accounts, replay files, training consent, and private-room helpers.
 
 export const GUEST_HOUSE_REPLAY_BUCKET = 'flowtel-guest-house-replays';
 export const GUEST_HOUSE_MAX_BYTES = 2 * 1024 * 1024 * 1024;
 export const GUEST_HOUSE_REPLAY_EXTENSIONS = ['mp4','mov','m4v','webm','mp3','wav','m4a','aac','ogg'];
 export const GUEST_HOUSE_VIDEO_EXTENSIONS = new Set(['mp4','mov','m4v','webm']);
 export const GUEST_HOUSE_AUDIO_EXTENSIONS = new Set(['mp3','wav','m4a','aac','ogg']);
+export const GUEST_HOUSE_TRAINING_CONSENT_VERSION = 'flow-fm-training-v1-2026-07-23';
+export const GUEST_HOUSE_TRAINING_COUPON_CODE = 'WITNESSED';
+export const GUEST_HOUSE_TRAINING_SCHEDULE_URL = 'https://meganmichele.as.me/energyreading';
+export const GUEST_HOUSE_TRAINING_CONSENT_COPY = 'I give Megan Michele permission to share the selected Guest House session recording(s) inside the private Flow FM Mastermind portal for Moon Priestess training. I understand that my name, voice, image, and personal conversation may be included. I also agree that my complimentary gift session will be recorded and shared in Flow FM for the same training purpose.';
 export const GUEST_HOUSE_STATUS_LABELS = Object.freeze({
   requested: 'Concierge is locating the recording',
   locating: 'Concierge is locating the recording',
@@ -106,6 +110,20 @@ export function guestHouseExpirationDate(days=90,fromDate=new Date()){
 export function buildGuestHouseReplayUrl(token,{origin='https://app.theflowtel.com'}={}){
   const root=String(origin || 'https://app.theflowtel.com').replace(/\/$/,'');
   return `${root}/guest-house/replay/?key=${encodeURIComponent(String(token || ''))}`;
+}
+
+export function guestHouseReplayTitle(filename=''){
+  const title=String(filename || '')
+    .replace(/\.[^.]+$/,'')
+    .replace(/[_-]+/g,' ')
+    .replace(/\s+/g,' ')
+    .trim();
+  return title || 'Your 1:1 Call Replay';
+}
+
+export function normalizeGuestHouseTrainingFileIds(values=[]){
+  const source=Array.isArray(values)?values:[];
+  return [...new Set(source.map(value=>String(value || '').trim()).filter(Boolean))];
 }
 
 export function guestHouseFileSize(bytes=0){
