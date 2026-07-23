@@ -1,14 +1,15 @@
-// Flowtel v0.10.74.1 — remembered Guest House accounts, private replays, and optional Flow FM training offering.
+// Flowtel v0.10.74.2 — remembered Guest House accounts, private replays, and editable Flow FM training offering.
 
 import { supabase } from '../shared/supabase.js';
 import {
   GUEST_HOUSE_TRAINING_CONSENT_COPY,
   GUEST_HOUSE_TRAINING_COUPON_CODE,
   GUEST_HOUSE_TRAINING_SCHEDULE_URL,
+  GUEST_HOUSE_TRAINING_SELECTION_COPY,
   guestHouseFileSize,
   guestHouseReplayExpirationCopy,
   normalizeGuestHouseTrainingFileIds,
-} from '../shared/guest-house-core.js?v=0.10.74.1';
+} from '../shared/guest-house-core.js?v=0.10.74.2';
 
 const accountCard=document.getElementById('accountCard');
 const portal=document.getElementById('guestHousePortal');
@@ -141,11 +142,12 @@ function trainingFileChoices(files,selectedIds=[]){
   </label>`).join('');
 }
 
-function trainingConsentFormMarkup(files,selectedIds=[],buttonLabel='OFFER MY SELECTED SESSION'){
+function trainingConsentFormMarkup(files,selectedIds=[],buttonLabel='OFFER MY SELECTED SESSION',{isUpdate=false}={}){
   if(!files.length) return '';
-  return `<form class="training-consent-form" id="guestHouseTrainingConsentForm" novalidate>
+  const confirmationCopy=isUpdate?GUEST_HOUSE_TRAINING_SELECTION_COPY:GUEST_HOUSE_TRAINING_CONSENT_COPY;
+  return `<form class="training-consent-form" id="guestHouseTrainingConsentForm" data-training-mode="${isUpdate?'update':'initial'}" novalidate>
     <div class="training-file-choices" role="group" aria-label="Choose session recordings">${trainingFileChoices(files,selectedIds)}</div>
-    <label class="confirmation-row training-confirmation"><input name="training_confirmed" type="checkbox" required /><span>${escapeHtml(GUEST_HOUSE_TRAINING_CONSENT_COPY)}</span></label>
+    <label class="confirmation-row training-confirmation"><input name="training_confirmed" type="checkbox" required /><span>${escapeHtml(confirmationCopy)}</span></label>
     <button class="primary-button" type="submit">${escapeHtml(buttonLabel)}</button>
     <p class="form-status" id="trainingConsentStatus" role="status" aria-live="polite"></p>
   </form>`;
@@ -168,12 +170,22 @@ function trainingConsentMarkup(files,consent){
   const selectedTitles=files.filter(file=>selectedIds.includes(String(file.id))).map(file=>file.title || 'Your 1:1 Call Replay');
   const gift=trainingGiftMarkup(consent || {});
 
-  if(status==='granted'){
+  if(status==='granted' || status==='updated'){
     return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
       <p class="eyebrow">A SESSION OFFERING</p>
       <h4 id="trainingConsentTitle">Your session has been received as an offering.</h4>
-      <p>Thank you for allowing ${selectedTitles.length?escapeHtml(selectedTitles.join(', ')):'the recording(s) you selected'} to be witnessed privately by Moon Priestesses in training.</p>
+      <p>Your current offering includes ${selectedTitles.length?escapeHtml(selectedTitles.join(', ')):'the recording(s) you selected'} for private Moon Priestess training inside Flow FM.</p>
+      ${files.length?`<details class="training-permission-details"><summary>Change which recordings I am sharing</summary>${trainingConsentFormMarkup(files,selectedIds,'SAVE MY RECORDING CHOICES',{isUpdate:true})}</details>`:''}
       ${gift}
+    </section>`;
+  }
+
+  if(status==='withdrawn'){
+    return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
+      <p class="eyebrow">A SESSION OFFERING</p>
+      <h4 id="trainingConsentTitle">No recordings are currently selected for Flow FM.</h4>
+      <p>Your latest recording choices have been saved. You may choose a recording again below whenever it feels aligned.</p>
+      ${files.length?`<details class="training-permission-details" open><summary>Change which recordings I am sharing</summary>${trainingConsentFormMarkup(files,[],'SAVE MY RECORDING CHOICES',{isUpdate:true})}</details>`:''}
     </section>`;
   }
 
@@ -273,8 +285,9 @@ function bindTrainingConsent(){
     const values=new FormData(form);
     const fileIds=normalizeGuestHouseTrainingFileIds(values.getAll('training_file_id'));
     const confirmed=values.get('training_confirmed')==='on';
-    if(!fileIds.length){output.textContent='Choose at least one session recording.';return;}
-    if(!confirmed){output.textContent='Confirm your offering before continuing.';return;}
+    const isUpdate=form.dataset.trainingMode==='update';
+    if(!isUpdate && !fileIds.length){output.textContent='Choose at least one session recording.';return;}
+    if(!confirmed){output.textContent=isUpdate?'Confirm your recording choices before continuing.':'Confirm your offering before continuing.';return;}
     button.disabled=true;
     button.textContent='SAVING YOUR CHOICE…';
     output.textContent='';
@@ -286,7 +299,7 @@ function bindTrainingConsent(){
       if(error) throw error;
       await loadPortal();
     }catch(error){
-      output.textContent=error?.message || 'Your offering could not be saved just now.';
+      output.textContent=error?.message || 'Your recording choices could not be saved just now.';
       button.disabled=false;
       button.textContent=original;
     }

@@ -11,6 +11,7 @@ const files={
   migration057:await read('database/migration-057-four-seasons-time-space.sql'),
   migration058:await read('database/migration-058-flow-fm-initiation-readiness.sql'),
   migration059:await read('database/migration-059-guest-house-flow-fm-training-consent.sql'),
+  migration060:await read('database/migration-060-guest-house-recording-choice-updates.sql'),
   managerJs:await read('manager/app.js'),managerHtml:await read('manager/index.html'),managerCss:await read('manager/styles.css'),
   clientJs:await read('client/app.js'),clientHtml:await read('client/index.html'),clientCss:await read('client/styles.css'),
   cycleJs:await read('cycle-data/app.js'),cycleHtml:await read('cycle-data/index.html'),cycleCss:await read('cycle-data/styles.css'),
@@ -26,8 +27,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.74.1'));
-assert(files.managerHtml.includes('app.js?v=0.10.74.1'));
+assert(files.managerHtml.includes('styles.css?v=0.10.74.2'));
+assert(files.managerHtml.includes('app.js?v=0.10.74.2'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -56,11 +57,14 @@ assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/
 
 assert(!files.guestHtml.includes('A Guest House account, not a Flowtel membership.'));
 assert(files.guestHtml.includes('Your replay will be shared here soon. When you feel called to enter the Flowtel experience, your Queendom is waiting.'));
-assert(files.guestHtml.includes('app.js?v=0.10.74.1') && files.guestHtml.includes('styles.css?v=0.10.74.1'),'Guest House cache keys are stale.');
+assert(files.guestHtml.includes('app.js?v=0.10.74.2') && files.guestHtml.includes('styles.css?v=0.10.74.2'),'Guest House cache keys are stale.');
 assert(files.guestJs.includes('flowtel_guest_house_submit_training_consent'),'Guest House training permission is missing.');
 assert(files.guestJs.includes('GUEST_HOUSE_TRAINING_COUPON_CODE') && files.guestJs.includes('GUEST_HOUSE_TRAINING_SCHEDULE_URL'),'Guest House complimentary session gift wiring is missing.');
 assert(files.managerJs.includes('multiple accept=') && files.managerJs.includes('UPLOAD SELECTED REPLAYS'),'Owner multi-replay upload is missing.');
 assert(files.migration059.includes('flowtel_guest_house_training_consents') && files.migration059.includes('training_consent_granted'),'Migration 059 training permission foundation is missing.');
+assert(files.migration060.includes('training_consent_updated') && files.migration060.includes('training_consent_withdrawn'),'Migration 060 recording-choice update tracking is missing.');
+assert(files.guestJs.includes('Change which recordings I am sharing') && !files.guestJs.includes('withdrawTrainingConsent'),'Guest House must keep the checkbox editor without a standalone withdrawal button.');
+assert(files.managerJs.includes('Approved for Flow FM') && files.managerJs.includes('Recording permission removed'),'Concierge offering visibility is incomplete.');
 
 for(const label of ['Current Moon','Last Moon','Inner Season','Yearly Season','All Time']) assert(files.cycleJs.includes(label),`Client Snapshot filter missing: ${label}`);
 assert(files.cycleJs.includes('flowtel_get_cycle_subject_snapshot'));

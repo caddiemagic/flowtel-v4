@@ -1,3 +1,14 @@
+## v0.10.74.2 — Guest House Recording Choice Continuity
+
+- Restores the compact **Change which recordings I am sharing** editor after a Guest House offering is saved.
+- Keeps the standalone **Withdraw Permission** button removed.
+- Lets a guest update the checked recording list, including deselecting every recording, through the same gentle preference form.
+- Preserves each actual choice change as append-only consent history and records prior file IDs in the Guest House event context.
+- Shows **Approved for Flow FM** and the currently approved recording names clearly inside the owner Concierge Desk.
+- Shows an owner-only **Recording permission removed / Review** state when a guest deselects every recording so any existing Flow FM upload can be handled manually.
+- Keeps the shared WITNESSED gift visible only while at least one recording is currently selected; no promise is made about the gift after full deselection.
+- Adds corrective migration 060 and keeps the visual treatment compact, restrained, and consistent with the luxury Flowtel experience.
+
 ## v0.10.74.1 — Guest House Session Offering Refinement
 
 - Removes the self-service **Withdraw Permission** control and the post-grant recording editor from the Guest House.

@@ -108,8 +108,8 @@ async function ensureGuestHouseModules(){
   if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
   if(!guestHouseModulePromise){
     guestHouseModulePromise=Promise.all([
-      import("../shared/guest-house.js?v=0.10.74.1"),
-      import("../shared/guest-house-core.js?v=0.10.74.1"),
+      import("../shared/guest-house.js?v=0.10.74.2"),
+      import("../shared/guest-house-core.js?v=0.10.74.2"),
     ]).then(([api,core])=>{
       const required=[
         "createGuestHouseOwnerDownloadUrl",
@@ -2127,8 +2127,14 @@ function guestHouseTrainingConsentMarkup(request,files=[]){
   const fileIds=Array.isArray(consent?.file_ids)?consent.file_ids.map(String):[];
   const selected=files.filter(file=>fileIds.includes(String(file.file_id)));
   const selectedNames=selected.map(file=>file.display_title || file.original_filename || 'Call replay');
-  if(status==='granted'){
-    return `<section class="guest-house-training-consent is-granted"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>Offering received</h4><span>${selectedNames.length?escapeHtml(selectedNames.join(' · ')):'The selected replay offering is preserved.'}</span></div><div><strong>WITNESSED</strong><span>Complimentary session gift revealed ${consent.gift_granted_at?escapeHtml(managerDateLabel(consent.gift_granted_at,{withTime:false})):'to the guest'}.</span></div></section>`;
+  if(status==='granted' || status==='updated'){
+    const updateCopy=status==='updated' && consent.updated_at
+      ? `Recording choices updated ${escapeHtml(managerDateLabel(consent.updated_at,{withTime:false}))}.`
+      : 'Offering received from the Guest House.';
+    return `<section class="guest-house-training-consent is-granted"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>Approved for Flow FM</h4><span>${selectedNames.length?escapeHtml(selectedNames.join(' · ')):'The selected replay offering is preserved.'}</span><span>${updateCopy}</span></div><div><strong>APPROVED</strong><span>Coupon WITNESSED revealed ${consent.gift_granted_at?escapeHtml(managerDateLabel(consent.gift_granted_at,{withTime:false})):'to the guest'}.</span></div></section>`;
+  }
+  if(status==='withdrawn'){
+    return `<section class="guest-house-training-consent is-review-needed"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>Recording permission removed</h4><span>The guest deselected all recordings${consent.updated_at?` on ${escapeHtml(managerDateLabel(consent.updated_at,{withTime:false}))}`:''}. Review any Flow FM upload manually.</span></div><div><strong>REVIEW</strong><span>No recordings are currently approved.</span></div></section>`;
   }
   return `<section class="guest-house-training-consent"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>No offering recorded</h4><span>The guest may opt in privately from her Replay Room after a recording is available.</span></div></section>`;
 }

@@ -1,4 +1,4 @@
-// Flowtel v0.10.74.1 — authenticated Guest House portal with replay stays and Flow FM training offering.
+// Flowtel v0.10.74.2 — authenticated Guest House portal with replay stays and editable Flow FM training offering.
 
 const {
   fetchJson,normalizeEmail,readRequestBody,requireUser,sendError,serviceHeaders,setPublicCors,trimTo,
@@ -82,16 +82,17 @@ async function trainingConsent(context,requestId){
   const receipts=Array.isArray(rows)?rows:[];
   if(!receipts.length) return null;
   const latest=receipts[0];
-  const granted=latest.consent_action==='granted';
+  const currentActive=['granted','updated'].includes(String(latest.consent_action || ''));
+  const firstGift=[...receipts].reverse().find(receipt=>receipt.consent_action==='granted' && receipt.gift_coupon_code);
   return {
     status:String(latest.consent_action || ''),
-    fileIds:granted && Array.isArray(latest.selected_file_ids)?latest.selected_file_ids:[],
+    fileIds:currentActive && Array.isArray(latest.selected_file_ids)?latest.selected_file_ids:[],
     consentVersion:latest.consent_version || '',
     updatedAt:latest.created_at || null,
-    giftGranted:granted,
-    giftGrantedAt:granted?latest.created_at:null,
-    couponCode:granted?latest.gift_coupon_code:null,
-    schedulingUrl:granted?latest.gift_schedule_url:null,
+    giftGranted:currentActive && Boolean(firstGift),
+    giftGrantedAt:firstGift?.created_at || null,
+    couponCode:currentActive?(firstGift?.gift_coupon_code || null):null,
+    schedulingUrl:currentActive?(firstGift?.gift_schedule_url || null):null,
   };
 }
 async function recordFileReceipt(context,file,eventType,requestId){

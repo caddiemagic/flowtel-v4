@@ -86,7 +86,7 @@ assert(!/mapbox|google\.maps|leaflet|<svg[^>]*world/i.test(`${timeHtml}\n${timeJ
 assert(flowFmJs.includes("href:'/flow-fm/time-space/'"), 'Flow FM support-room doorway is missing.');
 assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.73'), 'Flow FM hallway cache key is stale.');
 assert(managerHtml.includes('href="/flow-fm/time-space/"') && managerHtml.includes('Time + Space'), 'Owner Concierge doorway is missing.');
-assert(managerHtml.includes('styles.css?v=0.10.74.1') && managerHtml.includes('app.js?v=0.10.74.1'), 'Concierge cache keys are stale.');
+assert(managerHtml.includes('styles.css?v=0.10.74.2') && managerHtml.includes('app.js?v=0.10.74.2'), 'Concierge cache keys are stale.');
 assert(managerCss.includes('.stat-card-link'), 'Owner Time + Space card styling is missing.');
 
 const rewrite = (vercel.rewrites || []).find((row) => row.source === '/flow-fm/time-space');

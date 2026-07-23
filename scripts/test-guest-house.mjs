@@ -6,6 +6,7 @@ import {
   GUEST_HOUSE_TRAINING_CONSENT_VERSION,
   GUEST_HOUSE_TRAINING_COUPON_CODE,
   GUEST_HOUSE_TRAINING_SCHEDULE_URL,
+  GUEST_HOUSE_TRAINING_SELECTION_COPY,
   buildGuestHouseReplayUrl,
   createGuestHouseToken,
   guestHouseExpirationDate,
@@ -37,12 +38,13 @@ assert.equal(GUEST_HOUSE_STATUS_LABELS.locating,'Concierge is locating the recor
 assert.equal(GUEST_HOUSE_STATUS_LABELS.ready,'Replay Room is ready');
 assert.equal(GUEST_HOUSE_STATUS_LABELS.unable_to_locate,"Concierge couldn't find the replay");
 
-assert.equal(GUEST_HOUSE_TRAINING_CONSENT_VERSION,'flow-fm-training-offering-v2-2026-07-23');
+assert.equal(GUEST_HOUSE_TRAINING_CONSENT_VERSION,'flow-fm-training-offering-v3-2026-07-23');
 assert.equal(GUEST_HOUSE_TRAINING_COUPON_CODE,'WITNESSED');
 assert.equal(GUEST_HOUSE_TRAINING_SCHEDULE_URL,'https://meganmichele.as.me/energyreading');
 assert.match(GUEST_HOUSE_TRAINING_CONSENT_COPY,/Moon Priestess training/);
 assert.match(GUEST_HOUSE_TRAINING_CONSENT_COPY,/offering for Moon Priestess training/);
 assert.match(GUEST_HOUSE_TRAINING_CONSENT_COPY,/complimentary session offered in gratitude/);
+assert.match(GUEST_HOUSE_TRAINING_SELECTION_COPY,/only the recordings checked above/);
 assert.equal(guestHouseReplayTitle('Mara_Womb-Wealth-Session.mp4'),'Mara Womb Wealth Session');
 assert.deepEqual(normalizeGuestHouseTrainingFileIds(['file-1',' file-1 ','','file-2']),['file-1','file-2']);
 
