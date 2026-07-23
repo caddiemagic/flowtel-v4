@@ -1,15 +1,15 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { supabase } from "../shared/supabase.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.71";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.73";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.71";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.73";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
 import { listUpcomingGolfEvents, acknowledgeUpcomingGolf } from "../shared/caddie-magic-schedule.js?v=0.5.2";
 import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, normalizeCaddieMoonPhase, shortCalendarDate } from "../shared/caddie-magic-moon-calendar.js?v=0.5.2";
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
-import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam } from "../shared/caddie-magic-network.js?v=0.5.2";
+import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
 import { createMailboxDownloadUrl, listAdminPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnEditedAudio, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.67";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
@@ -163,6 +163,7 @@ let caddieCompassServiceAvailable=true;
 let caddieNetworkProfiles=[];
 let caddieNetworkServiceAvailable=true;
 let caddieCourseRequests=[];
+let caddieCourseCatalog=[];
 let caddieMasterAccessRows=[];
 let caddieMasterCommandCenter={player_messages:[],caddie_team_messages:[],assignments:[],player_message_count:0,caddie_team_message_count:0,assignment_count:0,course_request_count:0,submitted_profile_count:0};
 let caddieConciergeTeam=[];
@@ -547,13 +548,14 @@ function updatePractitionerIdentity(){
   setText("practitionerIdentityName",name);
 
   if(profile.role==="practitioner" || profile.role==="owner" || profile.role==="admin"){
-    const moonName=initiation.moon?.name || "Moon not set";
-    const monthLine=initiation.monthLine || "Month not set";
     const theme=initiation.moon?.theme ? ` · ${initiation.moon.theme}` : "";
-    setText("practitionerIdentityLevel",`${initiation.level} · ${moonName} · ${monthLine}${theme}`);
+    const identityLine=initiation.hasStartDate
+      ? `${initiation.level} · Month ${initiation.progressMonth} of 13 · Began in ${initiation.anchorMoon?.name || "Flow FM"}${theme}`
+      : `${initiation.level} · Flow FM start date needed`;
+    setText("practitionerIdentityLevel",identityLine);
     const progress=document.getElementById("initiationProgressBar");
     if(progress){
-      const percent=initiation.moonIndex ? Math.min(100,(initiation.moonIndex/13)*100) : 0;
+      const percent=flowFmProgressPercent(initiation);
       progress.style.width=`${percent}%`;
       const marker=document.getElementById("initiationMoonMarker");
       if(marker) marker.style.left=`${percent}%`;
@@ -565,6 +567,13 @@ function updatePractitionerIdentity(){
     const progress=document.getElementById("initiationProgressBar");
     if(progress) progress.style.width="0%";
   }
+}
+
+function setPriestessPreview(enabled){
+  const active=Boolean(enabled);
+  document.body.classList.toggle("preview-priestess-view",active);
+  const button=document.getElementById("previewPriestessViewButton");
+  if(button){button.setAttribute("aria-pressed",String(active));button.textContent=active?"Return to Owner View":"Preview Priestess View";}
 }
 
 function markInitiationHallClockIn(){
@@ -1224,74 +1233,39 @@ function renderCourseRequestRow(row){
   </article>`;
 }
 
+function renderCourseCatalogCard(course){
+  return `<article class="caddie-course-catalog-card"><h4>${escapeHtml(course.course_name||course.official_name||course.name||"Golf Course")}</h4><p>${escapeHtml([course.city,course.region,course.country].filter(Boolean).join(", ")||"Location details coming soon")}</p><p>${escapeHtml(course.timezone||"Timezone mapping deferred")}</p></article>`;
+}
+
 function renderCaddieNetworkQueue(){
-  if(!caddieNetworkServiceAvailable){
-    queue.innerHTML="<p>Caddie Network reconciliation requires database/migration-053-caddie-network-reintegration-shared-scheduling.sql.</p>";
-    return;
-  }
+  if(!caddieNetworkServiceAvailable){queue.innerHTML="<p>Caddie Network reconciliation requires database/migration-053-caddie-network-reintegration-shared-scheduling.sql.</p>";return;}
   const submitted=caddieNetworkProfiles.filter(profile=>profile.status==="submitted");
   const active=caddieNetworkProfiles.filter(profile=>profile.status==="active");
   const developing=caddieNetworkProfiles.filter(profile=>!["submitted","active"].includes(profile.status));
   const pendingCourses=caddieCourseRequests.filter(row=>row.status==="pending");
   const openInvites=caddiePlayerInvitations.filter(invite=>invite.status==="invited");
-  queue.innerHTML=`
-    <section class="caddie-invite-builder">
-      <p class="eyebrow">PRIVATE BETA INVITATIONS + PLAYER ACCESS</p>
-      <form id="caddieInviteForm" class="caddie-invite-form">
-        <label>Email<input id="caddieInviteEmail" type="email" required placeholder="player@example.com"></label>
-        <label>First Name<input id="caddieInviteFirstName" type="text" placeholder="First"></label>
-        <label>Last Name<input id="caddieInviteLastName" type="text" placeholder="Last"></label>
-        <label>Expires <span>Optional</span><input id="caddieInviteExpires" type="date"></label>
-        <button type="submit">Create Player Invite</button>
-      </form>
-      <p id="caddieInviteMessage"></p>
-    </section>
-    <section class="relationship-queue caddie-network-admin-queue">
-      <section><p class="eyebrow">ACTIVE PLAYERS · ${caddiePlayers.filter(player=>player.caddie_magic_access).length}</p>${caddiePlayers.length?caddiePlayers.map(renderCaddiePlayerRow).join(""):"<p>No Caddie Magic players have activated yet.</p>"}</section>
-      <section><p class="eyebrow">PLAYER INVITATIONS · ${openInvites.length} OPEN</p>${caddiePlayerInvitations.length?caddiePlayerInvitations.map(renderCaddieInvitationRow).join(""):"<p>No player invitations yet.</p>"}</section>
-      <section><p class="eyebrow">COURSES AWAITING VERIFICATION · ${pendingCourses.length}</p>${pendingCourses.length?pendingCourses.map(renderCourseRequestRow).join(""):"<p>No course requests are waiting.</p>"}</section>
-      <section><p class="eyebrow">CADDIE PROFILES AWAITING REVIEW · ${submitted.length}</p>${submitted.length?submitted.map(renderCaddieNetworkProfile).join(""):"<p>No Caddie Profiles are waiting for review.</p>"}</section>
-      <section><p class="eyebrow">ACTIVE CADDIES · ${active.length}</p>${active.length?active.map(renderCaddieNetworkProfile).join(""):"<p>No Caddies are active in the directory yet.</p>"}</section>
-      <section><p class="eyebrow">INVITED, DRAFT, APPROVED + PAUSED</p>${developing.length?developing.map(renderCaddieNetworkProfile).join(""):"<p>No additional Caddie candidates.</p>"}</section>
-    </section>`;
+  const activePlayers=caddiePlayers.filter(player=>player.caddie_magic_access).length;
+  const openRequests=caddieConciergeTeam.reduce((sum,row)=>sum+Number(row.active_player_count||0),0);
+  queue.innerHTML=`<section class="caddie-network-command-center">
+    <section class="caddie-network-section"><p class="eyebrow">OVERVIEW</p><div class="caddie-network-overview"><article><span>Active Players</span><strong>${activePlayers}</strong></article><article><span>Active Caddies</span><strong>${active.length}</strong></article><article><span>Active Pairings</span><strong>${openRequests}</strong></article><article><span>Courses</span><strong>${caddieCourseCatalog.length}</strong></article></div></section>
+    <section class="caddie-network-section"><p class="eyebrow">PLAYERS + ACCESS</p><section class="caddie-invite-builder"><form id="caddieInviteForm" class="caddie-invite-form"><label>Email<input id="caddieInviteEmail" type="email" required placeholder="player@example.com"></label><label>First Name<input id="caddieInviteFirstName" type="text" placeholder="First"></label><label>Last Name<input id="caddieInviteLastName" type="text" placeholder="Last"></label><label>Expires <span>Optional</span><input id="caddieInviteExpires" type="date"></label><button type="submit">Create Player Invite</button></form><p id="caddieInviteMessage"></p></section><p class="eyebrow">ACTIVE PLAYERS · ${activePlayers}</p>${caddiePlayers.length?caddiePlayers.map(renderCaddiePlayerRow).join(""):"<p>No Caddie Magic players have activated yet.</p>"}<p class="eyebrow">PLAYER INVITATIONS · ${openInvites.length} OPEN</p>${caddiePlayerInvitations.length?caddiePlayerInvitations.map(renderCaddieInvitationRow).join(""):"<p>No player invitations yet.</p>"}</section>
+    <section class="caddie-network-section"><p class="eyebrow">CADDIE LIFECYCLE</p><p class="eyebrow">PROFILES AWAITING REVIEW · ${submitted.length}</p>${submitted.length?submitted.map(renderCaddieNetworkProfile).join(""):"<p>No Caddie Profiles are waiting for review.</p>"}<p class="eyebrow">ACTIVE CADDIES · ${active.length}</p>${active.length?active.map(renderCaddieNetworkProfile).join(""):"<p>No Caddies are active in the directory yet.</p>"}<p class="eyebrow">INVITED, DRAFT, APPROVED + PAUSED</p>${developing.length?developing.map(renderCaddieNetworkProfile).join(""):"<p>No additional Caddie candidates.</p>"}</section>
+    <section class="caddie-network-section"><p class="eyebrow">GOLF COURSE NETWORK</p><p>Manage the canonical course catalog and review courses requested by Caddies.</p><p class="eyebrow">COURSES AWAITING VERIFICATION · ${pendingCourses.length}</p>${pendingCourses.length?pendingCourses.map(renderCourseRequestRow).join(""):"<p>No course requests are waiting.</p>"}<p class="eyebrow">APPROVED COURSE CATALOG · ${caddieCourseCatalog.length}</p><div class="caddie-course-catalog-grid">${caddieCourseCatalog.length?caddieCourseCatalog.map(renderCourseCatalogCard).join(""):"<p>No approved courses are available yet.</p>"}</div><p class="caddie-course-deferred">Dedicated course pages, normalized timezone and location mapping, coordinates, and a plotted golf-course map are intentionally prepared for a later phase.</p></section>
+  </section>`;
   bindCaddiePlayerActions();
-  document.querySelectorAll("[data-caddie-network-status]").forEach(button=>button.addEventListener("click",async()=>{
-    const next=button.dataset.caddieNetworkStatus;
-    if(next==="declined" && !window.confirm("Decline this Caddie Profile? Their Player Profile and score history will remain untouched.")) return;
-    button.disabled=true;
-    try{
-      await setCaddieProfileStatus(button.dataset.caddieProfile,next);
-      await loadCaddieNetworkData();
-      updateStats();
-      renderCaddieNetworkQueue();
-    }catch(error){
-      button.disabled=false;
-      if(managerMessage) managerMessage.textContent=error?.message||"The Caddie Profile status could not be updated.";
-    }
-  }));
-  document.querySelectorAll("[data-course-request]").forEach(button=>button.addEventListener("click",async()=>{
-    if(button.dataset.decision==="declined" && !window.confirm("Decline this course request?")) return;
-    button.disabled=true;
-    try{
-      await reviewCourseRequest(button.dataset.courseRequest,button.dataset.decision);
-      await loadCaddieNetworkData();
-      updateStats();
-      renderCaddieNetworkQueue();
-    }catch(error){
-      button.disabled=false;
-      if(managerMessage) managerMessage.textContent=error?.message||"The course request could not be reviewed.";
-    }
-  }));
+  document.querySelectorAll("[data-caddie-network-status]").forEach(button=>button.addEventListener("click",async()=>{const next=button.dataset.caddieNetworkStatus;if(next==="declined"&&!window.confirm("Decline this Caddie Profile? Their Player Profile and score history will remain untouched."))return;button.disabled=true;try{await setCaddieProfileStatus(button.dataset.caddieProfile,next);await loadCaddieNetworkData();updateStats();renderCaddieNetworkQueue();}catch(error){button.disabled=false;if(managerMessage)managerMessage.textContent=error?.message||"The Caddie Profile status could not be updated.";}}));
+  document.querySelectorAll("[data-course-request]").forEach(button=>button.addEventListener("click",async()=>{if(button.dataset.decision==="declined"&&!window.confirm("Decline this course request?"))return;button.disabled=true;try{await reviewCourseRequest(button.dataset.courseRequest,button.dataset.decision);await loadCaddieNetworkData();updateStats();renderCaddieNetworkQueue();}catch(error){button.disabled=false;if(managerMessage)managerMessage.textContent=error?.message||"The course request could not be reviewed.";}}));
 }
 
 async function loadCaddieNetworkData(){
   try{
-    [caddieNetworkProfiles,caddieCourseRequests,caddieMasterAccessRows,caddieMasterCommandCenter,caddieConciergeTeam]=await Promise.all([
+    [caddieNetworkProfiles,caddieCourseRequests,caddieMasterAccessRows,caddieMasterCommandCenter,caddieConciergeTeam,caddieCourseCatalog]=await Promise.all([
       listCaddieNetworkProfiles(),
       listCourseRequests(),
       listCaddieMasterAccess(),
       getCaddieMasterCommandCenter(),
       listCaddieConciergeTeam(),
+      listCourseCatalog().catch(error=>{console.warn("Course catalog could not load yet.",error);return [];}),
     ]);
     caddieNetworkServiceAvailable=true;
   }catch(error){
@@ -1301,6 +1275,7 @@ async function loadCaddieNetworkData(){
     caddieMasterAccessRows=[];
     caddieMasterCommandCenter={player_messages:[],caddie_team_messages:[],assignments:[],player_message_count:0,caddie_team_message_count:0,assignment_count:0,course_request_count:0,submitted_profile_count:0};
     caddieConciergeTeam=[];
+    caddieCourseCatalog=[];
     caddieNetworkServiceAvailable=false;
   }
 }
@@ -2991,6 +2966,7 @@ renderBetaPractitionerPanel();
 openDeskFromSession();
 
 document.getElementById("managerEntryButton")?.addEventListener("click",routeToFlowtelLogin);
+document.getElementById("previewPriestessViewButton")?.addEventListener("click",event=>setPriestessPreview(event.currentTarget.getAttribute("aria-pressed")!=="true"));
 document.querySelectorAll("[data-filter]").forEach(button=>button.addEventListener("click",()=>setFilter(button.dataset.filter)));
 adminTeamMapDialogClose?.addEventListener("click",()=>adminTeamMapDialog?.close());
 adminTeamMapDialog?.addEventListener("click",event=>{if(event.target===adminTeamMapDialog) adminTeamMapDialog.close();});

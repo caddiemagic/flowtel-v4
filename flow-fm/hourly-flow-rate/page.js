@@ -1,7 +1,7 @@
-import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js';
-import { canAccessHourlyFlowRate } from '/shared/rollout.js';
-import { isProductAccessError, redirectForDeniedProduct } from '/shared/product-access.js';
-import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js';
+import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.73';
+import { canAccessHourlyFlowRate } from '/shared/rollout.js?v=0.10.73';
+import { isProductAccessError, redirectForDeniedProduct } from '/shared/product-access.js?v=0.10.73';
+import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.73';
 import {
   CURRENCY_OPTIONS,
   LAYER_LABELS,
@@ -13,12 +13,11 @@ import {
   currencySymbol,
   flowtelDateISO,
   formatSeasonDateRange,
-  isFullyEnvisioned,
   inclusiveDayCount,
   layerTotals,
   seasonDisplayName,
   seasonStatus,
-} from '/shared/hourly-flow-rate-calculations.js';
+} from '/shared/hourly-flow-rate-calculations.js?v=0.10.73';
 import {
   deleteHourlyFlowRateCostEntry,
   hourlyFlowRateSeasonLocation,
@@ -29,7 +28,7 @@ import {
   saveHourlyFlowRateHomeBase,
   saveHourlyFlowRatePlanState,
   setHourlyFlowRateBaseCurrency,
-} from '/shared/hourly-flow-rate.js';
+} from '/shared/hourly-flow-rate.js?v=0.10.73';
 
 const topNav = document.getElementById('topNav');
 const accessGate = document.getElementById('accessGate');
@@ -39,6 +38,7 @@ const currencyRoom = document.getElementById('currencyRoom');
 const seasonMap = document.getElementById('seasonMap');
 const seasonStudio = document.getElementById('seasonStudio');
 const homeBaseRoom = document.getElementById('homeBaseRoom');
+const lifestyleLayersRoom = document.getElementById('lifestyleLayersRoom');
 const timelineRoom = document.getElementById('timelineRoom');
 const witnessRoom = document.getElementById('witnessRoom');
 const pageMessage = document.getElementById('pageMessage');
@@ -124,11 +124,10 @@ function renderGate(title, copy, link = '/client/', linkLabel = 'Return to the F
 function renderHero(){
   const calculation = state.calculation || {};
   const hasMoney = Boolean(calculation.has_monetary_value ?? calculation.hasMonetaryValue);
-  const fullyEnvisioned = isFullyEnvisioned({
-    seasons: state.seasons,
-    costEntries: state.costEntries,
-    monthlyHomeBase: Number(state.homeBase?.monthly_amount || 0),
-  });
+  const fullyEnvisioned = state.seasons.length === 4 && state.seasons.every((season) =>
+    Boolean(hourlyFlowRateSeasonLocation(season))
+    && entriesFor(season.id, 'lodging').some((entry) => Number(entry.base_amount || 0) > 0)
+  );
   const flowingLayers = Number(calculation.flowing_layers ?? countFlowingLayers({
     seasons: state.seasons,
     costEntries: state.costEntries,
@@ -138,9 +137,9 @@ function renderHero(){
   if(!hasMoney){
     rateHero.innerHTML = `<div class="hfr-hero-copy">
       <p class="eyebrow">YOUR SEASONAL SOVEREIGNTY MAP</p>
-      <h1>Choose a place. Find a home.</h1>
-      <p>Begin with desire. Your receiving standard will reveal itself after the first valid monetary cost enters the vision.</p>
-      <a class="hfr-button hfr-button--soft" href="#seasonMap">Choose your four locations</a>
+      <h1>Choose your locations and price your lodging.</h1>
+      <p>Begin with the four places you want to live, then enter the lodging amount required for each season.</p>
+      <a class="hfr-button hfr-button--soft" href="#seasonMap">Choose your locations</a>
     </div>
     <div class="hfr-hero-seal" aria-hidden="true"><span>12</span><small>Inner Summer weeks</small></div>`;
     return;
@@ -155,7 +154,7 @@ function renderHero(){
     <p class="hfr-worth-note">This is the revenue capacity required to resource your vision—not a statement of your human worth and not a requirement to sell one-hour appointments.</p>
   </div>
   <div class="hfr-rate-breakdown">
-    <div><span>Annual Home Base</span><strong>${money(calculation.annual_home_base ?? calculation.annualHomeBase)}</strong></div>
+    <div><span>Annual Current Expenses</span><strong>${money(calculation.annual_home_base ?? calculation.annualHomeBase)}</strong></div>
     <div><span>Seasonal Freedom</span><strong>${money(calculation.seasonal_freedom ?? calculation.seasonalFreedom)}</strong></div>
     <div><span>Annual Vision Total</span><strong>${money(calculation.annual_vision_total ?? calculation.annualVisionTotal)}</strong></div>
     <div><span>Base Rate ÷ 480</span><strong>${money(calculation.base_hourly_rate ?? calculation.baseHourlyRate)} / hour</strong></div>
@@ -198,11 +197,9 @@ function renderSeasonMap(){
 function destinationForm(season){
   const locationLabel = hourlyFlowRateSeasonLocation(season);
   return `<form id="destinationForm" class="hfr-form hfr-destination-form">
-    <div class="hfr-form-heading"><div><p class="eyebrow">MOMENT 1 — DREAM</p><h3>Where does this season call you?</h3></div><p>Use one location for now. Lodging, dates, and money can arrive in the rooms below.</p></div>
+    <div class="hfr-form-heading"><div><p class="eyebrow">MOMENT 1 — CHOOSE A LOCATION</p><h3>${escapeHtml(seasonDisplayName(season))} Location</h3></div><p>Start with the place. The financial details come next.</p></div>
     <label><span>${escapeHtml(String(season.season_key || 'season').replace(/^./, (letter) => letter.toUpperCase()))} Location</span><input name="location_label" value="${escapeHtml(locationLabel)}" placeholder="Carmel-by-the-Sea, California" maxlength="220" /></label>
-    <label><span>Why this place calls me <small>private</small></span><textarea name="calling_reflection" rows="3" placeholder="What might become possible here?">${escapeHtml(season.calling_reflection || '')}</textarea></label>
-    <label><span>Inspiration link <small>optional</small></span><input name="inspiration_url" type="url" value="${escapeHtml(season.inspiration_url || '')}" placeholder="https://…" /></label>
-    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save this destination</button><span id="destinationMessage" class="hfr-inline-message"></span></div>
+    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Location</button><span id="destinationMessage" class="hfr-inline-message"></span></div>
   </form>`;
 }
 
@@ -230,31 +227,24 @@ function currencyOptions(selected = ''){
 
 function lodgingRoom(season){
   const entries = entriesFor(season.id, 'lodging');
-  const coverage = analyzeLodgingCoverage(season, state.costEntries);
+  const primary = entries[0] || null;
+  const total = entries.reduce((sum, entry) => sum + Number(entry.base_amount || 0), 0);
   return `<section class="hfr-layer-room hfr-layer-room--lodging">
-    <div class="hfr-layer-heading"><div><p class="eyebrow">MOMENT 2 — FIND A HOME</p><h3>Find your seasonal home.</h3></div><p>Search using the exact dates shown. Enter the complete price for the stay—not only the nightly rate. Add another property when one home does not cover the whole season.</p></div>
-    <form id="lodgingForm" class="hfr-form hfr-cost-form" data-layer-key="lodging" data-entry-mode="detailed">
-      <input type="hidden" name="entry_id" />
+    <div class="hfr-layer-heading"><div><p class="eyebrow">MOMENT 2 — LODGING COST</p><h3>Enter the cost of your seasonal lodging.</h3></div><p>Use the total amount needed to cover lodging during the dates of this season. Save the listing link if you want to return to it.</p></div>
+    <form id="lodgingForm" class="hfr-form hfr-cost-form hfr-simple-lodging-form" data-layer-key="lodging" data-entry-mode="detailed">
+      <input type="hidden" name="entry_id" value="${escapeHtml(primary?.id || '')}" />
+      <input type="hidden" name="label" value="Seasonal lodging" />
+      <input type="hidden" name="starts_on" value="${escapeHtml(dateInputValue(season.starts_on))}" />
+      <input type="hidden" name="ends_on" value="${escapeHtml(dateInputValue(season.ends_on))}" />
+      <input type="hidden" name="fees_status" value="unsure" />
+      <input type="hidden" name="researched_on" value="${escapeHtml(dateInputValue(primary?.researched_on) || flowtelDateISO())}" />
       <div class="hfr-grid hfr-grid--two">
-        <label><span>Property name <small>optional</small></span><input name="label" placeholder="The rose cottage" /></label>
-        <label><span>Listing link <small>optional</small></span><input name="source_url" type="url" placeholder="https://…" /></label>
+        <label><span>Seasonal lodging cost in ${escapeHtml(state.plan.base_currency)}</span><input name="base_amount" type="number" min="0" step="0.01" inputmode="decimal" required value="${primary && Number(primary.base_amount)>0 ? Number(primary.base_amount).toFixed(2) : ''}" placeholder="0.00" /></label>
+        <label><span>Listing link <small>optional</small></span><input name="source_url" type="url" value="${escapeHtml(primary?.source_url || '')}" placeholder="https://…" /></label>
       </div>
-      <div class="hfr-grid hfr-grid--three">
-        <label><span>Stay begins</span><input name="starts_on" type="date" value="${dateInputValue(season.starts_on)}" /></label>
-        <label><span>Stay ends</span><input name="ends_on" type="date" value="${dateInputValue(season.ends_on)}" /></label>
-        <label><span>Fees included?</span><select name="fees_status"><option value="unsure">Unsure</option><option value="yes">Yes</option><option value="no">No</option></select></label>
-        <label><span>Price researched on</span><input name="researched_on" type="date" value="${flowtelDateISO()}" /></label>
-      </div>
-      <div class="hfr-grid hfr-grid--three">
-        <label><span>Total in ${escapeHtml(state.plan.base_currency)}</span><input name="base_amount" type="number" min="0" step="0.01" inputmode="decimal" required placeholder="0.00" /></label>
-        <label><span>Original amount <small>optional</small></span><input name="original_amount" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00" /></label>
-        <label><span>Original currency</span><select name="original_currency">${currencyOptions('')}</select></label>
-      </div>
-      <label><span>Private note <small>optional</small></span><textarea name="private_note" rows="2" placeholder="What do you want to remember about this home?"></textarea></label>
-      <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save seasonal home</button><button class="hfr-text-button" type="button" data-clear-form="lodgingForm" hidden>Cancel edit</button><span class="hfr-inline-message"></span></div>
+      <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Lodging Cost</button><span class="hfr-inline-message"></span></div>
     </form>
-    ${entries.length ? `<div class="hfr-saved-list">${entries.map(savedEntryCard).join('')}</div>` : '<p class="hfr-empty-invitation">No seasonal home has been priced yet. The map remains valuable while you dream.</p>'}
-    ${coverage.message ? `<p class="hfr-gentle-note">${escapeHtml(coverage.message)}</p>` : ''}
+    ${total > 0 ? `<p class="hfr-simple-lodging-summary">Current lodging total for this season: <strong>${money(total)}</strong>${entries.length > 1 ? ` · ${entries.length} preserved lodging records` : ''}</p>` : '<p class="hfr-empty-invitation">No lodging amount has been entered yet.</p>'}
   </section>`;
 }
 
@@ -359,44 +349,44 @@ function renderSeasonStudio(){
   const season = activeSeason();
   if(!season){ seasonStudio.innerHTML = ''; return; }
   seasonStudio.innerHTML = `<section class="hfr-card hfr-season-heading-card">
-    <div><p class="eyebrow">OPEN SEASONAL ROOM</p><h2>${escapeHtml(seasonDisplayName(season))}</h2><p>${escapeHtml(formatSeasonDateRange(season))} · ${inclusiveDayCount(season.starts_on, season.ends_on)} days</p></div>
+    <div><p class="eyebrow">OPEN SEASONAL ROOM</p><h2>${escapeHtml(seasonDisplayName(season))}</h2><p>${escapeHtml(formatSeasonDateRange(season))}</p></div>
     <span class="hfr-status hfr-status--large">${escapeHtml(seasonStatus({ season, costEntries: state.costEntries }))}</span>
   </section>
   <section class="hfr-card">${destinationForm(season)}</section>
-  <section class="hfr-card">${lodgingRoom(season)}</section>
-  <section class="hfr-card hfr-layers-card">
-    <div class="hfr-section-heading"><p class="eyebrow">MOMENT 5 — ADD LIFESTYLE LAYERS</p><h2>Add the next layer when you feel called.</h2><p>A simple estimate is complete enough to count. A detailed build can replace that estimate in the living calculation without deleting what you first imagined.</p></div>
-    <div class="hfr-optional-layers">${OPTIONAL_LAYERS.map((config) => optionalLayerRoom(season, config)).join('')}</div>
-  </section>`;
+  <section class="hfr-card">${lodgingRoom(season)}</section>`;
+}
+
+function renderLifestyleLayers(){
+  lifestyleLayersRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">MOMENT 4 — LIFESTYLE LAYERS</p><h2>Lifestyle Layers are coming soon.</h2><p>For now, focus only on your seasonal locations, lodging totals, and current expenses. These future rooms remain visible so you know what is being prepared, but they are sealed and non-interactive.</p></div><div class="hfr-locked-layer-grid">${OPTIONAL_LAYERS.map((config)=>`<article class="hfr-locked-layer" aria-disabled="true"><span>COMING SOON</span><p class="eyebrow">${escapeHtml(config.eyebrow)}</p><h3>${escapeHtml(LAYER_LABELS[config.key])}</h3><p>${escapeHtml(config.invitation)}</p></article>`).join('')}</div>`;
 }
 
 function renderHomeBase(){
   const home = state.homeBase || {};
   homeBaseRoom.innerHTML = `<div class="hfr-section-heading">
-    <p class="eyebrow">MOMENT 4 — MEET THE HOME BASE</p>
-    <h2>Your current life remains funded.</h2>
-    <p>Review your present expenses privately outside Flowtel, then enter only the final monthly Home Base Number. Flowtel does not store an itemized expense ledger, and the Home Base is added beneath seasonal freedom—not netted against it.</p>
+    <p class="eyebrow">MOMENT 3 — CURRENT EXPENSES</p>
+    <h2>Include your current expenses.</h2>
+    <p>Review your current monthly expenses privately, then enter the total monthly amount below. Flowtel stores only the final total—not an itemized expense ledger. This amount is added to your seasonal lodging costs when calculating your Hourly Flow Rate.</p>
   </div>
   <form id="homeBaseForm" class="hfr-form">
     <div class="hfr-grid hfr-grid--two">
-      <label><span>Monthly Home Base Number in ${escapeHtml(state.plan.base_currency)}</span><input name="monthly_amount" type="number" min="0" step="0.01" inputmode="decimal" value="${Number(home.monthly_amount || 0) > 0 ? Number(home.monthly_amount).toFixed(2) : ''}" placeholder="0.00" /></label>
-      <label><span>Date privately reviewed</span><input name="reviewed_on" type="date" value="${dateInputValue(home.reviewed_on)}" /></label>
+      <label><span>Monthly Current Expenses in ${escapeHtml(state.plan.base_currency)}</span><input name="monthly_amount" type="number" min="0" step="0.01" inputmode="decimal" value="${Number(home.monthly_amount || 0) > 0 ? Number(home.monthly_amount).toFixed(2) : ''}" placeholder="0.00" /></label>
+      <label><span>Date Reviewed</span><input name="reviewed_on" type="date" value="${dateInputValue(home.reviewed_on)}" /></label>
     </div>
-    <label class="hfr-check"><input name="privately_confirmed" type="checkbox" ${home.privately_confirmed ? 'checked' : ''} /><span>I completed my expense review privately and am saving only the final monthly number.</span></label>
-    <label><span>Private reflection <small>optional</small></span><textarea name="private_reflection" rows="3" placeholder="What does it feel like to keep your home base resourced while adding freedom on top?">${escapeHtml(home.private_reflection || '')}</textarea></label>
-    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save my Home Base Number</button><span class="hfr-inline-message"></span></div>
+    <label class="hfr-check"><input name="privately_confirmed" type="checkbox" ${home.privately_confirmed ? 'checked' : ''} /><span>I reviewed my current expenses privately and am saving only the final monthly total.</span></label>
+    <label><span>Notes <small>optional</small></span><textarea name="private_reflection" rows="3" placeholder="Anything you want to remember about this total?">${escapeHtml(home.private_reflection || '')}</textarea></label>
+    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Current Expenses</button><span class="hfr-inline-message"></span></div>
   </form>`;
 }
 
 function snapshotLabel(snapshot){
-  const reason = snapshot.reason || 'The vision expanded';
+  const reason = String(snapshot.reason || 'The vision expanded').replace(/Home Base/gi, 'Current Expenses');
   const date = new Date(snapshot.created_at);
   const dateLabel = Number.isNaN(date.getTime()) ? '' : new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
   return `<article class="hfr-timeline-entry"><span aria-hidden="true"></span><div><p class="eyebrow">${escapeHtml(dateLabel)}</p><h3>${escapeHtml(reason)}</h3><p>${Number(snapshot.flowing_layers || 0)} layers flowing · Annual vision ${money(snapshot.annual_vision_total)}</p></div><strong>${money(snapshot.hourly_flow_rate)} / hour</strong></article>`;
 }
 
 function renderTimeline(){
-  timelineRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">MOMENT 6 — WITNESS THE JOURNEY</p><h2>Your Receiving Timeline.</h2><p>Flowtel remembers meaningful saved movements—not every keystroke.</p></div>
+  timelineRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">YOUR RECEIVING TIMELINE</p><h2>Your Receiving Timeline.</h2><p>Flowtel remembers meaningful saved movements—not every keystroke.</p></div>
     <div class="hfr-timeline">${state.snapshots.length ? state.snapshots.map(snapshotLabel).join('') : '<p class="hfr-empty-invitation">Your first timeline moment will arrive after a valid monetary layer is saved.</p>'}</div>`;
 }
 
@@ -415,6 +405,7 @@ function render(){
   renderSeasonMap();
   renderSeasonStudio();
   renderHomeBase();
+  renderLifestyleLayers();
   renderTimeline();
   renderWitness();
   bindEvents();
@@ -548,9 +539,9 @@ function resetCostForm(form, season){
   const researchedOn = form.querySelector('[name="researched_on"]');
   if(researchedOn) researchedOn.value = flowtelDateISO();
   if(form.id === 'lodgingForm'){
-    form.querySelector('[name="starts_on"]').value = dateInputValue(season.starts_on);
-    form.querySelector('[name="ends_on"]').value = dateInputValue(season.ends_on);
-    form.querySelector('[name="fees_status"]').value = 'unsure';
+    const starts=form.querySelector('[name="starts_on"]'); if(starts) starts.value=dateInputValue(season.starts_on);
+    const ends=form.querySelector('[name="ends_on"]'); if(ends) ends.value=dateInputValue(season.ends_on);
+    const fees=form.querySelector('[name="fees_status"]'); if(fees) fees.value='unsure';
   }
   if(form.dataset.calculation === 'nourishment') form.elements.service_allowance_percent.value = '25';
   updateCalculatedPreview(form, season);
@@ -607,8 +598,8 @@ function bindEvents(){
       seasonId: season.id,
       locationLabel: data.get('location_label'),
       lastOpenSection: `season-${season.id}`,
-      callingReflection: data.get('calling_reflection'),
-      inspirationUrl: data.get('inspiration_url'),
+      callingReflection: season.calling_reflection || '',
+      inspirationUrl: season.inspiration_url || '',
     }), 'This seasonal destination is resting safely in your map.', inline);
   });
 
@@ -661,7 +652,7 @@ function bindEvents(){
       reviewedOn: data.get('reviewed_on') || null,
       privatelyConfirmed: data.get('privately_confirmed') === 'on',
       privateReflection: data.get('private_reflection') || '',
-    }), 'Your Home Base Number is held privately in this vision.', inline);
+    }), 'Your current expenses are held privately in this vision.', inline);
   });
 
   document.getElementById('witnessForm')?.addEventListener('submit', (event) => {

@@ -159,7 +159,7 @@ export function getFlowFmMoonForProgress(anchorIndex = 1, monthNumber = 1) {
 }
 
 export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
-  const started = profile.flowfm_started_at || profile.flow_fm_started_at || profile.initiation_started_at || profile.created_at;
+  const started = profile.flowfm_started_at || profile.flow_fm_started_at || profile.initiation_started_at || null;
   const startedAt = started ? new Date(started) : null;
 
   if (!startedAt || Number.isNaN(startedAt.getTime())) {
@@ -175,6 +175,7 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
       line: 'Initiation moon not set yet.',
       monthLine: 'Previewing Temple Moon until a Flow FM start date is set.',
       explanation: 'Set or confirm flowfm_started_at to personalize the initiation path.',
+      progressMonth: 1,
     };
   }
 
@@ -206,6 +207,15 @@ export function getFlowFmInitiationStatus(profile = {}, nowDate = new Date()) {
     thresholdDay: anchor.thresholdDay,
     joinedAfterThreshold: anchor.usedNextMoonRule,
   };
+}
+
+
+export function flowFmProgressPercent(statusOrMonth = 1, hasStartDate = null) {
+  const status = typeof statusOrMonth === 'object' && statusOrMonth !== null ? statusOrMonth : null;
+  const present = hasStartDate === null ? (status ? Boolean(status.hasStartDate) : true) : Boolean(hasStartDate);
+  if (!present) return 0;
+  const month = Math.min(13, Math.max(1, Number(status ? status.progressMonth : statusOrMonth) || 1));
+  return ((month - 1) / 12) * 100;
 }
 
 

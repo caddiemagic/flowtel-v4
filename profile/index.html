@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>My Flowtel Profile</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.71" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.73" />
 </head>
 <body>
   <main class="profile-shell">
@@ -66,6 +66,12 @@
           <small>This prepares your outer-season context for the future Time and Space view.</small>
         </label>
 
+        <label id="flowFmStartDateField" hidden>
+          <span>Flow FM Start Date</span>
+          <input id="flowFmStartDate" name="flowFmStartDate" type="date" />
+          <small>This is the date your 13-month initiation began. Becoming a practitioner does not reset it.</small>
+        </label>
+
         <p class="privacy-note">Your first and last name, email, location, timezone, and hemisphere remain private to you, the Flowtel owner, and an authorized connected mentor. Your Queendom name remains the visible identity.</p>
 
         <p class="profile-message" id="profileMessage" role="status" aria-live="polite"></p>
@@ -83,6 +89,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.10.71"></script>
+  <script type="module" src="./app.js?v=0.10.73"></script>
 </body>
 </html>

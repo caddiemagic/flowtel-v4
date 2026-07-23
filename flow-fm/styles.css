@@ -1477,3 +1477,8 @@ input,textarea,button{font:inherit;color:inherit}
   .mailbox-thread>header{display:grid}
   .mailbox-thread>header>span{justify-self:start}
 }
+
+/* Flowtel v0.10.73 — permanent Flow FM heading scale + cleaner Initiation Hall hero */
+:root{--flowfm-page-hero-size:clamp(2.15rem,4vw,3.75rem);--flowfm-section-title-size:clamp(1.9rem,4vw,3.4rem)}
+.hero-card h1,.hero-card--hallway h1{font-size:var(--flowfm-page-hero-size);line-height:.98;letter-spacing:.045em}.section-heading h2,.section-heading.compact h2{font-size:var(--flowfm-section-title-size);line-height:1}
+.hall-hero-card--grand{grid-template-columns:minmax(0,1fr) auto;padding:48px 52px;background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(247,238,226,.92))}.hall-hero-card--grand::before,.hall-hero-card--grand::after{display:none}.hall-scarab-image{display:block;width:92px;height:92px;object-fit:contain;margin:0 0 8px;filter:drop-shadow(0 12px 22px rgba(109,78,65,.12))}.hall-hero-copy h1{font-size:clamp(2.15rem,4vw,3.75rem);line-height:.96;letter-spacing:.035em;margin-bottom:14px}.hall-hero-copy .eyebrow{letter-spacing:.28em}.hall-hero-seal{width:142px;height:142px}@media(max-width:760px){.hall-hero-card--grand{grid-template-columns:1fr;padding:34px 24px}.hall-scarab-image{margin-inline:auto}.hall-hero-copy{text-align:center}.hall-hero-seal{justify-self:center}.hall-hero-blessing{justify-content:center}}

@@ -139,3 +139,6 @@ body.hfr-page{margin:0;background:radial-gradient(circle at 50% -10%,rgba(234,21
   .hfr-rate-breakdown>div{flex-direction:column;gap:4px}
   .hfr-rate-breakdown strong{text-align:left}
 }
+
+/* Flowtel v0.10.73 — focused initiation path */
+.hfr-hero h1{font-size:var(--flowfm-hero-title-size,clamp(2.3rem,5vw,4.5rem));line-height:.98}.hfr-simple-lodging-form{margin-top:18px}.hfr-simple-lodging-summary{margin:14px 0 0;padding:13px 16px;border-radius:14px;background:rgba(248,241,233,.8);color:var(--muted)}.hfr-locked-layer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:20px}.hfr-locked-layer{position:relative;padding:20px;border:1px solid rgba(174,132,69,.22);border-radius:18px;background:linear-gradient(145deg,rgba(255,253,249,.92),rgba(248,231,227,.35));opacity:.72;pointer-events:none}.hfr-locked-layer>span{display:inline-flex;margin-bottom:14px;padding:6px 9px;border:1px solid rgba(173,97,101,.28);border-radius:999px;color:var(--rose);font:700 .55rem Arial,sans-serif;letter-spacing:.1em}.hfr-locked-layer h3{margin:3px 0 8px;font-size:var(--flowfm-card-title-size,1.65rem)}.hfr-locked-layer p:last-child{margin:0;color:var(--muted);line-height:1.55}@media(max-width:720px){.hfr-locked-layer-grid{grid-template-columns:1fr}}

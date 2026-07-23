@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.72" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.73" />
 </head>
 
 <body>
@@ -55,104 +55,49 @@
       </section>
 </section>
 
-      <section class="stats">
-        <button class="stat-card" type="button" data-filter="queue">
-          <span>Awaiting Turndown</span>
-          <strong id="awaitingTurndownCount">0</strong>
-          <em>Waiting for care</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-master">
-          <span>Caddie Master</span>
-          <strong id="caddieMasterAlertCount">0</strong>
-          <em>Private support alerts</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-network">
-          <span>Caddie Network</span>
-          <strong id="caddieNetworkCount">0</strong>
-          <em><b id="caddieNetworkReviewCount">0</b> network actions</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-team">
-          <span>Caddie Concierge Team</span>
-          <strong id="caddieTeamCount">0</strong>
-          <em>Active Caddies</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-reviews">
-          <span>Scorecard Reviews</span>
-          <strong id="caddieReviewCount">0</strong>
-          <em>Caddie Master pattern requests</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="caddie-compass">
-          <span>Caddie Compass</span>
-          <strong id="caddieCompassCount">0</strong>
-          <em><b id="caddieCompassPlayerCount">0</b> players mapped</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="upcoming-golf">
-          <span>Upcoming Golf</span>
-          <strong id="upcomingGolfCount">0</strong>
-          <em>Admin calendar</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="priestess-team">
-          <span>Priestess Concierge Team</span>
-          <strong id="priestessTeamCount">0</strong>
-          <em><b id="priestessTeamProfileCount">0</b> profiles started</em>
-        </button>
-        <a class="stat-card stat-card-link" href="/flow-fm/time-space/">
-          <span>Time + Space</span>
-          <strong>WORLD</strong>
-          <em>Global Priestess Team</em>
-        </a>
-        <button class="stat-card" type="button" data-filter="clients">
-          <span>Your Clients</span>
-          <strong id="clientsCount">0</strong>
-          <em><b id="clientConnectionCount">0</b> new mentor requests</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="member-directory">
-          <span>Flowtel Members</span>
-          <strong id="flowtelMemberCount">0</strong>
-          <em><b id="flowtelMemberReviewCount">0</b> need review</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="admin-team-map">
-          <span>28-Day Team Map</span>
-          <strong id="adminTeamMapCount">0</strong>
-          <em>Team members in motion</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="honors">
-          <span>Flowtel Honors</span>
-          <strong id="honorsAvailablePoints">0</strong>
-          <em><b id="honorsPractitionerCount">0</b> Priestess balances</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="priestess-mailbox">
-          <span>Priestess Mailbox</span>
-          <strong id="priestessMailboxCount">0</strong>
-          <em>Audio files awaiting you</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="guest-house">
-          <span>Flowtel Guest House</span>
-          <strong id="guestHouseRequestCount">0</strong>
-          <em>Call replay requests</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="workshop-notes">
-          <span>Workshop Notes</span>
-          <strong id="workshopReplayNoteCount">0</strong>
-          <em>Questions + reflections</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="lounge-video">
-          <span>Lounge Video</span>
-          <strong id="loungeVideoCount">0</strong>
-          <em>Private Flow FM transmission</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="in-house">
-          <span>Guests in House</span>
-          <strong id="guestsInHouse">0</strong>
-          <em>Checked in today</em>
-        </button>
-        <button class="stat-card" type="button" data-filter="extended">
-          <span>Extended Stay</span>
-          <strong id="extendedStay">0</strong>
-          <em>14+ days</em>
-        </button>
+      <section class="concierge-visibility-toolbar">
+        <div><p class="eyebrow">DESK VISIBILITY</p><h2>Rooms organized by audience.</h2><p>Team Rooms are the approved Priestess-facing experience. Owner and Caddie Magic administration remain private.</p></div>
+        <button id="previewPriestessViewButton" type="button" aria-pressed="false">Preview Priestess View</button>
       </section>
 
+      <section class="concierge-audience-group" data-audience="team">
+        <header><div><p class="eyebrow">CONCIERGE TEAM ROOMS</p><h2>Visible to approved Priestesses</h2></div><span>TEAM</span></header>
+        <div class="stats">
+          <button class="stat-card" type="button" data-filter="queue"><span>Turndown Service</span><strong id="awaitingTurndownCount">0</strong><em>Authorized requests awaiting care</em></button>
+          <button class="stat-card" type="button" data-filter="clients"><span>Your Clients</span><strong id="clientsCount">0</strong><em><b id="clientConnectionCount">0</b> new mentor requests</em></button>
+          <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Client-Facing Calls</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
+          <a class="stat-card stat-card-link" href="/flow-fm/profile-studio/"><span>Profile Studio</span><strong>OPEN</strong><em>Priestess identity + offerings</em></a>
+          <a class="stat-card stat-card-link" href="/flow-fm/time-space/"><span>Time + Space</span><strong>WORLD</strong><em>Global Priestess Team</em></a>
+        </div>
+      </section>
+
+      <section class="concierge-audience-group" data-audience="owner">
+        <header><div><p class="eyebrow">OWNER ADMINISTRATION</p><h2>Private Flowtel command center</h2></div><span>OWNER ONLY</span></header>
+        <div class="stats">
+          <button class="stat-card" type="button" data-filter="priestess-team"><span>Priestess Concierge Team</span><strong id="priestessTeamCount">0</strong><em><b id="priestessTeamProfileCount">0</b> profiles started</em></button>
+          <button class="stat-card" type="button" data-filter="member-directory"><span>Flowtel Members</span><strong id="flowtelMemberCount">0</strong><em><b id="flowtelMemberReviewCount">0</b> need review</em></button>
+          <button class="stat-card" type="button" data-filter="admin-team-map"><span>28-Day Team Map</span><strong id="adminTeamMapCount">0</strong><em>Team members in motion</em></button>
+          <button class="stat-card" type="button" data-filter="honors"><span>Flowtel Honors</span><strong id="honorsAvailablePoints">0</strong><em><b id="honorsPractitionerCount">0</b> Priestess balances</em></button>
+          <button class="stat-card" type="button" data-filter="priestess-mailbox"><span>Priestess Mailbox</span><strong id="priestessMailboxCount">0</strong><em>Audio files awaiting you</em></button>
+          <button class="stat-card" type="button" data-filter="guest-house"><span>Flowtel Guest House</span><strong id="guestHouseRequestCount">0</strong><em>Call replay requests</em></button>
+          <button class="stat-card" type="button" data-filter="workshop-notes"><span>Workshop Notes</span><strong id="workshopReplayNoteCount">0</strong><em>Questions + reflections</em></button>
+          <button class="stat-card" type="button" data-filter="lounge-video"><span>Lounge Video</span><strong id="loungeVideoCount">0</strong><em>Private Flow FM transmission</em></button>
+          <button class="stat-card" type="button" data-filter="in-house"><span>Guests in House</span><strong id="guestsInHouse">0</strong><em>Checked in today</em></button>
+          <button class="stat-card" type="button" data-filter="extended"><span>Extended Stay</span><strong id="extendedStay">0</strong><em>14+ days</em></button>
+        </div>
+      </section>
+
+      <section class="concierge-audience-group" data-audience="caddie">
+        <header><div><p class="eyebrow">CADDIE MAGIC ADMINISTRATION</p><h2>Private Caddie Master command center</h2></div><span>CADDIE MASTER</span></header>
+        <div class="stats">
+          <button class="stat-card" type="button" data-filter="caddie-master"><span>Caddie Master</span><strong id="caddieMasterAlertCount">0</strong><em>Private support alerts</em></button>
+          <button class="stat-card" type="button" data-filter="caddie-network"><span>Caddie Network</span><strong id="caddieNetworkCount">0</strong><em><b id="caddieNetworkReviewCount">0</b> network actions</em></button>
+          <button class="stat-card" type="button" data-filter="caddie-team"><span>Caddie Concierge Team</span><strong id="caddieTeamCount">0</strong><em>Active Caddies</em></button>
+          <button class="stat-card" type="button" data-filter="caddie-reviews"><span>Scorecard Reviews</span><strong id="caddieReviewCount">0</strong><em>Caddie Master pattern requests</em></button>
+          <button class="stat-card" type="button" data-filter="caddie-compass"><span>Caddie Compass</span><strong id="caddieCompassCount">0</strong><em><b id="caddieCompassPlayerCount">0</b> players mapped</em></button>
+          <button class="stat-card" type="button" data-filter="upcoming-golf"><span>Upcoming Golf</span><strong id="upcomingGolfCount">0</strong><em>Admin calendar</em></button>
+        </div>
+      </section>
 
       <div class="relationship-cache" hidden>
         <div id="connectionRequests"></div>
@@ -176,7 +121,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.72").catch(function(error){
+    import("./app.js?v=0.10.73").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

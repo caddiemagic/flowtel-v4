@@ -1,5 +1,5 @@
-import { getCurrentProfile, updateMyGuestProfile } from "../shared/profiles.js?v=0.10.71";
-import { isProductAccessError } from "../shared/product-access.js?v=0.10.71";
+import { getCurrentProfile, updateMyGuestProfile, updateMyFlowFmStartDate } from "../shared/profiles.js?v=0.10.73";
+import { isProductAccessError } from "../shared/product-access.js?v=0.10.73";
 
 const form = document.getElementById("profileForm");
 const loading = document.getElementById("profileLoading");
@@ -8,6 +8,8 @@ const message = document.getElementById("profileMessage");
 const saveButton = document.getElementById("saveProfileButton");
 const returnLink = document.getElementById("returnToSuiteLink");
 const timezoneSelect = document.getElementById("timezone");
+const flowFmStartDateField = document.getElementById("flowFmStartDateField");
+const flowFmStartDate = document.getElementById("flowFmStartDate");
 let currentProfile = null;
 
 const TIMEZONES = [
@@ -51,6 +53,13 @@ function renderTimezoneOptions(selected = "America/Los_Angeles") {
   timezoneSelect.value = selected || "America/Los_Angeles";
 }
 
+function isFlowFmMember(profile = {}) {
+  const membership = String(profile?.membership_type || "").toLowerCase().replace(/[^a-z]/g, "");
+  return Number(profile?.membership_rank || 0) >= 2
+    || ["flowfm", "council"].includes(membership)
+    || ["practitioner", "mentor", "admin", "owner"].includes(String(profile?.role || "").toLowerCase());
+}
+
 function populate(profile) {
   document.getElementById("firstName").value = profile?.first_name || "";
   document.getElementById("lastName").value = profile?.last_name || "";
@@ -58,6 +67,11 @@ function populate(profile) {
   document.getElementById("email").value = profile?.email || "";
   document.getElementById("location").value = profile?.location || "";
   document.getElementById("hemisphere").value = profile?.hemisphere || "";
+  const flowFm = isFlowFmMember(profile);
+  flowFmStartDateField.hidden = !flowFm;
+  flowFmStartDate.required = flowFm;
+  flowFmStartDate.max = new Date().toISOString().slice(0, 10);
+  flowFmStartDate.value = String(profile?.flowfm_started_at || "").slice(0, 10);
   renderTimezoneOptions(profile?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone || "America/Los_Angeles");
   returnLink.href = returnTarget();
 }
@@ -99,6 +113,10 @@ form?.addEventListener("submit", async (event) => {
       timezone: timezoneSelect.value,
       hemisphere: document.getElementById("hemisphere").value,
     });
+    if (isFlowFmMember(currentProfile)) {
+      const startSaved = await updateMyFlowFmStartDate(flowFmStartDate.value);
+      currentProfile = { ...currentProfile, ...(startSaved || {}), flowfm_started_at: flowFmStartDate.value };
+    }
     try {
       sessionStorage.removeItem(`flowtel:profilePromptShown:${currentProfile?.id || "member"}`);
     } catch (error) {}

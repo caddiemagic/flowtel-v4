@@ -9,6 +9,7 @@ const files={
   migration:await read('database/migration-052-combined-flowtel-caddie-updates.sql'),
   migration054:await read('database/migration-054-flowtel-member-integrity-guest-profiles.sql'),
   migration057:await read('database/migration-057-four-seasons-time-space.sql'),
+  migration058:await read('database/migration-058-flow-fm-initiation-readiness.sql'),
   managerJs:await read('manager/app.js'),managerHtml:await read('manager/index.html'),managerCss:await read('manager/styles.css'),
   clientJs:await read('client/app.js'),clientHtml:await read('client/index.html'),clientCss:await read('client/styles.css'),
   cycleJs:await read('cycle-data/app.js'),cycleHtml:await read('cycle-data/index.html'),cycleCss:await read('cycle-data/styles.css'),
@@ -24,8 +25,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.72'));
-assert(files.managerHtml.includes('app.js?v=0.10.72'));
+assert(files.managerHtml.includes('styles.css?v=0.10.73'));
+assert(files.managerHtml.includes('app.js?v=0.10.73'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -42,11 +43,14 @@ assert(files.hfrCore.includes('seasonLocationLabel'),'Canonical seasonal-locatio
 assert(files.migration057.includes('location_label') && files.migration057.includes('flowtel_get_time_and_space_team'),'Migration 057 foundations are missing.');
 assert(files.clientCss.includes('#requestTurndownButton,#requestWakeUpTextButton'),'Concierge button width match is missing.');
 
-assert(files.availabilityHtml.includes('FOUR-WEEK MAP'));
-assert(files.availabilityJs.includes('day.availability_season===season'));
-assert(files.migration.includes("'availability_season',case when d.cycle_day <= 7"),'Availability map is not four seven-day rows.');
-assert(files.migration.includes('primary key (member_id, cycle_day)'));
-assert(files.migration.includes('flowtel_availability_save_day'));
+assert(files.availabilityHtml.includes('Client-Facing Calls'));
+assert(files.availabilityJs.includes('FLOW_FM_INNER_SEASONS'));
+assert(files.availabilityJs.includes('Add another time window'));
+assert(files.migration058.includes('flowtel_flow_fm_availability_windows'),'Recurring seasonal availability table is missing.');
+assert(files.migration058.includes('flowtel_availability_save_season'),'Recurring seasonal availability save boundary is missing.');
+assert(files.migration058.includes("'days'"),'Legacy availability response compatibility is missing.');
+assert(files.migration.includes('primary key (member_id, cycle_day)'),'Legacy dated availability history must remain preserved.');
+assert(files.migration.includes('flowtel_availability_save_day'),'Legacy cached availability save function must remain preserved.');
 assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/availability/'].includes(row.source)&&row.destination==='/flow-fm/availability/index.html'),'Availability rewrite is missing.');
 
 assert(!files.guestHtml.includes('A Guest House account, not a Flowtel membership.'));

@@ -1,3 +1,17 @@
+## v0.10.73 — Flow FM Initiation Readiness
+
+- Refines the Flow FM Initiation Hall hero with the scarab image, moderate shared hero typography, and removal of the striped side treatment.
+- Adds a shared Flow FM typography token file so new Flow FM pages begin from a restrained hero scale rather than an oversized display default.
+- Simplifies Hourly Flow Rate to four focused moments: seasonal location, lodging cost with optional listing link, Current Expenses, and visible-but-locked Lifestyle Layers.
+- Removes member-facing Home Base language while preserving historical database fields and calculation compatibility.
+- Replaces the dated 28-day Availability Map with reusable Inner Season Monday–Sunday templates for 1:1 client-facing call windows; every day defaults Offline.
+- Preserves historical 28-day availability records and returns their legacy payload to older cached pages while the new experience writes separate weekly windows.
+- Makes the explicit Flow FM start date the only initiation-progress anchor, adds member confirmation and owner correction, and prevents account creation dates or practitioner activation from resetting the initiation.
+- Uses one shared 13-month progress formula: Month 1 at the far left, Month 7 at center, and Month 13 at the far right.
+- Organizes the Concierge Desk into Priestess-facing Team Rooms, owner-only Flowtel administration, and Caddie Master administration, including an owner Preview Priestess View.
+- Reorganizes Caddie Network administration into Overview, Players + Access, Caddies, and Courses while recording full course pages, timezone mapping, and plotted course maps as intentionally deferred.
+- Adds migration 058. Caddie Magic remains v0.5.2 with no Player or Caddie service behavior changes.
+
 ## v0.10.72 — Four Seasons + Time and Space
 
 - Simplifies the Four Seasons Lounge workshop to one free-text Winter, Spring, Summer, and Autumn location field with one save action.

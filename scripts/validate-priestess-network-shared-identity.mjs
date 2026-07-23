@@ -48,7 +48,7 @@ assert(!/update\s+auth\.users[\s\S]{0,260}encrypted_password/i.test(sql), "Migra
 assert.equal((sql.match(/\$\$/g) || []).length % 2, 0, "Migration 056 has unmatched dollar quotes.");
 
 assert(managerHtml.includes('data-filter="priestess-team"'), "Priestess Concierge Team card is missing.");
-assert(managerHtml.includes('styles.css?v=0.10.72') && managerHtml.includes('app.js?v=0.10.72'), "Concierge cache keys are not on v0.10.71.");
+assert(managerHtml.includes('styles.css?v=0.10.73') && managerHtml.includes('app.js?v=0.10.73'), "Concierge cache keys are not on v0.10.71.");
 assert(managerJs.includes("flowtel_admin_list_priestess_concierge_team"), "Concierge does not contain the resilient Priestess Team RPC boundary.");
 assert(!managerJs.includes('from "../shared/priestess-concierge-team.js'), "Optional Priestess Team code must not be a required top-level Concierge dependency.");
 for (const token of ["renderPriestessTeamQueue", "Every woman is included", "Calendar connection coming soon.", "Accepting Clients", "Profile Studio has not been started yet."]) {
@@ -75,7 +75,7 @@ assert(studioJs.includes("This shared location also appears in your Guest Flowte
 assert(studioJs.includes("location: values.location"), "Profile Studio still drops private shared location when public display is off.");
 assert(profilesJs.includes("function updateMySharedFlowtelIdentity") && profilesJs.includes("flowtel_update_my_shared_identity"));
 assert(priestessProfilesJs.includes("updateMySharedFlowtelIdentity"), "Priestess Profile saves bypass the canonical identity writer.");
-assert(flowtelJs.includes('profiles.js?v=0.10.71') && flowtelJs.includes('priestess-profiles.js?v=0.10.71'), "Flowtel barrel exports can serve stale profile modules.");
+assert(flowtelJs.includes('profiles.js?v=0.10.73') && flowtelJs.includes('priestess-profiles.js?v=0.10.73'), "Flowtel barrel exports can serve stale profile modules.");
 
 const rewrites = vercel.rewrites || [];
 assert(rewrites.some(row => row.source === "/manager/priestess-team" && row.destination === "/manager/priestess-team/index.html"), "Dedicated Priestess Team route is missing.");

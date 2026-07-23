@@ -1,6 +1,6 @@
 # Caddie Magic File Manifest
 
-Latest integrated release: **Caddie Magic v0.5.2** with **Flowtel v0.10.70**
+Latest integrated release: **Caddie Magic v0.5.2** preserved through **Flowtel v0.10.73**
 
 ## Application files
 

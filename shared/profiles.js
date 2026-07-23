@@ -3,7 +3,7 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
-import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.71";
+import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.73";
 
 
 export function displayNameForProfile(profile = {}, fallback = "Guest") {
@@ -260,12 +260,26 @@ export async function updateMyFlowtelIdentity({ firstName = "", lastName = "", d
 export function profileNeedsConfirmation(profile = {}) {
   if (!profile || !profile.id) return false;
   if (profile.profile_confirmation_required === true) return true;
+  const membership = String(profile.membership_type || "").toLowerCase().replace(/[^a-z]/g, "");
+  const role = String(profile.role || "").toLowerCase();
+  const flowFmMember = Number(profile.membership_rank || 0) >= 2
+    || ["flowfm", "council"].includes(membership)
+    || ["practitioner", "mentor", "admin", "owner"].includes(role);
 
   return !String(profile.first_name || "").trim()
     || !String(profile.last_name || "").trim()
     || !String(profile.display_name || "").trim()
     || !String(profile.location || "").trim()
-    || !String(profile.timezone || "").trim();
+    || !String(profile.timezone || "").trim()
+    || (flowFmMember && !profile.flowfm_started_at);
+}
+
+export async function updateMyFlowFmStartDate(startedAt) {
+  const value = String(startedAt || "").slice(0, 10);
+  if (!value) throw new Error("Choose your Flow FM start date.");
+  const { data, error } = await supabase.rpc("flowtel_set_my_flowfm_start_date", { p_started_at: value });
+  if (error) throw error;
+  return Array.isArray(data) ? data[0] || null : data;
 }
 
 export async function updateMyGuestProfile({

@@ -1,13 +1,14 @@
 import {
   getCurrentProfile,
   getFlowFmInitiationStatus,
+  flowFmProgressPercent,
   getPersonalizedMoonPath,
   getWombWorkModule,
   getFlowFmAssignmentForMoon,
   getMoonDatesForPortal,
-} from '/shared/flowtel.js';
+} from '/shared/flowtel.js?v=0.10.73';
 import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum, canAccessHourlyFlowRate } from '/shared/rollout.js';
-import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js';
+import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.73';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');
@@ -28,8 +29,8 @@ const doorGrid=document.getElementById('doorGrid');
 const message=document.getElementById('message');
 
 const SUPPORT_DOORS=[
-  { href:'/flow-fm/hourly-flow-rate/', eyebrow:'BIG VISION', title:'Open Your Hourly Flow Rate', copy:'Choose four seasonal locations, find a home, and watch your receiving standard emerge as the vision expands.', motif:'sunburst' },
-  { href:'/flow-fm/availability/', eyebrow:'AVAILABILITY', title:'Map your 28-day rhythm', copy:'Witness when your body naturally opens for clients, visibility, creation, and rest.', motif:'planning' },
+  { href:'/flow-fm/hourly-flow-rate/', eyebrow:'BIG VISION', title:'Open Your Hourly Flow Rate', copy:'Choose four locations, enter seasonal lodging costs, and include your current expenses.', motif:'sunburst' },
+  { href:'/flow-fm/availability/', eyebrow:'CLIENT-FACING CALLS', title:'Set your seasonal call availability', copy:'Choose the weekly time windows you want to offer for 1:1 client-facing calls in each Inner Season.', motif:'planning' },
   { href:'/flow-fm/planning-room/', eyebrow:'PLANNING ROOM', title:'Print the moon calendar', copy:'Use moon phases, portals, and weekly prompts to plan business without overriding your body.', motif:'planning' },
   { href:'/flow-fm/profile-studio/', eyebrow:'PROFILE STUDIO', title:'Open Your Queendom', copy:'Choose the first title, bio, and offerings your clients will meet.', motif:'royal' },
   { href:'/flow-fm/team-map/', eyebrow:'THE LIVING MAP', title:'Witness the Flow FM field', copy:'See where the women of Flow FM are rooted today—and where their multidimensional selves are traveling.', motif:'living-map' },
@@ -129,7 +130,7 @@ function renderStatus(profile){
   const currentAssignment=getFlowFmAssignmentForMoon(status.progressMonth || 1) || currentPortal.businessAssignment;
   currentMoonTitle.textContent=status.hasStartDate ? currentPortal.name : 'Temple Moon preview';
   currentMoonMeta.innerHTML=status.hasStartDate
-    ? `${escapeHtml(status.monthLine)}<div class="progress-pulse"><span style="width:${Math.min(100, Math.max(5, (Number(currentPortal.portalIndex || 1)/13)*100))}%"></span></div>`
+    ? `${escapeHtml(status.monthLine)}<div class="progress-pulse"><span style="width:${flowFmProgressPercent(status)}%"></span></div>`
     : 'Previewing Temple Moon until Flow FM start date is set.';
   const curriculumOpen=canAccessFlowFmCurriculum(profile || {});
   const hourlyFlowRateOpen=canAccessHourlyFlowRate(profile || {});

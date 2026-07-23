@@ -1,6 +1,6 @@
-import { currentUserHasConciergeAccess } from "../../shared/flowtel.js?v=0.10.71";
-import { getPriestessConciergeProfile, setPriestessAcceptingClients } from "../../shared/priestess-concierge-team.js?v=0.10.71";
-import { reviewPriestessProfile } from "../../shared/priestess-profiles.js?v=0.10.71";
+import { currentUserHasConciergeAccess } from "../../shared/flowtel.js?v=0.10.73";
+import { getPriestessConciergeProfile, setPriestessAcceptingClients, setPriestessFlowFmStartDate } from "../../shared/priestess-concierge-team.js?v=0.10.73";
+import { reviewPriestessProfile } from "../../shared/priestess-profiles.js?v=0.10.73";
 
 const $ = id => document.getElementById(id);
 const memberId = new URLSearchParams(location.search).get("member") || "";
@@ -107,7 +107,22 @@ function renderMentorSettings() {
   $("mentorCard").innerHTML = `
     <div class="section-heading"><div><p class="eyebrow">MENTOR + PRACTITIONER SETTINGS</p><h2>${row.mentor_accepting_clients ? "Accepting Clients" : "Not Accepting Clients"}</h2></div><button id="toggleAcceptingButton" type="button" class="priestess-team-button ${row.mentor_accepting_clients ? "quiet" : ""}">${row.mentor_accepting_clients ? "Pause New Clients" : "Open to New Clients"}</button></div>
     <div class="profile-detail-grid"><div><span>Flowtel Role</span><strong>${escapeHtml(label(row.role || "member"))}</strong></div><div><span>Client Data Scope</span><strong>${escapeHtml(detail.cycle_data_scope || "Connected clients only")}</strong></div><div><span>Flow FM Start</span><strong>${escapeHtml(dateLabel(row.flowfm_started_at))}</strong></div><div><span>Access Status</span><strong>${escapeHtml(label(row.flowtel_access_status || "active"))}</strong></div></div>
+    <form class="flowfm-start-date-form" id="flowFmStartDateForm"><label><span>Flow FM Start Date</span><input name="started_at" type="date" max="${new Date().toISOString().slice(0,10)}" value="${escapeHtml(String(row.flowfm_started_at||"").slice(0,10))}" required /></label><button type="submit" class="priestess-team-button">Save Start Date</button></form>
     <p class="priestess-team-note" id="mentorSettingMessage"></p>`;
+  $("flowFmStartDateForm")?.addEventListener("submit", async event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const button = form.querySelector("button");
+    button.disabled = true;
+    try {
+      await setPriestessFlowFmStartDate(memberId, new FormData(form).get("started_at"));
+      detail = await getPriestessConciergeProfile(memberId);
+      renderMentorSettings();
+    } catch (error) {
+      $("mentorSettingMessage").textContent = error?.message || "The Flow FM start date could not be saved.";
+      button.disabled = false;
+    }
+  });
   $("toggleAcceptingButton")?.addEventListener("click", async () => {
     const button = $("toggleAcceptingButton");
     button.disabled = true;
