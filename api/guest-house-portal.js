@@ -1,4 +1,4 @@
-// Flowtel v0.10.74 — authenticated Guest House portal with replay stays and Flow FM training permission.
+// Flowtel v0.10.74.1 — authenticated Guest House portal with replay stays and Flow FM training offering.
 
 const {
   fetchJson,normalizeEmail,readRequestBody,requireUser,sendError,serviceHeaders,setPublicCors,trimTo,
@@ -82,16 +82,16 @@ async function trainingConsent(context,requestId){
   const receipts=Array.isArray(rows)?rows:[];
   if(!receipts.length) return null;
   const latest=receipts[0];
-  const gift=receipts.slice().reverse().find(row=>row.consent_action==='granted') || null;
+  const granted=latest.consent_action==='granted';
   return {
     status:String(latest.consent_action || ''),
-    fileIds:latest.consent_action==='granted' && Array.isArray(latest.selected_file_ids)?latest.selected_file_ids:[],
+    fileIds:granted && Array.isArray(latest.selected_file_ids)?latest.selected_file_ids:[],
     consentVersion:latest.consent_version || '',
     updatedAt:latest.created_at || null,
-    giftGranted:!!gift,
-    giftGrantedAt:gift?.created_at || null,
-    couponCode:gift?.gift_coupon_code || null,
-    schedulingUrl:gift?.gift_schedule_url || null,
+    giftGranted:granted,
+    giftGrantedAt:granted?latest.created_at:null,
+    couponCode:granted?latest.gift_coupon_code:null,
+    schedulingUrl:granted?latest.gift_schedule_url:null,
   };
 }
 async function recordFileReceipt(context,file,eventType,requestId){

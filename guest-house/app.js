@@ -1,4 +1,4 @@
-// Flowtel v0.10.74 — remembered Guest House accounts, private replays, and optional Flow FM training permission.
+// Flowtel v0.10.74.1 — remembered Guest House accounts, private replays, and optional Flow FM training offering.
 
 import { supabase } from '../shared/supabase.js';
 import {
@@ -8,7 +8,7 @@ import {
   guestHouseFileSize,
   guestHouseReplayExpirationCopy,
   normalizeGuestHouseTrainingFileIds,
-} from '../shared/guest-house-core.js?v=0.10.74';
+} from '../shared/guest-house-core.js?v=0.10.74.1';
 
 const accountCard=document.getElementById('accountCard');
 const portal=document.getElementById('guestHousePortal');
@@ -141,7 +141,7 @@ function trainingFileChoices(files,selectedIds=[]){
   </label>`).join('');
 }
 
-function trainingConsentFormMarkup(files,selectedIds=[],buttonLabel='SHARE MY SELECTED SESSION'){
+function trainingConsentFormMarkup(files,selectedIds=[],buttonLabel='OFFER MY SELECTED SESSION'){
   if(!files.length) return '';
   return `<form class="training-consent-form" id="guestHouseTrainingConsentForm" novalidate>
     <div class="training-file-choices" role="group" aria-label="Choose session recordings">${trainingFileChoices(files,selectedIds)}</div>
@@ -156,7 +156,7 @@ function trainingGiftMarkup(consent={}){
   const code=String(consent.couponCode || GUEST_HOUSE_TRAINING_COUPON_CODE);
   const scheduleUrl=String(consent.schedulingUrl || GUEST_HOUSE_TRAINING_SCHEDULE_URL);
   return `<aside class="training-gift" aria-label="Complimentary session gift">
-    <div><p class="eyebrow">A GIFT FOR BEING WITNESSED</p><h4>Your complimentary session is ready.</h4><p>Use code <strong>${escapeHtml(code)}</strong> when you schedule. Your gift remains yours even if you later change your sharing permission.</p></div>
+    <div><p class="eyebrow">A GIFT FOR YOUR OFFERING</p><h4>Your complimentary session is ready.</h4><p>Use code <strong>${escapeHtml(code)}</strong> when you schedule your recorded gift session.</p></div>
     <div class="training-gift-actions"><button class="quiet-button" type="button" data-copy-training-code="${escapeHtml(code)}">COPY CODE</button><a class="secondary-button" href="${escapeHtml(scheduleUrl)}" target="_blank" rel="noopener">SCHEDULE MY GIFT SESSION</a></div>
     <p class="training-copy-status" role="status" aria-live="polite"></p>
   </aside>`;
@@ -170,22 +170,18 @@ function trainingConsentMarkup(files,consent){
 
   if(status==='granted'){
     return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
-      <p class="eyebrow">FLOW FM TRAINING PERMISSION</p>
-      <h4 id="trainingConsentTitle">Thank you for allowing this session to be witnessed.</h4>
-      <p>Your permission currently includes ${selectedTitles.length?escapeHtml(selectedTitles.join(', ')):'the recording(s) you selected'}. Moon Priestesses in training may watch them privately for educational purposes.</p>
-      <div class="training-consent-actions"><button class="quiet-button" type="button" id="withdrawTrainingConsent">WITHDRAW PERMISSION</button></div>
-      ${files.length?`<details class="training-permission-details"><summary>Change which recordings I am sharing</summary>${trainingConsentFormMarkup(files,selectedIds,'UPDATE MY PERMISSION')}</details>`:''}
+      <p class="eyebrow">A SESSION OFFERING</p>
+      <h4 id="trainingConsentTitle">Your session has been received as an offering.</h4>
+      <p>Thank you for allowing ${selectedTitles.length?escapeHtml(selectedTitles.join(', ')):'the recording(s) you selected'} to be witnessed privately by Moon Priestesses in training.</p>
       ${gift}
     </section>`;
   }
 
   return `<section class="training-consent-card" aria-labelledby="trainingConsentTitle">
     <p class="eyebrow">A GENTLE INVITATION</p>
-    <h4 id="trainingConsentTitle">Would you like this session to be witnessed?</h4>
-    <p>This choice is completely optional. You may allow selected recordings to be placed inside the private Flow FM Mastermind portal, where Moon Priestesses in training can watch for educational purposes. As a thank-you, you will receive another recorded session at no cost.</p>
-    ${status==='withdrawn'?'<p class="training-withdrawn-note">Your earlier permission has been withdrawn. You may opt in again whenever it feels aligned.</p>':''}
+    <h4 id="trainingConsentTitle">Would you like to offer this session?</h4>
+    <p>This choice is completely optional. You may offer one or more selected recordings to the private Flow FM Mastermind portal, where Moon Priestesses in training can witness the session for educational purposes. As a thank-you for this offering, you will receive another recorded session at no cost.</p>
     ${trainingConsentFormMarkup(files,[])}
-    ${gift}
   </section>`;
 }
 
@@ -278,7 +274,7 @@ function bindTrainingConsent(){
     const fileIds=normalizeGuestHouseTrainingFileIds(values.getAll('training_file_id'));
     const confirmed=values.get('training_confirmed')==='on';
     if(!fileIds.length){output.textContent='Choose at least one session recording.';return;}
-    if(!confirmed){output.textContent='Confirm your permission before continuing.';return;}
+    if(!confirmed){output.textContent='Confirm your offering before continuing.';return;}
     button.disabled=true;
     button.textContent='SAVING YOUR CHOICE…';
     output.textContent='';
@@ -290,29 +286,12 @@ function bindTrainingConsent(){
       if(error) throw error;
       await loadPortal();
     }catch(error){
-      output.textContent=error?.message || 'Your permission could not be saved just now.';
+      output.textContent=error?.message || 'Your offering could not be saved just now.';
       button.disabled=false;
       button.textContent=original;
     }
   });
 
-  document.getElementById('withdrawTrainingConsent')?.addEventListener('click',async event=>{
-    if(!window.confirm('Withdraw permission for future Flow FM training use? Your complimentary session gift will remain yours.')) return;
-    const button=event.currentTarget;
-    const original=button.textContent;
-    button.disabled=true;
-    button.textContent='WITHDRAWING…';
-    try{
-      const {error}=await supabase.rpc('flowtel_guest_house_withdraw_training_consent',{p_confirmed:true});
-      if(error) throw error;
-      await loadPortal();
-    }catch(error){
-      button.disabled=false;
-      button.textContent=original;
-      const status=portalContent.querySelector('.training-consent-actions')?.appendChild(document.createElement('p'));
-      if(status){status.className='form-status';status.textContent=error?.message || 'Your permission could not be changed just now.';}
-    }
-  });
 
   portalContent.querySelectorAll('[data-copy-training-code]').forEach(button=>button.addEventListener('click',async()=>{
     const code=String(button.dataset.copyTrainingCode || GUEST_HOUSE_TRAINING_COUPON_CODE);

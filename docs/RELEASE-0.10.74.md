@@ -25,19 +25,16 @@ The statement explains that:
 
 Nothing is preselected. Declining or ignoring the invitation does not affect access to the client’s private replay.
 
-Each permission choice is stored as an append-only receipt containing the exact consent version, exact displayed copy, selected replay file IDs, Auth user, Guest House request, and timestamp. A later permission update creates a new receipt rather than overwriting history.
+Each permission choice is stored as an append-only receipt containing the exact consent version, exact displayed copy, selected replay file IDs, Auth user, Guest House request, and timestamp. The offering is submitted once for the recordings selected in that moment. The Replay Room does not include a self-service withdrawal or post-grant editing control. Any future removal-request workflow will be designed separately with owner notification and tracking before it is introduced. The owner Concierge view distinguishes only:
 
-The client may withdraw permission from the Replay Room. Withdrawal appends a new receipt and does not delete the prior historical record. The owner Concierge view clearly distinguishes:
-
-- no permission recorded;
-- permission granted for named recordings; and
-- permission withdrawn.
+- no offering recorded; and
+- offering received for the named recordings.
 
 This release records the permission and gives the owner a precise file-scoped consent boundary. It does **not** automatically publish recordings into a new Flow FM training-library page. Training-library presentation and automated publication remain a separate future experience.
 
 ## Complimentary session gift
 
-Immediately after the first permission grant, the Replay Room reveals:
+Immediately after the session offering is submitted, the Replay Room reveals:
 
 ```text
 Coupon code: WITNESSED
@@ -46,7 +43,7 @@ Scheduling link: https://meganmichele.as.me/energyreading
 
 The client may copy the code or open the scheduling page directly.
 
-The code is intentionally shared rather than unique. The gift remains available if the client later withdraws future training permission.
+The code is intentionally shared rather than unique. It is revealed only after the session offering is submitted.
 
 ## Multiple replay uploads
 
@@ -75,11 +72,11 @@ Migration 059:
 
 - creates the append-only `flowtel_guest_house_training_consents` table;
 - revokes direct browser table access and enables RLS;
-- adds authenticated grant and withdrawal RPCs tied to the signed-in Guest House account and latest request;
+- adds an authenticated offering RPC tied to the signed-in Guest House account and latest request;
 - verifies every selected file belongs to the client’s active Replay Room;
-- records permission events in the existing append-only Guest House event ledger;
+- records the offering event in the existing append-only Guest House event ledger;
 - snapshots the shared `WITNESSED` code and scheduling URL with the grant;
-- extends the owner Guest House queue with the latest permission state and preserved gift state; and
+- extends the owner Guest House queue with the offering state and gift details; and
 - preserves all prior Guest House requests, files, accounts, receipts, expiration history, and access links.
 
 Do not rerun migration 058, either historical migration 052 body, or retired migration 037.
@@ -90,6 +87,7 @@ Do not rerun migration 058, either historical migration 052 body, or retired mig
 - `database/migration-059-guest-house-flow-fm-training-consent.sql`
 - `docs/CHANGELOG.md`
 - `docs/RELEASE-0.10.74.md`
+- `docs/RELEASE-0.10.74.1.md`
 - `guest-house/index.html`
 - `guest-house/app.js`
 - `guest-house/styles.css`
@@ -113,18 +111,18 @@ This release does not change Flowtel Time, one-stay-per-Flowtel-Day behavior, ap
 ## First test checklist
 
 1. Confirm migration 058 is already live.
-2. Run migration 059 exactly once, then deploy v0.10.74.
+2. Run migration 059 exactly once, then deploy v0.10.74.1.
 3. Sign in to a Guest House account with no ready replay and confirm no training invitation appears yet.
 4. Upload one replay, open the client Replay Room, and confirm the invitation is compact and uses restrained heading sizes.
 5. Confirm no replay checkbox or permission confirmation is preselected.
 6. Submit without choosing a recording and confirm the client receives a gentle validation message.
-7. Select one recording, confirm permission, and save.
-8. Refresh and confirm the granted state persists with the selected recording title.
+7. Select one recording, confirm the offering, and save.
+8. Refresh and confirm the offering state persists with the selected recording title.
 9. Confirm code **WITNESSED** appears immediately and Copy Code works.
 10. Confirm **Schedule My Gift Session** opens `https://meganmichele.as.me/energyreading`.
-11. Return to owner Concierge → Guest House and confirm the same request shows **Permission granted** and the selected replay name.
-12. Withdraw permission from the client Replay Room and confirm the owner view changes to **Permission withdrawn**.
-13. Confirm the gift code remains visible after withdrawal.
+11. Return to owner Concierge → Guest House and confirm the same request shows **Offering received** and the selected replay name.
+12. Confirm there is no self-service withdrawal or post-grant selection editor in the client Replay Room.
+13. Confirm the gift appears only after the offering is submitted.
 14. In the owner queue, select two or more replay files at once and confirm every filename and total size appear.
 15. Upload the batch and confirm files process sequentially with overall progress.
 16. Refresh the client Replay Room and confirm every uploaded file appears as its own recording without “Part 2” language.

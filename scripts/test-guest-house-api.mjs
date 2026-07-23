@@ -64,7 +64,7 @@ try{
       mime_type:'video/mp4',media_kind:'video',size_bytes:1024,note_to_guest:'Held for you.',uploaded_at:'2026-07-20T00:00:00Z',
     }]);
     if(value.includes('/flowtel_guest_house_training_consents?select=')) return jsonResponse([{
-      consent_action:'granted',selected_file_ids:['file-1'],consent_version:'flow-fm-training-v1-2026-07-23',
+      consent_action:'granted',selected_file_ids:['file-1'],consent_version:'flow-fm-training-offering-v2-2026-07-23',
       gift_coupon_code:'WITNESSED',gift_schedule_url:'https://meganmichele.as.me/energyreading',created_at:'2026-07-22T00:00:00Z',
     }]);
     if(value.includes('/storage/v1/object/sign/flowtel-guest-house-replays/request-1/file.mp4')) return jsonResponse({signedURL:'/object/sign/flowtel-guest-house-replays/request-1/file.mp4?token=signed'});
@@ -105,7 +105,7 @@ try{
   await accessHandler({method:'POST',headers:{},body:{token,action:'room'}},accessRes);
   assert.equal(accessRes.statusCode,200,'Existing private Replay Room links must remain preserved.');
 
-  console.log('Guest House account creation, authenticated portal training gift, legacy-link preservation, and signed-media API tests passed.');
+  console.log('Guest House account creation, authenticated portal training offering gift, legacy-link preservation, and signed-media API tests passed.');
 } finally {
   globalThis.fetch=originalFetch;
 }

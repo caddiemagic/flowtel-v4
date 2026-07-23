@@ -1,9 +1,18 @@
+## v0.10.74.1 — Guest House Session Offering Refinement
+
+- Removes the self-service **Withdraw Permission** control and the post-grant recording editor from the Guest House.
+- Frames the optional consent as a session offering, with restrained copy and no oversized header treatment.
+- Keeps recording selection fully optional before submission and reveals **WITNESSED** only after the offering is received.
+- Removes language promising that the complimentary session remains available after a future removal request.
+- Defers removal requests until a tracked owner-notification and publication-state workflow can be designed.
+- Revises migration 059 before live use so it creates grant-only offering receipts and no withdrawal RPC or event.
+
 ## v0.10.74 — Guest House Witnessed Sessions
 
 - Adds an optional signed-in Guest House invitation allowing clients to grant file-scoped permission for selected session recordings to be used privately inside Flow FM for Moon Priestess training.
-- Stores exact, append-only consent and withdrawal receipts without overwriting prior history or preselecting permission.
-- Immediately reveals the shared **WITNESSED** coupon and Megan’s Energy Reading scheduling link after the first permission grant; the gift remains available after a later withdrawal.
-- Shows the owner whether permission is unchosen, granted for named files, or withdrawn, while leaving automatic Flow FM training-library publication deferred.
+- Stores exact, append-only file-scoped offering receipts without preselecting permission.
+- Immediately reveals the shared **WITNESSED** coupon and Megan’s Energy Reading scheduling link after the offering is submitted.
+- Shows the owner whether no offering is recorded or an offering was received for named files, while leaving automatic Flow FM training-library publication deferred.
 - Allows the owner to select and upload multiple Guest House replay files in one batch with sequential progress, retry-safe preserved drafts, and existing finalization recovery.
 - Removes misleading Part 2 / Part 3 labels from independent replay recordings and uses cleaned filenames for distinct multi-file titles.
 - Preserves private Storage, 28-day expiration, signed playback, legacy room keys, Guest House-only product access, passwords, sessions, and all historical records.

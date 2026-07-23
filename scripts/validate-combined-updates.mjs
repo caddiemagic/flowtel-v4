@@ -26,8 +26,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.74'));
-assert(files.managerHtml.includes('app.js?v=0.10.74'));
+assert(files.managerHtml.includes('styles.css?v=0.10.74.1'));
+assert(files.managerHtml.includes('app.js?v=0.10.74.1'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -56,7 +56,7 @@ assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/
 
 assert(!files.guestHtml.includes('A Guest House account, not a Flowtel membership.'));
 assert(files.guestHtml.includes('Your replay will be shared here soon. When you feel called to enter the Flowtel experience, your Queendom is waiting.'));
-assert(files.guestHtml.includes('app.js?v=0.10.74') && files.guestHtml.includes('styles.css?v=0.10.74'),'Guest House cache keys are stale.');
+assert(files.guestHtml.includes('app.js?v=0.10.74.1') && files.guestHtml.includes('styles.css?v=0.10.74.1'),'Guest House cache keys are stale.');
 assert(files.guestJs.includes('flowtel_guest_house_submit_training_consent'),'Guest House training permission is missing.');
 assert(files.guestJs.includes('GUEST_HOUSE_TRAINING_COUPON_CODE') && files.guestJs.includes('GUEST_HOUSE_TRAINING_SCHEDULE_URL'),'Guest House complimentary session gift wiring is missing.');
 assert(files.managerJs.includes('multiple accept=') && files.managerJs.includes('UPLOAD SELECTED REPLAYS'),'Owner multi-replay upload is missing.');

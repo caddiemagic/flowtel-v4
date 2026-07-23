@@ -41,7 +41,7 @@ function assertIdsReferencedExist(name,html,js){
   const references=[...js.matchAll(/getElementById\(['"]([^'"]+)['"]\)/g)].map(match=>match[1]);
   const dynamic=new Set([
     'guestHouseReplayRequestForm','replayRequestStatus','refreshGuestHouseStatus','retryGuestHousePortal',
-    'guestHouseTrainingConsentForm','trainingConsentStatus','trainingConsentTitle','withdrawTrainingConsent',
+    'guestHouseTrainingConsentForm','trainingConsentStatus','trainingConsentTitle',
   ]);
   const missing=[...new Set(references)].filter(id=>!found.has(id)&&!dynamic.has(id));
   assert.deepEqual(missing,[],`${name} JavaScript references missing HTML ids: ${missing.join(', ')}`);
@@ -79,15 +79,14 @@ assert(files.core.includes("Concierge couldn't find the replay"),'Neutral owner-
 assert(!/email invitation|email notification|notify me/i.test(files.portalHtml+files.portalJs),'Guest-facing email notification workflow must remain out of this release.');
 assert(files.portalHtml.includes('JOIN THE QUEENDOM'),'Queendom invitation is missing from the Guest House portal.');
 
-assert(files.portalJs.includes('FLOW FM TRAINING PERMISSION'),'Guest House training permission invitation is missing.');
+assert(files.portalJs.includes('A GENTLE INVITATION'),'Guest House training offering invitation is missing.');
 assert(files.portalJs.includes('Moon Priestesses in training'),'Training audience is not explained to the guest.');
-assert(files.portalJs.includes('flowtel_guest_house_submit_training_consent'),'Authenticated training-consent submission is missing.');
-assert(files.portalJs.includes('flowtel_guest_house_withdraw_training_consent'),'Training-consent withdrawal is missing.');
+assert(files.portalJs.includes('flowtel_guest_house_submit_training_consent'),'Authenticated training-offering submission is missing.');
 assert(files.core.includes("GUEST_HOUSE_TRAINING_COUPON_CODE = 'WITNESSED'"),'Complimentary-session coupon is missing.');
 assert(files.core.includes("GUEST_HOUSE_TRAINING_SCHEDULE_URL = 'https://meganmichele.as.me/energyreading'"),'Complimentary-session schedule link is missing.');
 assert(!files.portalJs.includes(' · PART '),'Independent replay files must not be mislabeled as recording parts.');
-assert(files.portalCss.includes('.training-consent-card'),'Gentle Guest House training-permission styling is missing.');
-assert(files.portalCss.includes('font-size:clamp(1.35rem,2.4vw,1.85rem)'),'Training permission headings must remain restrained rather than oversized.');
+assert(files.portalCss.includes('.training-consent-card'),'Gentle Guest House training-offering styling is missing.');
+assert(files.portalCss.includes('font-size:clamp(1.35rem,2.4vw,1.85rem)'),'Training offering headings must remain restrained rather than oversized.');
 
 assert(files.accountApi.includes('/auth/v1/admin/users'),'Guest House account endpoint does not create the Auth identity.');
 assert(files.accountApi.includes('email_confirm:true'),'Guest House account creation would require an email confirmation integration.');
@@ -125,13 +124,21 @@ assert(!/grant\s+(select|insert|update|delete)\s+on\s+public\.flowtel_guest_hous
 assert(files.migration059.includes('create table if not exists public.flowtel_guest_house_training_consents'),'Training consent receipt table is missing.');
 assert(files.migration059.includes('alter table public.flowtel_guest_house_training_consents enable row level security;'),'Training consent RLS is missing.');
 assert(files.migration059.includes('revoke all on public.flowtel_guest_house_training_consents from anon, authenticated;'),'Direct browser access to training consent receipts was not revoked.');
-assert(files.migration059.includes("consent_action in ('granted','withdrawn')"),'Append-only grant/withdraw consent actions are missing.');
+assert(files.migration059.includes("check (consent_action = 'granted')"),'Training offering receipts must be grant-only.');
+assert(files.migration059.includes('flowtel_guest_house_training_consents_request_unique_idx'),'Each Replay Room must receive at most one session offering.');
+assert(files.migration059.includes('This session offering has already been received.'),'Duplicate offering protection is missing.');
 assert(files.migration059.includes('flowtel_guest_house_submit_training_consent'),'Guest consent RPC is missing.');
-assert(files.migration059.includes('flowtel_guest_house_withdraw_training_consent'),'Guest consent withdrawal RPC is missing.');
 assert(files.migration059.includes("v_coupon constant text := 'WITNESSED'"),'Shared gift coupon snapshot is missing from migration 059.');
 assert(files.migration059.includes("v_schedule_url constant text := 'https://meganmichele.as.me/energyreading'"),'Gift scheduling URL snapshot is missing from migration 059.');
-assert(files.migration059.includes("'training_consent_granted','training_consent_withdrawn'"),'Guest House append-only event types are missing.');
+assert(files.migration059.includes("'training_consent_granted'"),'Guest House training-offering event type is missing.');
 assert(files.migration059.includes('training_consent jsonb'),'Owner queue training permission snapshot is missing.');
+assert(!files.portalJs.includes('withdrawTrainingConsent'),'Replay Room must not offer self-service withdrawal.');
+assert(!files.portalJs.includes('flowtel_guest_house_withdraw_training_consent'),'Replay Room must not call a withdrawal RPC.');
+assert(!files.portalJs.includes('Change which recordings I am sharing'),'Granted offerings must not imply self-service removal or editing.');
+assert(files.portalJs.includes('Your session has been received as an offering.'),'Offering confirmation copy is missing.');
+assert(!files.portalJs.includes('Your gift remains yours even if'),'Gift copy must not promise preservation after a future removal request.');
+assert(!files.migration059.includes('flowtel_guest_house_withdraw_training_consent'),'Migration 059 must not create self-service withdrawal.');
+assert(!files.migration059.includes('training_consent_withdrawn'),'Migration 059 must not add a withdrawal event.');
 assert(!/grant\s+(select|insert|update|delete)\s+on\s+public\.flowtel_guest_house_training_consents/i.test(files.migration059),'Training consent table access was granted directly to a browser role.');
 assert(files.supabase.includes('role === "guest_house"'),'Guest House route-boundary redirect is missing.');
 assert(files.supabase.includes('/guest-house/?access=guest-house-only'),'Guest House-only accounts are not redirected safely.');
@@ -153,8 +160,8 @@ assert(!files.managerJs.includes('sendGuestHouseInvitation'),'Concierge must not
 assert(!files.managerJs.includes('CALL DATE / MONTH'),'Removed call-date field still appears in Concierge.');
 assert(files.managerJs.includes('WHAT THE CLIENT REMEMBERS ABOUT THE CALL'),'Concierge call-memory field is missing.');
 assert(!files.managerJs.includes('from "../shared/guest-house.js'),'Guest House must remain a lazy dependency of the Concierge access gate.');
-assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.74")'),'Guest House lazy module cache-bust is missing.');
-assert(files.managerHtml.includes('import("./app.js?v=0.10.74")'),'Concierge dynamic loader cache-bust is missing.');
+assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.74.1")'),'Guest House lazy module cache-bust is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.74.1")'),'Concierge dynamic loader cache-bust is missing.');
 
 
 assert(files.migration050.includes("interval '28 days'"),'Migration 050 does not establish the 28-day replay stay.');

@@ -108,8 +108,8 @@ async function ensureGuestHouseModules(){
   if(guestHouseApi && guestHouseCore) return {api:guestHouseApi,core:guestHouseCore};
   if(!guestHouseModulePromise){
     guestHouseModulePromise=Promise.all([
-      import("../shared/guest-house.js?v=0.10.74"),
-      import("../shared/guest-house-core.js?v=0.10.74"),
+      import("../shared/guest-house.js?v=0.10.74.1"),
+      import("../shared/guest-house-core.js?v=0.10.74.1"),
     ]).then(([api,core])=>{
       const required=[
         "createGuestHouseOwnerDownloadUrl",
@@ -2128,12 +2128,9 @@ function guestHouseTrainingConsentMarkup(request,files=[]){
   const selected=files.filter(file=>fileIds.includes(String(file.file_id)));
   const selectedNames=selected.map(file=>file.display_title || file.original_filename || 'Call replay');
   if(status==='granted'){
-    return `<section class="guest-house-training-consent is-granted"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>Permission granted</h4><span>${selectedNames.length?escapeHtml(selectedNames.join(' · ')):'Selected replay permission is preserved.'}</span></div><div><strong>WITNESSED</strong><span>Complimentary session gift revealed ${consent.gift_granted_at?escapeHtml(managerDateLabel(consent.gift_granted_at,{withTime:false})):'to the guest'}.</span></div></section>`;
+    return `<section class="guest-house-training-consent is-granted"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>Offering received</h4><span>${selectedNames.length?escapeHtml(selectedNames.join(' · ')):'The selected replay offering is preserved.'}</span></div><div><strong>WITNESSED</strong><span>Complimentary session gift revealed ${consent.gift_granted_at?escapeHtml(managerDateLabel(consent.gift_granted_at,{withTime:false})):'to the guest'}.</span></div></section>`;
   }
-  if(status==='withdrawn'){
-    return `<section class="guest-house-training-consent is-withdrawn"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>Permission withdrawn</h4><span>Do not share these recordings in Flow FM unless the guest grants a new permission receipt.</span></div>${consent?.gift_granted?'<div><strong>GIFT PRESERVED</strong><span>The complimentary session remains hers.</span></div>':''}</section>`;
-  }
-  return `<section class="guest-house-training-consent"><div><p class="eyebrow">FLOW FM TRAINING PERMISSION</p><h4>No permission recorded</h4><span>The guest may opt in privately from her Replay Room after a recording is available.</span></div></section>`;
+  return `<section class="guest-house-training-consent"><div><p class="eyebrow">FLOW FM SESSION OFFERING</p><h4>No offering recorded</h4><span>The guest may opt in privately from her Replay Room after a recording is available.</span></div></section>`;
 }
 
 function guestHousePendingMarkup(requestId){
