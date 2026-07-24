@@ -349,3 +349,41 @@ body.flowfm-platform-page .queendom-profile-shell .team-map-nav{margin-bottom:14
   body.flowfm-platform-page .progress-card,
   body.flowfm-platform-page .you-are-here-card{grid-template-columns:1fr!important}
 }
+
+
+/* v0.10.77 — 13 Moons curriculum consolidation. */
+body.flowfm-platform-page .curriculum-hero{max-width:760px;margin-inline:auto;text-align:center}
+body.flowfm-platform-page .curriculum-heading{max-width:680px}
+body.flowfm-platform-page .moon-curriculum-path{display:grid;gap:16px}
+body.flowfm-platform-page .moon-curriculum-card{display:block;padding:20px;overflow:visible}
+body.flowfm-platform-page .moon-curriculum-card:before,
+body.flowfm-platform-page .moon-curriculum-card:after{display:none}
+body.flowfm-platform-page .moon-card-header{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:16px;align-items:start}
+body.flowfm-platform-page .moon-card-title-block h3{margin:0 0 6px}
+body.flowfm-platform-page .moon-theme{margin:0;max-width:760px}
+body.flowfm-platform-page .current-moon-marker{border:1px solid var(--ffm-line-gold);border-radius:999px;padding:7px 10px;background:rgba(245,230,225,.56);color:var(--ffm-rose-dark);font:700 .58rem/1 Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+body.flowfm-platform-page .moon-curriculum-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:18px}
+body.flowfm-platform-page .moon-curriculum-piece{display:flex;flex-direction:column;min-height:190px;border:1px solid var(--ffm-line);border-radius:16px;background:rgba(255,253,249,.7);padding:16px}
+body.flowfm-platform-page .moon-curriculum-piece.piece-womb{border-left:3px solid rgba(167,95,97,.42)}
+body.flowfm-platform-page .moon-curriculum-piece.piece-busy{border-left:3px solid rgba(194,148,59,.46)}
+body.flowfm-platform-page .moon-piece-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+body.flowfm-platform-page .moon-piece-label{margin:0;color:var(--ffm-rose);font:700 .61rem/1.2 Arial,sans-serif;letter-spacing:.14em;text-transform:uppercase}
+body.flowfm-platform-page .moon-curriculum-piece h4{margin:12px 0 7px;color:var(--ffm-rose-dark);font-size:clamp(1.14rem,2vw,1.35rem);line-height:1.2;font-weight:400}
+body.flowfm-platform-page .moon-curriculum-piece>p:not(.moon-piece-label){margin:0 0 16px;color:var(--ffm-muted);font-size:.93rem;line-height:1.5}
+body.flowfm-platform-page .moon-piece-link{margin-top:auto;color:var(--ffm-rose-dark);font:700 .62rem/1 Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-decoration:none}
+body.flowfm-platform-page .moon-piece-link:hover{text-decoration:underline}
+body.flowfm-platform-page .moon-card-footer{display:flex;justify-content:flex-end;margin-top:12px}
+body.flowfm-platform-page .moon-curriculum-card.is-locked{opacity:.78}
+body.flowfm-platform-page .moon-curriculum-piece.is-sealed{min-height:130px;background:rgba(245,241,235,.72)}
+body.flowfm-platform-page .curriculum-portal-layout{align-items:start}
+body.flowfm-platform-page .portal-panel--training,
+body.flowfm-platform-page .portal-panel--busy-work{scroll-margin-top:20px}
+body.flowfm-platform-page .legacy-curriculum-card{max-width:680px;margin:80px auto;text-align:center}
+@media(max-width:760px){
+  body.flowfm-platform-page .moon-card-header{grid-template-columns:auto minmax(0,1fr)}
+  body.flowfm-platform-page .current-moon-marker{grid-column:1/-1;justify-self:start}
+  body.flowfm-platform-page .moon-curriculum-grid{grid-template-columns:1fr}
+  body.flowfm-platform-page .moon-curriculum-piece{min-height:0}
+  body.flowfm-platform-page .moon-card-footer{justify-content:stretch}
+  body.flowfm-platform-page .moon-card-footer .pill-link{width:100%}
+}

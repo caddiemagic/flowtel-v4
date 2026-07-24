@@ -21,7 +21,7 @@ export const FLOW_FM_MOONS = [
   { index: 13, month: '13TH', name: 'Ouroboros Moon', wing: '13th Wing', season: 'Final Initiation', theme: 'The ending and the beginning, integration, evolution, and higher-self embodiment.' },
 ];
 
-export const FLOW_FM_ASSIGNMENTS = [
+export const FLOW_FM_BUSY_WORK = [
   { index: 1, title: 'Your Queendom', type: 'Profile Foundation', description: 'Choose the first public doorway for your Priestess Profile so your Queendom can begin taking shape without overthinking the bio.' },
   { index: 2, title: 'Record Womb Wealth Affirmation Audio', type: 'Audio Medicine', description: 'Create a short audio transmission your future clients can return to for womb wealth, receptivity, and overflow.' },
   { index: 3, title: 'Create Your Offerings', type: 'Offer Architecture', description: 'Name and shape the first offerings that your Queendom can actually book, buy, or receive.' },
@@ -36,6 +36,9 @@ export const FLOW_FM_ASSIGNMENTS = [
   { index: 12, title: 'Record 4 Inner Seasons Video', type: 'Framework Teaching', description: 'Create a teaching for Winter, Spring, Summer, and Autumn so clients can orient inside the Flowtel framework.' },
   { index: 13, title: 'Host a Live Masterclass + Launch', type: 'Queendom Launch', description: 'Open the Golden Gates: invite women into your Queendom and begin your next cycle of leadership.' },
 ];
+
+// Historical/database compatibility: existing RPCs and stored records retain the assignment name.
+export const FLOW_FM_ASSIGNMENTS = FLOW_FM_BUSY_WORK;
 
 export const FLOW_FM_ARCS = [
   { label: 'Big Vision', range: 'Months 1–3', moons: [1,2,3], copy: 'Collect cycle data, study your inner seasons, and cultivate the vision that will become your medicine business.' },
@@ -122,8 +125,13 @@ export function getMoonDatesForPortal(portal = {}, nowDate = new Date()){
 }
 
 
+export function getFlowFmBusyWorkForMoon(moonIndex){
+  return FLOW_FM_BUSY_WORK.find(item => Number(item.index) === Number(moonIndex)) || null;
+}
+
+// Compatibility alias used by existing RPC-facing modules.
 export function getFlowFmAssignmentForMoon(moonIndex){
-  return FLOW_FM_ASSIGNMENTS.find(item => Number(item.index) === Number(moonIndex)) || null;
+  return getFlowFmBusyWorkForMoon(moonIndex);
 }
 
 export function getFlowFmArcForMoon(moonIndex){
@@ -248,7 +256,8 @@ export function getPersonalizedMoonPath(profile = {}, nowDate = new Date()) {
       isOuroboros: false,
       returnMoon: null,
       wombWorkModule: getWombWorkModule(portalIndex),
-      businessAssignment: FLOW_FM_ASSIGNMENTS.find(item => item.index === portalIndex) || null,
+      busyWork: FLOW_FM_BUSY_WORK.find(item => item.index === portalIndex) || null,
+      businessAssignment: FLOW_FM_BUSY_WORK.find(item => item.index === portalIndex) || null,
       isCurrent: Number(status.progressMonth || 1) === portalIndex,
       status,
     };
@@ -261,7 +270,8 @@ export function getPersonalizedMoonPath(profile = {}, nowDate = new Date()) {
     isOuroboros: true,
     returnMoon,
     wombWorkModule: getWombWorkModule(13),
-    businessAssignment: FLOW_FM_ASSIGNMENTS.find(item => item.index === 13) || null,
+    busyWork: FLOW_FM_BUSY_WORK.find(item => item.index === 13) || null,
+    businessAssignment: FLOW_FM_BUSY_WORK.find(item => item.index === 13) || null,
     isCurrent: Number(status.progressMonth || 1) >= 13,
     status,
   };

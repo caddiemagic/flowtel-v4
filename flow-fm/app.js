@@ -4,11 +4,11 @@ import {
   flowFmProgressPercent,
   getPersonalizedMoonPath,
   getWombWorkModule,
-  getFlowFmAssignmentForMoon,
+  getFlowFmBusyWorkForMoon,
   getMoonDatesForPortal,
-} from '/shared/flowtel.js?v=0.10.75';
+} from '/shared/flowtel.js?v=0.10.77';
 import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum, canAccessHourlyFlowRate } from '/shared/rollout.js';
-import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.76';
+import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.77';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');
@@ -127,7 +127,7 @@ function renderStatus(profile){
   const path=getPersonalizedMoonPath(profile || {});
   const currentPortal=path.find(item=>item.isCurrent) || path[0];
   const currentModule=getWombWorkModule(status.progressMonth || 1) || currentPortal.wombWorkModule;
-  const currentAssignment=getFlowFmAssignmentForMoon(status.progressMonth || 1) || currentPortal.businessAssignment;
+  const currentBusyWork=getFlowFmBusyWorkForMoon(status.progressMonth || 1) || currentPortal.busyWork || currentPortal.businessAssignment;
   currentMoonTitle.textContent=status.hasStartDate ? currentPortal.name : 'Temple Moon preview';
   currentMoonMeta.innerHTML=status.hasStartDate
     ? `${escapeHtml(status.monthLine)}<div class="progress-pulse"><span style="width:${flowFmProgressPercent(status)}%"></span></div>`
@@ -140,7 +140,7 @@ function renderStatus(profile){
   currentPortalLink.textContent=curriculumOpen ? 'Open Current Moon Portal' : hourlyFlowRateOpen ? 'Open Hourly Flow Rate' : 'Open Profile Studio';
   nextDoorTitle.textContent=curriculumOpen ? `Open ${currentPortal.name} Portal` : hourlyFlowRateOpen ? 'Cultivate Your BIG VISION' : 'Open Your Profile Studio';
   nextDoorCopy.textContent=curriculumOpen
-    ? 'Your Moon portal gathers the current training, womb work, business assignment, and next step in one place.'
+    ? 'Your Moon portal gathers the current training, womb work, Busy Work, and next step in one place.'
     : hourlyFlowRateOpen
       ? 'The Hourly Flow Rate begins with four seasonal locations and the revenue required to support them.'
       : 'Phase 1 beta is focused on the guest journey and your profile submission flow. The rest of the curriculum is staying sealed for now.';
@@ -148,9 +148,9 @@ function renderStatus(profile){
   currentModuleCopy.innerHTML=curriculumOpen
     ? `${escapeHtml(currentModule?.description || 'Your inner curriculum lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#womb-work">Open Current Womb Work</a></div>`
     : `Guest arrival, check-in rhythm, mentor selection, Profile Studio submission, and the Hourly Flow Rate BIG VISION practice are open in this phase.<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/hourly-flow-rate/">Open Hourly Flow Rate</a></div>`;
-  currentAssignmentTitle.textContent=curriculumOpen ? (currentAssignment?.title || 'Business Assignment') : 'Profile submission';
+  currentAssignmentTitle.textContent=curriculumOpen ? (currentBusyWork?.title || 'Busy Work') : 'Profile submission';
   currentAssignmentCopy.innerHTML=curriculumOpen
-    ? `${escapeHtml(currentAssignment?.description || 'Your outer build task lives inside the current moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="${Number(currentAssignment?.index || 0)===1 ? '/flow-fm/profile-studio/' : `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#business-assignment`}">Open Current Business Assignment</a></div>`
+    ? `${escapeHtml(currentBusyWork?.description || 'Your practical build task lives inside the current Moon portal.')}<div class="module-cta-row"><a class="pill-link muted" href="${Number(currentBusyWork?.index || 0)===1 ? '/flow-fm/profile-studio/' : `/flow-fm/portal/?portal=${currentPortal.portalIndex || 1}#busy-work`}">Open Current Busy Work</a></div>`
     : `Use the Profile Studio to choose your title, bio, offerings, and send your Priestess Profile to be witnessed.<div class="module-cta-row"><a class="pill-link muted" href="/flow-fm/profile-studio/">Open Profile Studio</a></div>`;
   renderPortalDoors(path, profile);
 }
@@ -171,7 +171,7 @@ async function init(){
     const state=renderAccessState(profile);
     heroCopy.textContent=profile
       ? (canAccessFlowFmCurriculum(profile)
-          ? 'Your current Moon, practices, and planning rooms are organized here. Begin with the current Moon, then open only the tools you need.'
+          ? 'Your current Moon, Womb Work, Busy Work, and planning rooms are organized here. Begin with the current Moon, then open only what you need.'
           : 'The guest journey, Profile Studio, and Hourly Flow Rate are open. Additional Moon rooms remain sealed while beta testing is localized.')
       : 'Preview the Flow FM rooms, then sign in to open your personalized Moon path.';
     setMessage(message,state.mode==='readonly' ? 'Flow FM access signals are not fully recognized yet. The hallway remains visible while you verify profile data.' : '');

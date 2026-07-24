@@ -4,38 +4,29 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Moon Portal</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.76" />
-  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
-  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.77" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.77" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.77" />
 </head>
-<body class="flowfm-platform-page">
+<body class="flowfm-platform-page flowfm-moon-portal-page">
   <main class="initiation-shell initiation-shell--portal">
     <nav class="top-nav" id="topNav"></nav>
-
     <section class="hero-card hero-card--portal flowfm-page-hero">
       <p class="eyebrow" id="portalEyebrow">MOON PORTAL</p>
       <h1 id="portalTitle">Opening Moon Portal</h1>
-      <p id="portalIntro">Your current teaching, practice, assignment, and next action are organized here.</p>
+      <p id="portalIntro">Womb Work and Busy Work are organized together inside this Moon.</p>
     </section>
-
     <section class="you-are-here-card">
-      <div>
-        <p class="eyebrow">YOU ARE HERE</p>
-        <h2 id="hereTitle">Finding your current moon...</h2>
-        <p id="hereCopy"></p>
-      </div>
+      <div><p class="eyebrow">YOU ARE HERE</p><h2 id="hereTitle">Finding your current Moon...</h2><p id="hereCopy"></p></div>
       <div class="next-actions-stack" id="portalActions"></div>
     </section>
-
-    <section class="portal-layout">
+    <section class="portal-layout curriculum-portal-layout">
       <article class="portal-panel portal-panel--moon" id="moonPanel"></article>
-      <article class="portal-panel portal-panel--training" id="trainingPanel"></article>
-      <article class="portal-panel portal-panel--assignment" id="assignmentPanel"></article>
+      <article class="portal-panel portal-panel--training" id="womb-work"></article>
+      <article class="portal-panel portal-panel--assignment portal-panel--busy-work" id="busy-work"></article>
     </section>
-
-
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/portal/page.js?v=0.10.76"></script>
+  <script type="module" src="/flow-fm/portal/page.js?v=0.10.77"></script>
 </body>
 </html>

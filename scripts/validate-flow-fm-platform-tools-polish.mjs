@@ -19,7 +19,7 @@ const platformPages=[
 ];
 for(const file of platformPages){
   const html=await read(file);
-  assert(html.includes('/flow-fm/platform.css?v=0.10.76'),`${file} is missing the shared platform stylesheet.`);
+  assert(html.includes('/flow-fm/platform.css?v=0.10.77'),`${file} is missing the shared platform stylesheet.`);
   assert(html.includes('flowfm-platform-page'),`${file} is missing the shared platform body class.`);
 }
 

@@ -29,7 +29,7 @@ assert(js.includes('seasonRoomForm'), 'Unified seasonal room form is missing.');
 assert(js.includes('calculateNourishmentTotal'), 'Detailed nourishment calculation is not wired into the experience.');
 assert(js.includes('calculateSelfCareServiceTotal'), 'Detailed self-care calculation is not wired into the experience.');
 assert(js.includes('financial, tax, legal, or investment advice'), 'Educational disclaimer missing.');
-assert(html.includes('/flow-fm/platform.css?v=0.10.76'), 'Shared Flow FM platform stylesheet is missing.');
+assert(html.includes('/flow-fm/platform.css?v=0.10.77'), 'Shared Flow FM platform stylesheet is missing.');
 
 for (const table of ['plans','seasons','cost_entries','home_base','snapshots']) {
   assert(migration.includes(`alter table public.flowtel_hourly_flow_rate_${table} enable row level security;`), `RLS missing for ${table}.`);

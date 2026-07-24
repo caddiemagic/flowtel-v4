@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import path from 'node:path';
+const root=path.resolve(new URL('..',import.meta.url).pathname);
+const read=rel=>fs.readFileSync(path.join(root,rel),'utf8');
+const assert=(condition,message)=>{ if(!condition) throw new Error(message); };
+
+const ui=read('flow-fm/ui.js');
+const moonsHtml=read('flow-fm/moons/index.html');
+const moonsJs=read('flow-fm/moons/page.js');
+const portalHtml=read('flow-fm/portal/index.html');
+const portalJs=read('flow-fm/portal/page.js');
+const reviewHtml=read('flow-fm/review/index.html');
+const reviewJs=read('flow-fm/review/page.js');
+const initiation=read('shared/initiation.js');
+const styles=read('flow-fm/platform.css');
+
+assert(!ui.includes("label: 'Womb Work'"),'Womb Work remains a separate top-nav item.');
+assert(!ui.includes("label: 'Assignments'"),'Assignments remains a separate top-nav item.');
+assert(moonsHtml.includes('Each Moon holds its Womb Work and Busy Work together'),'13 Moons does not explain the consolidated model.');
+assert(moonsJs.includes('moon-curriculum-grid'),'Moon cards do not render the two-part curriculum grid.');
+assert(moonsJs.includes("label:'Womb Work'") && moonsJs.includes("label:'Busy Work'"),'Moon cards are missing Womb Work or Busy Work.');
+assert(portalHtml.includes('id="womb-work"') && portalHtml.includes('id="busy-work"'),'Moon Portal does not expose both curriculum sections.');
+assert(portalJs.includes('BUSY WORK ${escapeHtml'),'Moon Portal still lacks Busy Work display language.');
+assert(reviewHtml.includes('BUSY WORK REVIEW QUEUE'),'Review Desk heading was not renamed.');
+assert(reviewJs.includes('#busy-work'),'Review queue does not deep-link to the Busy Work section.');
+assert(initiation.includes('FLOW_FM_ASSIGNMENTS = FLOW_FM_BUSY_WORK'),'Historical assignment alias is not preserved.');
+assert(styles.includes('.moon-curriculum-grid'),'Consolidated curriculum styling is missing.');
+assert(read('flow-fm/womb-work/page.js').includes("window.location.replace"),'Legacy Womb Work route does not forward.');
+assert(read('flow-fm/assignments/page.js').includes("window.location.replace"),'Legacy Assignments route does not forward.');
+console.log('Flow FM curriculum consolidation validation passed.');

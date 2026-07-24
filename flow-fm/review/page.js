@@ -5,9 +5,9 @@ import {
   reviewFlowFmAssignment,
   listPriestessProfileReviewQueue,
   reviewPriestessProfile,
-} from '/shared/flowtel.js';
-import {
+} from '/shared/flowtel.js?v=0.10.77';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
+import {
   renderTopNav,
   renderAccessCard,
   escapeHtml,
@@ -16,7 +16,7 @@ import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-a
   statusPill,
   profileStatusPill,
   isAdminRole,
-} from '/flow-fm/ui.js?v=0.10.76';
+} from '/flow-fm/ui.js?v=0.10.77';
 
 const topNav = document.getElementById('topNav');
 const accessState = document.getElementById('accessState');
@@ -29,7 +29,7 @@ const message = document.getElementById('message');
 let currentProfile = null;
 
 function reviewLink(row){
-  return `<a href="/flow-fm/assignments/?member=${encodeURIComponent(row.member_id)}">Open member assignment path</a>`;
+  return `<a href="/flow-fm/portal/?portal=${encodeURIComponent(row.assignment_index)}&member=${encodeURIComponent(row.member_id)}#busy-work">Open member Busy Work</a>`;
 }
 function renderReviewQueue(rows=[]){
   if(!isAdminRole(currentProfile)){
@@ -37,14 +37,14 @@ function renderReviewQueue(rows=[]){
     return;
   }
   if(!rows.length){
-    reviewQueue.innerHTML = `<article class="review-row empty"><p>No submitted assignments are waiting in the queue.</p></article>`;
+    reviewQueue.innerHTML = `<article class="review-row empty"><p>No submitted Busy Work is waiting in the queue.</p></article>`;
     return;
   }
   reviewQueue.innerHTML = rows.map(row => {
     const assignment = getFlowFmAssignmentForMoon(row.assignment_index);
     const submission = safeHref(row.submission_url);
     const attachment = safeHref(row.attachment_url);
-    return `<article class="review-row" data-review-id="${escapeHtml(row.id)}"><div class="review-heading"><div><p class="eyebrow">${escapeHtml(row.member_name)} · ASSIGNMENT ${escapeHtml(row.assignment_index)}</p><h3>${escapeHtml(assignment?.title || 'Flow FM Assignment')}</h3><p>${escapeHtml(row.submission_text || 'No written note was included.')}</p><div class="assignment-links">${submission ? `<a href="${escapeHtml(submission)}" target="_blank" rel="noreferrer">Open assignment link</a>` : ''}${attachment ? `<a href="${escapeHtml(attachment)}" target="_blank" rel="noreferrer">Open file/media link</a>` : ''}${reviewLink(row)}</div></div>${statusPill(row.status)}</div><div class="review-form"><label><span>Mentor note</span><textarea rows="3" data-review-note placeholder="Leave the note she should receive after this is witnessed.">${escapeHtml(row.mentor_note || '')}</textarea></label>${isAdminRole(currentProfile) ? `<label><span>Admin note</span><textarea rows="3" data-admin-note placeholder="Internal Flowtel note.">${escapeHtml(row.admin_note || '')}</textarea></label>` : ''}<div class="assignment-actions review-actions"><button type="button" data-review-status="reviewed">Mark Reviewed</button><button type="button" data-review-status="complete">Mark Complete</button><button type="button" data-review-status="needs_revision">Request Revision</button></div></div></article>`;
+    return `<article class="review-row" data-review-id="${escapeHtml(row.id)}"><div class="review-heading"><div><p class="eyebrow">${escapeHtml(row.member_name)} · BUSY WORK ${escapeHtml(row.assignment_index)}</p><h3>${escapeHtml(assignment?.title || 'Flow FM Busy Work')}</h3><p>${escapeHtml(row.submission_text || 'No written note was included.')}</p><div class="assignment-links">${submission ? `<a href="${escapeHtml(submission)}" target="_blank" rel="noreferrer">Open Busy Work link</a>` : ''}${attachment ? `<a href="${escapeHtml(attachment)}" target="_blank" rel="noreferrer">Open file/media link</a>` : ''}${reviewLink(row)}</div></div>${statusPill(row.status)}</div><div class="review-form"><label><span>Mentor note</span><textarea rows="3" data-review-note placeholder="Leave the note she should receive after this is witnessed.">${escapeHtml(row.mentor_note || '')}</textarea></label>${isAdminRole(currentProfile) ? `<label><span>Admin note</span><textarea rows="3" data-admin-note placeholder="Internal Flowtel note.">${escapeHtml(row.admin_note || '')}</textarea></label>` : ''}<div class="assignment-actions review-actions"><button type="button" data-review-status="reviewed">Mark Reviewed</button><button type="button" data-review-status="complete">Mark Complete</button><button type="button" data-review-status="needs_revision">Request Revision</button></div></div></article>`;
   }).join('');
   reviewQueue.querySelectorAll('[data-review-status]').forEach(button => {
     button.addEventListener('click', () => handleReviewAction(button.closest('[data-review-id]'), button.dataset.reviewStatus));
@@ -56,13 +56,13 @@ async function handleReviewAction(row, status){
   const mentorNote = row.querySelector('[data-review-note]')?.value || '';
   const adminNote = row.querySelector('[data-admin-note]')?.value || '';
   try{
-    setMessage(message, 'Tending this assignment review...');
+    setMessage(message, 'Tending this Busy Work review...');
     await reviewFlowFmAssignment({ submissionId, status, mentorNote, adminNote });
     await refresh();
-    setMessage(message, 'Assignment review saved.');
+    setMessage(message, 'Busy Work review saved.');
   }catch(error){
     console.error(error);
-    setMessage(message, error.message || 'This assignment could not be reviewed yet.');
+    setMessage(message, error.message || 'This Busy Work could not be reviewed yet.');
   }
 }
 function renderProfileReviewQueue(rows=[]){
@@ -116,9 +116,9 @@ async function refresh(){
   if(assignmentResult.status === 'fulfilled'){
     renderReviewQueue(assignmentResult.value || []);
   }else{
-    console.error('Assignment review queue failed.', assignmentResult.reason);
+    console.error('Busy Work review queue failed.', assignmentResult.reason);
     renderReviewQueue([]);
-    notices.push(`Assignment queue could not be loaded: ${errorMessage(assignmentResult.reason)}`);
+    notices.push(`Busy Work queue could not be loaded: ${errorMessage(assignmentResult.reason)}`);
   }
 
   if(profileResult.status === 'fulfilled'){

@@ -64,7 +64,7 @@ assert(files.migration.includes('flowtel_availability_save_day'),'Legacy cached 
 assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/availability/'].includes(row.source)&&row.destination==='/flow-fm/availability/index.html'),'Availability rewrite is missing.');
 
 assert(files.platformCss.includes('quiet-luxury Flow FM platform shell'));
-assert(files.hfrHtml.includes('/flow-fm/platform.css?v=0.10.76'));
+assert(files.hfrHtml.includes('/flow-fm/platform.css?v=0.10.77'));
 assert(files.hfrPage.includes('roundHourlyFlowRateUp') && files.hfrPage.includes('data-hourly-flow-rate-result'),'Hourly Flow Rate is not rounded upward and surfaced at the top.');
 assert(!files.hfrPage.includes('PRIVATE WITNESSING') && !files.hfrHtml.includes('witnessRoom'),'Private Witnessing remains in Hourly Flow Rate.');
 assert(files.hfrPage.includes('seasonRoomForm'),'Unified seasonal room form is missing.');

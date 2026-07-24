@@ -1,8 +1,8 @@
-import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.75';
+import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.77';
 import { effectiveFlowFmRank } from '/shared/rollout.js?v=0.10.64';
-import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.76';
-import { loadFlowFmAvailability, saveFlowFmAvailabilitySeason } from '/shared/flow-fm-availability.js?v=0.10.76';
-import { FLOW_FM_INNER_SEASONS, FLOW_FM_WEEKDAYS } from '/shared/flow-fm-availability-core.js?v=0.10.76';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.77';
+import { loadFlowFmAvailability, saveFlowFmAvailabilitySeason } from '/shared/flow-fm-availability.js?v=0.10.77';
+import { FLOW_FM_INNER_SEASONS, FLOW_FM_WEEKDAYS } from '/shared/flow-fm-availability-core.js?v=0.10.77';
 
 const topNav=document.getElementById('topNav');
 const experience=document.getElementById('availabilityExperience');

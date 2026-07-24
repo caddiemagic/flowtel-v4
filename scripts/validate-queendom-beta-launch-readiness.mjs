@@ -37,7 +37,7 @@ assert(hallHtml.includes('<h1>13 Moons</h1>'), 'Initiation Hall title was not ch
 assert(!hallHtml.includes('The Doors Ahead'), 'The old Initiation Hall title remains.');
 assert(hallHtml.includes('CURRENT MOON') && hallHtml.includes('NEXT STEP'), 'Initiation Hall orientation labels are incomplete.');
 assert(hallHtml.includes('ROOMS + TOOLS'), 'Initiation Hall support-room hierarchy is missing.');
-assert(hallHtml.includes('app.js?v=0.10.76') && hallHtml.includes('styles.css?v=0.10.76'), 'Initiation Hall cache keys are stale.');
+assert(hallHtml.includes('app.js?v=0.10.77') && hallHtml.includes('styles.css?v=0.10.77'), 'Initiation Hall cache keys are stale.');
 assert(hallUi.includes("label: 'Availability'"), 'Flow FM navigation still says Client-Facing Calls.');
 assert(hallApp.includes("eyebrow:'AVAILABILITY'"), 'Availability support-room label is stale.');
 assert(hallCss.includes('Initiation Hall quiet-luxury rhythm'), 'Quiet-luxury Initiation Hall styling is missing.');

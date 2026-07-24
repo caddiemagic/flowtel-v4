@@ -1,7 +1,7 @@
-import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.75';
+import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.77';
 import { canAccessHourlyFlowRate } from '/shared/rollout.js?v=0.10.73';
 import { isProductAccessError, redirectForDeniedProduct } from '/shared/product-access.js?v=0.10.73';
-import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.76';
+import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.77';
 import {
   CURRENCY_OPTIONS,
   LAYER_LABELS,
@@ -18,7 +18,7 @@ import {
   roundHourlyFlowRateUp,
   seasonDisplayName,
   seasonStatus,
-} from '/shared/hourly-flow-rate-calculations.js?v=0.10.76';
+} from '/shared/hourly-flow-rate-calculations.js?v=0.10.77';
 import {
   deleteHourlyFlowRateCostEntry,
   hourlyFlowRateSeasonLocation,
@@ -29,7 +29,7 @@ import {
   saveHourlyFlowRateHomeBase,
   saveHourlyFlowRatePlanState,
   setHourlyFlowRateBaseCurrency,
-} from '/shared/hourly-flow-rate.js?v=0.10.76';
+} from '/shared/hourly-flow-rate.js?v=0.10.77';
 
 const topNav = document.getElementById('topNav');
 const accessGate = document.getElementById('accessGate');

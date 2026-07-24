@@ -1,3 +1,14 @@
+## v0.10.77 — 13 Moons Curriculum Consolidation
+
+- Makes 13 Moons the single Flow FM curriculum hub.
+- Places Womb Work and Busy Work together inside every personalized Moon card and Moon portal.
+- Renames member-facing Assignments and Business Assignments to Busy Work while preserving assignment-based database/RPC compatibility and all saved history.
+- Removes standalone Womb Work and Assignments links from primary Flow FM navigation.
+- Keeps legacy curriculum URLs as compatibility forwards into 13 Moons.
+- Updates the admin Review Desk to use Busy Work language and deep-link to the correct member Moon portal.
+- Repairs malformed browser-module imports in the legacy Assignments and Review Desk files.
+- Adds no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.76 — Flow FM Platform + Tools Polish
 
 - Extends one quiet-luxury UI system across all member-facing Initiation Hall and Flow FM pages with compact navigation, restrained headings, consistent cards/forms/buttons, logical page rhythm, and responsive accessibility.

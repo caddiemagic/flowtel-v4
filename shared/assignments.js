@@ -1,5 +1,5 @@
 // shared/assignments.js
-// Flow FM Business Assignment Tracker helpers.
+// Flow FM Busy Work tracker helpers. Internal RPC/table names remain assignment-based for compatibility.
 
 import { supabase } from "./supabase.js";
 import { FLOW_FM_ASSIGNMENTS } from "./initiation.js";
@@ -34,8 +34,8 @@ export function assignmentStatusCopy(value) {
   const status = normalizeAssignmentStatus(value);
   return {
     not_started: "This room is waiting for your first note, link, or piece of evidence.",
-    drafting: "A draft is saved. Return when the assignment is ready to be witnessed.",
-    submitted: "Sent to be witnessed. Your mentor or Flowtel admin can tend it from the review queue.",
+    drafting: "A draft is saved. Return when the Busy Work is ready to be witnessed.",
+    submitted: "Busy Work sent to be witnessed. Your mentor or Flowtel admin can tend it from the review queue.",
     reviewed: "Witnessed. Read the note, integrate, and mark the next step when ready.",
     complete: "Complete. This piece of your Flow Factory has been tended.",
     needs_revision: "A revision has been requested. Soften, refine, and send the next version when it is ready.",

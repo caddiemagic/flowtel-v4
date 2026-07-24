@@ -3,28 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Flow FM 13 Moons Path</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.76" />
-  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
-  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
+  <title>Flow FM 13 Moons Curriculum</title>
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.77" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.77" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.77" />
 </head>
-<body class="flowfm-platform-page">
+<body class="flowfm-platform-page flowfm-curriculum-page">
   <main class="initiation-shell">
     <nav class="top-nav" id="topNav"></nav>
-    <section class="hero-card hero-card--hallway hero-card--compact flowfm-page-hero">
+    <section class="hero-card hero-card--hallway hero-card--compact flowfm-page-hero curriculum-hero">
       <p class="eyebrow">FLOW FM CURRICULUM</p>
       <h1>13 Moons</h1>
-      <p id="heroCopy">Review the complete 13-month curriculum and open the Moon that matches your current progress.</p>
+      <p id="heroCopy">Each Moon holds its Womb Work and Busy Work together. Open one Moon at a time.</p>
     </section>
-    <section class="moon-path-card">
-      <div class="section-heading compact">
-        <p class="eyebrow">CURRICULUM</p>
-        <h2>Your 13-Moon path</h2>
+    <section class="moon-path-card curriculum-path-card">
+      <div class="section-heading compact curriculum-heading">
+        <p class="eyebrow">YOUR CURRICULUM</p>
+        <h2>Moon by Moon</h2>
+        <p>Womb Work is the inner practice. Busy Work is the practical build. Both live inside the same Moon.</p>
       </div>
-      <div class="moon-path" id="moonPath"></div>
+      <div class="moon-path moon-curriculum-path" id="moonPath" aria-live="polite"></div>
     </section>
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/moons/page.js?v=0.10.76"></script>
+  <script type="module" src="/flow-fm/moons/page.js?v=0.10.77"></script>
 </body>
 </html>

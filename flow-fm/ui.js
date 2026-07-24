@@ -3,7 +3,7 @@ import {
   labelForAssignmentStatus,
   toneForPriestessProfileStatus,
   labelForPriestessProfileStatus,
-} from '/shared/flowtel.js?v=0.10.75';
+} from '/shared/flowtel.js?v=0.10.77';
 import { FLOWTEL_ROLLOUT } from '/shared/rollout.js';
 import { formatDateOnly } from '/shared/flowtel-date.js?v=0.10.75';
 
@@ -75,8 +75,6 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Initiation Hall' },
   { key: 'moons', href: '/flow-fm/moons/', label: '13 Moons' },
-  { key: 'womb-work', href: '/flow-fm/womb-work/', label: 'Womb Work' },
-  { key: 'assignments', href: '/flow-fm/assignments/', label: 'Assignments' },
   { key: 'hourly-flow-rate', href: '/flow-fm/hourly-flow-rate/', label: 'Hourly Flow Rate' },
   { key: 'availability', href: '/flow-fm/availability/', label: 'Availability' },
   { key: 'planning-room', href: '/flow-fm/planning-room/', label: 'Planning Room' },
@@ -95,14 +93,14 @@ export function renderAccessState(profile){
   if(!profile){
     return {
       title: 'Preview mode',
-      copy: 'Sign in through the Flowtel doorway to save drafts, send assignments to be witnessed, and personalize your initiation path.',
+      copy: 'Sign in through the Flowtel doorway to save drafts and send Busy Work to be witnessed, and personalize your initiation path.',
       mode: 'preview',
     };
   }
   if(canTendOwnAssignments(profile)){
     return {
       title: 'Member mode',
-      copy: 'Your Flow FM rooms are open. The Moon Portal is the main path, and the library rooms remain open for exploration.',
+      copy: 'Your Flow FM rooms are open. The 13 Moons path holds each Moon’s Womb Work and Busy Work in one place.',
       mode: 'live',
     };
   }
