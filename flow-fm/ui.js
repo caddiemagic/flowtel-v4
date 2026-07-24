@@ -74,11 +74,15 @@ export function boolAttr(value){ return value ? 'checked' : ''; }
 
 const NAV_ITEMS = [
   { key: 'hallway', href: '/flow-fm/', label: 'Initiation Hall' },
+  { key: 'moons', href: '/flow-fm/moons/', label: '13 Moons' },
+  { key: 'womb-work', href: '/flow-fm/womb-work/', label: 'Womb Work' },
+  { key: 'assignments', href: '/flow-fm/assignments/', label: 'Assignments' },
   { key: 'hourly-flow-rate', href: '/flow-fm/hourly-flow-rate/', label: 'Hourly Flow Rate' },
   { key: 'availability', href: '/flow-fm/availability/', label: 'Availability' },
   { key: 'planning-room', href: '/flow-fm/planning-room/', label: 'Planning Room' },
   { key: 'profile-studio', href: '/flow-fm/profile-studio/', label: 'Profile Studio' },
   { key: 'living-map', href: '/flow-fm/team-map/', label: 'Living Map' },
+  { key: 'time-space', href: '/flow-fm/time-space/', label: 'Time + Space' },
   { key: 'suite', href: '/client/?suite=1', label: 'Return to Suite' },
 ];
 

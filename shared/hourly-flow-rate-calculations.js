@@ -393,3 +393,8 @@ export function calculateSelfCareServiceTotal({ costPerAppointment = 0, appointm
 export function roundMoney(value) {
   return Math.round(numericAmount(value) * 100) / 100;
 }
+
+export function roundHourlyFlowRateUp(value){
+  const amount=Number(value||0);
+  return Number.isFinite(amount)&&amount>0 ? Math.ceil(amount) : 0;
+}

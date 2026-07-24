@@ -1,7 +1,7 @@
 import { getCurrentProfile, displayNameForProfile } from '/shared/flowtel.js?v=0.10.75';
 import { canAccessHourlyFlowRate } from '/shared/rollout.js?v=0.10.73';
 import { isProductAccessError, redirectForDeniedProduct } from '/shared/product-access.js?v=0.10.73';
-import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.75';
+import { renderTopNav, escapeHtml, safeHref } from '/flow-fm/ui.js?v=0.10.76';
 import {
   CURRENCY_OPTIONS,
   LAYER_LABELS,
@@ -15,9 +15,10 @@ import {
   formatSeasonDateRange,
   inclusiveDayCount,
   layerTotals,
+  roundHourlyFlowRateUp,
   seasonDisplayName,
   seasonStatus,
-} from '/shared/hourly-flow-rate-calculations.js?v=0.10.73';
+} from '/shared/hourly-flow-rate-calculations.js?v=0.10.76';
 import {
   deleteHourlyFlowRateCostEntry,
   hourlyFlowRateSeasonLocation,
@@ -28,7 +29,7 @@ import {
   saveHourlyFlowRateHomeBase,
   saveHourlyFlowRatePlanState,
   setHourlyFlowRateBaseCurrency,
-} from '/shared/hourly-flow-rate.js?v=0.10.73';
+} from '/shared/hourly-flow-rate.js?v=0.10.76';
 
 const topNav = document.getElementById('topNav');
 const accessGate = document.getElementById('accessGate');
@@ -40,7 +41,6 @@ const seasonStudio = document.getElementById('seasonStudio');
 const homeBaseRoom = document.getElementById('homeBaseRoom');
 const lifestyleLayersRoom = document.getElementById('lifestyleLayersRoom');
 const timelineRoom = document.getElementById('timelineRoom');
-const witnessRoom = document.getElementById('witnessRoom');
 const pageMessage = document.getElementById('pageMessage');
 
 let profile = null;
@@ -49,10 +49,10 @@ let activeSeasonId = null;
 let busy = false;
 
 const OPTIONAL_LAYERS = [
-  { key: 'nourishment', eyebrow: 'SEASONAL NOURISHMENT', invitation: 'Resource the meals, groceries, dining, and nourishment that help this season feel held.', labelPlaceholder: 'Private chef, groceries, favorite restaurant…' },
-  { key: 'self_care', eyebrow: 'SOVEREIGN SELF-CARE', invitation: 'Add the care that supports your body, beauty, healing, medicine, and nervous system.', labelPlaceholder: 'Massage, therapy, beauty ritual, practitioner…' },
-  { key: 'transitions', eyebrow: 'SEASONAL TRANSITIONS', invitation: 'Welcome the travel, ground transport, moving support, and transitions between homes.', labelPlaceholder: 'Flight, train, car, shipping, transition support…' },
-  { key: 'pleasure_support', eyebrow: 'PLEASURE & SUPPORT', invitation: 'Make room for delight, celebration, creative help, personal support, and the unexpected.', labelPlaceholder: 'Celebration, assistant, art supplies, special experience…' },
+  { key: 'nourishment', eyebrow: 'SEASONAL NOURISHMENT', invitation: 'Estimate groceries, meals, dining, and other nourishment costs for the season.', labelPlaceholder: 'Groceries, meals, dining…' },
+  { key: 'self_care', eyebrow: 'SELF-CARE SERVICES', invitation: 'Estimate recurring care, wellness, beauty, therapy, or practitioner costs.', labelPlaceholder: 'Massage, therapy, practitioner…' },
+  { key: 'transitions', eyebrow: 'TRAVEL + TRANSITIONS', invitation: 'Estimate flights, ground transport, moving, shipping, and transition costs.', labelPlaceholder: 'Flight, train, car, shipping…' },
+  { key: 'pleasure_support', eyebrow: 'SUPPORT + DISCRETIONARY', invitation: 'Estimate creative support, assistance, celebrations, and discretionary costs.', labelPlaceholder: 'Assistant, supplies, celebration…' },
 ];
 
 function setMessage(text = '', tone = ''){
@@ -121,54 +121,42 @@ function renderGate(title, copy, link = '/client/', linkLabel = 'Return to the F
   </article>`;
 }
 
-function renderHero(){
-  const calculation = state.calculation || {};
-  const hasMoney = Boolean(calculation.has_monetary_value ?? calculation.hasMonetaryValue);
-  const fullyEnvisioned = state.seasons.length === 4 && state.seasons.every((season) =>
-    Boolean(hourlyFlowRateSeasonLocation(season))
-    && entriesFor(season.id, 'lodging').some((entry) => Number(entry.base_amount || 0) > 0)
-  );
-  const flowingLayers = Number(calculation.flowing_layers ?? countFlowingLayers({
-    seasons: state.seasons,
-    costEntries: state.costEntries,
-    monthlyHomeBase: Number(state.homeBase?.monthly_amount || 0),
-  }));
-
-  if(!hasMoney){
-    rateHero.innerHTML = `<div class="hfr-hero-copy">
-      <p class="eyebrow">YOUR SEASONAL SOVEREIGNTY MAP</p>
-      <h1>Choose your locations and price your lodging.</h1>
-      <p>Begin with the four places you want to live, then enter the lodging amount required for each season.</p>
-      <a class="hfr-button hfr-button--soft" href="#seasonMap">Choose your locations</a>
-    </div>
-    <div class="hfr-hero-seal" aria-hidden="true"><span>12</span><small>Inner Summer weeks</small></div>`;
-    return;
-  }
-
-  const label = fullyEnvisioned ? 'YOUR HOURLY FLOW RATE' : 'YOUR EMERGING HOURLY FLOW RATE';
-  const heroRate = Math.round(Number((calculation.hourly_flow_rate ?? calculation.hourlyFlowRate) || 0));
-  rateHero.innerHTML = `<div class="hfr-hero-copy">
-    <p class="eyebrow">${label}</p>
-    <h1>${money(heroRate, { exact: false })}<span>/ HOUR</span></h1>
-    <p>Based on the layers you have welcomed so far. ${flowingLayers} ${flowingLayers === 1 ? 'layer of your vision is' : 'layers of your vision are'} currently flowing.</p>
-    <p class="hfr-worth-note">This is the revenue capacity required to resource your vision—not a statement of your human worth and not a requirement to sell one-hour appointments.</p>
-  </div>
-  <div class="hfr-rate-breakdown">
-    <div><span>Annual Current Expenses</span><strong>${money(calculation.annual_home_base ?? calculation.annualHomeBase)}</strong></div>
-    <div><span>Seasonal Freedom</span><strong>${money(calculation.seasonal_freedom ?? calculation.seasonalFreedom)}</strong></div>
-    <div><span>Annual Vision Total</span><strong>${money(calculation.annual_vision_total ?? calculation.annualVisionTotal)}</strong></div>
-    <div><span>Base Rate ÷ 480</span><strong>${money(calculation.base_hourly_rate ?? calculation.baseHourlyRate)} / hour</strong></div>
-    <div><span>Fixed Flow Multiplier</span><strong>2.00×</strong></div>
-    <div class="final"><span>Hourly Flow Rate</span><strong>${money(calculation.hourly_flow_rate ?? calculation.hourlyFlowRate)} / hour</strong></div>
-  </div>`;
+function roundedUpHourlyFlowRate(){
+  const raw=Number((state.calculation?.hourly_flow_rate ?? state.calculation?.hourlyFlowRate) || 0);
+  return roundHourlyFlowRateUp(raw);
 }
 
+function renderHero(){
+  const calculation=state.calculation||{};
+  const hasMoney=Boolean(calculation.has_monetary_value ?? calculation.hasMonetaryValue);
+  const flowingLayers=Number(calculation.flowing_layers ?? countFlowingLayers({
+    seasons:state.seasons,
+    costEntries:state.costEntries,
+    monthlyHomeBase:Number(state.homeBase?.monthly_amount||0),
+  }));
+  const roundedRate=roundedUpHourlyFlowRate();
+
+  rateHero.innerHTML=`<div class="hfr-hero-copy">
+    <p class="eyebrow">HOURLY FLOW RATE</p>
+    ${hasMoney
+      ? `<h1 data-hourly-flow-rate-result>${money(roundedRate,{exact:false})}<span>/ HOUR</span></h1><p>Your current whole-number rate, rounded upward from the calculated result.</p>`
+      : `<h1 class="hfr-hero-pending">Add your costs to calculate</h1><p>Enter seasonal lodging and Current Expenses to generate your Hourly Flow Rate.</p>`}
+    <div class="hfr-method-strip"><span><strong>480</strong> annual hours</span><span><strong>2×</strong> fixed multiplier</span><span><strong>${flowingLayers}</strong> active ${flowingLayers===1?'layer':'layers'}</span></div>
+  </div>
+  <div class="hfr-rate-breakdown" aria-label="Hourly Flow Rate calculation">
+    <div><span>Annual Current Expenses</span><strong>${money(calculation.annual_home_base ?? calculation.annualHomeBase)}</strong></div>
+    <div><span>Seasonal Lodging + Layers</span><strong>${money(calculation.seasonal_freedom ?? calculation.seasonalFreedom)}</strong></div>
+    <div><span>Annual Vision Total</span><strong>${money(calculation.annual_vision_total ?? calculation.annualVisionTotal)}</strong></div>
+    <div><span>Base Rate ÷ 480</span><strong>${money(calculation.base_hourly_rate ?? calculation.baseHourlyRate)} / hour</strong></div>
+    <div class="final"><span>Whole-Number Hourly Flow Rate</span><strong>${hasMoney?`${money(roundedRate,{exact:false})} / hour`:'Not calculated'}</strong></div>
+  </div>`;
+}
 function renderCurrencyRoom(){
   const hasMoney = Boolean(state.calculation?.has_monetary_value ?? state.calculation?.hasMonetaryValue);
   currencyRoom.innerHTML = `<div>
     <p class="eyebrow">BASE CURRENCY</p>
-    <h2>One currency holds the calculation.</h2>
-    <p>Enter every calculated amount in this base currency. When a listing uses another currency, preserve its original amount alongside your manual base-currency amount.</p>
+    <h2>Choose a base currency</h2>
+    <p>Use one currency for the calculation. You may also record the original listing currency for reference.</p>
   </div>
   <label class="hfr-currency-control"><span>Base currency</span>
     <select id="baseCurrency" ${hasMoney ? 'disabled' : ''}>
@@ -194,60 +182,37 @@ function renderSeasonMap(){
   }).join('');
 }
 
-function destinationForm(season){
-  const locationLabel = hourlyFlowRateSeasonLocation(season);
-  return `<form id="destinationForm" class="hfr-form hfr-destination-form">
-    <div class="hfr-form-heading"><div><p class="eyebrow">MOMENT 1 — CHOOSE A LOCATION</p><h3>${escapeHtml(seasonDisplayName(season))} Location</h3></div><p>Start with the place. The financial details come next.</p></div>
-    <label><span>${escapeHtml(String(season.season_key || 'season').replace(/^./, (letter) => letter.toUpperCase()))} Location</span><input name="location_label" value="${escapeHtml(locationLabel)}" placeholder="Carmel-by-the-Sea, California" maxlength="220" /></label>
-    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Location</button><span id="destinationMessage" class="hfr-inline-message"></span></div>
+function seasonRoomForm(season){
+  const locationLabel=hourlyFlowRateSeasonLocation(season);
+  const entries=entriesFor(season.id,'lodging');
+  const primary=entries[0]||null;
+  const total=entries.reduce((sum,entry)=>sum+Number(entry.base_amount||0),0);
+  return `<form id="seasonRoomForm" class="hfr-form hfr-season-room-form">
+    <div class="hfr-grid hfr-grid--two">
+      <label><span>Location</span><input name="location_label" value="${escapeHtml(locationLabel)}" placeholder="Carmel-by-the-Sea, California" maxlength="220" required /></label>
+      <label><span>Seasonal Lodging Cost in ${escapeHtml(state.plan.base_currency)}</span><input name="base_amount" type="number" min="0" step="0.01" inputmode="decimal" value="${primary&&Number(primary.base_amount)>0?Number(primary.base_amount).toFixed(2):''}" placeholder="0.00" /></label>
+    </div>
+    <label><span>Listing Link <small>optional</small></span><input name="source_url" type="url" value="${escapeHtml(primary?.source_url||'')}" placeholder="https://…" /></label>
+    <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Seasonal Room</button><span class="hfr-inline-message"></span></div>
+    ${total>0?`<p class="hfr-simple-lodging-summary">Saved lodging total: <strong>${money(total)}</strong>${entries.length>1?` · ${entries.length} preserved lodging records`:''}</p>`:'<p class="hfr-empty-invitation">No lodging amount has been entered yet.</p>'}
   </form>`;
 }
 
 function savedEntryCard(entry){
-  const original = entry.original_amount && entry.original_currency
+  const original=entry.original_amount&&entry.original_currency
     ? `<small>Original: ${escapeHtml(entry.original_currency)} ${Number(entry.original_amount).toFixed(2)}</small>`
     : '';
-  const source = safeHref(entry.source_url);
-  const dates = entry.starts_on || entry.ends_on
-    ? `<small>${escapeHtml(dateInputValue(entry.starts_on) || 'Open')} – ${escapeHtml(dateInputValue(entry.ends_on) || 'Open')}</small>`
+  const source=safeHref(entry.source_url);
+  const dates=entry.starts_on||entry.ends_on
+    ? `<small>${escapeHtml(dateInputValue(entry.starts_on)||'Open')} – ${escapeHtml(dateInputValue(entry.ends_on)||'Open')}</small>`
     : '';
-  const researched = entry.researched_on ? `<small>Researched ${escapeHtml(dateInputValue(entry.researched_on))}</small>` : '';
+  const researched=entry.researched_on?`<small>Researched ${escapeHtml(dateInputValue(entry.researched_on))}</small>`:'';
   return `<article class="hfr-saved-entry">
-    <div><strong>${escapeHtml(entry.label || LAYER_LABELS[entry.layer_key] || 'Saved layer')}</strong>${dates}${researched}${original}${entry.frequency_label ? `<small>${escapeHtml(entry.frequency_label)}</small>` : ''}</div>
-    <div class="hfr-saved-entry-value"><strong>${money(entry.base_amount)}</strong>${source ? `<a href="${escapeHtml(source)}" target="_blank" rel="noreferrer">Open source</a>` : ''}</div>
+    <div><strong>${escapeHtml(entry.label||LAYER_LABELS[entry.layer_key]||'Saved layer')}</strong>${dates}${researched}${original}${entry.frequency_label?`<small>${escapeHtml(entry.frequency_label)}</small>`:''}</div>
+    <div class="hfr-saved-entry-value"><strong>${money(entry.base_amount)}</strong>${source?`<a href="${escapeHtml(source)}" target="_blank" rel="noreferrer">Open source</a>`:''}</div>
     <div class="hfr-saved-entry-actions"><button type="button" data-edit-entry="${escapeHtml(entry.id)}">Edit</button><button type="button" data-delete-entry="${escapeHtml(entry.id)}">Remove</button></div>
   </article>`;
 }
-
-function currencyOptions(selected = ''){
-  const known = new Set(CURRENCY_OPTIONS.map((item) => item.code));
-  const extra = selected && !known.has(selected) ? `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)}</option>` : '';
-  return `${extra}<option value="">No original currency</option>${CURRENCY_OPTIONS.map((item) => `<option value="${item.code}" ${item.code === selected ? 'selected' : ''}>${item.code}</option>`).join('')}`;
-}
-
-function lodgingRoom(season){
-  const entries = entriesFor(season.id, 'lodging');
-  const primary = entries[0] || null;
-  const total = entries.reduce((sum, entry) => sum + Number(entry.base_amount || 0), 0);
-  return `<section class="hfr-layer-room hfr-layer-room--lodging">
-    <div class="hfr-layer-heading"><div><p class="eyebrow">MOMENT 2 — LODGING COST</p><h3>Enter the cost of your seasonal lodging.</h3></div><p>Use the total amount needed to cover lodging during the dates of this season. Save the listing link if you want to return to it.</p></div>
-    <form id="lodgingForm" class="hfr-form hfr-cost-form hfr-simple-lodging-form" data-layer-key="lodging" data-entry-mode="detailed">
-      <input type="hidden" name="entry_id" value="${escapeHtml(primary?.id || '')}" />
-      <input type="hidden" name="label" value="Seasonal lodging" />
-      <input type="hidden" name="starts_on" value="${escapeHtml(dateInputValue(season.starts_on))}" />
-      <input type="hidden" name="ends_on" value="${escapeHtml(dateInputValue(season.ends_on))}" />
-      <input type="hidden" name="fees_status" value="unsure" />
-      <input type="hidden" name="researched_on" value="${escapeHtml(dateInputValue(primary?.researched_on) || flowtelDateISO())}" />
-      <div class="hfr-grid hfr-grid--two">
-        <label><span>Seasonal lodging cost in ${escapeHtml(state.plan.base_currency)}</span><input name="base_amount" type="number" min="0" step="0.01" inputmode="decimal" required value="${primary && Number(primary.base_amount)>0 ? Number(primary.base_amount).toFixed(2) : ''}" placeholder="0.00" /></label>
-        <label><span>Listing link <small>optional</small></span><input name="source_url" type="url" value="${escapeHtml(primary?.source_url || '')}" placeholder="https://…" /></label>
-      </div>
-      <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Lodging Cost</button><span class="hfr-inline-message"></span></div>
-    </form>
-    ${total > 0 ? `<p class="hfr-simple-lodging-summary">Current lodging total for this season: <strong>${money(total)}</strong>${entries.length > 1 ? ` · ${entries.length} preserved lodging records` : ''}</p>` : '<p class="hfr-empty-invitation">No lodging amount has been entered yet.</p>'}
-  </section>`;
-}
-
 function layerEffectiveTotal(seasonId, layerKey){
   return Number(layerTotals(state.costEntries).get(`${seasonId}:${layerKey}`) || 0);
 }
@@ -346,34 +311,34 @@ function optionalLayerRoom(season, config){
   </details>`;
 }
 function renderSeasonStudio(){
-  const season = activeSeason();
-  if(!season){ seasonStudio.innerHTML = ''; return; }
-  seasonStudio.innerHTML = `<section class="hfr-card hfr-season-heading-card">
-    <div><p class="eyebrow">OPEN SEASONAL ROOM</p><h2>${escapeHtml(seasonDisplayName(season))}</h2><p>${escapeHtml(formatSeasonDateRange(season))}</p></div>
-    <span class="hfr-status hfr-status--large">${escapeHtml(seasonStatus({ season, costEntries: state.costEntries }))}</span>
-  </section>
-  <section class="hfr-card">${destinationForm(season)}</section>
-  <section class="hfr-card">${lodgingRoom(season)}</section>`;
+  const season=activeSeason();
+  if(!season){seasonStudio.innerHTML='';return;}
+  seasonStudio.innerHTML=`<section class="hfr-card hfr-season-room-card">
+    <header class="hfr-season-room-heading">
+      <div><p class="eyebrow">SEASONAL ROOM</p><h2>${escapeHtml(seasonDisplayName(season))}</h2><p>${escapeHtml(formatSeasonDateRange(season))}</p></div>
+      <span class="hfr-status hfr-status--large">${escapeHtml(seasonStatus({season,costEntries:state.costEntries}))}</span>
+    </header>
+    ${seasonRoomForm(season)}
+  </section>`;
 }
-
 function renderLifestyleLayers(){
-  lifestyleLayersRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">MOMENT 4 — LIFESTYLE LAYERS</p><h2>Lifestyle Layers are coming soon.</h2><p>For now, focus only on your seasonal locations, lodging totals, and current expenses. These future rooms remain visible so you know what is being prepared, but they are sealed and non-interactive.</p></div><div class="hfr-locked-layer-grid">${OPTIONAL_LAYERS.map((config)=>`<article class="hfr-locked-layer" aria-disabled="true"><span>COMING SOON</span><p class="eyebrow">${escapeHtml(config.eyebrow)}</p><h3>${escapeHtml(LAYER_LABELS[config.key])}</h3><p>${escapeHtml(config.invitation)}</p></article>`).join('')}</div>`;
+  lifestyleLayersRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">LIFESTYLE LAYERS</p><h2>Additional cost categories are coming soon</h2><p>For this release, calculate with seasonal locations, lodging totals, and Current Expenses. The additional categories remain visible but locked.</p></div><div class="hfr-locked-layer-grid">${OPTIONAL_LAYERS.map((config)=>`<article class="hfr-locked-layer" aria-disabled="true"><span>COMING SOON</span><p class="eyebrow">${escapeHtml(config.eyebrow)}</p><h3>${escapeHtml(LAYER_LABELS[config.key])}</h3><p>${escapeHtml(config.invitation)}</p></article>`).join('')}</div>`;
 }
 
 function renderHomeBase(){
   const home = state.homeBase || {};
   homeBaseRoom.innerHTML = `<div class="hfr-section-heading">
-    <p class="eyebrow">MOMENT 3 — CURRENT EXPENSES</p>
-    <h2>Include your current expenses.</h2>
-    <p>Review your current monthly expenses privately, then enter the total monthly amount below. Flowtel stores only the final total—not an itemized expense ledger. This amount is added to your seasonal lodging costs when calculating your Hourly Flow Rate.</p>
+    <p class="eyebrow">CURRENT EXPENSES</p>
+    <h2>Add your monthly Current Expenses</h2>
+    <p>Enter one monthly total. Flowtel stores the final amount, not an itemized expense ledger, and annualizes it for the Hourly Flow Rate calculation.</p>
   </div>
   <form id="homeBaseForm" class="hfr-form">
     <div class="hfr-grid hfr-grid--two">
       <label><span>Monthly Current Expenses in ${escapeHtml(state.plan.base_currency)}</span><input name="monthly_amount" type="number" min="0" step="0.01" inputmode="decimal" value="${Number(home.monthly_amount || 0) > 0 ? Number(home.monthly_amount).toFixed(2) : ''}" placeholder="0.00" /></label>
       <label><span>Date Reviewed</span><input name="reviewed_on" type="date" value="${dateInputValue(home.reviewed_on)}" /></label>
     </div>
-    <label class="hfr-check"><input name="privately_confirmed" type="checkbox" ${home.privately_confirmed ? 'checked' : ''} /><span>I reviewed my current expenses privately and am saving only the final monthly total.</span></label>
-    <label><span>Notes <small>optional</small></span><textarea name="private_reflection" rows="3" placeholder="Anything you want to remember about this total?">${escapeHtml(home.private_reflection || '')}</textarea></label>
+    <label class="hfr-check"><input name="privately_confirmed" type="checkbox" ${home.privately_confirmed ? 'checked' : ''} /><span>I am saving only the final monthly total.</span></label>
+    <label><span>Notes <small>optional</small></span><textarea name="private_reflection" rows="3" placeholder="Optional context for this total">${escapeHtml(home.private_reflection || '')}</textarea></label>
     <div class="hfr-form-actions"><button class="hfr-button" type="submit">Save Current Expenses</button><span class="hfr-inline-message"></span></div>
   </form>`;
 }
@@ -386,18 +351,11 @@ function snapshotLabel(snapshot){
 }
 
 function renderTimeline(){
-  timelineRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">YOUR RECEIVING TIMELINE</p><h2>Your Receiving Timeline.</h2><p>Flowtel remembers meaningful saved movements—not every keystroke.</p></div>
-    <div class="hfr-timeline">${state.snapshots.length ? state.snapshots.map(snapshotLabel).join('') : '<p class="hfr-empty-invitation">Your first timeline moment will arrive after a valid monetary layer is saved.</p>'}</div>`;
+  timelineRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">RATE HISTORY</p><h2>Saved calculation history</h2><p>Flowtel records meaningful saved changes, not every keystroke.</p></div>
+    <div class="hfr-timeline">${state.snapshots.length ? state.snapshots.map(snapshotLabel).join('') : '<p class="hfr-empty-invitation">History begins after a valid cost is saved.</p>'}</div>
+    <p class="hfr-disclaimer-note">This planning tool is an educational exercise, not financial, tax, legal, or investment advice.</p>`;
 }
 
-function renderWitness(){
-  witnessRoom.innerHTML = `<div class="hfr-section-heading"><p class="eyebrow">PRIVATE WITNESSING</p><h2>What happens in your body when you see this vision?</h2><p>Reflection is invited, never required.</p></div>
-  <form id="witnessForm" class="hfr-form">
-    <textarea name="witness_reflection" rows="4" placeholder="A private note to your future self…">${escapeHtml(state.plan?.witness_reflection || '')}</textarea>
-    <div class="hfr-form-actions"><button class="hfr-button hfr-button--soft" type="submit">Save reflection</button><span class="hfr-inline-message"></span></div>
-  </form>
-  <aside class="hfr-teaching-note"><strong>12 Inner Summer weeks × 40 Self-Care Hours = 480 annual hours.</strong><p>These are not assumed to be 480 client-facing or billable hours. They hold body care, restoration, medicine, creativity, visibility, service, integration, celebration, and receiving.</p><p class="hfr-disclaimer">This private tool is a visioning and educational exercise, not financial, tax, legal, or investment advice.</p></aside>`;
-}
 
 function render(){
   renderHero();
@@ -407,14 +365,13 @@ function render(){
   renderHomeBase();
   renderLifestyleLayers();
   renderTimeline();
-  renderWitness();
   bindEvents();
 }
 
 async function runAction(action, successMessage, inlineNode = null){
   if(busy) return;
   busy = true;
-  setMessage('Flowtel is tending to this room…');
+  setMessage('Saving…');
   if(inlineNode) inlineNode.textContent = 'Saving…';
   try{
     const payload = await action();
@@ -590,17 +547,46 @@ function bindEvents(){
     }catch(error){ console.warn('The selected room could not be remembered yet.', error); }
   }));
 
-  document.getElementById('destinationForm')?.addEventListener('submit', (event) => {
+  document.getElementById('seasonRoomForm')?.addEventListener('submit', (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const inline = event.currentTarget.querySelector('.hfr-inline-message');
-    runAction(() => saveHourlyFlowRateSeasonLocation({
-      seasonId: season.id,
-      locationLabel: data.get('location_label'),
-      lastOpenSection: `season-${season.id}`,
-      callingReflection: season.calling_reflection || '',
-      inspirationUrl: season.inspiration_url || '',
-    }), 'This seasonal destination is resting safely in your map.', inline);
+    const form=event.currentTarget;
+    const data=new FormData(form);
+    const inline=form.querySelector('.hfr-inline-message');
+    let amount;
+    try{amount=cleanNumber(data.get('base_amount'));}
+    catch(error){inline.textContent=error.message;return;}
+    runAction(async()=>{
+      let payload=await saveHourlyFlowRateSeasonLocation({
+        seasonId:season.id,
+        locationLabel:data.get('location_label'),
+        lastOpenSection:`season-${season.id}`,
+        callingReflection:season.calling_reflection||'',
+        inspirationUrl:season.inspiration_url||'',
+      });
+      if(amount<=0)return payload;
+      const current=normalizedHourlyFlowRatePayload(payload);
+      const existing=current.costEntries.find(entry=>entry.season_id===season.id&&entry.layer_key==='lodging')||null;
+      return saveHourlyFlowRateCostEntry({
+        planId:current.plan.id,
+        seasonId:season.id,
+        layerKey:'lodging',
+        entryMode:'detailed',
+        entryId:existing?.id||null,
+        baseAmount:amount,
+        label:'Seasonal lodging',
+        sourceUrl:data.get('source_url')||'',
+        startsOn:dateInputValue(season.starts_on)||null,
+        endsOn:dateInputValue(season.ends_on)||null,
+        quantity:null,
+        frequencyLabel:'',
+        feesStatus:'unsure',
+        originalAmount:null,
+        originalCurrency:null,
+        privateNote:'',
+        researchedOn:flowtelDateISO(),
+        details:{},
+      });
+    },'Seasonal room saved.',inline);
   });
 
   seasonStudio.querySelectorAll('.hfr-cost-form').forEach((form) => form.addEventListener('submit', (event) => {
@@ -609,7 +595,7 @@ function bindEvents(){
     let payload;
     try{ payload = costFormPayload(form, season, form.dataset.layerKey, form.dataset.entryMode); }
     catch(error){ inline.textContent = error.message; return; }
-    runAction(() => saveHourlyFlowRateCostEntry(payload), `${LAYER_LABELS[form.dataset.layerKey]} has been welcomed into the vision.`, inline);
+    runAction(() => saveHourlyFlowRateCostEntry(payload), `${LAYER_LABELS[form.dataset.layerKey]} has been saved.`, inline);
   }));
 
   seasonStudio.querySelectorAll('[data-edit-entry]').forEach((button) => button.addEventListener('click', () => {
@@ -624,7 +610,7 @@ function bindEvents(){
 
   seasonStudio.querySelectorAll('[data-delete-entry]').forEach((button) => button.addEventListener('click', () => {
     if(!window.confirm('Remove this saved amount from the living vision? Its earlier Receiving Timeline moments remain preserved.')) return;
-    runAction(() => deleteHourlyFlowRateCostEntry(button.dataset.deleteEntry), 'The living vision has been gently revised.');
+    runAction(() => deleteHourlyFlowRateCostEntry(button.dataset.deleteEntry), 'The saved amount was removed.');
   }));
 
   seasonStudio.querySelectorAll('[data-clear-form]').forEach((button) => button.addEventListener('click', () => {
@@ -652,42 +638,32 @@ function bindEvents(){
       reviewedOn: data.get('reviewed_on') || null,
       privatelyConfirmed: data.get('privately_confirmed') === 'on',
       privateReflection: data.get('private_reflection') || '',
-    }), 'Your current expenses are held privately in this vision.', inline);
+    }), 'Current Expenses saved.', inline);
   });
 
-  document.getElementById('witnessForm')?.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const inline = event.currentTarget.querySelector('.hfr-inline-message');
-    runAction(() => saveHourlyFlowRatePlanState({
-      planId: state.plan.id,
-      lastOpenSection: 'witness',
-      witnessReflection: data.get('witness_reflection') || '',
-    }), 'Your private reflection has been remembered.', inline);
-  });
+
 }
 
 function restoreLastRoom(){
   const last = String(state.plan?.last_open_section || '');
   let target = null;
   if(last === 'home-base') target = homeBaseRoom;
-  if(last === 'witness') target = witnessRoom;
   if(last.startsWith('season-')) target = seasonStudio;
   if(target) window.setTimeout(() => target.scrollIntoView({ behavior: 'auto', block: 'start' }), 0);
 }
 
 async function init(){
   topNav.innerHTML = renderTopNav('hourly-flow-rate');
-  setMessage('Opening your private receiving room…');
+  setMessage('Opening your Hourly Flow Rate plan…');
   try{
     profile = await getCurrentProfile();
     if(!profile){
-      renderGate('Your room key is needed.', 'Sign in through the Flowtel doorway to create or restore your private Hourly Flow Rate plan.');
+      renderGate('Sign in to open your Hourly Flow Rate plan.', 'Sign in through the Flowtel doorway to create or restore your Hourly Flow Rate plan.');
       setMessage('');
       return;
     }
     if(!canAccessHourlyFlowRate(profile)){
-      renderGate('This room belongs to Flow FM.', 'The Hourly Flow Rate MVP is opening first for Flow FM and Council members cultivating the BIG VISION.', '/flow-fm/', 'Return to Initiation Hall');
+      renderGate('Hourly Flow Rate is available to Flow FM.', 'This planning tool is available to Flow FM and Council members.', '/flow-fm/', 'Return to Initiation Hall');
       setMessage('');
       return;
     }
@@ -699,7 +675,7 @@ async function init(){
     render();
     restoreLastRoom();
     const name = displayNameForProfile(profile, 'Priestess');
-    setMessage(`Welcome, ${name}. Your seasonal vision has been restored.`, 'success');
+    setMessage(`Welcome, ${name}. Your Hourly Flow Rate plan is ready.`, 'success');
   }catch(error){
     console.error(error);
     if(isProductAccessError(error)){

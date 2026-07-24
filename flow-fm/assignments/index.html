@@ -4,15 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Business Assignments</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.11" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
 </head>
-<body>
+<body class="flowfm-platform-page">
   <main class="initiation-shell">
     <nav class="top-nav" id="topNav"></nav>
-    <section class="hero-card hero-card--hallway">
-      <p class="eyebrow">BUSINESS ASSIGNMENTS</p>
-      <h1>Flow Factory</h1>
-      <p id="heroCopy">Save drafts, link evidence, and send each business assignment to be witnessed when it is ready.</p>
+    <section class="hero-card hero-card--hallway flowfm-page-hero">
+      <p class="eyebrow">FLOW FM BUSINESS</p>
+      <h1>Business Assignments</h1>
+      <p id="heroCopy">Save your work, attach supporting links, and submit each assignment for review when it is ready.</p>
     </section>
     <section class="status-card">
       <div class="status-main">
@@ -30,7 +32,7 @@
       <div>
         <p class="eyebrow">TRACKER</p>
         <h2 id="progressTitle">Preparing your Flow Factory...</h2>
-        <p id="progressCopy">Each room can hold a draft, a submission, and a witness note.</p>
+        <p id="progressCopy">Each assignment can hold a draft, a submission, and reviewer feedback.</p>
       </div>
       <div class="progress-pills" id="progressPills"></div>
     </section>
@@ -38,13 +40,13 @@
     <section class="assignment-card">
       <div class="section-heading compact">
         <p class="eyebrow">13 BUSINESS ASSIGNMENTS</p>
-        <h2>The outer build track</h2>
-        <p>The assignment rooms hold notes, links, file URLs, and witness feedback while avoiding streaks and gamification.</p>
+        <h2>Your business build</h2>
+        <p>Each assignment holds notes, links, file URLs, status, and reviewer feedback.</p>
       </div>
       <div id="assignmentList" class="assignment-list"></div>
     </section>
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/assignments/page.js?v=0.10.28"></script>
+  <script type="module" src="/flow-fm/assignments/page.js?v=0.10.76"></script>
 </body>
 </html>

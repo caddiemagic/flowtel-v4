@@ -21,7 +21,7 @@ import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-a
   safeHref,
   statusPill,
   setMessage,
-} from '/flow-fm/ui.js';
+} from '/flow-fm/ui.js?v=0.10.76';
 
 const topNav = document.getElementById('topNav');
 const accessState = document.getElementById('accessState');

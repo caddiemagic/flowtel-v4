@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.75" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.76" />
 </head>
 
 <body>
@@ -48,7 +48,7 @@
       <section class="suite-return-card snapshot-card hidden" id="suiteReturnCard">
         <div>
           <p class="eyebrow">YOUR SUITE</p>
-          <h2>Return to your Suite.</h2>
+          <h2>Go to your Room.</h2>
           <p id="suiteReturnNote">Your Suite key is still warm.</p>
         </div>
         <button id="goToSuiteButton" type="button">Clock Out</button>
@@ -121,7 +121,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.75").catch(function(error){
+    import("./app.js?v=0.10.76").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

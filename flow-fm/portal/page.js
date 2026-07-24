@@ -18,7 +18,7 @@ import {
   safeHref,
   setMessage,
   statusPill,
-} from '/flow-fm/ui.js';
+} from '/flow-fm/ui.js?v=0.10.76';
 
 const topNav=document.getElementById('topNav');
 const portalEyebrow=document.getElementById('portalEyebrow');
@@ -152,7 +152,7 @@ async function loadRecords(){
   catch(error){ console.error(error); currentRecords=[]; setMessage(message,'The portal opened, but assignment records could not be loaded.'); }
 }
 async function init(){
-  topNav.innerHTML=renderTopNav('portal');
+  topNav.innerHTML=renderTopNav('moons');
   try{
     currentProfile=await getCurrentProfile();
     if(!isPractitionerLevel(currentProfile)){

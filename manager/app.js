@@ -1,9 +1,9 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { supabase } from "../shared/supabase.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.75";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.76";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.75";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.76";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
 import { listUpcomingGolfEvents, acknowledgeUpcomingGolf } from "../shared/caddie-magic-schedule.js?v=0.5.2";
@@ -550,7 +550,7 @@ function updatePractitionerIdentity(){
   if(profile.role==="practitioner" || profile.role==="owner" || profile.role==="admin"){
     const theme=initiation.moon?.theme ? ` · ${initiation.moon.theme}` : "";
     const identityLine=initiation.hasStartDate
-      ? `${initiation.level} · Month ${initiation.progressMonth} of 13 · Began in ${initiation.anchorMoon?.name || "Flow FM"}${theme}`
+      ? `${initiation.level} · Month ${initiation.progressMonth} of 13 · ${initiation.moon?.name || "Flow FM"}${theme}`
       : `${initiation.level} · Flow FM start date needed`;
     setText("practitionerIdentityLevel",identityLine);
     const progress=document.getElementById("initiationProgressBar");
@@ -926,14 +926,14 @@ function updateSuiteReturn(){
   if(stay){
     const room=roomLabelForDay(stayActualDay(stay));
     if(suiteReturnNote){
-      suiteReturnNote.textContent=`Room ${room} is open. Clock out when you're ready to return to your Suite.`;
+      suiteReturnNote.textContent=`Clock out when you're done working and go do day ${room} things.`;
     }
     if(goToSuiteButton) goToSuiteButton.textContent="Clock Out";
     return;
   }
 
   if(suiteReturnNote){
-    suiteReturnNote.textContent="Return to your Suite to check in, then clock into the Concierge Desk for a wing assignment.";
+    suiteReturnNote.textContent="Check in through your Room, then return to the Concierge Desk when you are ready to work.";
   }
   if(goToSuiteButton) goToSuiteButton.textContent="Return to Suite";
 }

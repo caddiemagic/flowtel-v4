@@ -1,3 +1,14 @@
+## v0.10.76 — Flow FM Platform + Tools Polish
+
+- Extends one quiet-luxury UI system across all member-facing Initiation Hall and Flow FM pages with compact navigation, restrained headings, consistent cards/forms/buttons, logical page rhythm, and responsive accessibility.
+- Keeps the full platform free of massive display text and oversized hero banners while preserving every route, access boundary, saved record, and historical workflow.
+- Rebuilds Inner Season Availability around an unchecked **Available** control with time windows collapsed until selected and preserved when a day is later closed.
+- Removes the Hourly Flow Rate Private Witnessing section and simplifies each seasonal room into one direct, business-focused form.
+- Rounds the visible Hourly Flow Rate upward to the nearest whole dollar, places it at the top of the member page, and shows the same value in the owner Priestess Team profile.
+- Preserves the fixed 480 annual hours × 2 formula, the raw calculation, rate history, and locked Lifestyle Layers.
+- Updates Concierge progress copy to the current Moon and changes the practitioner return card to **Go to your Room** with dynamic “day X things” language.
+- Adds migration 061 after confirmed-live migrations 058, 059, and 060. Caddie Magic remains v0.5.2.
+
 ## v0.10.75 — Queendom Beta Launch Experience
 
 - Repairs the Flow FM Start Date one-day shift by treating the value as a calendar date rather than a timezone-converted timestamp.

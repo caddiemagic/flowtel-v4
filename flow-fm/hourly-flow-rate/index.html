@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Flowtel Hourly Flow Rate — a private Flow FM receiving-standard experience." />
+  <meta name="description" content="Flowtel Hourly Flow Rate — seasonal locations, lodging, current expenses, and a clear whole-number rate." />
   <title>Hourly Flow Rate | Flowtel</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.73" />
-  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.73" />
-  <link rel="stylesheet" href="/flow-fm/hourly-flow-rate/styles.css?v=0.10.73" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/hourly-flow-rate/styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
 </head>
-<body class="hfr-page">
+<body class="flowfm-platform-page hfr-page">
   <main class="hfr-shell">
     <nav class="top-nav" id="topNav" aria-label="Flow FM rooms"></nav>
     <section id="accessGate" class="hfr-access-gate" hidden></section>
@@ -18,9 +19,9 @@
       <section id="currencyRoom" class="hfr-card hfr-currency-room"></section>
       <section class="hfr-card hfr-map-room">
         <div class="hfr-section-heading">
-          <p class="eyebrow">YOUR SEASONAL SOVEREIGNTY MAP</p>
-          <h2>Choose a place for every season.</h2>
-          <p>If you could spend each season anywhere in the world, where would your body, creativity, and medicine feel most supported?</p>
+          <p class="eyebrow">SEASONAL PLAN</p>
+          <h2>Locations and lodging</h2>
+          <p>Choose one location and enter the total lodging cost for each season.</p>
         </div>
         <div id="seasonMap" class="hfr-season-map"></div>
       </section>
@@ -28,10 +29,9 @@
       <section id="homeBaseRoom" class="hfr-card"></section>
       <section id="lifestyleLayersRoom" class="hfr-card"></section>
       <section id="timelineRoom" class="hfr-card"></section>
-      <section id="witnessRoom" class="hfr-card"></section>
     </div>
     <p id="pageMessage" class="hfr-page-message" role="status" aria-live="polite"></p>
   </main>
-  <script type="module" src="/flow-fm/hourly-flow-rate/page.js?v=0.10.75"></script>
+  <script type="module" src="/flow-fm/hourly-flow-rate/page.js?v=0.10.76"></script>
 </body>
 </html>

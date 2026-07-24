@@ -46,22 +46,25 @@ mustContain(hallHtml, 'queendom-scarab-sundisk-transparent.png', 'Initiation Hal
 mustContain(hallHtml, 'flowfm-page-hero', 'Initiation Hall');
 mustContain(hallCss, '.hall-hero-card--grand::before,.hall-hero-card--grand::after{display:none}', 'Initiation Hall CSS');
 mustContain(designCss, '--flowfm-hero-title-size', 'Flow FM design system');
+const platformCss = read('flow-fm/platform.css');
+for (const token of ['quiet-luxury Flow FM platform shell', '--ffm-page-title', '.flowfm-platform-page']) mustContain(platformCss, token, 'Flow FM platform CSS');
 
 const availabilityHtml = read('flow-fm/availability/index.html');
 const availabilityApp = read('flow-fm/availability/page.js');
 const availabilityCore = read('shared/flow-fm-availability-core.js');
-for (const token of ['Client-Facing Calls', 'client-facing calls']) mustContain(availabilityHtml, token, 'Availability page');
+for (const token of ['Availability', 'reusable preference template']) mustContain(availabilityHtml, token, 'Availability page');
 for (const token of ['Inner Winter', 'Inner Spring', 'Inner Summer', 'Inner Autumn']) mustContain(availabilityCore, token, 'Availability core');
 for (const token of ['Monday', 'Sunday']) mustContain(availabilityCore, token, 'Availability core');
-for (const token of ['Offline', 'Add another time window', 'Save']) mustContain(availabilityApp, token, 'Availability app');
+for (const token of ['Available', 'Add another time window', 'Save']) mustContain(availabilityApp, token, 'Availability app');
+mustNotContain(availabilityApp, '<span>Offline</span>', 'Availability app');
 for (const token of ['Moon Day', 'Last Quarter Phase', 'Optional note', 'planet']) mustNotContain(availabilityApp, token, 'Availability app');
 
 const hfrHtml = read('flow-fm/hourly-flow-rate/index.html');
 const hfrApp = read('flow-fm/hourly-flow-rate/page.js');
 for (const token of ['lifestyleLayersRoom', 'flowfm-page-hero']) mustContain(hfrHtml, token, 'Hourly Flow Rate page');
-for (const token of ['MOMENT 1', 'MOMENT 2', 'MOMENT 3', 'MOMENT 4']) mustContain(hfrApp.toUpperCase(), token, 'Hourly Flow Rate app');
-for (const token of ['Current Expenses', 'Listing link', 'Lifestyle Layers', 'coming soon']) mustContain(hfrApp, token, 'Hourly Flow Rate app');
-for (const token of ['Moment 5', 'Moment 6', 'Meet the Home Base', 'Save my Home Base Number']) mustNotContain(hfrApp, token, 'Hourly Flow Rate app');
+for (const token of ['SEASONAL ROOM', 'CURRENT EXPENSES', 'LIFESTYLE LAYERS', 'RATE HISTORY']) mustContain(hfrApp.toUpperCase(), token, 'Hourly Flow Rate app');
+for (const token of ['Current Expenses', 'Listing Link', 'LIFESTYLE LAYERS', 'coming soon', 'roundHourlyFlowRateUp']) mustContain(hfrApp, token, 'Hourly Flow Rate app');
+for (const token of ['Moment 1', 'Moment 2', 'Moment 3', 'Moment 4', 'Private Witnessing', 'witnessForm', 'Meet the Home Base', 'Save my Home Base Number']) mustNotContain(hfrApp, token, 'Hourly Flow Rate app');
 
 const managerHtml = read('manager/index.html');
 const managerCss = read('manager/styles.css');

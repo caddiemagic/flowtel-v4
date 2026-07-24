@@ -8,7 +8,7 @@ import {
   getMoonDatesForPortal,
 } from '/shared/flowtel.js?v=0.10.75';
 import { FLOWTEL_ROLLOUT, canAccessFlowFmCurriculum, canAccessHourlyFlowRate } from '/shared/rollout.js';
-import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.75';
+import { renderTopNav, renderAccessState, escapeHtml, setMessage } from '/flow-fm/ui.js?v=0.10.76';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav=document.getElementById('topNav');

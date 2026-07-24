@@ -1,4 +1,4 @@
-// Flowtel v0.10.73 — private seasonal client-call availability boundary.
+// Flowtel v0.10.76 — private seasonal client-call availability boundary.
 import { supabase } from './supabase.js';
 import { requireProductAccess } from './product-access.js';
 import { validateFlowFmAvailabilitySeason } from './flow-fm-availability-core.js';

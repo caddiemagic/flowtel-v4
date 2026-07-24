@@ -1,3 +1,9 @@
-/* Flowtel v0.10.73 — New Flow FM pages begin with restrained editorial scale. */
-:root{--flowfm-hero-title-size:clamp(2.15rem,4vw,3.75rem);--flowfm-section-title-size:clamp(1.8rem,4vw,3.35rem);--flowfm-card-title-size:clamp(1.35rem,2.5vw,2.2rem)}
-.flowfm-page-hero h1,.flowfm-page-hero-title{font-size:var(--flowfm-hero-title-size)!important;line-height:1!important}.flowfm-section-title{font-size:var(--flowfm-section-title-size)!important}.flowfm-card-title{font-size:var(--flowfm-card-title-size)!important}
+/* Flowtel v0.10.76 — restrained shared Flow FM type scale. */
+:root{
+  --flowfm-hero-title-size:clamp(2rem,4vw,3rem);
+  --flowfm-section-title-size:clamp(1.55rem,3vw,2.35rem);
+  --flowfm-card-title-size:clamp(1.15rem,2vw,1.55rem);
+}
+.flowfm-page-hero h1,.flowfm-page-hero-title{font-size:var(--flowfm-hero-title-size)!important;line-height:1.04!important}
+.flowfm-section-title{font-size:var(--flowfm-section-title-size)!important}
+.flowfm-card-title{font-size:var(--flowfm-card-title-size)!important}

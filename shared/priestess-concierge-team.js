@@ -40,3 +40,12 @@ export async function setPriestessFlowFmStartDate(memberId, startedAt) {
   if (error) throw error;
   return Array.isArray(data) ? data[0] || null : data;
 }
+
+export async function getPriestessHourlyFlowRate(memberId) {
+  if (!memberId) throw new Error("Choose a Flow FM member.");
+  const { data, error } = await supabase.rpc("flowtel_admin_get_member_hourly_flow_rate", {
+    p_member_id: memberId,
+  });
+  if (error) throw error;
+  return unwrapSingle(data) || data || null;
+}

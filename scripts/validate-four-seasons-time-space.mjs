@@ -67,14 +67,14 @@ assert(hfrJs.includes('name="location_label"'), 'Hourly Flow Rate still lacks th
 assert(!hfrJs.includes('name="city"') && !hfrJs.includes('name="region"') && !hfrJs.includes('name="country"'), 'Hourly Flow Rate still renders separate city/region/country fields.');
 assert(hfrShared.includes('flowtel_hfr_save_four_season_locations') && hfrShared.includes('flowtel_hfr_save_season_location'), 'Shared HFR data boundary is missing new RPCs.');
 assert(hfrCore.includes('seasonLocationLabel') && hfrCore.includes('location_label'), 'Pure HFR status logic does not recognize the canonical label.');
-assert(hfrHtml.includes('page.js?v=0.10.75'), 'Hourly Flow Rate cache key is stale.');
+assert(hfrHtml.includes('page.js?v=0.10.76'), 'Hourly Flow Rate cache key is stale.');
 
 assert(timeHtml.includes('Time + Space'), 'Time + Space page title is missing.');
 for (const token of ['Local time', 'Hemisphere']) {
   assert(timeJs.includes(token), `Time + Space cards are missing ${token}.`);
 }
 assert(timeJs.includes('outerSeason'), 'Time + Space cards do not render the current outer season.');
-assert(timeHtml.includes('plotted world map') && timeHtml.includes('intentionally deferred'), 'The plotted map deferral is not recorded in the UI.');
+assert(timeHtml.includes('plotted world map') && timeHtml.includes('later release'), 'The plotted map deferral is not recorded in the UI.');
 assert(timeJs.includes('listTimeAndSpaceTeam') && timeJs.includes('timeAndSpacePresentation'), 'Time + Space rendering is not wired.');
 assert(timeCore.includes('outerSeasonForHemisphere'), 'Time + Space pure seasonal helper is missing.');
 assert(timeCore.includes('[11,12,1]') && timeCore.includes('[2,3,4]') && timeCore.includes('[5,6,7]'), 'Time + Space does not use the established Flowtel outer-season cadence.');
@@ -84,9 +84,9 @@ assert(timeCss.includes('.time-space-grid') && timeCss.includes('.outer-season')
 assert(!/mapbox|google\.maps|leaflet|<svg[^>]*world/i.test(`${timeHtml}\n${timeJs}`), 'The intentionally deferred plotted map or external location SDK was added.');
 
 assert(flowFmJs.includes("href:'/flow-fm/time-space/'"), 'Flow FM support-room doorway is missing.');
-assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.75'), 'Flow FM hallway cache key is stale.');
+assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.76'), 'Flow FM hallway cache key is stale.');
 assert(managerHtml.includes('href="/flow-fm/time-space/"') && managerHtml.includes('Time + Space'), 'Owner Concierge doorway is missing.');
-assert(managerHtml.includes('styles.css?v=0.10.75') && managerHtml.includes('app.js?v=0.10.75'), 'Concierge cache keys are stale.');
+assert(managerHtml.includes('styles.css?v=0.10.76') && managerHtml.includes('app.js?v=0.10.76'), 'Concierge cache keys are stale.');
 assert(managerCss.includes('.stat-card-link'), 'Owner Time + Space card styling is missing.');
 
 const rewrite = (vercel.rewrites || []).find((row) => row.source === '/flow-fm/time-space');
@@ -120,4 +120,4 @@ for (const [name, css] of Object.entries({ client: clientCss, timeSpace: timeCss
   assert(balancedCss(css), `${name} CSS is structurally unbalanced.`);
 }
 
-console.log('Flowtel v0.10.75 Four Seasons quadrant and Time + Space validation passed.');
+console.log('Flowtel v0.10.76 Four Seasons quadrant and Time + Space validation passed.');

@@ -1,3 +1,4 @@
+// Flowtel v0.10.76 — recurring Inner Season availability validation.
 export const FLOW_FM_INNER_SEASONS = ['Inner Winter','Inner Spring','Inner Summer','Inner Autumn'];
 export const FLOW_FM_WEEKDAYS = [
   { weekday:1, label:'Monday' },
@@ -18,7 +19,7 @@ export function validateFlowFmAvailabilitySeason(innerSeason, days){
     if(!Number.isInteger(weekday) || weekday<1 || weekday>7 || seen.has(weekday)) throw new Error('Each weekday may appear once.');
     seen.add(weekday);
     const available=Boolean(day?.available);
-    const windows=available ? (Array.isArray(day?.windows)?day.windows:[]) : [];
+    const windows=Array.isArray(day?.windows)?day.windows:[];
     if(available && windows.length===0) throw new Error('Add at least one time window for every available day.');
     if(windows.length > 8) throw new Error('A weekday may contain up to eight time windows.');
     return {

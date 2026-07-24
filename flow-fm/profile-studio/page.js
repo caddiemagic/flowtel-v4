@@ -729,7 +729,7 @@ async function loadPriestessMailbox(){
 
 function renderStaticNav(){
   if(!topNav) return;
-  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
+  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill" href="/flow-fm/moons/">13 Moons</a><a class="nav-pill" href="/flow-fm/womb-work/">Womb Work</a><a class="nav-pill" href="/flow-fm/assignments/">Assignments</a><a class="nav-pill" href="/flow-fm/hourly-flow-rate/">Hourly Flow Rate</a><a class="nav-pill" href="/flow-fm/availability/">Availability</a><a class="nav-pill" href="/flow-fm/planning-room/">Planning Room</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/flow-fm/team-map/">Living Map</a><a class="nav-pill" href="/flow-fm/time-space/">Time + Space</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
 }
 async function loadSavedProfile(){
   if(!api?.getPriestessProfile) return;

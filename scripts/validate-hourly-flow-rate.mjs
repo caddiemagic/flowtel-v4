@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 
 const html = await readFile('flow-fm/hourly-flow-rate/index.html', 'utf8');
 const js = await readFile('flow-fm/hourly-flow-rate/page.js', 'utf8');
+const calculations = await readFile('shared/hourly-flow-rate-calculations.js', 'utf8');
 const css = await readFile('flow-fm/hourly-flow-rate/styles.css', 'utf8');
 const migration = await readFile('database/migration-047-hourly-flow-rate-mvp.sql', 'utf8');
 const vercel = JSON.parse(await readFile('vercel.json', 'utf8'));
@@ -11,7 +12,7 @@ const ids = [...html.matchAll(/\bid=["']([^"']+)["']/g)].map((match) => match[1]
 const duplicates = ids.filter((id, index) => ids.indexOf(id) !== index);
 assert.deepEqual(duplicates, [], `Duplicate HTML ids: ${duplicates.join(', ')}`);
 
-for (const id of ['topNav','accessGate','experience','rateHero','currencyRoom','seasonMap','seasonStudio','homeBaseRoom','timelineRoom','witnessRoom','pageMessage']) {
+for (const id of ['topNav','accessGate','experience','rateHero','currencyRoom','seasonMap','seasonStudio','homeBaseRoom','timelineRoom','pageMessage']) {
   assert(ids.includes(id), `Missing required HTML id: ${id}`);
   assert(js.includes(`getElementById('${id}')`) || js.includes(`getElementById("${id}")`), `JS does not reference required element: ${id}`);
 }
@@ -19,12 +20,16 @@ for (const id of ['topNav','accessGate','experience','rateHero','currencyRoom','
 assert.equal((css.match(/{/g) || []).length, (css.match(/}/g) || []).length, 'CSS braces are unbalanced.');
 assert(!/percentage[- ]complete|progress bar/i.test(html + js), 'Pressure-based completion language found.');
 assert(!/\$0\s*\/\s*hour/i.test(html + js), 'A $0/hour judgment state was introduced.');
-assert(js.includes('YOUR SEASONAL SOVEREIGNTY MAP'));
-assert(js.includes('YOUR EMERGING HOURLY FLOW RATE'));
-assert(js.includes('revenue capacity required to resource your vision'));
+assert(js.includes('HOURLY FLOW RATE'));
+assert(js.includes('roundHourlyFlowRateUp'), 'Whole-number Hourly Flow Rate helper is not wired into the page.');
+assert(calculations.includes('Math.ceil'), 'Whole-number Hourly Flow Rate helper does not round upward.');
+assert(js.includes('data-hourly-flow-rate-result'), 'Top-of-page Hourly Flow Rate result is missing.');
+assert(!js.includes('PRIVATE WITNESSING') && !js.includes('witnessForm'), 'Private Witnessing was not removed.');
+assert(js.includes('seasonRoomForm'), 'Unified seasonal room form is missing.');
 assert(js.includes('calculateNourishmentTotal'), 'Detailed nourishment calculation is not wired into the experience.');
 assert(js.includes('calculateSelfCareServiceTotal'), 'Detailed self-care calculation is not wired into the experience.');
 assert(js.includes('financial, tax, legal, or investment advice'), 'Educational disclaimer missing.');
+assert(html.includes('/flow-fm/platform.css?v=0.10.76'), 'Shared Flow FM platform stylesheet is missing.');
 
 for (const table of ['plans','seasons','cost_entries','home_base','snapshots']) {
   assert(migration.includes(`alter table public.flowtel_hourly_flow_rate_${table} enable row level security;`), `RLS missing for ${table}.`);

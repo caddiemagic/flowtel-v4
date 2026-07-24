@@ -4,14 +4,30 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Living Map</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.47" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
 </head>
-<body>
+<body class="flowfm-platform-page">
   <main class="team-map-shell">
+    <nav class="top-nav" aria-label="Flow FM rooms">
+      <a class="nav-pill" href="/flow-fm/">Initiation Hall</a>
+      <a class="nav-pill" href="/flow-fm/moons/">13 Moons</a>
+      <a class="nav-pill" href="/flow-fm/womb-work/">Womb Work</a>
+      <a class="nav-pill" href="/flow-fm/assignments/">Assignments</a>
+      <a class="nav-pill" href="/flow-fm/hourly-flow-rate/">Hourly Flow Rate</a>
+      <a class="nav-pill" href="/flow-fm/availability/">Availability</a>
+      <a class="nav-pill" href="/flow-fm/planning-room/">Planning Room</a>
+      <a class="nav-pill" href="/flow-fm/profile-studio/">Profile Studio</a>
+      <a class="nav-pill active" href="/flow-fm/team-map/">Living Map</a>
+      <a class="nav-pill" href="/flow-fm/time-space/">Time + Space</a>
+      <a class="nav-pill" href="/client/?suite=1">Return to Suite</a>
+    </nav>
+
     <section class="team-map-hero">
       <img src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
-      <p class="eyebrow">FLOW FM TEAM MAP</p>
-      <p class="team-map-tagline">See where the concierge team is today.</p>
+      <p class="eyebrow">FLOW FM LIVING MAP</p>
+      <p class="team-map-tagline">See who is checked in across the four Inner Seasons today.</p>
       <div class="hero-date" id="flowtelDate">Opening today’s map in Flowtel Time…</div>
     </section>
 
@@ -42,7 +58,7 @@
     <section class="presence-legend" aria-label="Living Map legend">
       <span><i class="legend-presence actual"></i> Actual Inner Season</span>
       <span><i class="legend-presence ghost"></i> Multidimensional Travel</span>
-      <span class="legend-note">Hover or tap a woman to witness her movement.</span>
+      <span class="legend-note">Hover or tap a profile to view today’s movement.</span>
     </section>
 
     <section class="team-map-canvas" id="teamMapCanvas" aria-label="Flow FM seasonal team map">
@@ -105,6 +121,6 @@
     <div id="presenceDialogContent"></div>
   </dialog>
 
-  <script type="module" src="./page.js?v=0.10.52"></script>
+  <script type="module" src="./page.js?v=0.10.76"></script>
 </body>
 </html>

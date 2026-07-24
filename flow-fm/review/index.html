@@ -4,21 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flow FM Review Desk</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.11" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.76" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.76" />
 </head>
-<body>
+<body class="flowfm-platform-page">
   <main class="initiation-shell">
     <nav class="top-nav" id="topNav"></nav>
-    <section class="hero-card hero-card--hallway">
+    <section class="hero-card hero-card--hallway flowfm-page-hero">
       <p class="eyebrow">MENTOR / ADMIN ONLY</p>
       <h1>Review Desk</h1>
-      <p id="heroCopy">A separate room for witnessing assignment submissions and Priestess Profiles so the student hallway stays calm.</p>
+      <p id="heroCopy">Review submitted assignments and Priestess Profiles from one private administrative room.</p>
     </section>
     <section id="accessState"></section>
     <section class="review-queue-card" id="reviewQueueCard">
       <div class="section-heading compact">
         <p class="eyebrow">ASSIGNMENT REVIEW QUEUE</p>
-        <h2>Business assignments waiting to be witnessed</h2>
+        <h2>Business assignments awaiting review</h2>
         <p>Review, request refinement, or mark work complete from one desk.</p>
       </div>
       <div id="reviewQueue" class="review-queue"></div>
@@ -26,13 +28,13 @@
     <section class="review-queue-card" id="profileReviewQueueCard">
       <div class="section-heading compact">
         <p class="eyebrow">PROFILE REVIEW QUEUE</p>
-        <h2>Priestess Profiles waiting to be witnessed</h2>
+        <h2>Priestess Profiles awaiting review</h2>
         <p>Approve a profile or request refinement without cluttering the student-facing studio.</p>
       </div>
       <div id="profileReviewQueue" class="review-queue"></div>
     </section>
     <p id="message" class="message"></p>
   </main>
-  <script type="module" src="/flow-fm/review/page.js?v=0.10.28"></script>
+  <script type="module" src="/flow-fm/review/page.js?v=0.10.76"></script>
 </body>
 </html>

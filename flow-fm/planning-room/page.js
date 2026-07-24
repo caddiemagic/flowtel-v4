@@ -1,5 +1,5 @@
 import { MOON_CALENDARS, MOON_PHASE_KEY, WEEKLY_PLANNING_PROMPTS } from '/shared/moon-calendars.js?v=0.10.38';
-import { renderTopNav, escapeHtml } from '/flow-fm/ui.js';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.76';
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
 
 const topNav = document.getElementById('topNav');

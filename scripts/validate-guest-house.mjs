@@ -171,7 +171,7 @@ assert(!files.managerJs.includes('CALL DATE / MONTH'),'Removed call-date field s
 assert(files.managerJs.includes('WHAT THE CLIENT REMEMBERS ABOUT THE CALL'),'Concierge call-memory field is missing.');
 assert(!files.managerJs.includes('from "../shared/guest-house.js'),'Guest House must remain a lazy dependency of the Concierge access gate.');
 assert(files.managerJs.includes('import("../shared/guest-house.js?v=0.10.74.2")'),'Guest House lazy module cache-bust is missing.');
-assert(files.managerHtml.includes('import("./app.js?v=0.10.75")'),'Concierge dynamic loader cache-bust is missing.');
+assert(files.managerHtml.includes('import("./app.js?v=0.10.76")'),'Concierge dynamic loader cache-bust is missing.');
 
 
 assert(files.migration050.includes("interval '28 days'"),'Migration 050 does not establish the 28-day replay stay.');

@@ -1,11 +1,12 @@
 import { currentUserHasConciergeAccess } from "../../shared/flowtel.js?v=0.10.75";
-import { getPriestessConciergeProfile, setPriestessAcceptingClients, setPriestessFlowFmStartDate } from "../../shared/priestess-concierge-team.js?v=0.10.75";
+import { getPriestessConciergeProfile, getPriestessHourlyFlowRate, setPriestessAcceptingClients, setPriestessFlowFmStartDate } from "../../shared/priestess-concierge-team.js?v=0.10.76";
 import { reviewPriestessProfile } from "../../shared/priestess-profiles.js?v=0.10.75";
 import { flowtelTodayISO, formatDateOnly } from "../../shared/flowtel-date.js?v=0.10.75";
 
 const $ = id => document.getElementById(id);
 const memberId = new URLSearchParams(location.search).get("member") || "";
 let detail = null;
+let hourlyFlowRate = null;
 
 function escapeHtml(value = "") {
   return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;" }[char]));
@@ -32,6 +33,17 @@ function setStatus(text, isError = false) {
   $("teamMessage").textContent = text;
   $("teamMessage").classList.toggle("error", isError);
 }
+
+function hourlyFlowRateLabel() {
+  if (!hourlyFlowRate?.has_plan || !hourlyFlowRate?.has_monetary_value) return "Not calculated";
+  const amount = Number(hourlyFlowRate.hourly_flow_rate_rounded_up || 0);
+  try {
+    return `${new Intl.NumberFormat("en-US", { style: "currency", currency: hourlyFlowRate.base_currency || "USD", maximumFractionDigits: 0 }).format(amount)} / hour`;
+  } catch (error) {
+    return `${hourlyFlowRate.base_currency || "USD"} ${amount} / hour`;
+  }
+}
+
 function member() { return detail?.member || {}; }
 function profile() { return detail?.priestess_profile || null; }
 function clients() { return Array.isArray(detail?.clients) ? detail.clients : []; }
@@ -66,7 +78,8 @@ function renderSummary() {
     <article><span>Membership</span><strong>${escapeHtml(label(row.membership_type || "flowfm"))}</strong><small>Flow FM pathway</small></article>
     <article><span>Priestess Profile</span><strong>${escapeHtml(label(pp?.status || "not_started"))}</strong><small>${pp?.updated_at ? `Updated ${escapeHtml(dateLabel(pp.updated_at))}` : "Profile Studio not started"}</small></article>
     <article><span>Clients</span><strong>${connected}</strong><small>${requested} pending request${requested === 1 ? "" : "s"}</small></article>
-    <article><span>Mentor Availability</span><strong>${row.mentor_accepting_clients ? "Open" : "Closed"}</strong><small>${row.mentor_accepting_clients ? "Accepting clients" : "Not accepting clients"}</small></article>`;
+    <article><span>Mentor Availability</span><strong>${row.mentor_accepting_clients ? "Open" : "Closed"}</strong><small>${row.mentor_accepting_clients ? "Accepting clients" : "Not accepting clients"}</small></article>
+    <article><span>Hourly Flow Rate</span><strong>${escapeHtml(hourlyFlowRateLabel())}</strong><small>${hourlyFlowRate?.has_monetary_value ? "Rounded upward whole-number result" : "Member calculation not complete"}</small></article>`;
 }
 
 function renderProfile() {
@@ -159,7 +172,10 @@ async function boot() {
   try {
     if (!memberId) throw new Error("Choose a woman from the Priestess Concierge Team directory.");
     if (!(await currentUserHasConciergeAccess())) throw new Error("Only the Flowtel owner may open this team profile.");
-    detail = await getPriestessConciergeProfile(memberId);
+    [detail, hourlyFlowRate] = await Promise.all([
+      getPriestessConciergeProfile(memberId),
+      getPriestessHourlyFlowRate(memberId),
+    ]);
     if (!detail) throw new Error("This Flow FM member could not be found.");
     $("teamLoadingCard").classList.add("hidden");
     $("teamProfilePage").classList.remove("hidden");

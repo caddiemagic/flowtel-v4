@@ -1,0 +1,351 @@
+/* Flowtel v0.10.76 — shared quiet-luxury Flow FM platform shell. */
+:root{
+  --ffm-ivory:#fffdf9;
+  --ffm-paper:#fbf7f1;
+  --ffm-blush:#f5e6e1;
+  --ffm-rose:#a75f61;
+  --ffm-rose-dark:#70464a;
+  --ffm-brown:#63483f;
+  --ffm-muted:#8c7066;
+  --ffm-gold:#c7a25f;
+  --ffm-gold-soft:#e9d8ad;
+  --ffm-line:rgba(132,99,82,.16);
+  --ffm-line-gold:rgba(199,162,95,.28);
+  --ffm-shadow:0 18px 48px rgba(92,64,50,.065);
+  --ffm-shadow-soft:0 8px 24px rgba(92,64,50,.045);
+  --ffm-radius-xl:24px;
+  --ffm-radius-lg:18px;
+  --ffm-radius-md:14px;
+  --ffm-page-title:clamp(2rem,4vw,3rem);
+  --ffm-section-title:clamp(1.55rem,3vw,2.35rem);
+  --ffm-card-title:clamp(1.15rem,2vw,1.55rem);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body.flowfm-platform-page{
+  margin:0;
+  min-height:100vh;
+  color:var(--ffm-brown);
+  font-family:Georgia,"Times New Roman",serif;
+  background:
+    radial-gradient(circle at 82% -8%,rgba(231,207,159,.22),transparent 29%),
+    radial-gradient(circle at 8% 6%,rgba(245,230,225,.62),transparent 28%),
+    linear-gradient(180deg,#fffdf9 0%,#faf5ee 100%);
+}
+body.flowfm-platform-page a{color:inherit}
+body.flowfm-platform-page :focus-visible{outline:2px solid rgba(167,95,97,.52);outline-offset:3px}
+body.flowfm-platform-page .initiation-shell,
+body.flowfm-platform-page .availability-shell,
+body.flowfm-platform-page .hfr-shell,
+body.flowfm-platform-page .time-space-shell,
+body.flowfm-platform-page .team-map-shell,
+body.flowfm-platform-page .queendom-profile-shell{
+  width:min(1160px,calc(100% - 32px));
+  margin:0 auto;
+  padding:22px 0 72px;
+}
+body.flowfm-platform-page .initiation-shell{display:grid;gap:18px}
+
+/* One compact, scrollable room navigation pattern. */
+body.flowfm-platform-page .top-nav,
+body.flowfm-platform-page .time-space-nav,
+body.flowfm-platform-page .team-map-nav{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  overflow-x:auto;
+  scrollbar-width:thin;
+  padding:8px;
+  margin:0 0 12px;
+  border:1px solid var(--ffm-line-gold);
+  border-radius:18px;
+  background:rgba(255,253,249,.82);
+  box-shadow:var(--ffm-shadow-soft);
+  backdrop-filter:blur(14px);
+}
+body.flowfm-platform-page .top-nav a,
+body.flowfm-platform-page .nav-pill,
+body.flowfm-platform-page .time-space-nav a,
+body.flowfm-platform-page .team-map-nav a{
+  flex:0 0 auto;
+  min-height:38px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:9px 14px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:var(--ffm-brown);
+  font:700 .64rem/1 Arial,sans-serif;
+  letter-spacing:.105em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:none;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+body.flowfm-platform-page .top-nav a:hover,
+body.flowfm-platform-page .nav-pill:hover,
+body.flowfm-platform-page .time-space-nav a:hover,
+body.flowfm-platform-page .team-map-nav a:hover{
+  transform:translateY(-1px);
+  border-color:var(--ffm-line-gold);
+  background:rgba(245,230,225,.48);
+}
+body.flowfm-platform-page .nav-pill.active{
+  border-color:rgba(167,95,97,.26);
+  background:linear-gradient(180deg,rgba(245,230,225,.82),rgba(255,253,249,.92));
+  color:var(--ffm-rose-dark);
+}
+
+/* Quiet page headers: visual orientation, never a billboard. */
+body.flowfm-platform-page .hero-card,
+body.flowfm-platform-page .hall-hero-card,
+body.flowfm-platform-page .availability-hero,
+body.flowfm-platform-page .hfr-hero,
+body.flowfm-platform-page .time-space-hero,
+body.flowfm-platform-page .team-map-hero{
+  position:relative;
+  overflow:hidden;
+  margin:0;
+  padding:clamp(24px,4vw,38px);
+  border:1px solid var(--ffm-line-gold);
+  border-radius:var(--ffm-radius-xl);
+  background:
+    radial-gradient(circle at 86% 12%,rgba(199,162,95,.11),transparent 31%),
+    linear-gradient(145deg,rgba(255,253,249,.97),rgba(248,239,232,.76));
+  box-shadow:var(--ffm-shadow);
+  text-align:left;
+}
+body.flowfm-platform-page .hero-card::before,
+body.flowfm-platform-page .hero-card::after,
+body.flowfm-platform-page .hfr-hero::after{display:none!important}
+body.flowfm-platform-page .hero-card h1,
+body.flowfm-platform-page .hall-hero-card h1,
+body.flowfm-platform-page .availability-hero h1,
+body.flowfm-platform-page .hfr-hero h1,
+body.flowfm-platform-page .time-space-hero h1,
+body.flowfm-platform-page .team-map-hero h1,
+body.flowfm-platform-page .queendom-profile-view h1{
+  max-width:820px;
+  margin:.15em 0 .28em;
+  font-size:var(--ffm-page-title)!important;
+  line-height:1.04!important;
+  letter-spacing:.015em!important;
+  text-transform:none!important;
+  font-weight:400;
+  color:var(--ffm-rose-dark);
+}
+body.flowfm-platform-page .hero-card p:not(.eyebrow),
+body.flowfm-platform-page .hall-hero-card p:not(.eyebrow),
+body.flowfm-platform-page .availability-hero>p:last-child,
+body.flowfm-platform-page .time-space-hero p,
+body.flowfm-platform-page .team-map-tagline{
+  max-width:720px;
+  margin:0;
+  color:var(--ffm-muted);
+  font-size:1rem;
+  line-height:1.62;
+}
+body.flowfm-platform-page .eyebrow{
+  margin:0 0 9px;
+  color:var(--ffm-rose);
+  font:700 .66rem/1.3 Arial,sans-serif;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+body.flowfm-platform-page .hall-scarab-image,
+body.flowfm-platform-page .time-space-emblem img,
+body.flowfm-platform-page .team-map-hero>img{
+  width:58px;
+  height:58px;
+  object-fit:contain;
+  margin:0 0 12px;
+  filter:drop-shadow(0 9px 14px rgba(99,72,63,.12));
+}
+body.flowfm-platform-page .hall-hero-seal{width:112px;height:112px}
+
+/* Shared cards and page rhythm. */
+body.flowfm-platform-page .status-card,
+body.flowfm-platform-page .progress-card,
+body.flowfm-platform-page .arc-grid,
+body.flowfm-platform-page .moon-path-card,
+body.flowfm-platform-page .assignment-card,
+body.flowfm-platform-page .profile-studio-card,
+body.flowfm-platform-page .review-queue-card,
+body.flowfm-platform-page .door-grid-card,
+body.flowfm-platform-page .you-are-here-card,
+body.flowfm-platform-page .moon-portal-library-card,
+body.flowfm-platform-page .portal-panel,
+body.flowfm-platform-page .note-card,
+body.flowfm-platform-page .availability-card,
+body.flowfm-platform-page .availability-gate,
+body.flowfm-platform-page .hfr-card,
+body.flowfm-platform-page .hfr-access-gate,
+body.flowfm-platform-page .time-space-intro,
+body.flowfm-platform-page .time-space-empty,
+body.flowfm-platform-page .time-space-gate,
+body.flowfm-platform-page .team-map-toolbar,
+body.flowfm-platform-page .presence-legend,
+body.flowfm-platform-page .queendom-profile-view{
+  border:1px solid var(--ffm-line);
+  border-radius:var(--ffm-radius-xl);
+  background:rgba(255,253,249,.9);
+  box-shadow:var(--ffm-shadow-soft);
+}
+body.flowfm-platform-page .status-card,
+body.flowfm-platform-page .progress-card,
+body.flowfm-platform-page .arc-grid,
+body.flowfm-platform-page .moon-path-card,
+body.flowfm-platform-page .assignment-card,
+body.flowfm-platform-page .profile-studio-card,
+body.flowfm-platform-page .review-queue-card,
+body.flowfm-platform-page .door-grid-card,
+body.flowfm-platform-page .you-are-here-card,
+body.flowfm-platform-page .moon-portal-library-card,
+body.flowfm-platform-page .availability-card,
+body.flowfm-platform-page .hfr-card,
+body.flowfm-platform-page .time-space-intro,
+body.flowfm-platform-page .time-space-empty,
+body.flowfm-platform-page .time-space-gate,
+body.flowfm-platform-page .team-map-toolbar,
+body.flowfm-platform-page .queendom-profile-view{padding:clamp(20px,3vw,32px)}
+body.flowfm-platform-page .section-heading{max-width:760px;margin:0 0 22px;text-align:left}
+body.flowfm-platform-page .section-heading.compact{margin:0 0 18px}
+body.flowfm-platform-page .section-heading h2,
+body.flowfm-platform-page .section-heading.compact h2,
+body.flowfm-platform-page .status-main h2,
+body.flowfm-platform-page .progress-card h2,
+body.flowfm-platform-page .availability-heading h2,
+body.flowfm-platform-page .hfr-section-heading h2,
+body.flowfm-platform-page .hfr-card h2,
+body.flowfm-platform-page .time-space-intro h2,
+body.flowfm-platform-page .team-map-toolbar h2,
+body.flowfm-platform-page .queendom-profile-view h2{
+  margin:.12em 0 .32em;
+  font-size:var(--ffm-section-title)!important;
+  line-height:1.12!important;
+  letter-spacing:.005em!important;
+  text-transform:none!important;
+  font-weight:400;
+  color:var(--ffm-rose-dark);
+}
+body.flowfm-platform-page h3{font-size:var(--ffm-card-title);line-height:1.25}
+body.flowfm-platform-page p{line-height:1.58}
+body.flowfm-platform-page .section-heading p,
+body.flowfm-platform-page .status-card p,
+body.flowfm-platform-page .progress-card p,
+body.flowfm-platform-page .portal-panel p,
+body.flowfm-platform-page .note-card p{color:var(--ffm-muted)}
+
+/* Refined interactive surfaces. */
+body.flowfm-platform-page button,
+body.flowfm-platform-page .pill-link,
+body.flowfm-platform-page .availability-link,
+body.flowfm-platform-page .save-season,
+body.flowfm-platform-page .add-window,
+body.flowfm-platform-page .remove-window,
+body.flowfm-platform-page .hfr-button,
+body.flowfm-platform-page .priestess-team-button{
+  min-height:42px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid rgba(167,95,97,.28);
+  border-radius:12px;
+  padding:10px 16px;
+  background:linear-gradient(180deg,rgba(245,230,225,.8),rgba(255,253,249,.94));
+  color:var(--ffm-rose-dark);
+  font:700 .64rem/1 Arial,sans-serif;
+  letter-spacing:.105em;
+  text-transform:uppercase;
+  text-decoration:none;
+  box-shadow:none;
+  cursor:pointer;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease;
+}
+body.flowfm-platform-page button:hover,
+body.flowfm-platform-page .pill-link:hover,
+body.flowfm-platform-page .availability-link:hover,
+body.flowfm-platform-page .hfr-button:hover{transform:translateY(-1px);border-color:rgba(167,95,97,.54);background:rgba(245,230,225,.9)}
+body.flowfm-platform-page input,
+body.flowfm-platform-page select,
+body.flowfm-platform-page textarea{
+  min-height:44px;
+  border:1px solid rgba(99,72,63,.2)!important;
+  border-radius:12px!important;
+  background:rgba(255,255,255,.86)!important;
+  color:var(--ffm-brown)!important;
+  padding:11px 12px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7);
+}
+body.flowfm-platform-page textarea{min-height:108px}
+body.flowfm-platform-page label>span{color:var(--ffm-brown)}
+body.flowfm-platform-page .status-pill,
+body.flowfm-platform-page .hfr-status,
+body.flowfm-platform-page .privacy-seal{
+  border:1px solid var(--ffm-line-gold);
+  border-radius:999px;
+  background:rgba(245,230,225,.5);
+  color:var(--ffm-rose-dark);
+  font:700 .59rem/1 Arial,sans-serif;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+body.flowfm-platform-page .message,
+body.flowfm-platform-page .availability-message,
+body.flowfm-platform-page .hfr-page-message,
+body.flowfm-platform-page .time-space-message{font-family:Arial,sans-serif;font-size:.78rem;font-style:normal}
+
+/* Reduce card crowding while keeping information accessible. */
+body.flowfm-platform-page .moon-card,
+body.flowfm-platform-page .assignment-row,
+body.flowfm-platform-page .current-piece-card,
+body.flowfm-platform-page .door-card,
+body.flowfm-platform-page .module-card,
+body.flowfm-platform-page .calendar-card,
+body.flowfm-platform-page .availability-season,
+body.flowfm-platform-page .availability-day,
+body.flowfm-platform-page .hfr-season-card,
+body.flowfm-platform-page .time-space-card{
+  border-color:var(--ffm-line)!important;
+  border-radius:var(--ffm-radius-lg)!important;
+  background:rgba(255,255,255,.62)!important;
+  box-shadow:none!important;
+}
+body.flowfm-platform-page .door-card:hover,
+body.flowfm-platform-page .moon-card:hover,
+body.flowfm-platform-page .hfr-season-card:hover{transform:translateY(-2px);border-color:var(--ffm-line-gold)!important;box-shadow:var(--ffm-shadow-soft)!important}
+body.flowfm-platform-page .moon-card h3,
+body.flowfm-platform-page .assignment-row h3,
+body.flowfm-platform-page .current-piece-card h3,
+body.flowfm-platform-page .door-card h3,
+body.flowfm-platform-page .module-card h3,
+body.flowfm-platform-page .calendar-card h3{font-size:var(--ffm-card-title)!important;font-weight:400}
+
+/* Team map gets the same chrome without changing the established quadrants. */
+body.flowfm-platform-page .team-map-canvas{box-shadow:var(--ffm-shadow);border-color:var(--ffm-line-gold)}
+body.flowfm-platform-page .team-map-nav--bottom{margin-top:16px}
+body.flowfm-platform-page .queendom-profile-shell .team-map-nav{margin-bottom:14px}
+
+@media(max-width:760px){
+  body.flowfm-platform-page .initiation-shell,
+  body.flowfm-platform-page .availability-shell,
+  body.flowfm-platform-page .hfr-shell,
+  body.flowfm-platform-page .time-space-shell,
+  body.flowfm-platform-page .team-map-shell,
+  body.flowfm-platform-page .queendom-profile-shell{width:min(100% - 18px,1160px);padding-top:10px}
+  body.flowfm-platform-page .top-nav,
+  body.flowfm-platform-page .time-space-nav,
+  body.flowfm-platform-page .team-map-nav{border-radius:14px;padding:6px}
+  body.flowfm-platform-page .hero-card,
+  body.flowfm-platform-page .hall-hero-card,
+  body.flowfm-platform-page .availability-hero,
+  body.flowfm-platform-page .hfr-hero,
+  body.flowfm-platform-page .time-space-hero,
+  body.flowfm-platform-page .team-map-hero{padding:22px 18px;border-radius:20px}
+  body.flowfm-platform-page .hall-hero-seal{width:82px;height:82px}
+  body.flowfm-platform-page .status-card,
+  body.flowfm-platform-page .progress-card,
+  body.flowfm-platform-page .you-are-here-card{grid-template-columns:1fr!important}
+}
