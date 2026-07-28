@@ -539,6 +539,9 @@
   text-transform:uppercase;
   color:var(--soft-brown);
 }
+.completed-turndown-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+.completed-turndown-actions>button{min-width:150px}
+@media(max-width:680px){.completed-turndown-actions{justify-content:stretch}.completed-turndown-actions>*{width:100%}}
 
 /* Release 0.9.0 — Mentor relationship language */
 .connection-row p{
@@ -935,7 +938,7 @@
 .guest-house-training-consent{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 17px;border:1px solid rgba(216,168,79,.2);border-radius:17px;background:rgba(255,253,249,.68)}.guest-house-training-consent h4{margin:0 0 5px;font-size:1.18rem;font-weight:400}.guest-house-training-consent span{display:block;color:var(--soft-brown);font-size:.76rem;line-height:1.5}.guest-house-training-consent>div:last-child{min-width:150px;padding:10px 12px;border:1px solid rgba(109,78,65,.09);border-radius:13px;background:rgba(255,255,255,.68);text-align:center}.guest-house-training-consent>div:last-child strong{display:block;margin-bottom:4px;color:var(--rose);font:700 .62rem/1 Arial,sans-serif;letter-spacing:.1em}.guest-house-training-consent.is-granted{border-color:rgba(123,64,81,.25);background:linear-gradient(135deg,rgba(248,231,227,.38),rgba(255,253,249,.78))}.guest-house-training-consent.is-review-needed{border-color:rgba(177,114,80,.34);background:linear-gradient(135deg,rgba(255,242,226,.62),rgba(255,253,249,.82))}.guest-house-training-consent.is-review-needed>div:last-child strong{color:#9a5c3d}
 @media(max-width:760px){.guest-house-training-consent{grid-template-columns:1fr}.guest-house-training-consent>div:last-child{text-align:left}}
 
-/* Flowtel v0.10.78 — approved Priestess Concierge Team view */
+/* Flowtel v0.10.78.1 — approved Priestess Concierge Team view + Turndown confirmation safety */
 body.concierge-team-view .concierge-visibility-toolbar,
 body.concierge-team-view [data-audience="owner"],
 body.concierge-team-view [data-audience="caddie"]{display:none!important}
