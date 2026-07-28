@@ -1,5 +1,5 @@
-import { currentUserHasConciergeAccess } from "../../shared/flowtel.js?v=0.10.75";
-import { getPriestessConciergeProfile, getPriestessHourlyFlowRate, setPriestessAcceptingClients, setPriestessFlowFmStartDate } from "../../shared/priestess-concierge-team.js?v=0.10.76";
+import { currentUserHasConciergeAccess } from "../../shared/flowtel.js?v=0.10.78";
+import { getPriestessConciergeProfile, getPriestessHourlyFlowRate, getPriestessConciergeTeamAccess, setPriestessConciergeTeamAccess, setPriestessAcceptingClients, setPriestessFlowFmStartDate } from "../../shared/priestess-concierge-team.js?v=0.10.78";
 import { reviewPriestessProfile } from "../../shared/priestess-profiles.js?v=0.10.75";
 import { flowtelTodayISO, formatDateOnly } from "../../shared/flowtel-date.js?v=0.10.75";
 
@@ -7,6 +7,7 @@ const $ = id => document.getElementById(id);
 const memberId = new URLSearchParams(location.search).get("member") || "";
 let detail = null;
 let hourlyFlowRate = null;
+let conciergeTeamAccess = false;
 
 function escapeHtml(value = "") {
   return String(value ?? "").replace(/[&<>'"]/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#039;", '"': "&quot;" }[char]));
@@ -79,7 +80,8 @@ function renderSummary() {
     <article><span>Priestess Profile</span><strong>${escapeHtml(label(pp?.status || "not_started"))}</strong><small>${pp?.updated_at ? `Updated ${escapeHtml(dateLabel(pp.updated_at))}` : "Profile Studio not started"}</small></article>
     <article><span>Clients</span><strong>${connected}</strong><small>${requested} pending request${requested === 1 ? "" : "s"}</small></article>
     <article><span>Mentor Availability</span><strong>${row.mentor_accepting_clients ? "Open" : "Closed"}</strong><small>${row.mentor_accepting_clients ? "Accepting clients" : "Not accepting clients"}</small></article>
-    <article><span>Hourly Flow Rate</span><strong>${escapeHtml(hourlyFlowRateLabel())}</strong><small>${hourlyFlowRate?.has_monetary_value ? "Rounded upward whole-number result" : "Member calculation not complete"}</small></article>`;
+    <article><span>Hourly Flow Rate</span><strong>${escapeHtml(hourlyFlowRateLabel())}</strong><small>${hourlyFlowRate?.has_monetary_value ? "Rounded upward whole-number result" : "Member calculation not complete"}</small></article>
+    <article><span>Concierge Team</span><strong>${conciergeTeamAccess ? "Active" : "Not Granted"}</strong><small>${conciergeTeamAccess ? "Approved Priestess Team Rooms" : "Owner approval required"}</small></article>`;
 }
 
 function renderProfile() {
@@ -119,6 +121,7 @@ function renderMentorSettings() {
   $("mentorCard").innerHTML = `
     <div class="section-heading"><div><p class="eyebrow">MENTOR + PRACTITIONER SETTINGS</p><h2>${row.mentor_accepting_clients ? "Accepting Clients" : "Not Accepting Clients"}</h2></div><button id="toggleAcceptingButton" type="button" class="priestess-team-button ${row.mentor_accepting_clients ? "quiet" : ""}">${row.mentor_accepting_clients ? "Pause New Clients" : "Open to New Clients"}</button></div>
     <div class="profile-detail-grid"><div><span>Flowtel Role</span><strong>${escapeHtml(label(row.role || "member"))}</strong></div><div><span>Client Data Scope</span><strong>${escapeHtml(detail.cycle_data_scope || "Connected clients only")}</strong></div><div><span>Flow FM Start</span><strong>${escapeHtml(dateLabel(row.flowfm_started_at))}</strong></div><div><span>Access Status</span><strong>${escapeHtml(label(row.flowtel_access_status || "active"))}</strong></div></div>
+    <section class="concierge-team-access-control"><div><p class="eyebrow">CONCIERGE TEAM ACCESS</p><h3>${conciergeTeamAccess ? "Active" : "Not Granted"}</h3><p>${conciergeTeamAccess ? "This Priestess can enter the existing Concierge Desk and see only the approved Team Rooms." : "Grant this only when she is ready to serve as an approved Flowtel practitioner."}</p></div><button id="toggleConciergeTeamAccessButton" type="button" class="priestess-team-button ${conciergeTeamAccess ? "quiet" : ""}">${conciergeTeamAccess ? "Pause Team Access" : "Grant Team Access"}</button></section>
     <form class="flowfm-start-date-form" id="flowFmStartDateForm"><label><span>Flow FM Start Date</span><input name="started_at" type="date" max="${flowtelTodayISO()}" value="${escapeHtml(String(row.flowfm_started_at||"").slice(0,10))}" required /></label><button type="submit" class="priestess-team-button">Save Start Date</button></form>
     <p class="priestess-team-note" id="mentorSettingMessage"></p>`;
   $("flowFmStartDateForm")?.addEventListener("submit", async event => {
@@ -132,6 +135,21 @@ function renderMentorSettings() {
       renderMentorSettings();
     } catch (error) {
       $("mentorSettingMessage").textContent = error?.message || "The Flow FM start date could not be saved.";
+      button.disabled = false;
+    }
+  });
+  $("toggleConciergeTeamAccessButton")?.addEventListener("click", async () => {
+    const button = $("toggleConciergeTeamAccessButton");
+    button.disabled = true;
+    try {
+      conciergeTeamAccess = await setPriestessConciergeTeamAccess(memberId, !conciergeTeamAccess);
+      renderSummary();
+      renderMentorSettings();
+      $("mentorSettingMessage").textContent = conciergeTeamAccess
+        ? "Concierge Team access is active. She can now enter the approved Priestess Team Rooms."
+        : "Concierge Team access is paused. Her Flow FM membership and history remain unchanged.";
+    } catch (error) {
+      $("mentorSettingMessage").textContent = error?.message || "Concierge Team access could not be updated.";
       button.disabled = false;
     }
   });
@@ -172,9 +190,10 @@ async function boot() {
   try {
     if (!memberId) throw new Error("Choose a woman from the Priestess Concierge Team directory.");
     if (!(await currentUserHasConciergeAccess())) throw new Error("Only the Flowtel owner may open this team profile.");
-    [detail, hourlyFlowRate] = await Promise.all([
+    [detail, hourlyFlowRate, conciergeTeamAccess] = await Promise.all([
       getPriestessConciergeProfile(memberId),
       getPriestessHourlyFlowRate(memberId),
+      getPriestessConciergeTeamAccess(memberId),
     ]);
     if (!detail) throw new Error("This Flow FM member could not be found.");
     $("teamLoadingCard").classList.add("hidden");

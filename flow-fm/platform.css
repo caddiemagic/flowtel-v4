@@ -387,3 +387,21 @@ body.flowfm-platform-page .legacy-curriculum-card{max-width:680px;margin:80px au
   body.flowfm-platform-page .moon-card-footer{justify-content:stretch}
   body.flowfm-platform-page .moon-card-footer .pill-link{width:100%}
 }
+
+/* Flowtel v0.10.78 — preserve the approved Living Map circle-and-name marker. */
+body.flowfm-platform-page button.presence-orb,
+body.flowfm-platform-page button.presence-orb:hover,
+body.flowfm-platform-page button.presence-orb:focus-visible{
+  min-height:148px;
+  border:0;
+  border-radius:0;
+  padding:8px 5px;
+  background:transparent;
+  color:var(--ink);
+  font:inherit;
+  letter-spacing:normal;
+  text-transform:none;
+  box-shadow:none;
+}
+body.flowfm-platform-page button.presence-orb:hover{background:transparent;border-color:transparent}
+body.flowfm-platform-page button.presence-orb strong{font-family:Georgia,'Times New Roman',serif;letter-spacing:normal;text-transform:none}

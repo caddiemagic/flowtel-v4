@@ -454,6 +454,18 @@ export async function currentUserHasConciergeAccess(){
   return data===true;
 }
 
+export async function currentUserHasConciergeTeamAccess(){
+  const {data,error}=await supabase.rpc("flowtel_current_user_has_concierge_team_access");
+  if(error){
+    const message=String(error.message || "").toLowerCase();
+    if(message.includes("function") && message.includes("flowtel_current_user_has_concierge_team_access")){
+      throw new Error("Concierge Team access is not installed yet. Run database/migration-062-concierge-team-access-turndown-polish.sql, then refresh the Desk.");
+    }
+    throw error;
+  }
+  return data===true;
+}
+
 export async function getFrontDeskStays(){
   const {data,error}=await supabase.from("flowtel_stays").select(`
     *,

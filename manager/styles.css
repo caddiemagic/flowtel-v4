@@ -934,3 +934,28 @@
 .guest-house-selected-list{display:grid;gap:4px}.guest-house-selected-list strong{font-size:.82rem;font-weight:600}.guest-house-upload label small{font:400 .68rem/1.45 Georgia,serif;letter-spacing:0;text-transform:none;color:var(--soft-brown)}
 .guest-house-training-consent{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 17px;border:1px solid rgba(216,168,79,.2);border-radius:17px;background:rgba(255,253,249,.68)}.guest-house-training-consent h4{margin:0 0 5px;font-size:1.18rem;font-weight:400}.guest-house-training-consent span{display:block;color:var(--soft-brown);font-size:.76rem;line-height:1.5}.guest-house-training-consent>div:last-child{min-width:150px;padding:10px 12px;border:1px solid rgba(109,78,65,.09);border-radius:13px;background:rgba(255,255,255,.68);text-align:center}.guest-house-training-consent>div:last-child strong{display:block;margin-bottom:4px;color:var(--rose);font:700 .62rem/1 Arial,sans-serif;letter-spacing:.1em}.guest-house-training-consent.is-granted{border-color:rgba(123,64,81,.25);background:linear-gradient(135deg,rgba(248,231,227,.38),rgba(255,253,249,.78))}.guest-house-training-consent.is-review-needed{border-color:rgba(177,114,80,.34);background:linear-gradient(135deg,rgba(255,242,226,.62),rgba(255,253,249,.82))}.guest-house-training-consent.is-review-needed>div:last-child strong{color:#9a5c3d}
 @media(max-width:760px){.guest-house-training-consent{grid-template-columns:1fr}.guest-house-training-consent>div:last-child{text-align:left}}
+
+/* Flowtel v0.10.78 — approved Priestess Concierge Team view */
+body.concierge-team-view .concierge-visibility-toolbar,
+body.concierge-team-view [data-audience="owner"],
+body.concierge-team-view [data-audience="caddie"]{display:none!important}
+body.concierge-team-view [data-audience="team"]{margin-top:18px}
+body.concierge-team-view .queue{margin-top:18px}
+
+/* Branded Turndown note dialog replaces the browser prompt. */
+.turndown-note-dialog{width:min(92vw,560px);padding:0;border:1px solid rgba(199,154,73,.34);border-radius:28px;background:#fffaf6;color:#5d4036;box-shadow:0 34px 100px rgba(73,43,35,.24);overflow:hidden}
+.turndown-note-dialog::backdrop{background:rgba(75,50,42,.38);backdrop-filter:blur(8px)}
+.turndown-note-form{display:grid;gap:14px;padding:30px}
+.turndown-note-mark{display:grid;place-items:center;width:42px;height:42px;border:1px solid rgba(199,154,73,.36);border-radius:50%;background:rgba(255,255,255,.72);color:#c79a49;font-size:1.2rem}
+.turndown-note-form h2{margin:0;font-size:clamp(1.65rem,4vw,2.25rem);font-weight:400}
+.turndown-note-context{margin:0;color:#8d7066;line-height:1.55}
+.turndown-note-form label{display:grid;gap:8px}
+.turndown-note-form label>span{color:#a15f58;font:700 .59rem Arial,sans-serif;letter-spacing:.11em;text-transform:uppercase}
+.turndown-note-form textarea{width:100%;min-height:132px;resize:vertical;border:1px solid rgba(93,64,54,.18);border-radius:16px;padding:14px;background:#fffdf9;color:#5d4036;font:400 1rem/1.5 Georgia,serif;box-sizing:border-box}
+.turndown-note-form textarea:focus{outline:2px solid rgba(199,154,73,.36);outline-offset:2px}
+.turndown-note-status{min-height:1.2em;margin:0;color:#a15f58;font-size:.83rem}
+.turndown-note-actions{display:flex;justify-content:flex-end;gap:10px}
+.turndown-note-actions button{min-height:44px;padding:10px 17px;border:1px solid rgba(184,111,104,.3);border-radius:999px;background:#f4dfdc;color:#5d4036;font:700 .62rem Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase;cursor:pointer}
+.turndown-note-actions button.quiet{background:#fff}
+.turndown-note-actions button:disabled{opacity:.58;cursor:wait}
+@media(max-width:620px){.turndown-note-form{padding:23px 18px}.turndown-note-actions{display:grid}.turndown-note-actions button{width:100%}}

@@ -13,10 +13,11 @@ export {
   getUnreadConciergeNoteStays,
   markConciergeNotesRead,
   currentUserHasConciergeAccess,
+  currentUserHasConciergeTeamAccess,
   getFrontDeskStays,
   witnessStay,
   prepareRoomAfterCheckout,
-} from "./stays.js?v=0.10.53";
+} from "./stays.js?v=0.10.78";
 export { getMoonMagic } from "./moon.js";
 export { getDayContent } from "./content.js";
 export { getInnerSeason, getCourt, getWing, calculateCycleStartDate } from "./seasons.js";

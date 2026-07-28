@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.76" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.78" />
 </head>
 
 <body>
@@ -30,7 +30,7 @@
     <section class="login-card" id="loginCard">
       <p class="eyebrow">CONCIERGE ACCESS</p>
       <h2>Checking your role.</h2>
-      <p class="microcopy">During Phase 1, the Concierge Desk is reserved for the Flowtel owner. Enter through Flowtel first and the Desk will verify access automatically.</p>
+      <p class="microcopy">The Concierge Desk opens for the Flowtel owner and approved Priestesses. Enter through Flowtel first and the Desk will verify your access automatically.</p>
       <button id="managerEntryButton" type="button">Enter Through Flowtel</button>
       <p id="managerMessage">Checking your Concierge access...</p>
     </section>
@@ -65,7 +65,7 @@
         <div class="stats">
           <button class="stat-card" type="button" data-filter="queue"><span>Turndown Service</span><strong id="awaitingTurndownCount">0</strong><em>Authorized requests awaiting care</em></button>
           <button class="stat-card" type="button" data-filter="clients"><span>Your Clients</span><strong id="clientsCount">0</strong><em><b id="clientConnectionCount">0</b> new mentor requests</em></button>
-          <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Client-Facing Calls</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
+          <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Availability</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/profile-studio/"><span>Profile Studio</span><strong>OPEN</strong><em>Priestess identity + offerings</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/time-space/"><span>Time + Space</span><strong>WORLD</strong><em>Global Priestess Team</em></a>
         </div>
@@ -120,8 +120,23 @@
     <div id="adminTeamMapDialogContent"></div>
   </dialog>
 
+  <dialog class="turndown-note-dialog" id="turndownNoteDialog" aria-labelledby="turndownNoteTitle">
+    <form class="turndown-note-form" id="turndownNoteForm" method="dialog">
+      <div class="turndown-note-mark" aria-hidden="true">✦</div>
+      <p class="eyebrow">TURNDOWN SERVICE</p>
+      <h2 id="turndownNoteTitle">Leave a Concierge Note</h2>
+      <p class="turndown-note-context" id="turndownNoteContext">Complete this room with an optional note for the guest.</p>
+      <label for="turndownNoteInput"><span>Concierge Note · optional</span><textarea id="turndownNoteInput" name="note" maxlength="1200" rows="5" placeholder="I see you, sister…"></textarea></label>
+      <p class="turndown-note-status" id="turndownNoteStatus" role="status"></p>
+      <div class="turndown-note-actions">
+        <button class="quiet" id="turndownNoteCancel" type="button">Cancel</button>
+        <button id="turndownNoteSubmit" type="submit">Complete Turndown</button>
+      </div>
+    </form>
+  </dialog>
+
   <script type="module">
-    import("./app.js?v=0.10.76").catch(function(error){
+    import("./app.js?v=0.10.78").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

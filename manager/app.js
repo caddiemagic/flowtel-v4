@@ -1,9 +1,9 @@
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { supabase } from "../shared/supabase.js";
-import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.76";
+import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.78";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess } from "../shared/flowtel.js?v=0.10.76";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess, currentUserHasConciergeTeamAccess } from "../shared/flowtel.js?v=0.10.78";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
 import { listUpcomingGolfEvents, acknowledgeUpcomingGolf } from "../shared/caddie-magic-schedule.js?v=0.5.2";
@@ -152,7 +152,8 @@ async function uploadGuestHouseReplay(...args){const {api}=await ensureGuestHous
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 const initiationHallButton=document.getElementById("initiationHallButton"), initiationHallNote=document.getElementById("initiationHallNote");
-let allStays=[], activeFilter="queue";
+const turndownNoteDialog=document.getElementById("turndownNoteDialog"), turndownNoteForm=document.getElementById("turndownNoteForm"), turndownNoteInput=document.getElementById("turndownNoteInput"), turndownNoteContext=document.getElementById("turndownNoteContext"), turndownNoteStatus=document.getElementById("turndownNoteStatus"), turndownNoteSubmit=document.getElementById("turndownNoteSubmit"), turndownNoteCancel=document.getElementById("turndownNoteCancel");
+let allStays=[], activeFilter="queue", currentDeskAudience="owner";
 let caddiePlayers=[];
 let caddiePlayerInvitations=[];
 let caddiePlayerAccessAvailable=true;
@@ -223,6 +224,20 @@ const adminTeamMapDialogContent=document.getElementById("adminTeamMapDialogConte
 
 function isOwnerOrAdmin(profile=currentManagerProfile){
   return ["owner","admin"].includes(String(profile?.role || "").toLowerCase());
+}
+function isOwnerDesk(){
+  return currentDeskAudience==="owner";
+}
+function teamDeskFilterAllowed(filter){
+  return ["queue","clients"].includes(String(filter || ""));
+}
+function applyDeskAudience(){
+  const teamOnly=!isOwnerDesk();
+  document.body.classList.toggle("concierge-team-view",teamOnly);
+  document.querySelectorAll('[data-audience="owner"],[data-audience="caddie"]').forEach(section=>{section.hidden=teamOnly;});
+  const toolbar=document.querySelector('.concierge-visibility-toolbar');
+  if(toolbar) toolbar.hidden=teamOnly;
+  if(teamOnly && !teamDeskFilterAllowed(activeFilter)) activeFilter="queue";
 }
 
 const boundClientDataButtons=new WeakSet();
@@ -491,7 +506,8 @@ async function handleBetaManagerLogin(email){
     updateTodayFlow();
     await loadDesk();
     const requestedRoom=new URLSearchParams(window.location.search).get("room");
-    if(requestedRoom && document.querySelector(`[data-filter="${requestedRoom}"]`)) setFilter(requestedRoom);
+    if(requestedRoom && document.querySelector(`[data-filter="${requestedRoom}"]`) && (isOwnerDesk() || teamDeskFilterAllowed(requestedRoom))) setFilter(requestedRoom);
+    else if(!isOwnerDesk()) setFilter("queue");
     startDeskAutoRefresh();
   }catch(error){
     managerMessage.textContent="This beta practitioner could not open. If email confirmation is enabled in Supabase, create the beta auth users manually first.";
@@ -877,6 +893,7 @@ function updateStats(){
   if(extendedCard) extendedCard.classList.remove("has-alert");
 }
 function setFilter(filter){
+  if(!isOwnerDesk() && !teamDeskFilterAllowed(filter)) filter="queue";
   activeFilter=filter;
   document.querySelectorAll("[data-filter]").forEach(b=>b.classList.toggle("active",b.dataset.filter===filter));
   updateStats();
@@ -1033,11 +1050,62 @@ function renderTurndownServiceQueue(){
   bindQueueActions();
 }
 
+function guestNameForStay(stay){
+  const profile=stay?.profiles || {};
+  return profile.display_name || [profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "this guest";
+}
+
+function openTurndownNoteDialog(stay){
+  if(!turndownNoteDialog || !turndownNoteForm || typeof turndownNoteDialog.showModal!=="function"){
+    return witnessStay(stay.id,"");
+  }
+
+  if(turndownNoteContext) turndownNoteContext.textContent=`Complete ${guestNameForStay(stay)}’s room with an optional note.`;
+  if(turndownNoteInput) turndownNoteInput.value="";
+  if(turndownNoteStatus) turndownNoteStatus.textContent="";
+  if(turndownNoteSubmit){turndownNoteSubmit.disabled=false;turndownNoteSubmit.textContent="Complete Turndown";}
+  if(turndownNoteCancel) turndownNoteCancel.disabled=false;
+
+  return new Promise(resolve=>{
+    let settled=false;
+    const finish=value=>{
+      if(settled) return;
+      settled=true;
+      turndownNoteForm.removeEventListener("submit",onSubmit);
+      turndownNoteCancel?.removeEventListener("click",onCancel);
+      turndownNoteDialog.removeEventListener("cancel",onDialogCancel);
+      resolve(value);
+    };
+    const onCancel=()=>{turndownNoteDialog.close();finish(null);};
+    const onDialogCancel=event=>{event.preventDefault();turndownNoteDialog.close();finish(null);};
+    const onSubmit=async event=>{
+      event.preventDefault();
+      if(turndownNoteSubmit){turndownNoteSubmit.disabled=true;turndownNoteSubmit.textContent="Completing…";}
+      if(turndownNoteCancel) turndownNoteCancel.disabled=true;
+      if(turndownNoteStatus) turndownNoteStatus.textContent="Tending this room in Flowtel Time…";
+      try{
+        const updated=await witnessStay(stay.id,turndownNoteInput?.value || "");
+        turndownNoteDialog.close();
+        finish(updated);
+      }catch(error){
+        if(turndownNoteStatus) turndownNoteStatus.textContent=error?.message || "The Turndown note could not be saved.";
+        if(turndownNoteSubmit){turndownNoteSubmit.disabled=false;turndownNoteSubmit.textContent="Complete Turndown";}
+        if(turndownNoteCancel) turndownNoteCancel.disabled=false;
+      }
+    };
+    turndownNoteForm.addEventListener("submit",onSubmit);
+    turndownNoteCancel?.addEventListener("click",onCancel);
+    turndownNoteDialog.addEventListener("cancel",onDialogCancel);
+    turndownNoteDialog.showModal();
+    window.setTimeout(()=>turndownNoteInput?.focus(),60);
+  });
+}
+
 function bindQueueActions(){
   document.querySelectorAll("[data-id][data-action]").forEach(button=>button.addEventListener("click",async()=>{
     button.disabled=true;
     const originalText=button.textContent;
-    button.textContent=button.dataset.action==="clean" ? "Preparing..." : "Completing...";
+    button.textContent=button.dataset.action==="clean" ? "Preparing..." : "Opening Note...";
     if(managerMessage) managerMessage.textContent="";
 
     try{
@@ -1045,8 +1113,14 @@ function bindQueueActions(){
       if(button.dataset.action==="clean"){
         updatedStay=await prepareRoomAfterCheckout(button.dataset.id,practitionerCareLabel());
       }else{
-        const note=prompt("Leave a handwritten Concierge Note for this room");
-        updatedStay=await witnessStay(button.dataset.id,note||"");
+        const stay=allStays.find(row=>String(row.id)===String(button.dataset.id));
+        if(!stay) throw new Error("This Turndown request could not be found. Refresh the Desk and try again.");
+        updatedStay=await openTurndownNoteDialog(stay);
+        if(!updatedStay){
+          button.disabled=false;
+          button.textContent=originalText;
+          return;
+        }
       }
 
       if(updatedStay?.id){
@@ -1069,7 +1143,6 @@ function bindQueueActions(){
     }
   }));
 }
-
 
 function caddieAccessDate(value){
   if(!value) return "—";
@@ -2895,19 +2968,21 @@ async function loadDesk({silent=false}={}){
     allStays=await getFrontDeskStays();
     await renderConnectionRequests();
     await renderMyClients();
-    await loadMemberDirectory();
-    await loadPriestessConciergeTeam();
-    await loadCaddiePlayerAccess();
-    await loadCaddieNetworkData();
-    await loadCaddieReviews();
-    await loadCaddieCompassPlayers();
-    await loadUpcomingGolfEvents();
-    await loadAdminTeamMap();
-    await loadHonorsData();
-    await loadPriestessMailboxData();
-    await loadGuestHouseData();
-    await loadWorkshopReplayNotes();
-    await loadLoungeVideos();
+    if(isOwnerDesk()){
+      await loadMemberDirectory();
+      await loadPriestessConciergeTeam();
+      await loadCaddiePlayerAccess();
+      await loadCaddieNetworkData();
+      await loadCaddieReviews();
+      await loadCaddieCompassPlayers();
+      await loadUpcomingGolfEvents();
+      await loadAdminTeamMap();
+      await loadHonorsData();
+      await loadPriestessMailboxData();
+      await loadGuestHouseData();
+      await loadWorkshopReplayNotes();
+      await loadLoungeVideos();
+    }
     updateStats();
     if(!conciergeEditorProtected()) renderQueue();
   }catch(error){
@@ -2987,20 +3062,25 @@ async function openDeskFromSession(){
     const profileEmail=String(profile.email || "").trim().toLowerCase();
     const profileRole=String(profile.role || "").trim().toLowerCase();
     const isPhaseOneOwner=profileEmail===phaseOneOwnerEmail && ["admin","owner"].includes(profileRole);
-    if(!isPhaseOneOwner){
-      if(managerMessage) managerMessage.textContent="The Concierge Desk is reserved for the Flowtel owner during Phase 1.";
+    const hasTeamAccess=await withConciergeGateTimeout(currentUserHasConciergeTeamAccess(),"Concierge Team permission verification");
+    const hasOwnerAccess=isPhaseOneOwner
+      ? await withConciergeGateTimeout(currentUserHasConciergeAccess(),"Owner Concierge permission verification")
+      : false;
+
+    if(!hasTeamAccess || (isPhaseOneOwner && !hasOwnerAccess)){
+      if(managerMessage) managerMessage.textContent=isPhaseOneOwner
+        ? "Your owner account is recognized, but Concierge permission is not installed yet."
+        : "Concierge Team access has not been granted to this Priestess yet.";
       window.location.replace("/concierge-soon/");
       return;
     }
 
-    if(managerMessage) managerMessage.textContent="Owner identity recognized. Opening the Concierge Desk...";
-    const hasConciergeAccess=await withConciergeGateTimeout(currentUserHasConciergeAccess(),"Concierge permission verification");
-    if(!hasConciergeAccess){
-      if(managerMessage) managerMessage.textContent="Your owner account is recognized, but Concierge permission is not installed yet. Run migration 034.";
-      return;
-    }
-
+    currentDeskAudience=isPhaseOneOwner ? "owner" : "team";
     currentManagerProfile=profile;
+    applyDeskAudience();
+    if(managerMessage) managerMessage.textContent=isPhaseOneOwner
+      ? "Owner identity recognized. Opening the Concierge Desk..."
+      : "Priestess access recognized. Opening the Concierge Team Rooms...";
     await hydrateClockInContextForSession(profile);
     if(loginCard) loginCard.classList.add("hidden");
     if(dashboard) dashboard.classList.remove("hidden");
@@ -3009,7 +3089,8 @@ async function openDeskFromSession(){
     updateTodayFlow();
     await loadDesk();
     const requestedRoom=new URLSearchParams(window.location.search).get("room");
-    if(requestedRoom && document.querySelector(`[data-filter="${requestedRoom}"]`)) setFilter(requestedRoom);
+    if(requestedRoom && document.querySelector(`[data-filter="${requestedRoom}"]`) && (isOwnerDesk() || teamDeskFilterAllowed(requestedRoom))) setFilter(requestedRoom);
+    else if(!isOwnerDesk()) setFilter("queue");
     startDeskAutoRefresh();
   }catch(error){
     console.warn("Concierge session gate failed.",error);

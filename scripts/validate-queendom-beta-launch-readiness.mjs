@@ -31,7 +31,7 @@ assert(profileApp.includes('flowtelTodayISO()'), 'Member Flow FM start-date maxi
 assert(teamApp.includes('formatDateOnly(value'), 'Owner Flow FM start-date display may still shift backward.');
 assert(teamApp.includes('flowtelTodayISO()'), 'Owner Flow FM start-date maximum is not based on Flowtel Time.');
 assert(profileHtml.includes('app.js?v=0.10.75'), 'My Profile cache key is stale.');
-assert(teamHtml.includes('app.js?v=0.10.76'), 'Priestess Team profile cache key is stale.');
+assert(teamHtml.includes('app.js?v=0.10.78'), 'Priestess Team profile cache key is stale.');
 
 assert(hallHtml.includes('<h1>13 Moons</h1>'), 'Initiation Hall title was not changed to 13 Moons.');
 assert(!hallHtml.includes('The Doors Ahead'), 'The old Initiation Hall title remains.');

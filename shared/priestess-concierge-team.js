@@ -49,3 +49,28 @@ export async function getPriestessHourlyFlowRate(memberId) {
   if (error) throw error;
   return unwrapSingle(data) || data || null;
 }
+
+export async function getPriestessConciergeTeamAccess(memberId) {
+  if (!memberId) throw new Error("Choose a Flow FM member.");
+  const { data, error } = await supabase.rpc("flowtel_admin_get_concierge_team_access", {
+    p_member_id: memberId,
+  });
+  if (error) {
+    const message = String(error.message || "").toLowerCase();
+    if (message.includes("function") && message.includes("flowtel_admin_get_concierge_team_access")) {
+      throw new Error("Concierge Team access controls are not installed yet. Run migration 062.");
+    }
+    throw error;
+  }
+  return data === true;
+}
+
+export async function setPriestessConciergeTeamAccess(memberId, enabled) {
+  if (!memberId) throw new Error("Choose a Flow FM member.");
+  const { data, error } = await supabase.rpc("flowtel_admin_set_concierge_team_access", {
+    p_member_id: memberId,
+    p_enabled: !!enabled,
+  });
+  if (error) throw error;
+  return data === true;
+}

@@ -1,3 +1,12 @@
+## v0.10.78 — Concierge Team Access + Turndown Polish
+
+- Lets the owner manually grant or pause approved-practitioner access to the existing Concierge Desk.
+- Shows approved Priestesses only the established **Visible to approved Priestesses** Team Rooms section while preserving owner and Caddie administration as owner-only.
+- Adds narrow assigned-wing RLS/RPC permissions without broadening the owner Concierge helper.
+- Replaces the browser Turndown prompt with a branded Flowtel note modal with guest context, saving state, inline errors, and mobile accessibility.
+- Restores Living Map member markers to the approved circular portrait, subtle gold halo, and name-only design.
+- Adds migration 062 and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.77 — 13 Moons Curriculum Consolidation
 
 - Makes 13 Moons the single Flow FM curriculum hub.

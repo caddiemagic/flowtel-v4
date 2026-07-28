@@ -30,8 +30,8 @@ profiles:await read('shared/profiles.js'),productAccess:await read('shared/produ
   vercel:JSON.parse(await read('vercel.json')),
 };
 
-assert(files.managerHtml.includes('styles.css?v=0.10.76'));
-assert(files.managerHtml.includes('app.js?v=0.10.76'));
+assert(files.managerHtml.includes('styles.css?v=0.10.78'));
+assert(files.managerHtml.includes('app.js?v=0.10.78'));
 assert(files.managerCss.includes('.guest-house-request-body[hidden]{display:none!important}'),'Collapsed Guest House bodies can still override the hidden attribute.');
 assert(files.managerJs.includes('guestHouseExpandedRequestId'),'One-at-a-time Guest House state is missing.');
 assert(files.managerJs.includes('data-guest-house-toggle'),'Guest House request toggles are missing.');
@@ -64,7 +64,7 @@ assert(files.migration.includes('flowtel_availability_save_day'),'Legacy cached 
 assert((files.vercel.rewrites||[]).some(row=>['/flow-fm/availability','/flow-fm/availability/'].includes(row.source)&&row.destination==='/flow-fm/availability/index.html'),'Availability rewrite is missing.');
 
 assert(files.platformCss.includes('quiet-luxury Flow FM platform shell'));
-assert(files.hfrHtml.includes('/flow-fm/platform.css?v=0.10.77'));
+assert(files.hfrHtml.includes('/flow-fm/platform.css?v=0.10.78'));
 assert(files.hfrPage.includes('roundHourlyFlowRateUp') && files.hfrPage.includes('data-hourly-flow-rate-result'),'Hourly Flow Rate is not rounded upward and surfaced at the top.');
 assert(!files.hfrPage.includes('PRIVATE WITNESSING') && !files.hfrHtml.includes('witnessRoom'),'Private Witnessing remains in Hourly Flow Rate.');
 assert(files.hfrPage.includes('seasonRoomForm'),'Unified seasonal room form is missing.');

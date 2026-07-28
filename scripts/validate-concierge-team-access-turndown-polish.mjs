@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const read=file=>readFile(file,'utf8');
+const managerHtml=await read('manager/index.html');
+const managerJs=await read('manager/app.js');
+const managerCss=await read('manager/styles.css');
+const teamJs=await read('manager/priestess-team/app.js');
+const teamCss=await read('manager/priestess-team/styles.css');
+const staysJs=await read('shared/stays.js');
+const teamApi=await read('shared/priestess-concierge-team.js');
+const platformCss=await read('flow-fm/platform.css');
+const migration=await read('database/migration-062-concierge-team-access-turndown-polish.sql');
+
+assert(managerHtml.includes('id="turndownNoteDialog"'));
+assert(managerHtml.includes('Leave a Concierge Note'));
+assert(managerHtml.includes('Complete Turndown'));
+assert(!managerJs.includes('prompt("Leave a handwritten Concierge Note for this room")'));
+assert(managerJs.includes('openTurndownNoteDialog'));
+assert(managerJs.includes('currentUserHasConciergeTeamAccess'));
+assert(managerJs.includes('currentDeskAudience'));
+assert(managerJs.includes('if(isOwnerDesk())'));
+assert(managerCss.includes('body.concierge-team-view [data-audience="owner"]'));
+assert(managerCss.includes('.turndown-note-dialog'));
+assert(teamJs.includes('getPriestessConciergeTeamAccess'));
+assert(teamJs.includes('setPriestessConciergeTeamAccess'));
+assert(teamJs.includes('Grant Team Access'));
+assert(teamCss.includes('.concierge-team-access-control'));
+assert(staysJs.includes('flowtel_current_user_has_concierge_team_access'));
+assert(teamApi.includes('flowtel_admin_set_concierge_team_access'));
+assert(platformCss.includes('button.presence-orb'));
+assert(platformCss.includes('text-transform:none'));
+assert(migration.includes('flowtel_current_user_has_concierge_team_access'));
+assert(migration.includes('flowtel_current_user_can_tend_stay'));
+assert(migration.includes('flowtel_admin_set_concierge_team_access'));
+assert(migration.includes('flowtel_current_user_assigned_concierge_wing'));
+assert(migration.includes('This migration does not delete, rewrite, or broaden owner-only'));
+assert(!migration.includes('create or replace function public.flowtel_current_user_is_concierge()'), 'Migration 062 must not broaden the owner Concierge helper.');
+assert(!/drop table|truncate table/i.test(migration), 'Migration 062 contains destructive table SQL.');
+assert.equal((migration.match(/\$\$/g)||[]).length%2,0,'Migration 062 has unmatched SQL dollar quotes.');
+
+console.log('Flowtel v0.10.78 Concierge Team access, Turndown modal, and Living Map marker validation passed.');
