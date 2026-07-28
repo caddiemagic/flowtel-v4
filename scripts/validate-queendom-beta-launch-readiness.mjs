@@ -45,7 +45,7 @@ assert(hallCss.includes('grid-template-columns:repeat(3,minmax(0,1fr))'), 'Moon 
 assert(hallCss.includes('.temple-door-crown') && hallCss.includes('display:none!important'), 'Ornate Moon-door decoration is not restrained.');
 
 assert(clientApp.includes("const LOUNGE_SEASON_ORDER=['autumn','summer','winter','spring'];"), 'Four Seasons quadrant order must be Autumn, Summer, Winter, Spring.');
-assert(clientHtml.includes('app.js?v=0.10.75') && clientHtml.includes('styles.css?v=0.10.75'), 'Client cache keys are stale.');
+assert(clientHtml.includes('app.js?v=0.10.78.2') && clientHtml.includes('styles.css?v=0.10.75'), 'Client cache keys are stale.');
 
 assert(changelog.includes('v0.10.75'), 'Changelog is missing v0.10.75.');
 assert(release.includes('Queendom Beta Launch Experience'), 'Release note title is missing.');

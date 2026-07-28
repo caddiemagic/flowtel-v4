@@ -50,7 +50,10 @@ assert(files.migration057.includes('location_label') && files.migration057.inclu
 assert(files.clientCss.includes('#requestTurndownButton,#requestWakeUpTextButton'),'Concierge button width match is missing.');
 
 assert(files.availabilityHtml.includes('<h1>Availability</h1>'));
-assert(files.availabilityJs.includes('<span>Available</span>'));
+assert(files.availabilityHtml.includes('SET YOUR SEASONAL RHYTHM'));
+assert(files.availabilityJs.includes('Edit rhythm'));
+assert(files.availabilityJs.includes('No calls this season'));
+assert(files.availabilityJs.includes('Use this rhythm all year'));
 assert(!files.availabilityJs.includes('<span>Offline</span>'));
 assert(files.migration061.includes('flowtel_flow_fm_availability_day_states'));
 assert(files.migration061.includes('weekly_days'));

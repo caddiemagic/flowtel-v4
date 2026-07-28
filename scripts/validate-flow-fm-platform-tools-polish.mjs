@@ -19,7 +19,8 @@ const platformPages=[
 ];
 for(const file of platformPages){
   const html=await read(file);
-  assert(html.includes('/flow-fm/platform.css?v=0.10.78'),`${file} is missing the shared platform stylesheet.`);
+  const expectedVersion=file==='flow-fm/availability/index.html'?'0.10.79':'0.10.78';
+  assert(html.includes(`/flow-fm/platform.css?v=${expectedVersion}`),`${file} is missing the shared platform stylesheet.`);
   assert(html.includes('flowfm-platform-page'),`${file} is missing the shared platform body class.`);
 }
 
@@ -36,10 +37,12 @@ const availabilityJs=await read('flow-fm/availability/page.js');
 const availabilityCore=await read('shared/flow-fm-availability-core.js');
 const migration=await read('database/migration-061-flow-fm-platform-tools-polish.sql');
 assert(availabilityHtml.includes('<h1>Availability</h1>'));
-assert(availabilityJs.includes('<span>Available</span>'));
-assert(!availabilityJs.includes('<span>Offline</span>'));
+assert(availabilityHtml.includes('SET YOUR SEASONAL RHYTHM'));
+assert(availabilityJs.includes('Edit rhythm'));
+assert(availabilityJs.includes('No calls this season'));
+assert(availabilityJs.includes('Use this rhythm all year'));
 assert(availabilityJs.includes('weekly_days'));
-assert(availabilityJs.includes('windows:[...day.querySelectorAll'), 'Closed days do not return their retained windows.');
+assert(availabilityJs.includes('source?.windows'), 'Closed days do not preserve their retained windows.');
 assert(!availabilityCore.includes('const windows=available ?'), 'Availability validation still deletes windows for closed days.');
 assert(migration.includes('flowtel_flow_fm_availability_day_states'));
 assert(migration.includes("'weekly_days'"));

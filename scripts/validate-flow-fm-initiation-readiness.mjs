@@ -52,10 +52,10 @@ for (const token of ['quiet-luxury Flow FM platform shell', '--ffm-page-title', 
 const availabilityHtml = read('flow-fm/availability/index.html');
 const availabilityApp = read('flow-fm/availability/page.js');
 const availabilityCore = read('shared/flow-fm-availability-core.js');
-for (const token of ['Availability', 'reusable preference template']) mustContain(availabilityHtml, token, 'Availability page');
+for (const token of ['Availability', 'SET YOUR SEASONAL RHYTHM', 'availabilityOverview', 'availabilityEditor']) mustContain(availabilityHtml, token, 'Availability page');
 for (const token of ['Inner Winter', 'Inner Spring', 'Inner Summer', 'Inner Autumn']) mustContain(availabilityCore, token, 'Availability core');
 for (const token of ['Monday', 'Sunday']) mustContain(availabilityCore, token, 'Availability core');
-for (const token of ['Available', 'Add another time window', 'Save']) mustContain(availabilityApp, token, 'Availability app');
+for (const token of ['Edit rhythm', 'Yes, I’m available', 'No calls this season', 'Save My Rhythm', 'Use this rhythm all year']) mustContain(availabilityApp, token, 'Availability app');
 mustNotContain(availabilityApp, '<span>Offline</span>', 'Availability app');
 for (const token of ['Moon Day', 'Last Quarter Phase', 'Optional note', 'planet']) mustNotContain(availabilityApp, token, 'Availability app');
 

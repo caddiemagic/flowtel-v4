@@ -1,3 +1,13 @@
+## v0.10.79 — Availability Rhythm Redesign
+
+- Replaced the four-season weekday control wall with four calm seasonal summary cards.
+- Added a guided seasonal flow: accepting or resting, selected weekdays, shared time rhythm, optional custom-day hours, and final review.
+- Added Morning, Afternoon, Evening, and exact-time choices.
+- Added copy-to-season and use-this-rhythm-all-year actions.
+- Preserved existing seasonal availability records, closed-day saved windows, timezone display, multiple windows, and the migration-058/061 database boundary.
+- Kept Availability as a preference layer rather than a live booking promise.
+- No Supabase migration required.
+
 ## v0.10.78.2 — Priestess Access + File Delivery Hotfix
 
 - Shows **Clock Into the Flowtel** to approved practitioners with active Concierge Team access while preserving owner-only administration and Team-Room-only practitioner visibility.
