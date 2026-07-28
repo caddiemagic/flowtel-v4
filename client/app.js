@@ -1,11 +1,12 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.75";
-import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.75";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, currentUserHasConciergeTeamAccess, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.78.2";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateFourSeasonLocations } from "../shared/hourly-flow-rate.js?v=0.10.72";
+import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -361,11 +362,38 @@ const FLOWTEL_ROLLOUT={
   restrictMentorsToAdminAndOwner:true,
 };
 const PHASE_ONE_CONCIERGE_EMAIL="mm.johnson@icloud.com";
-function canUseClockInFlow(profile={}){
-  if(!FLOWTEL_ROLLOUT.enableClockInForPractitionerRoles) return false;
+let conciergeTeamAccessGranted=false;
+
+function isOwnerConciergeProfile(profile={}){
   const email=String(profile?.email || "").trim().toLowerCase();
   const role=String(profile?.role || "").trim().toLowerCase();
   return email===PHASE_ONE_CONCIERGE_EMAIL && ["admin","owner"].includes(role);
+}
+
+function canUseClockInFlow(profile={}){
+  if(!FLOWTEL_ROLLOUT.enableClockInForPractitionerRoles) return false;
+  const role=String(profile?.role || "").trim().toLowerCase();
+  return isOwnerConciergeProfile(profile) || (role==="practitioner" && conciergeTeamAccessGranted===true);
+}
+
+async function refreshConciergeTeamAccess(){
+  const role=String(currentProfile?.role || "").trim().toLowerCase();
+  conciergeTeamAccessGranted=isOwnerConciergeProfile(currentProfile)
+    || (role==="practitioner" && currentProfile?.concierge_access_enabled===true);
+
+  if(role==="practitioner" || isOwnerConciergeProfile(currentProfile)){
+    try{
+      conciergeTeamAccessGranted=await currentUserHasConciergeTeamAccess();
+    }catch(error){
+      console.warn("Concierge Team access could not be refreshed yet.",error);
+    }
+  }
+
+  const clockInButton=document.getElementById("clockInButton");
+  if(clockInButton) clockInButton.classList.toggle("hidden",!canClockIn(currentProfile));
+  renderSuiteClockInButton();
+  if(loungeScene?.classList.contains("active")) ensureLoungeClockInButton();
+  return conciergeTeamAccessGranted;
 }
 
 const BETA_PASSWORD=FLOWTEL_BETA_PASSWORD;
@@ -455,6 +483,7 @@ async function continueAuthenticatedEntrance(){
   setAuthenticatedAccountVisible(true);
   clearCachedSuiteStayIfItBelongsToAnotherGuest();
   setMessage("");
+  await refreshConciergeTeamAccess();
   await prepareDailyStayState();
 
   if(shouldOpenSuiteFromConcierge() && restoreSuiteFromConcierge()){
@@ -1284,7 +1313,13 @@ function requestWakeUpText(stay){
 }
 
 function hasTurndownRequest(stay){
-  return !!(stay?.turndown_requested_at || stay?.turndown_status==="requested" || sessionStorage.getItem(`flowtel:turndown:${stay?.id}`)==="requested");
+  const key=`flowtel:turndown:${stay?.id}`;
+  const localRequested=sessionStorage.getItem(key)==="requested";
+  if(hasCompletedTurndown(stay)){
+    sessionStorage.removeItem(key);
+    return false;
+  }
+  return hasActiveTurndownRequest(stay,{localRequested});
 }
 
 
@@ -1414,14 +1449,15 @@ function renderConciergeCare(stay){
   const currentHasNotes=currentNotes.length>0;
   const currentUnread=currentHasNotes && conciergeStayIsUnread(stay);
   const turndownRequested=hasTurndownRequest(stay);
+  const turndownCompleted=hasCompletedTurndown(stay);
   const historicalNoteCount=historicalStays.reduce((count,row)=>count+parseConciergeNotes(row).length,0);
   const totalUnreadCount=historicalNoteCount+(currentUnread ? currentNotes.length : 0);
   const hasAnyNotes=historicalStays.length>0 || currentHasNotes;
   const wakeupKey=`flowtel:wakeup:${stay?.id || "today"}`;
   const wakeupRequested=localStorage.getItem(wakeupKey)==="true";
 
-  witnessNote.classList.toggle("quiet",!hasAnyNotes && !turndownRequested);
-  witnessNote.classList.toggle("concierge-fulfilled",hasAnyNotes);
+  witnessNote.classList.toggle("quiet",!hasAnyNotes && !turndownRequested && !turndownCompleted);
+  witnessNote.classList.toggle("concierge-fulfilled",hasAnyNotes || turndownCompleted);
 
   const currentAvailabilityMarkup=`
     <section class="concierge-current-day-state">
@@ -1440,6 +1476,14 @@ function renderConciergeCare(stay){
       <span class="concierge-note-context">Today’s Concierge</span>
       <strong>Turndown Service Requested</strong>
       <span>A concierge has been notified.</span>
+    </section>
+  `;
+
+  const currentTurndownCompletedMarkup=`
+    <section class="concierge-current-day-state concierge-current-day-state--complete">
+      <span class="concierge-note-context">Today’s Concierge</span>
+      <strong>Turndown Service Complete</strong>
+      <span>Your Concierge has tended to your room.</span>
     </section>
   `;
 
@@ -1463,7 +1507,9 @@ function renderConciergeCare(stay){
     const historicalMarkup=historicalStays.map(row=>conciergeGroupMarkup(row,{historical:true})).join("");
     const currentMarkup=currentHasNotes
       ? conciergeGroupMarkup(stay)
-      : (turndownRequested ? currentTurndownMarkup : currentAvailabilityMarkup);
+      : turndownCompleted
+        ? currentTurndownCompletedMarkup
+        : (turndownRequested ? currentTurndownMarkup : currentAvailabilityMarkup);
 
     witnessText.innerHTML=`
       <strong>${escapeHtml(headline)}</strong>
@@ -1472,6 +1518,14 @@ function renderConciergeCare(stay){
     `;
 
     bindConciergeCardActions(witnessText,stay,wakeupRequested);
+    return;
+  }
+
+  if(turndownCompleted){
+    witnessText.innerHTML=`
+      <strong>Turndown Service Complete</strong>
+      <span>Your Concierge has tended to your room.</span>
+    `;
     return;
   }
 
@@ -2177,8 +2231,9 @@ function openGuestFields(){
 }
 
 async function handleClockIn(){
+  if(!canClockIn(currentProfile)) await refreshConciergeTeamAccess();
   if(!canClockIn(currentProfile)){
-    setMessage("The Concierge Desk is reserved for the Flowtel owner during Phase 1.");
+    setMessage("Clock In is available after the Flowtel owner grants active Concierge Team access to an approved Priestess.");
     return;
   }
 
@@ -2207,8 +2262,13 @@ async function handleClockIn(){
 }
 
 function ensureLoungeClockInButton(){
-  if(!canClockIn(currentProfile)||!loungeScene) return;
-  if(document.getElementById("loungeClockInButton")) return;
+  if(!loungeScene) return;
+  const existing=document.getElementById("loungeClockInButton");
+  if(!canClockIn(currentProfile)){
+    existing?.remove();
+    return;
+  }
+  if(existing) return;
 
   const button=document.createElement("button");
   button.id="loungeClockInButton";

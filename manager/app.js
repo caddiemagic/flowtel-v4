@@ -3,7 +3,8 @@ import { supabase } from "../shared/supabase.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.78";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess, currentUserHasConciergeTeamAccess } from "../shared/flowtel.js?v=0.10.78";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess, currentUserHasConciergeTeamAccess } from "../shared/flowtel.js?v=0.10.78.1";
+import { isExplicitTurndownSubmitter } from "../shared/turndown-state.js?v=0.10.78.1";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
 import { listUpcomingGolfEvents, acknowledgeUpcomingGolf } from "../shared/caddie-magic-schedule.js?v=0.5.2";
@@ -152,7 +153,7 @@ async function uploadGuestHouseReplay(...args){const {api}=await ensureGuestHous
 const loginCard=document.getElementById("loginCard"), dashboard=document.getElementById("dashboard"), queue=document.getElementById("arrivalQueue"), managerMessage=document.getElementById("managerMessage");
 const suiteReturnCard=document.getElementById("suiteReturnCard"), goToSuiteButton=document.getElementById("goToSuiteButton"), suiteReturnNote=document.getElementById("suiteReturnNote");
 const initiationHallButton=document.getElementById("initiationHallButton"), initiationHallNote=document.getElementById("initiationHallNote");
-const turndownNoteDialog=document.getElementById("turndownNoteDialog"), turndownNoteForm=document.getElementById("turndownNoteForm"), turndownNoteInput=document.getElementById("turndownNoteInput"), turndownNoteContext=document.getElementById("turndownNoteContext"), turndownNoteStatus=document.getElementById("turndownNoteStatus"), turndownNoteSubmit=document.getElementById("turndownNoteSubmit"), turndownNoteCancel=document.getElementById("turndownNoteCancel");
+const turndownNoteDialog=document.getElementById("turndownNoteDialog"), turndownNoteForm=document.getElementById("turndownNoteForm"), turndownNoteInput=document.getElementById("turndownNoteInput"), turndownNoteTitle=document.getElementById("turndownNoteTitle"), turndownNoteContext=document.getElementById("turndownNoteContext"), turndownNoteLabel=document.getElementById("turndownNoteLabel"), turndownNoteStatus=document.getElementById("turndownNoteStatus"), turndownNoteSubmit=document.getElementById("turndownNoteSubmit"), turndownNoteCancel=document.getElementById("turndownNoteCancel");
 let allStays=[], activeFilter="queue", currentDeskAudience="owner";
 let caddiePlayers=[];
 let caddiePlayerInvitations=[];
@@ -1019,7 +1020,7 @@ function renderGuestStayRow(stay,{mode="in-house"}={}){
       ${showAction
         ? `<button data-id="${stay.id}" data-action="${action}">${actionLabel}</button>`
         : mode==="completed"
-          ? `<span class="completed-pill">Completed</span>`
+          ? `<div class="completed-turndown-actions"><span class="completed-pill">Completed</span><button type="button" data-id="${stay.id}" data-action="note">Add Concierge Note</button></div>`
           : mode==="in-house" && ownerReceivesAllTurndownRequests() && !isRecognizedConciergeTeamProfile(stay.profiles || {})
             ? `<button type="button" data-recognize-team-member="${stay.client_id}">Add to Concierge Team</button>`
             : ""}
@@ -1055,15 +1056,30 @@ function guestNameForStay(stay){
   return profile.display_name || [profile.first_name,profile.last_name].filter(Boolean).join(" ") || profile.email || "this guest";
 }
 
-function openTurndownNoteDialog(stay){
+function openTurndownNoteDialog(stay,{mode="complete"}={}){
+  const addingNote=mode==="note";
   if(!turndownNoteDialog || !turndownNoteForm || typeof turndownNoteDialog.showModal!=="function"){
-    return witnessStay(stay.id,"");
+    if(managerMessage) managerMessage.textContent="The Concierge Note window could not open. Refresh the Desk before completing this request.";
+    return Promise.resolve(null);
   }
 
-  if(turndownNoteContext) turndownNoteContext.textContent=`Complete ${guestNameForStay(stay)}’s room with an optional note.`;
-  if(turndownNoteInput) turndownNoteInput.value="";
+  if(turndownNoteDialog.open) turndownNoteDialog.close("reset");
+  if(turndownNoteTitle) turndownNoteTitle.textContent=addingNote ? "Add a Concierge Note" : "Leave a Concierge Note";
+  if(turndownNoteContext){
+    turndownNoteContext.textContent=addingNote
+      ? `Add a note to ${guestNameForStay(stay)}’s completed Turndown Service.`
+      : `Complete ${guestNameForStay(stay)}’s room with an optional note.`;
+  }
+  if(turndownNoteLabel) turndownNoteLabel.textContent=addingNote ? "Concierge Note" : "Concierge Note · optional";
+  if(turndownNoteInput){
+    turndownNoteInput.value="";
+    turndownNoteInput.required=addingNote;
+  }
   if(turndownNoteStatus) turndownNoteStatus.textContent="";
-  if(turndownNoteSubmit){turndownNoteSubmit.disabled=false;turndownNoteSubmit.textContent="Complete Turndown";}
+  if(turndownNoteSubmit){
+    turndownNoteSubmit.disabled=false;
+    turndownNoteSubmit.textContent=addingNote ? "Add Note" : "Complete Turndown";
+  }
   if(turndownNoteCancel) turndownNoteCancel.disabled=false;
 
   return new Promise(resolve=>{
@@ -1074,28 +1090,65 @@ function openTurndownNoteDialog(stay){
       turndownNoteForm.removeEventListener("submit",onSubmit);
       turndownNoteCancel?.removeEventListener("click",onCancel);
       turndownNoteDialog.removeEventListener("cancel",onDialogCancel);
+      turndownNoteDialog.removeEventListener("close",onUnexpectedClose);
       resolve(value);
     };
-    const onCancel=()=>{turndownNoteDialog.close();finish(null);};
-    const onDialogCancel=event=>{event.preventDefault();turndownNoteDialog.close();finish(null);};
+    const closeAsCancel=()=>{
+      finish(null);
+      if(turndownNoteDialog.open) turndownNoteDialog.close("cancel");
+    };
+    const onCancel=event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      closeAsCancel();
+    };
+    const onDialogCancel=event=>{
+      event.preventDefault();
+      closeAsCancel();
+    };
+    const onUnexpectedClose=()=>finish(null);
     const onSubmit=async event=>{
       event.preventDefault();
-      if(turndownNoteSubmit){turndownNoteSubmit.disabled=true;turndownNoteSubmit.textContent="Completing…";}
+      const submitterId=event.submitter?.id || "";
+      if(!isExplicitTurndownSubmitter(submitterId)){
+        closeAsCancel();
+        return;
+      }
+
+      const note=String(turndownNoteInput?.value || "").trim();
+      if(addingNote && !note){
+        if(turndownNoteStatus) turndownNoteStatus.textContent="Write the note you would like to add before saving.";
+        turndownNoteInput?.focus();
+        return;
+      }
+
+      if(turndownNoteSubmit){
+        turndownNoteSubmit.disabled=true;
+        turndownNoteSubmit.textContent=addingNote ? "Adding…" : "Completing…";
+      }
       if(turndownNoteCancel) turndownNoteCancel.disabled=true;
-      if(turndownNoteStatus) turndownNoteStatus.textContent="Tending this room in Flowtel Time…";
+      if(turndownNoteStatus){
+        turndownNoteStatus.textContent=addingNote
+          ? "Adding this note to the room history…"
+          : "Tending this room in Flowtel Time…";
+      }
       try{
-        const updated=await witnessStay(stay.id,turndownNoteInput?.value || "");
-        turndownNoteDialog.close();
+        const updated=await witnessStay(stay.id,note);
         finish(updated);
+        if(turndownNoteDialog.open) turndownNoteDialog.close(addingNote ? "note-added" : "completed");
       }catch(error){
         if(turndownNoteStatus) turndownNoteStatus.textContent=error?.message || "The Turndown note could not be saved.";
-        if(turndownNoteSubmit){turndownNoteSubmit.disabled=false;turndownNoteSubmit.textContent="Complete Turndown";}
+        if(turndownNoteSubmit){
+          turndownNoteSubmit.disabled=false;
+          turndownNoteSubmit.textContent=addingNote ? "Add Note" : "Complete Turndown";
+        }
         if(turndownNoteCancel) turndownNoteCancel.disabled=false;
       }
     };
     turndownNoteForm.addEventListener("submit",onSubmit);
     turndownNoteCancel?.addEventListener("click",onCancel);
     turndownNoteDialog.addEventListener("cancel",onDialogCancel);
+    turndownNoteDialog.addEventListener("close",onUnexpectedClose);
     turndownNoteDialog.showModal();
     window.setTimeout(()=>turndownNoteInput?.focus(),60);
   });
@@ -1115,7 +1168,8 @@ function bindQueueActions(){
       }else{
         const stay=allStays.find(row=>String(row.id)===String(button.dataset.id));
         if(!stay) throw new Error("This Turndown request could not be found. Refresh the Desk and try again.");
-        updatedStay=await openTurndownNoteDialog(stay);
+        const noteOnly=button.dataset.action==="note";
+        updatedStay=await openTurndownNoteDialog(stay,{mode:noteOnly ? "note" : "complete"});
         if(!updatedStay){
           button.disabled=false;
           button.textContent=originalText;
@@ -1130,7 +1184,11 @@ function bindQueueActions(){
       }
 
       await loadDesk();
-      if(managerMessage) managerMessage.textContent="Turndown service has been completed.";
+      if(managerMessage){
+        managerMessage.textContent=button.dataset.action==="note"
+          ? "The Concierge note has been added to this completed Turndown Service."
+          : "Turndown service has been completed.";
+      }
     }catch(error){
       console.error("Concierge action failed.",error);
       button.disabled=false;
@@ -1915,6 +1973,9 @@ function priestessInboxSelectedMarkup(){
   if(!file) return '';
   return `<div class="admin-mailbox-send-selected"><div><p>READY FOR PRIVATE DELIVERY</p><strong>${escapeHtml(file.name)}</strong><span>${escapeHtml(managerFileSize(file.size))} · This selection will stay here until you send or clear it.</span></div><button class="quiet" type="button" data-priestess-inbox-clear>CLEAR FILE</button></div>`;
 }
+function usablePriestessInboxFile(file){
+  return !!file && typeof file.name==='string' && file.name.trim().length>0;
+}
 function renderPriestessMailboxQueue(){
   if(!priestessMailboxServiceAvailable){
     queue.innerHTML='<div class="service-notice"><h3>The Priestess Mailbox is waiting for migration 046.</h3><p>No files are deleted, and no existing Profile Studio data has changed.</p></div>';
@@ -1924,7 +1985,7 @@ function renderPriestessMailboxQueue(){
   const awaiting=priestessMailboxRows.filter(row=>row.direction==='to_admin'&&!row.received_at).length;
   const recipientOptions=priestessMailboxRecipients.map(recipient=>`<option value="${escapeHtml(recipient.member_id)}" ${String(recipient.member_id)===String(priestessInboxDraft.recipient)?'selected':''}>${escapeHtml(recipient.display_name||recipient.email)}${recipient.email?` · ${escapeHtml(recipient.email)}`:''}</option>`).join('');
   queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIESTESS INBOX</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Receive practitioner audio, return edited recordings, or send a private file directly to another woman inside Flow FM.</p></div><span>${threads.length} THREADS</span></header>
-  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her existing Profile Studio mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept=".pdf,.txt,.csv,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.gif,.mp3,.wav,.m4a,.aac,.ogg,.mp4,.mov,.m4v,.webm,audio/*,video/*,image/*,application/pdf" required /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
+  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her existing Profile Studio mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept=".pdf,.txt,.csv,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.gif,.mp3,.wav,.m4a,.aac,.ogg,.mp4,.mov,.m4v,.webm,audio/*,video/*,image/*,application/pdf" ${usablePriestessInboxFile(priestessInboxDraft.file)?'':'required'} /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
   <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return edited audio</span><input type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" data-return-audio /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your edited journey is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND EDITED AUDIO BACK</button><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
   bindAdminMailboxControls();
 }
@@ -1975,7 +2036,23 @@ function bindAdminMailboxControls(){
   sendForm?.elements.note?.addEventListener('input',event=>{priestessInboxDraft.note=event.target.value;});
   sendForm?.querySelector('[data-priestess-inbox-clear]')?.addEventListener('click',()=>{priestessInboxDraft={...priestessInboxDraft,file:null};renderPriestessMailboxQueue();});
   if(sendForm) sendForm.addEventListener('submit',async(event)=>{
-    event.preventDefault();const button=sendForm.querySelector('button[type="submit"]');const output=sendForm.querySelector('p[role="status"]');const progress=sendForm.querySelector('.admin-mailbox-send-progress');const bar=progress?.querySelector('span');const data=new FormData(sendForm);const file=priestessInboxDraft.file||data.get('file');priestessInboxDraft={file,recipient:String(data.get('recipient')||''),subject:String(data.get('subject')||''),note:String(data.get('note')||'')};button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';output.textContent='Preparing this private delivery…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
+    event.preventDefault();
+    const button=sendForm.querySelector('button[type="submit"]');
+    const output=sendForm.querySelector('p[role="status"]');
+    const progress=sendForm.querySelector('.admin-mailbox-send-progress');
+    const bar=progress?.querySelector('span');
+    const data=new FormData(sendForm);
+    const inputFile=data.get('file');
+    const file=usablePriestessInboxFile(priestessInboxDraft.file)
+      ? priestessInboxDraft.file
+      : (usablePriestessInboxFile(inputFile) ? inputFile : null);
+    priestessInboxDraft={file,recipient:String(data.get('recipient')||''),subject:String(data.get('subject')||''),note:String(data.get('note')||'')};
+    if(!file){
+      output.textContent='Choose a file before sending it through the Flowtel.';
+      inboxFileInput?.focus();
+      return;
+    }
+    button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';output.textContent='Preparing this private delivery…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
     try{await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':`Uploading privately… ${value}%`;}});priestessInboxDraft={file:null,recipient:'',subject:'',note:''};await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();if(managerMessage)managerMessage.textContent='The private file was delivered to her Priestess Inbox.';}
     catch(error){button.disabled=false;button.textContent='SEND THROUGH THE FLOWTEL';output.textContent=error?.message||'This private file could not be delivered.';}
     finally{priestessInboxUploadInFlight=false;delete document.body.dataset.priestessInboxUpload;}

@@ -1,3 +1,20 @@
+## v0.10.78.2 — Priestess Access + File Delivery Hotfix
+
+- Shows **Clock Into the Flowtel** to approved practitioners with active Concierge Team access while preserving owner-only administration and Team-Room-only practitioner visibility.
+- Refreshes the migration-062 capability during authenticated entry and again before Clock In so newly granted or paused access is respected.
+- Treats a **Ready for Private Delivery** Priestess Inbox file as the active file after the form redraws.
+- Removes the false browser “Please select a file” block while retaining explicit no-file validation and Clear File behavior.
+- Requires no migration and leaves Caddie Magic at v0.5.2.
+
+## v0.10.78.1 — Turndown Confirmation Safety Hotfix
+
+- Makes Cancel, Escape, unexpected closure, and unsupported-dialog paths true no-ops that cannot complete Turndown.
+- Requires the explicit **Complete Turndown** submit button before the completion RPC can run.
+- Removes the unsafe automatic-completion fallback and cache-busts the Concierge Desk and Suite.
+- Adds **Add Concierge Note** to completed requests so a note can be appended after a no-note completion.
+- Corrects the Suite lifecycle so completed requests no longer remain labeled “A concierge has been notified.”
+- Requires no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.78 — Concierge Team Access + Turndown Polish
 
 - Lets the owner manually grant or pause approved-practitioner access to the existing Concierge Desk.

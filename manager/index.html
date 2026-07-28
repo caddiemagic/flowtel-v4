@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.78" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.78.1" />
 </head>
 
 <body>
@@ -126,7 +126,7 @@
       <p class="eyebrow">TURNDOWN SERVICE</p>
       <h2 id="turndownNoteTitle">Leave a Concierge Note</h2>
       <p class="turndown-note-context" id="turndownNoteContext">Complete this room with an optional note for the guest.</p>
-      <label for="turndownNoteInput"><span>Concierge Note · optional</span><textarea id="turndownNoteInput" name="note" maxlength="1200" rows="5" placeholder="I see you, sister…"></textarea></label>
+      <label for="turndownNoteInput"><span id="turndownNoteLabel">Concierge Note · optional</span><textarea id="turndownNoteInput" name="note" maxlength="1200" rows="5" placeholder="I see you, sister…"></textarea></label>
       <p class="turndown-note-status" id="turndownNoteStatus" role="status"></p>
       <div class="turndown-note-actions">
         <button class="quiet" id="turndownNoteCancel" type="button">Cancel</button>
@@ -136,7 +136,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.78").catch(function(error){
+    import("./app.js?v=0.10.78.2").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");
