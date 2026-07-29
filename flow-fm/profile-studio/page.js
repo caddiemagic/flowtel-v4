@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.71 — shared Flowtel identity, Priestess Network foundation, and Priestess Audio Mailbox.
+// Flowtel v0.10.80 — editable prepared bios and a dedicated Priestess Mailbox room.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -53,14 +53,12 @@ const profileStudioForm = document.getElementById('profileStudioForm');
 const profileStudioPreview = document.getElementById('profileStudioPreview');
 const message = document.getElementById('message');
 const accessState = document.getElementById('accessState');
-const priestessMailboxSection = document.getElementById('priestessMailboxSection');
+const profileMailboxDoorway = document.getElementById('profileMailboxDoorway');
 
 let currentProfile = null;
 let currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
 let profileDirtyDisplayStatus = '';
 let api = null;
-let mailboxApi = null;
-let mailboxRows = [];
 let profileClockTimer = null;
 let selectedProfilePhotoFile = null;
 let selectedProfilePhotoPreviewUrl = '';
@@ -163,10 +161,18 @@ function selectedTitleValue(record={}){
   const existing=String(record.priestess_title || record.modalities || '').trim();
   return PRIESTESS_TITLE_OPTIONS.find(item => item.value === existing || item.label === existing)?.value || 'rose-priestess';
 }
+function frameworkSelection(record={},key=''){
+  const source=String(record.framework_language || record.frameworkLanguage || '');
+  const match=source.match(new RegExp(`(?:^|;\\s*)${key}=([^;]*)`));
+  return String(match?.[1] || '').trim();
+}
 function selectedBioValue(record={}){
-  const existingKey=String(record.bio_template_key || '').trim();
+  const existingKey=String(record.bio_template_key || frameworkSelection(record,'bio') || '').trim();
   if(existingKey && PRIESTESS_BIO_TEMPLATES.some(item => item.value === existingKey)) return existingKey;
   return findBioTemplate(record.bio || '').value;
+}
+function bioTemplateCopy(value=''){
+  return PRIESTESS_BIO_TEMPLATES.find(item=>item.value===String(value || ''))?.copy || '';
 }
 function selectedOfferingValues(record={}){
   return String(record.offering_template_keys || record.offerings || '')
@@ -215,7 +221,7 @@ function valuesFromForm(form){
   const data=new FormData(form);
   const titleValue=String(data.get('title_value') || 'rose-priestess');
   const bioValue=String(data.get('bio_template') || bioTemplatesForTitle(titleValue)[0]?.value || PRIESTESS_BIO_TEMPLATES[0].value);
-  const bio=PRIESTESS_BIO_TEMPLATES.find(item => item.value === bioValue)?.copy || '';
+  const bio=String(data.get('bio_custom') || bioTemplateCopy(bioValue) || '').trim();
   const title=labelForPriestessTitle(titleValue);
   const offeringValues=data.getAll('offerings').map(value => String(value));
   const offerings=offeringLabelsFromValues(offeringValues).join(', ');
@@ -324,8 +330,26 @@ function refreshSelectedBioPreview(){
   const form=document.getElementById('priestessProfileForm');
   const node=form?.querySelector('[data-selected-bio-preview]');
   if(!form || !node) return;
-  const bio=PRIESTESS_BIO_TEMPLATES.find(item => item.value === form.querySelector('[name="bio_template"]')?.value);
-  node.innerHTML=`<p>${escapeHtml(bio?.copy || '')}</p>`;
+  const selected=form.querySelector('[name="bio_template"]')?.value || '';
+  const bio=PRIESTESS_BIO_TEMPLATES.find(item => item.value === selected);
+  const copy=node.querySelector('[data-selected-bio-copy]');
+  if(copy) copy.textContent=bio?.copy || '';
+  const label=node.querySelector('[data-selected-bio-label]');
+  if(label) label.textContent=bio?.label || 'Prepared Description';
+}
+function setBioEditorFromTemplate(form,{message='Prepared description restored.'}={}){
+  const editor=form?.querySelector('[name="bio_custom"]');
+  const selected=form?.querySelector('[name="bio_template"]')?.value || '';
+  if(!editor) return;
+  editor.value=bioTemplateCopy(selected);
+  const status=form.querySelector('[data-bio-edit-status]');
+  if(status) status.textContent=message;
+  refreshPreviewFromForm(form,{markDirty:true});
+}
+function bioHasCustomEdits(form,templateValue=''){
+  const current=String(form?.querySelector('[name="bio_custom"]')?.value || '').trim();
+  const original=String(bioTemplateCopy(templateValue) || '').trim();
+  return !!current && current !== original;
 }
 function refreshPreviewFromForm(form,{ markDirty=true }={}){
   const payload=profilePayloadFromForm(form);
@@ -440,7 +464,6 @@ function bindProfilePhotoUploader(){
       clearSelectedProfilePhoto();
       currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:photoUrl || ''};
       await loadSavedProfile();
-      await loadPriestessMailbox();
       setPageMessage('Your Priestess photo is now traveling through the Flowtel.');
     }catch(error){
       console.error(error);
@@ -484,6 +507,7 @@ function renderProfileStudio(record=currentPriestessProfile){
   const timezone=profile.timezone || 'America/Los_Angeles';
   const displayStatus=displayStatusForProfile(profile);
   profileStudioIntro.textContent='You can return and refine this profile as often as your medicine evolves.';
+  profileMailboxDoorway?.classList.toggle('hidden',isViewingAnotherMember(currentProfile));
   profileStudioPreview.innerHTML=renderDisplayProfile(renderProfileFromRecord(profile));
   updateTimezoneClocks();
   profileStudioForm.innerHTML=`<form class="profile-form profile-form--simple" id="priestessProfileForm">
@@ -496,8 +520,14 @@ function renderProfileStudio(record=currentPriestessProfile){
         <label><span>Priestess Display Name</span><input name="display_name" autocomplete="nickname" required value="${escapeHtml(profile.display_name || profile.priestess_name || '')}" placeholder="Megan Michele" /><small class="field-help">This is the name shown in your Suite, Team Map, Concierge Desk, mentor spaces, and Priestess profile.</small></label>
       </section>`}
     <label><span>Title</span><select name="title_value">${renderTitleOptions(titleValue)}</select></label>
-    <label><span>Bio Template</span><select name="bio_template">${renderBioOptions(titleValue,bioValue)}</select></label>
-    <div class="selected-bio-preview" data-selected-bio-preview></div>
+    <label><span>Choose a Profile Description</span><select name="bio_template" data-previous-value="${escapeHtml(bioValue)}">${renderBioOptions(titleValue,bioValue)}</select><small class="field-help">Begin with language that already holds the essence of your work.</small></label>
+    <section class="selected-bio-preview selected-bio-preview--editable" data-selected-bio-preview>
+      <p class="eyebrow" data-selected-bio-label>PREPARED DESCRIPTION</p>
+      <p data-selected-bio-copy>${escapeHtml(bioTemplateCopy(bioValue))}</p>
+      <button class="secondary bio-template-use" type="button" data-use-bio-template>Use This Description</button>
+    </section>
+    <label class="bio-editor-field"><span>Make It Your Own</span><textarea name="bio_custom" rows="9" maxlength="2400" required>${escapeHtml(profile.bio || bioTemplateCopy(bioValue))}</textarea><small class="field-help">Your chosen description is already here. Keep it as written or edit any part of it.</small></label>
+    <div class="bio-editor-actions"><button class="secondary" type="button" data-restore-bio-template>Restore Original Description</button><p data-bio-edit-status role="status"></p></div>
     <fieldset class="offering-fieldset"><legend>Offerings</legend><div class="selection-chip-grid">${renderOfferingOptions(offeringValues)}</div></fieldset>
     <div class="form-grid"><label><span>Location</span><input name="location" required value="${escapeHtml(profile.location || '')}" placeholder="Pacific Grove, California" /><small class="field-help">City, region, or country only. This shared location also appears in your Guest Flowtel Profile.</small></label><label><span>Your Timezone</span><select name="timezone" required>${renderTimezoneOptions(timezone)}</select></label></div>
     <label><span>Hemisphere</span><select name="hemisphere" required>${renderHemisphereOptions(profile.hemisphere || currentProfile?.hemisphere || '')}</select><small class="field-help">Used for the future Time and Space view and outer-season context.</small></label>
@@ -515,15 +545,42 @@ function bindProfileForm(){
   if(!form) return;
   const titleSelect=form.querySelector('[name="title_value"]');
   const bioSelect=form.querySelector('[name="bio_template"]');
+  const bioEditor=form.querySelector('[name="bio_custom"]');
+  const bioStatus=form.querySelector('[data-bio-edit-status]');
   titleSelect?.addEventListener('change',()=>{
+    const previous=bioSelect?.dataset.previousValue || bioSelect?.value || '';
+    const preserve=bioHasCustomEdits(form,previous);
     const options=bioTemplatesForTitle(titleSelect.value);
     bioSelect.innerHTML=options.map(item=>`<option value="${escapeHtml(item.value)}">${escapeHtml(item.label)}</option>`).join('');
+    bioSelect.dataset.previousValue=bioSelect.value || '';
     refreshSelectedBioPreview();
-    refreshPreviewFromForm(form,{ markDirty:true });
+    if(!preserve){
+      setBioEditorFromTemplate(form,{message:'A prepared description for this title is ready to edit.'});
+    }else{
+      if(bioStatus) bioStatus.textContent='Your personalized bio was kept. Choose Use This Description only when you are ready to replace it.';
+      refreshPreviewFromForm(form,{markDirty:true});
+    }
   });
-  bioSelect?.addEventListener('change',()=>{ refreshSelectedBioPreview(); refreshPreviewFromForm(form,{ markDirty:true }); });
-  form.querySelectorAll('input:not([type="file"]), select').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form,{ markDirty:true })));
-  form.querySelectorAll('input[type="checkbox"], select').forEach(input=>input.addEventListener('change',()=>refreshPreviewFromForm(form,{ markDirty:true })));
+  bioSelect?.addEventListener('change',()=>{
+    const previous=bioSelect.dataset.previousValue || '';
+    const preserve=bioHasCustomEdits(form,previous);
+    bioSelect.dataset.previousValue=bioSelect.value || '';
+    refreshSelectedBioPreview();
+    if(!preserve){
+      setBioEditorFromTemplate(form,{message:'This prepared description is ready to make your own.'});
+    }else{
+      if(bioStatus) bioStatus.textContent='Your personalized bio was kept. Choose Use This Description to replace it with the new selection.';
+      refreshPreviewFromForm(form,{markDirty:true});
+    }
+  });
+  form.querySelector('[data-use-bio-template]')?.addEventListener('click',()=>setBioEditorFromTemplate(form,{message:'The selected description is now ready for your edits.'}));
+  form.querySelector('[data-restore-bio-template]')?.addEventListener('click',()=>setBioEditorFromTemplate(form,{message:'The original prepared description has been restored.'}));
+  bioEditor?.addEventListener('input',()=>{
+    if(bioStatus) bioStatus.textContent=bioHasCustomEdits(form,bioSelect?.value || '')?'Your personalized description is reflected in the live preview.':'You are using the prepared description as written.';
+    refreshPreviewFromForm(form,{markDirty:true});
+  });
+  form.querySelectorAll('input:not([type="file"]):not([name="bio_custom"]), select:not([name="bio_template"]):not([name="title_value"])').forEach(input=>input.addEventListener('input',()=>refreshPreviewFromForm(form,{ markDirty:true })));
+  form.querySelectorAll('input[type="checkbox"], select:not([name="bio_template"]):not([name="title_value"])').forEach(input=>input.addEventListener('change',()=>refreshPreviewFromForm(form,{ markDirty:true })));
   form.querySelectorAll('[data-profile-action]').forEach(button=>button.addEventListener('click',()=>handleProfileAction(form,button.dataset.profileAction)));
   bindProfilePhotoUploader();
 }
@@ -603,133 +660,9 @@ async function handleProfileAction(form,action){
     setPageMessage(error.message || 'This Priestess Profile could not be tended yet.');
   }
 }
-function fileSizeLabel(bytes=0){
-  const value=Number(bytes)||0;
-  if(value<1024) return `${value} B`;
-  if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
-  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
-}
-function mailboxDateLabel(value){
-  if(!value) return '';
-  const date=new Date(value);
-  if(Number.isNaN(date.getTime())) return String(value);
-  return new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(date);
-}
-function groupMailboxThreads(rows=[]){
-  const groups=new Map();
-  rows.forEach(row=>{
-    if(!groups.has(row.thread_id)) groups.set(row.thread_id,{...row,files:[]});
-    groups.get(row.thread_id).files.push(row);
-  });
-  return [...groups.values()];
-}
-function mailboxThreadStatus(thread){
-  const returned=thread.files.filter(file=>file.direction==='to_practitioner');
-  const originals=thread.files.filter(file=>file.direction==='to_admin');
-  if(returned.some(file=>!file.downloaded_at)) return 'A private file is ready';
-  if(returned.length && returned.every(file=>file.downloaded_at)) return 'Private file received';
-  if(originals.some(file=>file.received_at)) return 'Received by Megan';
-  return 'Traveling to Megan';
-}
-function mailboxFileMarkup(file){
-  const isReturn=file.direction==='to_practitioner';
-  const state=isReturn
-    ? (file.downloaded_at?'Downloaded':'Ready for you')
-    : (file.received_at?'Received by Megan':'Sent to Megan');
-  return `<article class="mailbox-file ${isReturn?'is-return':'is-original'}">
-    <div><p class="mailbox-file-direction">${isReturn?'DELIVERED TO YOU':'SENT TO MEGAN'}</p><h4>${escapeHtml(file.original_filename || 'Private file')}</h4><p>${escapeHtml(fileSizeLabel(file.size_bytes))} · ${escapeHtml(mailboxDateLabel(file.uploaded_at))}</p>${file.file_note?`<p class="mailbox-file-note">${escapeHtml(file.file_note)}</p>`:''}</div>
-    <div class="mailbox-file-action"><span>${escapeHtml(state)}</span>${isReturn?`<button type="button" data-mailbox-download="${escapeHtml(file.file_id)}" data-mailbox-path="${escapeHtml(file.storage_path)}">${file.downloaded_at?'Download Again':'Download Private File'}</button>`:''}</div>
-  </article>`;
-}
-function renderPriestessMailbox(){
-  if(!priestessMailboxSection || !currentProfile?.id || isViewingAnotherMember(currentProfile)) return;
-  const threads=groupMailboxThreads(mailboxRows);
-  priestessMailboxSection.classList.remove('hidden');
-  priestessMailboxSection.innerHTML=`
-    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS INBOX</p><h2>Private files move through the Flowtel.</h2><p>Leave audio for Megan to tend, receive edited recordings, and find private files delivered directly to you through this same protected room.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
-    <div class="priestess-mailbox-layout">
-      <form class="priestess-mailbox-form" id="priestessMailboxForm">
-        <label><span>Audio title</span><input name="subject" maxlength="120" placeholder="Womb Wealth meditation" /></label>
-        <label><span>Note for Megan — optional</span><textarea name="message" rows="4" maxlength="1000" placeholder="What would you like her to know before editing?"></textarea></label>
-        <label class="mailbox-file-picker"><span>Choose your audio</span><input name="audio_file" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" required /><small>MP3, WAV, M4A, AAC, or OGG · up to 250 MB</small></label>
-        <button type="submit">SEND AUDIO TO MEGAN</button>
-        <p class="mailbox-form-status" id="priestessMailboxStatus" role="status"></p>
-      </form>
-      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Audio for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first private file handoff will appear here.</p></div>'}</section>
-    </div>`;
-  bindPriestessMailbox();
-}
-async function downloadReturnedAudio(button){
-  const popup=window.open('about:blank','_blank');
-  button.disabled=true;
-  const original=button.textContent;
-  button.textContent='Preparing...';
-  try{
-    const url=await mailboxApi.createMailboxDownloadUrl(button.dataset.mailboxPath);
-    if(popup){
-      popup.opener=null;
-      popup.location.href=url;
-    }else{
-      const link=document.createElement('a');
-      link.href=url;
-      link.target='_blank';
-      link.rel='noopener';
-      link.download='';
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-    }
-    await mailboxApi.markReturnedAudioDownloaded(button.dataset.mailboxDownload);
-    await loadPriestessMailbox();
-    setPageMessage('Your returned audio has been received from the Priestess Mailbox.');
-  }catch(error){
-    popup?.close();
-    console.error(error);
-    button.disabled=false;
-    button.textContent=original;
-    setPageMessage(error?.message || 'This private audio download could not be prepared yet.');
-  }
-}
-function bindPriestessMailbox(){
-  const form=document.getElementById('priestessMailboxForm');
-  const status=document.getElementById('priestessMailboxStatus');
-  form?.addEventListener('submit',async event=>{
-    event.preventDefault();
-    const button=form.querySelector('button[type="submit"]');
-    const file=form.elements.audio_file?.files?.[0];
-    button.disabled=true;
-    status.textContent='Sending your audio through the Flowtel…';
-    try{
-      await mailboxApi.sendAudioToConcierge(file,{
-        subject:form.elements.subject?.value || '',
-        message:form.elements.message?.value || '',
-      });
-      form.reset();
-      status.textContent='Your audio is waiting safely in Megan’s Priestess Mailbox.';
-      await loadPriestessMailbox();
-    }catch(error){
-      console.error(error);
-      button.disabled=false;
-      status.textContent=error?.message || 'This audio could not be sent yet.';
-    }
-  });
-  priestessMailboxSection.querySelectorAll('[data-mailbox-download]').forEach(button=>button.addEventListener('click',()=>downloadReturnedAudio(button)));
-}
-async function loadPriestessMailbox(){
-  if(!mailboxApi || !currentProfile?.id || isViewingAnotherMember(currentProfile)) return;
-  try{
-    mailboxRows=await mailboxApi.listMyPriestessMailbox();
-    renderPriestessMailbox();
-  }catch(error){
-    console.warn('Priestess Mailbox could not load.',error);
-    priestessMailboxSection?.classList.remove('hidden');
-    if(priestessMailboxSection) priestessMailboxSection.innerHTML='<div class="mailbox-empty"><p>The Priestess Mailbox will open after migration 046 is installed.</p></div>';
-  }
-}
-
 function renderStaticNav(){
   if(!topNav) return;
-  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill" href="/flow-fm/moons/">13 Moons</a><a class="nav-pill" href="/flow-fm/hourly-flow-rate/">Hourly Flow Rate</a><a class="nav-pill" href="/flow-fm/availability/">Availability</a><a class="nav-pill" href="/flow-fm/planning-room/">Planning Room</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/flow-fm/team-map/">Living Map</a><a class="nav-pill" href="/flow-fm/time-space/">Time + Space</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
+  topNav.innerHTML=`<a class="nav-pill" href="/flow-fm/">Initiation Hall</a><a class="nav-pill" href="/flow-fm/moons/">13 Moons</a><a class="nav-pill" href="/flow-fm/hourly-flow-rate/">Hourly Flow Rate</a><a class="nav-pill" href="/flow-fm/availability/">Availability</a><a class="nav-pill" href="/flow-fm/planning-room/">Planning Room</a><a class="nav-pill active" href="/flow-fm/profile-studio/">Profile Studio</a><a class="nav-pill" href="/flow-fm/priestess-mailbox/">Priestess Mailbox</a><a class="nav-pill" href="/flow-fm/team-map/">Living Map</a><a class="nav-pill" href="/flow-fm/time-space/">Time + Space</a><a class="nav-pill" href="/client/?suite=1">Return to Suite</a>`;
 }
 async function loadSavedProfile(){
   if(!api?.getPriestessProfile) return;
@@ -765,7 +698,6 @@ async function loadSavedProfile(){
 async function hydrateFromSupabase(){
   try{
     api=await import('/shared/flowtel.js?v=0.10.71');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.67');
     currentProfile=await api.getCurrentProfile();
     if(!canUseProfileStudio(currentProfile)){
       replacePageWithPhaseTwoGate({
@@ -777,7 +709,6 @@ async function hydrateFromSupabase(){
     }
     if(accessState) accessState.innerHTML='';
     await loadSavedProfile();
-    await loadPriestessMailbox();
   }catch(error){
     console.warn('Profile Studio save connection could not initialize.', error);
     setPageMessage('The Studio form is open. The save connection could not initialize yet, so preview is available while we keep the doorway visible.');

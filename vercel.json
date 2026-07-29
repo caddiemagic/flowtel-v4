@@ -147,6 +147,10 @@
       "destination": "/flow-fm/profile-studio/index.html"
     },
     {
+      "source": "/flow-fm/priestess-mailbox",
+      "destination": "/flow-fm/priestess-mailbox/index.html"
+    },
+    {
       "source": "/flow-fm/planning-room",
       "destination": "/flow-fm/planning-room/index.html"
     },
@@ -172,6 +176,19 @@
     }
   ],
   "headers": [
+    {
+      "source": "/flow-fm/priestess-mailbox",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
     {
       "source": "/flow-fm/time-space",
       "headers": [

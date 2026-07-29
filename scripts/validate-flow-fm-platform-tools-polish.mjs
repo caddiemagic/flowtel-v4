@@ -9,6 +9,7 @@ const platformPages=[
   'flow-fm/womb-work/index.html',
   'flow-fm/assignments/index.html',
   'flow-fm/profile-studio/index.html',
+  'flow-fm/priestess-mailbox/index.html',
   'flow-fm/planning-room/index.html',
   'flow-fm/review/index.html',
   'flow-fm/team-map/index.html',
@@ -19,7 +20,7 @@ const platformPages=[
 ];
 for(const file of platformPages){
   const html=await read(file);
-  const expectedVersion=file==='flow-fm/availability/index.html'?'0.10.79':'0.10.78';
+  const expectedVersion=file==='flow-fm/availability/index.html'?'0.10.79':(['flow-fm/profile-studio/index.html','flow-fm/priestess-mailbox/index.html'].includes(file)?'0.10.80':'0.10.78');
   assert(html.includes(`/flow-fm/platform.css?v=${expectedVersion}`),`${file} is missing the shared platform stylesheet.`);
   assert(html.includes('flowfm-platform-page'),`${file} is missing the shared platform body class.`);
 }

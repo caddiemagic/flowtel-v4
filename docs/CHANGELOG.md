@@ -1,3 +1,13 @@
+## v0.10.80 — Priestess Profile Personalization + Mailbox Room
+
+- Lets Priestesses choose a prepared profile description and personalize it inside a prefilled **Make It Your Own** editor rather than beginning from a blank field.
+- Preserves personalized edits when the title or description selection changes and adds explicit **Use This Description** and **Restore Original Description** actions.
+- Stores the final customized bio in the existing profile bio while preserving the selected prepared-description key in existing framework metadata.
+- Moves the full member Priestess Mailbox out of Profile Studio and into a dedicated private `/flow-fm/priestess-mailbox/` room.
+- Adds the Priestess Mailbox doorway to **Visible to approved Priestesses** while retaining the owner-wide mailbox administration under Owner Administration.
+- Preserves all existing private mailbox threads, files, Storage, download history, RPCs, RLS, and migration-046 behavior.
+- Adds no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.79 — Availability Rhythm Redesign
 
 - Replaced the four-season weekday control wall with four calm seasonal summary cards.

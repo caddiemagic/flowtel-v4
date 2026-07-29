@@ -1,0 +1,5 @@
+/* Flowtel v0.10.80 — dedicated member Priestess Mailbox room. */
+.priestess-mailbox-page .initiation-shell{max-width:1180px}
+.priestess-mailbox-page .priestess-mailbox-card{margin-top:18px}
+.priestess-mailbox-page .message{min-height:24px;text-align:center}
+@media(max-width:700px){.priestess-mailbox-page .top-nav{justify-content:flex-start;overflow-x:auto;padding-bottom:4px}}
