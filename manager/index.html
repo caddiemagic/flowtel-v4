@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.78.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.80.1" />
 </head>
 
 <body>
@@ -67,7 +67,7 @@
           <button class="stat-card" type="button" data-filter="clients"><span>Your Clients</span><strong id="clientsCount">0</strong><em><b id="clientConnectionCount">0</b> new mentor requests</em></button>
           <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Availability</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/profile-studio/"><span>Profile Studio</span><strong>OPEN</strong><em>Priestess identity + offerings</em></a>
-          <a class="stat-card stat-card-link" href="/flow-fm/priestess-mailbox/"><span>Priestess Mailbox</span><strong>OPEN</strong><em>Private files + returned audio</em></a>
+          <a class="stat-card stat-card-link" data-team-priestess-mailbox href="/flow-fm/priestess-mailbox/"><span>Priestess Mailbox</span><strong id="teamPriestessMailboxStatus">OPEN</strong><em id="teamPriestessMailboxNote">Private files + returned audio</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/time-space/"><span>Time + Space</span><strong>WORLD</strong><em>Global Priestess Team</em></a>
         </div>
       </section>
@@ -137,7 +137,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.78.2").catch(function(error){
+    import("./app.js?v=0.10.80.1").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

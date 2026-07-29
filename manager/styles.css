@@ -962,3 +962,7 @@ body.concierge-team-view .queue{margin-top:18px}
 .turndown-note-actions button.quiet{background:#fff}
 .turndown-note-actions button:disabled{opacity:.58;cursor:wait}
 @media(max-width:620px){.turndown-note-form{padding:23px 18px}.turndown-note-actions{display:grid}.turndown-note-actions button{width:100%}}
+
+/* Flowtel v0.10.80.1 — member Priestess Mailbox delivery alert. */
+[data-team-priestess-mailbox].has-alert strong{font-size:1.05rem;letter-spacing:.06em}
+[data-team-priestess-mailbox].has-alert em{color:#8a6540;font-weight:600}

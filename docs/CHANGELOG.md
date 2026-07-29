@@ -1,3 +1,12 @@
+## v0.10.80.1 — Priestess Mailbox Delivery Alert
+
+- Adds a member-specific unread private-file count to the Priestess Mailbox card inside Concierge Team Rooms.
+- Adds the same alert to the Profile Studio mailbox doorway and the dedicated Priestess Mailbox room.
+- Highlights files delivered to the Priestess while `downloaded_at` remains empty.
+- Keeps alerts active when the mailbox is merely opened and clears them only after a successful download acknowledgment.
+- Preserves the owner-wide incoming-audio count as a separate owner-only queue.
+- Requires no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.80 — Priestess Profile Personalization + Mailbox Room
 
 - Lets Priestesses choose a prepared profile description and personalize it inside a prefilled **Make It Your Own** editor rather than beginning from a blank field.

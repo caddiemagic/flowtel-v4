@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.80 — editable prepared bios and a dedicated Priestess Mailbox room.
+// Flowtel v0.10.80.1 — editable prepared bios plus Priestess Mailbox delivery alerts.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -54,11 +54,13 @@ const profileStudioPreview = document.getElementById('profileStudioPreview');
 const message = document.getElementById('message');
 const accessState = document.getElementById('accessState');
 const profileMailboxDoorway = document.getElementById('profileMailboxDoorway');
+const profileMailboxBadge = document.getElementById('profileMailboxBadge');
 
 let currentProfile = null;
 let currentPriestessProfile = { status: 'draft', timezone: 'America/Los_Angeles' };
 let profileDirtyDisplayStatus = '';
 let api = null;
+let mailboxApi = null;
 let profileClockTimer = null;
 let selectedProfilePhotoFile = null;
 let selectedProfilePhotoPreviewUrl = '';
@@ -91,6 +93,28 @@ function safeImageSrc(value){
 }
 function setPageMessage(text=''){
   if(message) message.textContent = text;
+}
+function waitingPriestessMailboxCount(rows=[]){
+  return rows.filter(row=>row.direction==='to_practitioner' && !row.downloaded_at).length;
+}
+function renderProfileMailboxAlert(rows=[]){
+  const waiting=waitingPriestessMailboxCount(rows);
+  profileMailboxDoorway?.classList.toggle('has-alert',waiting>0);
+  if(profileMailboxBadge){
+    profileMailboxBadge.hidden=waiting===0;
+    profileMailboxBadge.textContent=waiting>0?`${waiting} NEW ${waiting===1?'FILE':'FILES'}`:'';
+  }
+}
+async function loadProfileMailboxAlert(){
+  if(isViewingAnotherMember(currentProfile)) return;
+  try{
+    mailboxApi ||= await import('/shared/priestess-mailbox.js?v=0.10.80.1');
+    const rows=await mailboxApi.listMyPriestessMailbox();
+    renderProfileMailboxAlert(rows);
+  }catch(error){
+    console.warn('Priestess Mailbox alert could not load.',error);
+    renderProfileMailboxAlert([]);
+  }
 }
 function timezoneDetails(timezone='America/Los_Angeles',date=new Date()){
   const zone=String(timezone || 'America/Los_Angeles');
@@ -464,6 +488,7 @@ function bindProfilePhotoUploader(){
       clearSelectedProfilePhoto();
       currentPriestessProfile={...(currentPriestessProfile || {}),profile_photo_url:photoUrl || ''};
       await loadSavedProfile();
+    await loadProfileMailboxAlert();
       setPageMessage('Your Priestess photo is now traveling through the Flowtel.');
     }catch(error){
       console.error(error);

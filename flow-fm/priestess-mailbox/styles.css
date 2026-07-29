@@ -1,5 +1,12 @@
-/* Flowtel v0.10.80 — dedicated member Priestess Mailbox room. */
+/* Flowtel v0.10.80.1 — dedicated member Priestess Mailbox room with delivery alerts. */
 .priestess-mailbox-page .initiation-shell{max-width:1180px}
 .priestess-mailbox-page .priestess-mailbox-card{margin-top:18px}
 .priestess-mailbox-page .message{min-height:24px;text-align:center}
 @media(max-width:700px){.priestess-mailbox-page .top-nav{justify-content:flex-start;overflow-x:auto;padding-bottom:4px}}
+
+.mailbox-delivery-alert{display:flex;justify-content:space-between;align-items:center;gap:22px;margin:18px 0;padding:20px 22px;border:1px solid rgba(216,168,79,.58);border-radius:20px;background:linear-gradient(135deg,rgba(255,253,249,.98),rgba(255,247,226,.9));box-shadow:0 18px 46px rgba(216,168,79,.14)}
+.mailbox-delivery-alert h3{margin:3px 0 6px;font-size:1.35rem;font-weight:400}.mailbox-delivery-alert p:not(.eyebrow){margin:0;color:var(--soft-brown)}
+.mailbox-delivery-alert>strong{flex:0 0 auto;padding:9px 13px;border:1px solid rgba(216,168,79,.6);border-radius:999px;background:#fff8e8;color:#8a6540;font:700 .65rem Arial,sans-serif;letter-spacing:.1em}
+.mailbox-file.is-waiting{border-color:rgba(216,168,79,.6);background:linear-gradient(135deg,rgba(255,253,249,.98),rgba(255,247,226,.76));box-shadow:0 14px 34px rgba(216,168,79,.12)}
+.mailbox-file.is-waiting .mailbox-file-action>span{color:#8a6540;font-weight:700}
+@media(max-width:700px){.mailbox-delivery-alert{align-items:flex-start;flex-direction:column}.mailbox-delivery-alert>strong{align-self:flex-start}}

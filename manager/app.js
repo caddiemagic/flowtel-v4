@@ -12,7 +12,7 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
 import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { createMailboxDownloadUrl, listAdminPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnEditedAudio, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.67";
+import { createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnEditedAudio, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.1";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
@@ -194,6 +194,8 @@ let honorsServiceAvailable=true;
 let priestessMailboxRows=[];
 let priestessMailboxRecipients=[];
 let priestessMailboxServiceAvailable=true;
+let memberPriestessMailboxRows=[];
+let memberPriestessMailboxServiceAvailable=true;
 let priestessInboxDraft={file:null,recipient:'',subject:'',note:''};
 let priestessInboxUploadInFlight=false;
 let priestessInboxFilePickerOpen=false;
@@ -815,6 +817,7 @@ function updateStats(){
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO() && !event.caddie_master_acknowledged_at).length;
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
   const mailboxAwaiting=priestessMailboxRows.filter(row=>row.direction==="to_admin" && !row.received_at).length;
+  const memberMailboxWaiting=memberPriestessMailboxRows.filter(row=>row.direction==="to_practitioner" && !row.downloaded_at).length;
   const guestHouseAwaiting=guestHouseRequests.filter(row=>["requested","locating","preparing"].includes(String(row.request_status||""))).length;
   const workshopQuestions=workshopReplayNotes.filter(row=>row.note_type==="question").length;
   const activeLoungeVideo=loungeVideos.find(row=>row.is_active);
@@ -843,6 +846,8 @@ function updateStats(){
   setText("honorsAvailablePoints",formatPoints(honorsAvailable));
   setText("honorsPractitionerCount",honorsDashboardRows.length);
   setText("priestessMailboxCount",mailboxAwaiting);
+  setText("teamPriestessMailboxStatus",memberMailboxWaiting>0?`${memberMailboxWaiting} NEW ${memberMailboxWaiting===1?"FILE":"FILES"}`:"OPEN");
+  setText("teamPriestessMailboxNote",memberMailboxWaiting>0?(memberMailboxWaiting===1?"A private delivery is waiting":"Private deliveries are waiting"):"Private files + returned audio");
   setText("guestHouseRequestCount",guestHouseAwaiting);
   setText("workshopReplayNoteCount",workshopReplayNotes.length);
   setText("loungeVideoCount",activeLoungeVideo?"1":"0");
@@ -879,6 +884,11 @@ function updateStats(){
 
   const mailboxCard=document.querySelector('[data-filter="priestess-mailbox"]');
   if(mailboxCard) mailboxCard.classList.toggle("has-alert",mailboxAwaiting>0);
+  const teamMailboxCard=document.querySelector("[data-team-priestess-mailbox]");
+  if(teamMailboxCard){
+    teamMailboxCard.classList.toggle("has-alert",memberMailboxWaiting>0);
+    teamMailboxCard.setAttribute("aria-label",memberMailboxWaiting>0?`Priestess Mailbox, ${memberMailboxWaiting} new ${memberMailboxWaiting===1?"file":"files"} waiting`:"Priestess Mailbox");
+  }
 
   const guestHouseCard=document.querySelector('[data-filter="guest-house"]');
   if(guestHouseCard) guestHouseCard.classList.toggle("has-alert",guestHouseAwaiting>0);
@@ -2074,6 +2084,17 @@ function bindAdminMailboxControls(){
     }
   }));
 }
+async function loadMemberPriestessMailboxData(){
+  try{
+    memberPriestessMailboxRows=await listMyPriestessMailbox();
+    memberPriestessMailboxServiceAvailable=true;
+  }catch(error){
+    console.warn("Member Priestess Mailbox alert is not available yet.",error);
+    memberPriestessMailboxRows=[];
+    memberPriestessMailboxServiceAvailable=false;
+  }
+}
+
 async function loadPriestessMailboxData(){
   try{
     [priestessMailboxRows,priestessMailboxRecipients]=await Promise.all([listAdminPriestessMailbox(),listPriestessInboxRecipients()]);
@@ -3045,6 +3066,7 @@ async function loadDesk({silent=false}={}){
     allStays=await getFrontDeskStays();
     await renderConnectionRequests();
     await renderMyClients();
+    await loadMemberPriestessMailboxData();
     if(isOwnerDesk()){
       await loadMemberDirectory();
       await loadPriestessConciergeTeam();

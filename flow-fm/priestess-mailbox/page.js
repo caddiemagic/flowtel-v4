@@ -42,6 +42,9 @@ function groupMailboxThreads(rows=[]){
   });
   return [...groups.values()];
 }
+function waitingMailboxFiles(rows=[]){
+  return rows.filter(file=>file.direction==='to_practitioner' && !file.downloaded_at);
+}
 function mailboxThreadStatus(thread){
   const returned=thread.files.filter(file=>file.direction==='to_practitioner');
   const originals=thread.files.filter(file=>file.direction==='to_admin');
@@ -52,16 +55,20 @@ function mailboxThreadStatus(thread){
 }
 function mailboxFileMarkup(file){
   const isReturn=file.direction==='to_practitioner';
+  const isWaiting=isReturn && !file.downloaded_at;
   const state=isReturn?(file.downloaded_at?'Downloaded':'Ready for you'):(file.received_at?'Received by Megan':'Sent to Megan');
-  return `<article class="mailbox-file ${isReturn?'is-return':'is-original'}">
+  return `<article class="mailbox-file ${isReturn?'is-return':'is-original'} ${isWaiting?'is-waiting':''}">
     <div><p class="mailbox-file-direction">${isReturn?'DELIVERED TO YOU':'SENT TO MEGAN'}</p><h4>${escapeHtml(file.original_filename || 'Private file')}</h4><p>${escapeHtml(fileSizeLabel(file.size_bytes))} · ${escapeHtml(mailboxDateLabel(file.uploaded_at))}</p>${file.file_note?`<p class="mailbox-file-note">${escapeHtml(file.file_note)}</p>`:''}</div>
     <div class="mailbox-file-action"><span>${escapeHtml(state)}</span>${isReturn?`<button type="button" data-mailbox-download="${escapeHtml(file.file_id)}" data-mailbox-path="${escapeHtml(file.storage_path)}">${file.downloaded_at?'Download Again':'Download Private File'}</button>`:''}</div>
   </article>`;
 }
 function renderMailbox(){
   const threads=groupMailboxThreads(mailboxRows);
+  const waiting=waitingMailboxFiles(mailboxRows);
+  const waitingCount=waiting.length;
   section.innerHTML=`
     <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS MAILBOX</p><h2>Private files move through the Flowtel.</h2><p>Leave audio for Megan to tend, receive edited recordings, and return to every protected delivery in one quiet room.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
+    ${waitingCount?`<section class="mailbox-delivery-alert" role="status"><div><p class="eyebrow">PRIVATE DELIVERY</p><h3>${waitingCount===1?'A private file is waiting for you.':`${waitingCount} private files are waiting for you.`}</h3><p>The alert will clear after each file is successfully downloaded.</p></div><strong>${waitingCount} NEW ${waitingCount===1?'FILE':'FILES'}</strong></section>`:''}
     <div class="priestess-mailbox-layout">
       <form class="priestess-mailbox-form" id="priestessMailboxForm">
         <label><span>Audio title</span><input name="subject" maxlength="120" placeholder="Womb Wealth meditation" /></label>
@@ -130,8 +137,8 @@ async function loadMailbox(){
 }
 async function init(){
   try{
-    const flowtel=await import('/shared/flowtel.js?v=0.10.80');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80');
+    const flowtel=await import('/shared/flowtel.js?v=0.10.80.1');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.1');
     currentProfile=await flowtel.getCurrentProfile();
     if(!canUseMailbox(currentProfile)){
       replacePageWithPhaseTwoGate({featureName:'Priestess Mailbox',title:'Reserved for Flow FM',copy:'The Priestess Mailbox is available to Flow FM and Council members moving private files through the Flowtel.'});
