@@ -12,7 +12,7 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
 import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, clearMailboxFileNotification, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.5";
+import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, clearMailboxFileNotification, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.6";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
@@ -2083,7 +2083,7 @@ function bindAdminMailboxControls(){
     }
     button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';output.textContent='Preparing this private delivery…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
     try{
-      await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':`Uploading privately… ${value}%`;}});
+      await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:(value,detail={})=>{const indeterminate=detail.indeterminate===true;if(progress)progress.classList.toggle('is-indeterminate',indeterminate);if(bar)bar.style.width=indeterminate?'38%':`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':(indeterminate?'Uploading privately… Keep this page open.':`Uploading privately… ${value}%`);}});
       priestessInboxDraft={file:null,recipient:'',subject:'',note:''};
       await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();
       if(managerMessage)managerMessage.textContent='The private file was delivered to her Priestess Inbox.';
@@ -2111,7 +2111,7 @@ function bindAdminMailboxControls(){
     }
     button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';if(status) status.textContent='Preparing this private return…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
     try{
-      await returnPrivateFile({threadId:button.dataset.returnThread,practitionerId:button.dataset.returnPractitioner,file,note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;if(status)status.textContent=value>=100?'Finishing her private return…':`Uploading privately… ${value}%`;}});
+      await returnPrivateFile({threadId:button.dataset.returnThread,practitionerId:button.dataset.returnPractitioner,file,note,onProgress:(value,detail={})=>{const indeterminate=detail.indeterminate===true;if(progress)progress.classList.toggle('is-indeterminate',indeterminate);if(bar)bar.style.width=indeterminate?'38%':`${value}%`;if(status)status.textContent=value>=100?'Finishing her private return…':(indeterminate?'Uploading privately… Keep this page open.':`Uploading privately… ${value}%`);}});
       await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();
       if(managerMessage) managerMessage.textContent='Private file returned to the Priestess Mailbox.';
     }catch(error){

@@ -78,7 +78,7 @@ function renderMailbox(){
         <div class="mailbox-selected-file" id="priestessMailboxSelectedFile" hidden></div>
         <button type="submit">Send Private File to Megan</button>
         <div class="mailbox-upload-progress" id="priestessMailboxProgress" hidden aria-hidden="true"><span></span></div>
-        <p class="mailbox-upload-guidance">Large files upload in resumable chunks. Keep this tab open. After a page refresh, reselect the same file to continue an interrupted upload.</p>
+        <p class="mailbox-upload-guidance">Large files upload securely through Flowtel. Keep this tab open until the private delivery is complete. If the connection interrupts, press Send again with the same selected file.</p>
         <p class="mailbox-form-status" id="priestessMailboxStatus" role="status"></p>
       </form>
       <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Private file for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first private file handoff will appear here.</p></div>'}</section>
@@ -149,14 +149,18 @@ function bindMailbox(){
       await mailboxApi.sendPrivateFileToConcierge(file,{
         subject:form.elements.subject?.value || '',
         message:form.elements.message?.value || '',
-        onProgress:value=>{
-          if(progressBar) progressBar.style.width=`${value}%`;
-          status.textContent=value>=100?'Finishing your private delivery…':`Uploading privately… ${value}%`;
+        onProgress:(value,detail={})=>{
+          const indeterminate=detail.indeterminate===true;
+          progress?.classList.toggle('is-indeterminate',indeterminate);
+          if(progressBar) progressBar.style.width=indeterminate?'38%':`${value}%`;
+          status.textContent=value>=100
+            ?'Finishing your private delivery…'
+            :(indeterminate?'Uploading privately… Keep this page open.':`Uploading privately… ${value}%`);
         },
       });
       form.reset();
       if(selected){ selected.hidden=true; selected.innerHTML=''; }
-      if(progress){ progress.hidden=true; progress.setAttribute('aria-hidden','true'); }
+      if(progress){ progress.hidden=true; progress.setAttribute('aria-hidden','true'); progress.classList.remove('is-indeterminate'); }
       if(progressBar) progressBar.style.width='0%';
       status.textContent='Your private file is waiting safely in Megan’s Priestess Mailbox.';
       await loadMailbox();
@@ -164,6 +168,7 @@ function bindMailbox(){
       console.error(error);
       button.disabled=false;
       button.textContent='Send Private File to Megan';
+      progress?.classList.remove('is-indeterminate');
       status.textContent=error?.message || 'This private file could not be sent yet.';
     }
   });
@@ -182,7 +187,7 @@ async function loadMailbox(){
 async function init(){
   try{
     const flowtel=await import('/shared/flowtel.js?v=0.10.80.2');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.5');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.6');
     currentProfile=await flowtel.getCurrentProfile();
     if(!canUseMailbox(currentProfile)){
       replacePageWithPhaseTwoGate({featureName:'Priestess Mailbox',title:'Reserved for Flow FM',copy:'The Priestess Mailbox is available to Flow FM and Council members moving private files through the Flowtel.'});

@@ -967,7 +967,7 @@ body.concierge-team-view .queue{margin-top:18px}
 [data-team-priestess-mailbox].has-alert strong{font-size:1.05rem;letter-spacing:.06em}
 [data-team-priestess-mailbox].has-alert em{color:#8a6540;font-weight:600}
 
-/* Flowtel v0.10.80.2 — resumable private-media returns. */
+/* Flowtel private-media return progress. */
 .admin-mailbox-return-progress{grid-column:1/-1;height:7px;overflow:hidden;border-radius:999px;background:rgba(216,168,79,.16)}
 .admin-mailbox-return-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--rose),var(--gold));transition:width .18s ease}
 .admin-mailbox-return input[type="file"]{padding:8px;font-size:.76rem}
@@ -978,3 +978,6 @@ body.concierge-team-view .queue{margin-top:18px}
 .admin-mailbox-file-actions{display:grid;gap:7px;justify-items:stretch}
 .admin-mailbox-file-actions .quiet{background:transparent;color:var(--soft-brown);border-color:rgba(109,78,65,.16)}
 .admin-mailbox-file-actions .quiet:hover{background:rgba(248,231,227,.35)}
+
+.admin-mailbox-send-progress.is-indeterminate span,.admin-mailbox-return-progress.is-indeterminate span{width:38%!important;animation:admin-mailbox-upload-indeterminate 1.2s ease-in-out infinite}
+@keyframes admin-mailbox-upload-indeterminate{0%{transform:translateX(-120%)}50%{transform:translateX(85%)}100%{transform:translateX(260%)}}

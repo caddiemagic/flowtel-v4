@@ -15,21 +15,25 @@ const mailboxMigration=await read('database/migration-063-priestess-mailbox-1gb-
 for(const token of [
   "'mp4'","'mov'","'m4v'","'webm'",
   'sendPrivateFileToConcierge','returnPrivateFile','uploadPriestessMailboxFile',
-  'tus-js-client@4','retryDelays','findPreviousUploads','preparePendingTransfer','localStorage','onBeforeRequest',
-  'createSignedUploadUrl',"'x-signature':signedUploadToken",
+  'preparePendingTransfer','localStorage',
+  ".from(PRIESTESS_MAILBOX_BUCKET)\n    .upload(path,file",
+  "transport:'supabase-storage-sdk'",'indeterminate:percent<100',
   'PRIESTESS_MAILBOX_MAX_BYTES = 1 * 1024 * 1024 * 1024',
 ]) assert(shared.includes(token),`Shared mailbox module is missing ${token}.`);
 
-for(const token of ['page.js?v=0.10.80.5','styles.css?v=0.10.80.5']) assert(memberHtml.includes(token),`Member mailbox cache key is missing ${token}.`);
+for(const token of ['page.js?v=0.10.80.6','styles.css?v=0.10.80.6']) assert(memberHtml.includes(token),`Member mailbox cache key is missing ${token}.`);
 for(const token of ['Choose a private file','sendPrivateFileToConcierge','mailbox-upload-progress','Uploading privately… ${value}%']) assert(memberJs.includes(token),`Member private-media flow is missing ${token}.`);
 for(const token of ['.mailbox-selected-file','.mailbox-upload-progress','.mailbox-upload-guidance']) assert(memberCss.includes(token),`Member private-media styling is missing ${token}.`);
 assert(!memberJs.includes('Choose your audio'),'Member uploader is still audio-only.');
 assert(!memberJs.includes('name="audio_file"'),'Member upload field is still audio-only.');
 
-for(const token of ['app.js?v=0.10.80.5','Private files awaiting you']) assert(managerHtml.includes(token),`Manager private-media shell is missing ${token}.`);
+for(const token of ['app.js?v=0.10.80.6','Private files awaiting you']) assert(managerHtml.includes(token),`Manager private-media shell is missing ${token}.`);
 for(const token of ['PRIESTESS_MAILBOX_ACCEPT','returnPrivateFile','data-return-file','SEND PRIVATE FILE BACK','admin-mailbox-return-progress','CLEAR WITHOUT DOWNLOADING','clearMailboxFileNotification']) assert(managerJs.includes(token),`Manager private-media return is missing ${token}.`);
 for(const token of ['.admin-mailbox-return-progress','input[type="file"]::file-selector-button','.admin-mailbox-file-actions']) assert(managerCss.includes(token),`Manager private-media styling is missing ${token}.`);
 assert(!managerJs.includes('Return edited audio'),'Owner return remains audio-only.');
+assert(!shared.includes('tus-js-client'),'The failed custom TUS pathway remains in the Mailbox.');
+assert(!shared.includes('createSignedUploadUrl'),'The failed signed upload token pathway remains in the Mailbox.');
+assert(!shared.includes("'x-signature'"),'The failed x-signature pathway remains in the Mailbox.');
 assert(!shared.includes('SUPABASE_PUBLISHABLE_KEY'),'Resumable uploads still import the opaque publishable key.');
 assert(!shared.includes("request.setHeader('apikey'"),'Resumable requests still send an apikey header.');
 assert(!shared.includes("request.setHeader('authorization'"),'Resumable requests still manually forward a user JWT.');
@@ -50,4 +54,4 @@ for(const token of [
 assert(!/drop table|truncate table|delete from public\.flowtel_priestess_mailbox/i.test(mailboxMigration),'Mailbox migration contains destructive history SQL.');
 assert.equal((mailboxMigration.match(/\$\$/g)||[]).length%2,0,'Mailbox migration has unmatched SQL dollar quotes.');
 
-console.log('Flowtel v0.10.80.5 Priestess Mailbox private-media static validation passed.');
+console.log('Flowtel v0.10.80.6 Priestess Mailbox SDK upload static validation passed.');

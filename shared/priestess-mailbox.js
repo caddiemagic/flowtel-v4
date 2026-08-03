@@ -1,10 +1,11 @@
-// Flowtel v0.10.80.5 — signed-token resumable Priestess large-media exchange helpers.
+// Flowtel v0.10.80.6 — authenticated Storage SDK Priestess media upload reliability.
 
 import { supabase } from './supabase.js';
-import { SUPABASE_URL } from '../config/supabase-config.js';
 
 export const PRIESTESS_MAILBOX_BUCKET = 'flowtel-priestess-mailbox';
 export const PRIESTESS_MAILBOX_MAX_BYTES = 1 * 1024 * 1024 * 1024;
+// Historical export retained so older callers do not break. The Mailbox no longer
+// branches into the custom TUS authorization pathway.
 export const PRIESTESS_MAILBOX_RESUMABLE_THRESHOLD_BYTES = 6 * 1024 * 1024;
 export const PRIESTESS_MAILBOX_FILE_EXTENSIONS = [
   'pdf','txt','csv','zip','doc','docx','xls','xlsx','ppt','pptx',
@@ -128,21 +129,8 @@ async function authenticatedUser(){
   return data.user;
 }
 
-function directStorageEndpoint(){
-  const url=new URL(SUPABASE_URL);
-  if(/\.supabase\.co$/i.test(url.hostname) && !/\.storage\.supabase\.co$/i.test(url.hostname)){
-    url.hostname=url.hostname.replace(/\.supabase\.co$/i,'.storage.supabase.co');
-  }
-  return `${url.origin}/storage/v1/upload/resumable`;
-}
-
-async function createSignedResumableUploadToken(path){
-  const {data,error}=await supabase.storage
-    .from(PRIESTESS_MAILBOX_BUCKET)
-    .createSignedUploadUrl(path,{upsert:false});
-  if(error) throw error;
-  if(!data?.token) throw new Error('Flowtel could not prepare a secure large-file upload token.');
-  return data.token;
+function standardUploadProgress(onProgress,percent,extra={}){
+  onProgress?.(percent,{transport:'supabase-storage-sdk',indeterminate:percent<100,...extra});
 }
 
 function uploadFailure(error,file){
@@ -154,10 +142,10 @@ function uploadFailure(error,file){
     return new Error('This file type was rejected by private Storage. Choose a supported video, audio, image, document, spreadsheet, presentation, PDF, or ZIP file.');
   }
   if(/invalid compact jws|invalid jwt|jwt expired|unauthorized|not authenticated|access denied/i.test(source)){
-    return new Error('Flowtel could not authorize this private upload. Refresh the page and try again. If it continues, the Concierge upload pathway needs attention.');
+    return new Error('Private Storage did not accept this upload. Please try the file once more. If it repeats, capture the message shown here so the exact Storage response can be repaired.');
   }
   if(/network|failed to fetch|load failed|timeout|timed out|connection|offline/i.test(source)){
-    return new Error('The private upload was interrupted. Keep this page open and press Send again with the same file; large uploads will resume from the last saved chunk.');
+    return new Error('The private upload was interrupted. Keep the file selected and press Send again when the connection is stable.');
   }
   return error instanceof Error ? error : new Error(source || 'The private file upload could not be completed.');
 }
@@ -166,71 +154,21 @@ export async function uploadPriestessMailboxFile(path,file,onProgress){
   validatePriestessMailboxFile(file);
   if(!path) throw new Error('The Priestess Mailbox could not prepare a private storage path.');
 
-  if(file.size<=PRIESTESS_MAILBOX_RESUMABLE_THRESHOLD_BYTES){
-    onProgress?.(3,{uploadedBytes:0,totalBytes:file.size,resumable:false});
-    const {error}=await supabase.storage
-      .from(PRIESTESS_MAILBOX_BUCKET)
-      .upload(path,file,{
-        upsert:false,
-        contentType:file.type || 'application/octet-stream',
-        cacheControl:'3600',
-      });
-    if(error) throw uploadFailure(error,file);
-    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,resumable:false});
-    return;
-  }
-
-  const signedUploadToken=await createSignedResumableUploadToken(path);
-
-  let tusModule;
-  try{
-    tusModule=await import('https://cdn.jsdelivr.net/npm/tus-js-client@4/+esm');
-  }catch(error){
-    throw new Error('Flowtel could not open the resumable uploader. Check your connection, then try again.');
-  }
-  const Upload=tusModule.Upload || tusModule.default?.Upload;
-  if(!Upload) throw new Error('Flowtel could not open the resumable private file uploader.');
-
-  await new Promise((resolve,reject)=>{
-    const upload=new Upload(file,{
-      endpoint:directStorageEndpoint(),
-      retryDelays:[0,3000,5000,10000,20000,60000],
-      headers:{
-        'x-signature':signedUploadToken,
-        'x-upsert':'false',
-      },
-      onBeforeRequest(request){
-        request.setHeader('x-signature',signedUploadToken);
-        request.setHeader('x-upsert','false');
-      },
-      uploadDataDuringCreation:true,
-      removeFingerprintOnSuccess:true,
-      chunkSize:PRIESTESS_MAILBOX_RESUMABLE_THRESHOLD_BYTES,
-      fingerprint:()=>Promise.resolve(`flowtel-mailbox-${path}-${transferFileKey(file)}`),
-      metadata:{
-        bucketName:PRIESTESS_MAILBOX_BUCKET,
-        objectName:path,
-        contentType:file.type || 'application/octet-stream',
-        cacheControl:'3600',
-      },
-      onError(error){ reject(uploadFailure(error,file)); },
-      onProgress(uploaded,total){
-        const percent=Math.max(1,Math.min(total?Math.round(uploaded/total*100):0,99));
-        onProgress?.(percent,{uploadedBytes:uploaded,totalBytes:total,resumable:true});
-      },
-      onSuccess(){
-        onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,resumable:true});
-        resolve();
-      },
+  // The prior custom TUS authorization pathway repeatedly failed against the
+  // live project even while the same signed-in user could read and write all
+  // other Flowtel data. Use the authenticated Supabase Storage SDK directly.
+  // Supabase supports standard uploads up to 5 GB; the Mailbox remains capped
+  // at 1 GB by both browser validation and its private bucket boundary.
+  standardUploadProgress(onProgress,8,{stage:'uploading'});
+  const {error}=await supabase.storage
+    .from(PRIESTESS_MAILBOX_BUCKET)
+    .upload(path,file,{
+      upsert:false,
+      contentType:file.type || 'application/octet-stream',
+      cacheControl:'3600',
     });
-
-    upload.findPreviousUploads()
-      .then(previousUploads=>{
-        if(previousUploads?.length) upload.resumeFromPreviousUpload(previousUploads[0]);
-        upload.start();
-      })
-      .catch(error=>reject(uploadFailure(error,file)));
-  });
+  if(error) throw uploadFailure(error,file);
+  standardUploadProgress(onProgress,100,{stage:'complete',uploadedBytes:file.size,totalBytes:file.size,indeterminate:false});
 }
 
 export async function sendPrivateFileToConcierge(file,{ subject='', message='', note='', onProgress } = {}){
@@ -245,7 +183,7 @@ export async function sendPrivateFileToConcierge(file,{ subject='', message='', 
     await uploadPriestessMailboxFile(transfer.path,file,onProgress);
     transfer=markPendingTransferUploaded(transfer,file);
   }else{
-    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,resumable:true,resumed:true});
+    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,transport:'registered-upload',indeterminate:false,resumed:true});
   }
 
   const { data, error } = await supabase.rpc('flowtel_mailbox_create_thread',{
@@ -319,7 +257,7 @@ export async function returnPrivateFile({ threadId, practitionerId, file, note='
     await uploadPriestessMailboxFile(transfer.path,file,onProgress);
     transfer=markPendingTransferUploaded(transfer,file);
   }else{
-    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,resumable:true,resumed:true});
+    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,transport:'registered-upload',indeterminate:false,resumed:true});
   }
 
   const { data, error } = await supabase.rpc('flowtel_mailbox_admin_add_return_file',{
@@ -370,7 +308,7 @@ export async function sendPrivateFileToPriestess({recipientId,file,subject='',me
     await uploadPriestessMailboxFile(transfer.path,file,onProgress);
     transfer=markPendingTransferUploaded(transfer,file);
   }else{
-    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,resumable:true,resumed:true});
+    onProgress?.(100,{uploadedBytes:file.size,totalBytes:file.size,transport:'registered-upload',indeterminate:false,resumed:true});
   }
   const {data,error}=await supabase.rpc('flowtel_mailbox_admin_send_file',{
     p_recipient_id:recipientId,

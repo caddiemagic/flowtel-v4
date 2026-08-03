@@ -24,3 +24,6 @@
   .mailbox-delivery-alert{align-items:flex-start;flex-direction:column}
   .mailbox-delivery-alert>strong{align-self:flex-start}
 }
+
+.mailbox-upload-progress.is-indeterminate span{width:38%!important;animation:mailbox-upload-indeterminate 1.2s ease-in-out infinite}
+@keyframes mailbox-upload-indeterminate{0%{transform:translateX(-120%)}50%{transform:translateX(85%)}100%{transform:translateX(260%)}}

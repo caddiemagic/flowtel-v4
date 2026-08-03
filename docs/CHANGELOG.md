@@ -1,3 +1,12 @@
+## v0.10.80.6 — Priestess Mailbox Upload Reliability Repair
+
+- Removes the custom TUS bearer-token and signed-token authorization pathways that both failed against the live Supabase project.
+- Routes every Priestess Mailbox upload through the already-authenticated Supabase Storage SDK used by the rest of Flowtel.
+- Keeps the Mailbox capped at 1 GB per file while preserving video, audio, image, document, spreadsheet, presentation, PDF, and ZIP support.
+- Replaces misleading percentage updates with an indeterminate private-upload treatment while the SDK transfer is active.
+- Preserves selected-file state, private paths, RLS, thread history, owner alerts, and **Clear Without Downloading**.
+- Requires no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.80.5 — Priestess Mailbox Signed Upload Authorization Hotfix
 
 - Replaces direct TUS bearer-token handling with a Supabase signed upload token created through the authenticated Storage SDK.
