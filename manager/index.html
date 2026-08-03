@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.80.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.80.2" />
 </head>
 
 <body>
@@ -67,7 +67,7 @@
           <button class="stat-card" type="button" data-filter="clients"><span>Your Clients</span><strong id="clientsCount">0</strong><em><b id="clientConnectionCount">0</b> new mentor requests</em></button>
           <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Availability</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/profile-studio/"><span>Profile Studio</span><strong>OPEN</strong><em>Priestess identity + offerings</em></a>
-          <a class="stat-card stat-card-link" data-team-priestess-mailbox href="/flow-fm/priestess-mailbox/"><span>Priestess Mailbox</span><strong id="teamPriestessMailboxStatus">OPEN</strong><em id="teamPriestessMailboxNote">Private files + returned audio</em></a>
+          <a class="stat-card stat-card-link" data-team-priestess-mailbox href="/flow-fm/priestess-mailbox/"><span>Priestess Mailbox</span><strong id="teamPriestessMailboxStatus">OPEN</strong><em id="teamPriestessMailboxNote">Private files + returns</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/time-space/"><span>Time + Space</span><strong>WORLD</strong><em>Global Priestess Team</em></a>
         </div>
       </section>
@@ -79,7 +79,7 @@
           <button class="stat-card" type="button" data-filter="member-directory"><span>Flowtel Members</span><strong id="flowtelMemberCount">0</strong><em><b id="flowtelMemberReviewCount">0</b> need review</em></button>
           <button class="stat-card" type="button" data-filter="admin-team-map"><span>28-Day Team Map</span><strong id="adminTeamMapCount">0</strong><em>Team members in motion</em></button>
           <button class="stat-card" type="button" data-filter="honors"><span>Flowtel Honors</span><strong id="honorsAvailablePoints">0</strong><em><b id="honorsPractitionerCount">0</b> Priestess balances</em></button>
-          <button class="stat-card" type="button" data-filter="priestess-mailbox"><span>Priestess Mailbox</span><strong id="priestessMailboxCount">0</strong><em>Audio files awaiting you</em></button>
+          <button class="stat-card" type="button" data-filter="priestess-mailbox"><span>Priestess Mailbox</span><strong id="priestessMailboxCount">0</strong><em>Private files awaiting you</em></button>
           <button class="stat-card" type="button" data-filter="guest-house"><span>Flowtel Guest House</span><strong id="guestHouseRequestCount">0</strong><em>Call replay requests</em></button>
           <button class="stat-card" type="button" data-filter="workshop-notes"><span>Workshop Notes</span><strong id="workshopReplayNoteCount">0</strong><em>Questions + reflections</em></button>
           <button class="stat-card" type="button" data-filter="lounge-video"><span>Lounge Video</span><strong id="loungeVideoCount">0</strong><em>Private Flow FM transmission</em></button>
@@ -137,7 +137,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.80.1").catch(function(error){
+    import("./app.js?v=0.10.80.2").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

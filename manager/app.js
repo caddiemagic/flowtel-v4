@@ -12,7 +12,7 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
 import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnEditedAudio, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.1";
+import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.2";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
@@ -847,7 +847,7 @@ function updateStats(){
   setText("honorsPractitionerCount",honorsDashboardRows.length);
   setText("priestessMailboxCount",mailboxAwaiting);
   setText("teamPriestessMailboxStatus",memberMailboxWaiting>0?`${memberMailboxWaiting} NEW ${memberMailboxWaiting===1?"FILE":"FILES"}`:"OPEN");
-  setText("teamPriestessMailboxNote",memberMailboxWaiting>0?(memberMailboxWaiting===1?"A private delivery is waiting":"Private deliveries are waiting"):"Private files + returned audio");
+  setText("teamPriestessMailboxNote",memberMailboxWaiting>0?(memberMailboxWaiting===1?"A private delivery is waiting":"Private deliveries are waiting"):"Private files + returns");
   setText("guestHouseRequestCount",guestHouseAwaiting);
   setText("workshopReplayNoteCount",workshopReplayNotes.length);
   setText("loungeVideoCount",activeLoungeVideo?"1":"0");
@@ -923,7 +923,7 @@ function setFilter(filter){
     "member-directory":["MEMBER DIRECTORY","Flowtel Member Integrity","Review identity, membership evidence, last sign-in, last Flowtel check-in, profile confirmation, and Flowtel-only access."],
     "admin-team-map":["ADMIN TEAM MAP","The Flowtel in Motion","Every eligible team member who has checked in during the last 28 Flowtel Days appears in her current calculated Inner Season."],
     "honors":["FLOWTEL HONORS","Contribution, Points + Redemption Ledger","Record 77/23 contributions, direct-line Honors, bonuses, adjustments, and redemptions without rewriting history."],
-    "priestess-mailbox":["PRIESTESS MAILBOX","Audio Handoffs + Returned Files","Download practitioner recordings, mark them received, and return edited audio through the same private thread."],
+    "priestess-mailbox":["PRIESTESS MAILBOX","Private Media Exchange","Download practitioner files, mark them received, and return audio, video, images, or documents through the same private thread."],
     "guest-house":["FLOWTEL GUEST HOUSE","Call Replay Requests + Private Rooms","Locate former 1:1 calls, upload private audio or video replays, and open them inside remembered Guest House accounts without granting Flowtel access."],
     "workshop-notes":["WORKSHOP REPLAY NOTES","Questions, Reflections + Downloads","Witness what each teaching activates while keeping every note connected to the member’s Flowtel cycle history."],
     "lounge-video":["FLOW FM LOUNGE","Private Lounge Transmission","Upload the current workshop video to private Storage and place it directly inside the Flow FM Lounge without committing media to GitHub."],
@@ -1961,7 +1961,7 @@ function managerFileSize(bytes=0){
 }
 function mailboxFileAdminMarkup(file){
   const returned=file.direction==='to_practitioner';
-  return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Audio file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:`<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">${file.received_at?'DOWNLOAD AGAIN':'DOWNLOAD + MARK RECEIVED'}</button><span>${file.received_at?`Received ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}`:'Awaiting download'}</span>`}</div></article>`;
+  return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Private file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:`<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">${file.received_at?'DOWNLOAD AGAIN':'DOWNLOAD + MARK RECEIVED'}</button><span>${file.received_at?`Received ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}`:'Awaiting download'}</span>`}</div></article>`;
 }
 function priestessInboxEditorProtected(){
   return priestessInboxUploadInFlight || priestessInboxFilePickerOpen || (activeFilter==='priestess-mailbox' && !!(priestessInboxDraft.file || priestessInboxDraft.recipient || priestessInboxDraft.subject || priestessInboxDraft.note));
@@ -1994,9 +1994,9 @@ function renderPriestessMailboxQueue(){
   const threads=groupAdminMailboxRows(priestessMailboxRows);
   const awaiting=priestessMailboxRows.filter(row=>row.direction==='to_admin'&&!row.received_at).length;
   const recipientOptions=priestessMailboxRecipients.map(recipient=>`<option value="${escapeHtml(recipient.member_id)}" ${String(recipient.member_id)===String(priestessInboxDraft.recipient)?'selected':''}>${escapeHtml(recipient.display_name||recipient.email)}${recipient.email?` · ${escapeHtml(recipient.email)}`:''}</option>`).join('');
-  queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIESTESS INBOX</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Receive practitioner audio, return edited recordings, or send a private file directly to another woman inside Flow FM.</p></div><span>${threads.length} THREADS</span></header>
-  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her existing Profile Studio mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept=".pdf,.txt,.csv,.zip,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.webp,.gif,.mp3,.wav,.m4a,.aac,.ogg,.mp4,.mov,.m4v,.webm,audio/*,video/*,image/*,application/pdf" ${usablePriestessInboxFile(priestessInboxDraft.file)?'':'required'} /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
-  <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return edited audio</span><input type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" data-return-audio /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your edited journey is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND EDITED AUDIO BACK</button><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
+  queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIESTESS INBOX</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Receive practitioner files, return edited media, or send a private file directly to another woman inside Flow FM.</p></div><span>${threads.length} THREADS</span></header>
+  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her Priestess Mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" ${usablePriestessInboxFile(priestessInboxDraft.file)?'':'required'} /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
+  <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return a private file · up to 250 MB</span><input type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" data-return-file /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your private file is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND PRIVATE FILE BACK</button><div class="admin-mailbox-return-progress" hidden><span></span></div><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
   bindAdminMailboxControls();
 }
 async function adminDownloadMailbox(button){
@@ -2022,10 +2022,10 @@ async function adminDownloadMailbox(button){
     await loadPriestessMailboxData();
     updateStats();
     renderPriestessMailboxQueue();
-    if(managerMessage) managerMessage.textContent='Priestess audio downloaded and marked received.';
+    if(managerMessage) managerMessage.textContent='Priestess file downloaded and marked received.';
   }catch(error){
     popup?.close();console.error(error);button.disabled=false;button.textContent=original;
-    if(managerMessage) managerMessage.textContent=error?.message||'This private audio could not be prepared.';
+    if(managerMessage) managerMessage.textContent=error?.message||'This private file could not be prepared.';
   }
 }
 function bindAdminMailboxControls(){
@@ -2063,24 +2063,41 @@ function bindAdminMailboxControls(){
       return;
     }
     button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';output.textContent='Preparing this private delivery…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
-    try{await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':`Uploading privately… ${value}%`;}});priestessInboxDraft={file:null,recipient:'',subject:'',note:''};await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();if(managerMessage)managerMessage.textContent='The private file was delivered to her Priestess Inbox.';}
-    catch(error){button.disabled=false;button.textContent='SEND THROUGH THE FLOWTEL';output.textContent=error?.message||'This private file could not be delivered.';}
-    finally{priestessInboxUploadInFlight=false;delete document.body.dataset.priestessInboxUpload;}
+    try{
+      await sendPrivateFileToPriestess({recipientId:priestessInboxDraft.recipient,file,subject:priestessInboxDraft.subject,note:priestessInboxDraft.note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;output.textContent=value>=100?'Finishing her Priestess Inbox delivery…':`Uploading privately… ${value}%`;}});
+      priestessInboxDraft={file:null,recipient:'',subject:'',note:''};
+      await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();
+      if(managerMessage)managerMessage.textContent='The private file was delivered to her Priestess Inbox.';
+    }catch(error){
+      button.disabled=false;button.textContent='SEND THROUGH THE FLOWTEL';output.textContent=error?.message||'This private file could not be delivered.';
+    }finally{
+      priestessInboxUploadInFlight=false;delete document.body.dataset.priestessInboxUpload;
+    }
   });
   queue.querySelectorAll('[data-admin-mailbox-download]').forEach(button=>button.addEventListener('click',()=>adminDownloadMailbox(button)));
   queue.querySelectorAll('[data-return-thread]').forEach(button=>button.addEventListener('click',async()=>{
     const card=button.closest('[data-mailbox-thread]');
-    const file=card?.querySelector('[data-return-audio]')?.files?.[0];
+    const fileInput=card?.querySelector('[data-return-file]');
+    const file=fileInput?.files?.[0];
     const note=card?.querySelector('[data-return-note]')?.value||'';
     const status=card?.querySelector('.admin-mailbox-return p');
+    const progress=card?.querySelector('.admin-mailbox-return-progress');
+    const bar=progress?.querySelector('span');
     const original=button.textContent;
-    button.disabled=true;button.textContent='SENDING…';if(status) status.textContent='Returning this audio through the Flowtel…';
+    if(!file){
+      if(status) status.textContent='Choose a private file to return first.';
+      fileInput?.focus();
+      return;
+    }
+    button.disabled=true;button.textContent='SENDING…';if(progress)progress.hidden=false;if(bar)bar.style.width='2%';if(status) status.textContent='Preparing this private return…';priestessInboxUploadInFlight=true;document.body.dataset.priestessInboxUpload='active';
     try{
-      await returnEditedAudio({threadId:button.dataset.returnThread,practitionerId:button.dataset.returnPractitioner,file,note});
+      await returnPrivateFile({threadId:button.dataset.returnThread,practitionerId:button.dataset.returnPractitioner,file,note,onProgress:value=>{if(bar)bar.style.width=`${value}%`;if(status)status.textContent=value>=100?'Finishing her private return…':`Uploading privately… ${value}%`;}});
       await loadPriestessMailboxData();updateStats();renderPriestessMailboxQueue();
-      if(managerMessage) managerMessage.textContent='Edited audio returned to the Priestess Mailbox.';
+      if(managerMessage) managerMessage.textContent='Private file returned to the Priestess Mailbox.';
     }catch(error){
-      console.error(error);button.disabled=false;button.textContent=original;if(status) status.textContent=error?.message||'This edited audio could not be returned yet.';
+      console.error(error);button.disabled=false;button.textContent=original;if(status) status.textContent=error?.message||'This private file could not be returned yet.';
+    }finally{
+      priestessInboxUploadInFlight=false;delete document.body.dataset.priestessInboxUpload;
     }
   }));
 }

@@ -1,3 +1,13 @@
+## v0.10.80.2 — Priestess Mailbox Private Media Exchange
+
+- Expands member-to-owner Priestess Mailbox uploads from audio-only to supported video, audio, image, document, spreadsheet, presentation, PDF, and ZIP files.
+- Replaces the owner thread action **Return edited audio** with a full private-file return that supports the same formats.
+- Uses resumable 6 MB TUS chunks, automatic retries, stable transfer fingerprints, and visible progress for files larger than 6 MB.
+- Preserves a pending private-transfer identity so an interrupted upload can resume when the same file is reselected.
+- Adds clearer file-type, file-size, Storage-limit, MIME, connection, and resumable-uploader errors.
+- Keeps the existing 250 MB per-file boundary, private bucket, RLS, signed downloads, alerts, thread history, and Caddie Magic v0.5.2 boundaries.
+- Requires no migration because the confirmed-live migration-052 mailbox bucket update already includes the supported video MIME types and 250 MB limit.
+
 ## v0.10.80.1 — Priestess Mailbox Delivery Alert
 
 - Adds a member-specific unread private-file count to the Priestess Mailbox card inside Concierge Team Rooms.

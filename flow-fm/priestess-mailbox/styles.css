@@ -1,4 +1,4 @@
-/* Flowtel v0.10.80.1 — dedicated member Priestess Mailbox room with delivery alerts. */
+/* Flowtel v0.10.80.2 — dedicated member Priestess Mailbox with private media exchange. */
 .priestess-mailbox-page .initiation-shell{max-width:1180px}
 .priestess-mailbox-page .priestess-mailbox-card{margin-top:18px}
 .priestess-mailbox-page .message{min-height:24px;text-align:center}
@@ -9,4 +9,18 @@
 .mailbox-delivery-alert>strong{flex:0 0 auto;padding:9px 13px;border:1px solid rgba(216,168,79,.6);border-radius:999px;background:#fff8e8;color:#8a6540;font:700 .65rem Arial,sans-serif;letter-spacing:.1em}
 .mailbox-file.is-waiting{border-color:rgba(216,168,79,.6);background:linear-gradient(135deg,rgba(255,253,249,.98),rgba(255,247,226,.76));box-shadow:0 14px 34px rgba(216,168,79,.12)}
 .mailbox-file.is-waiting .mailbox-file-action>span{color:#8a6540;font-weight:700}
-@media(max-width:700px){.mailbox-delivery-alert{align-items:flex-start;flex-direction:column}.mailbox-delivery-alert>strong{align-self:flex-start}}
+
+.mailbox-selected-file{display:grid;gap:4px;padding:13px 14px;border:1px solid rgba(216,168,79,.34);border-radius:14px;background:#fff9ed}
+.mailbox-selected-file p{margin:0;color:#a15f58;font:700 .55rem Arial,sans-serif;letter-spacing:.11em}
+.mailbox-selected-file strong{display:block;color:#694a3f;overflow-wrap:anywhere}
+.mailbox-selected-file span{color:#8b695d;font-size:.78rem}
+.mailbox-upload-progress{height:8px;overflow:hidden;border-radius:999px;background:rgba(216,168,79,.16)}
+.mailbox-upload-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c7746d,#d8a84f);transition:width .18s ease}
+.mailbox-upload-guidance{margin:-2px 0 0;color:#9a7669;font-size:.75rem;line-height:1.45}
+.priestess-mailbox-form input[type="file"]{padding:10px;font-size:.84rem}
+.priestess-mailbox-form input[type="file"]::file-selector-button{margin-right:10px;padding:9px 12px;border:1px solid rgba(199,116,109,.28);border-radius:999px;background:rgba(248,231,227,.72);color:#6d4e41;font:700 .58rem Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}
+
+@media(max-width:700px){
+  .mailbox-delivery-alert{align-items:flex-start;flex-direction:column}
+  .mailbox-delivery-alert>strong{align-self:flex-start}
+}

@@ -67,17 +67,20 @@ function renderMailbox(){
   const waiting=waitingMailboxFiles(mailboxRows);
   const waitingCount=waiting.length;
   section.innerHTML=`
-    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS MAILBOX</p><h2>Private files move through the Flowtel.</h2><p>Leave audio for Megan to tend, receive edited recordings, and return to every protected delivery in one quiet room.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
+    <header class="priestess-mailbox-heading"><div><p class="eyebrow">PRIESTESS MAILBOX</p><h2>Private files move through the Flowtel.</h2><p>Send audio, video, images, documents, and other protected files to Megan—and receive every private return in the same quiet room.</p></div><span class="mailbox-seal" aria-hidden="true">✉</span></header>
     ${waitingCount?`<section class="mailbox-delivery-alert" role="status"><div><p class="eyebrow">PRIVATE DELIVERY</p><h3>${waitingCount===1?'A private file is waiting for you.':`${waitingCount} private files are waiting for you.`}</h3><p>The alert will clear after each file is successfully downloaded.</p></div><strong>${waitingCount} NEW ${waitingCount===1?'FILE':'FILES'}</strong></section>`:''}
     <div class="priestess-mailbox-layout">
       <form class="priestess-mailbox-form" id="priestessMailboxForm">
-        <label><span>Audio title</span><input name="subject" maxlength="120" placeholder="Womb Wealth meditation" /></label>
-        <label><span>Note for Megan — optional</span><textarea name="message" rows="4" maxlength="1000" placeholder="What would you like her to know before editing?"></textarea></label>
-        <label class="mailbox-file-picker"><span>Choose your audio</span><input name="audio_file" type="file" accept=".mp3,.wav,.m4a,.aac,.ogg,audio/*" required /><small>MP3, WAV, M4A, AAC, or OGG · up to 250 MB</small></label>
-        <button type="submit">Send Audio to Megan</button>
+        <label><span>Private file title</span><input name="subject" maxlength="120" placeholder="A recording for Megan" /></label>
+        <label><span>Note for Megan — optional</span><textarea name="message" rows="4" maxlength="1000" placeholder="What would you like her to know before opening this file?"></textarea></label>
+        <label class="mailbox-file-picker"><span>Choose a private file</span><input name="private_file" type="file" accept="${escapeHtml(mailboxApi.PRIESTESS_MAILBOX_ACCEPT)}" required /><small>Video, audio, images, PDFs, documents, spreadsheets, presentations, or ZIP files · up to 250 MB</small></label>
+        <div class="mailbox-selected-file" id="priestessMailboxSelectedFile" hidden></div>
+        <button type="submit">Send Private File to Megan</button>
+        <div class="mailbox-upload-progress" id="priestessMailboxProgress" hidden aria-hidden="true"><span></span></div>
+        <p class="mailbox-upload-guidance">Large files upload in resumable chunks. Keep this tab open. After a page refresh, reselect the same file to continue an interrupted upload.</p>
         <p class="mailbox-form-status" id="priestessMailboxStatus" role="status"></p>
       </form>
-      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Audio for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first private file handoff will appear here.</p></div>'}</section>
+      <section class="priestess-mailbox-history"><div class="mailbox-history-heading"><p class="eyebrow">YOUR PRIVATE THREADS</p><span>${threads.length}</span></div>${threads.length?threads.map(thread=>`<article class="mailbox-thread"><header><div><h3>${escapeHtml(thread.subject || 'Private file for Megan')}</h3><p>${escapeHtml(mailboxThreadStatus(thread))} · ${escapeHtml(mailboxDateLabel(thread.thread_created_at))}</p></div><span>${escapeHtml(thread.thread_status?.replaceAll('_',' ') || '')}</span></header>${thread.thread_message?`<p class="mailbox-thread-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="mailbox-file-list">${thread.files.map(mailboxFileMarkup).join('')}</div></article>`).join(''):'<div class="mailbox-empty"><p>Your first private file handoff will appear here.</p></div>'}</section>
     </div>`;
   bindMailbox();
 }
@@ -106,21 +109,61 @@ async function downloadPrivateFile(button){
 function bindMailbox(){
   const form=document.getElementById('priestessMailboxForm');
   const status=document.getElementById('priestessMailboxStatus');
+  const fileInput=form?.elements.private_file;
+  const selected=document.getElementById('priestessMailboxSelectedFile');
+  const progress=document.getElementById('priestessMailboxProgress');
+  const progressBar=progress?.querySelector('span');
+
+  fileInput?.addEventListener('change',()=>{
+    const file=fileInput.files?.[0];
+    if(!selected) return;
+    if(!file){
+      selected.hidden=true;
+      selected.innerHTML='';
+      return;
+    }
+    selected.hidden=false;
+    selected.innerHTML=`<p>READY FOR PRIVATE DELIVERY</p><strong>${escapeHtml(file.name)}</strong><span>${escapeHtml(fileSizeLabel(file.size))}</span>`;
+    status.textContent='';
+  });
+
   form?.addEventListener('submit',async event=>{
     event.preventDefault();
     const button=form.querySelector('button[type="submit"]');
-    const file=form.elements.audio_file?.files?.[0];
-    button.disabled=true;
-    status.textContent='Sending your audio through the Flowtel…';
+    const file=fileInput?.files?.[0];
     try{
-      await mailboxApi.sendAudioToConcierge(file,{subject:form.elements.subject?.value || '',message:form.elements.message?.value || ''});
+      mailboxApi.validatePriestessMailboxFile(file);
+    }catch(error){
+      status.textContent=error?.message || 'Choose a supported private file first.';
+      fileInput?.focus();
+      return;
+    }
+
+    button.disabled=true;
+    button.textContent='Sending…';
+    if(progress){ progress.hidden=false; progress.setAttribute('aria-hidden','false'); }
+    if(progressBar) progressBar.style.width='2%';
+    status.textContent='Preparing your private file…';
+    try{
+      await mailboxApi.sendPrivateFileToConcierge(file,{
+        subject:form.elements.subject?.value || '',
+        message:form.elements.message?.value || '',
+        onProgress:value=>{
+          if(progressBar) progressBar.style.width=`${value}%`;
+          status.textContent=value>=100?'Finishing your private delivery…':`Uploading privately… ${value}%`;
+        },
+      });
       form.reset();
-      status.textContent='Your audio is waiting safely in Megan’s Priestess Mailbox.';
+      if(selected){ selected.hidden=true; selected.innerHTML=''; }
+      if(progress){ progress.hidden=true; progress.setAttribute('aria-hidden','true'); }
+      if(progressBar) progressBar.style.width='0%';
+      status.textContent='Your private file is waiting safely in Megan’s Priestess Mailbox.';
       await loadMailbox();
     }catch(error){
       console.error(error);
       button.disabled=false;
-      status.textContent=error?.message || 'This audio could not be sent yet.';
+      button.textContent='Send Private File to Megan';
+      status.textContent=error?.message || 'This private file could not be sent yet.';
     }
   });
   section.querySelectorAll('[data-mailbox-download]').forEach(button=>button.addEventListener('click',()=>downloadPrivateFile(button)));
@@ -137,8 +180,8 @@ async function loadMailbox(){
 }
 async function init(){
   try{
-    const flowtel=await import('/shared/flowtel.js?v=0.10.80.1');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.1');
+    const flowtel=await import('/shared/flowtel.js?v=0.10.80.2');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.2');
     currentProfile=await flowtel.getCurrentProfile();
     if(!canUseMailbox(currentProfile)){
       replacePageWithPhaseTwoGate({featureName:'Priestess Mailbox',title:'Reserved for Flow FM',copy:'The Priestess Mailbox is available to Flow FM and Council members moving private files through the Flowtel.'});

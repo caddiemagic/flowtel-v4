@@ -18,7 +18,7 @@ assert(managerCss.includes('[data-team-priestess-mailbox].has-alert'),'Manager T
 for(const token of ['profileMailboxBadge','profile-mailbox-actions']) assert(profileHtml.includes(token),`Profile Studio Mailbox alert markup is missing ${token}.`);
 for(const token of ['waitingPriestessMailboxCount','loadProfileMailboxAlert','listMyPriestessMailbox']) assert(profileJs.includes(token),`Profile Studio Mailbox alert logic is missing ${token}.`);
 assert(profileCss.includes('.profile-mailbox-doorway.has-alert'),'Profile Studio alert styling is missing.');
-for(const token of ['page.js?v=0.10.80.1','styles.css?v=0.10.80.1']) assert(mailboxHtml.includes(token),`Mailbox cache key is missing ${token}.`);
+for(const token of ['page.js?v=0.10.80.2','styles.css?v=0.10.80.2']) assert(mailboxHtml.includes(token),`Mailbox cache key is missing ${token}.`);
 for(const token of ['waitingMailboxFiles','mailbox-delivery-alert','is-waiting','markReturnedAudioDownloaded']) assert(mailboxJs.includes(token),`Mailbox room alert logic is missing ${token}.`);
 for(const token of ['.mailbox-delivery-alert','.mailbox-file.is-waiting']) assert(mailboxCss.includes(token),`Mailbox room alert styling is missing ${token}.`);
 assert(!/\b(?:email|sms|push notification)\b/i.test(mailboxJs),'The in-platform alert must not silently create external notifications.');
