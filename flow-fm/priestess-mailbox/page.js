@@ -182,7 +182,7 @@ async function loadMailbox(){
 async function init(){
   try{
     const flowtel=await import('/shared/flowtel.js?v=0.10.80.2');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.3');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.4');
     currentProfile=await flowtel.getCurrentProfile();
     if(!canUseMailbox(currentProfile)){
       replacePageWithPhaseTwoGate({featureName:'Priestess Mailbox',title:'Reserved for Flow FM',copy:'The Priestess Mailbox is available to Flow FM and Council members moving private files through the Flowtel.'});

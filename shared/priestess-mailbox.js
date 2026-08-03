@@ -1,7 +1,7 @@
-// Flowtel v0.10.80.3 — private, resumable Priestess large-media exchange helpers.
+// Flowtel v0.10.80.4 — authenticated, resumable Priestess large-media exchange helpers.
 
 import { supabase } from './supabase.js';
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
+import { SUPABASE_URL } from '../config/supabase-config.js';
 
 export const PRIESTESS_MAILBOX_BUCKET = 'flowtel-priestess-mailbox';
 export const PRIESTESS_MAILBOX_MAX_BYTES = 1 * 1024 * 1024 * 1024;
@@ -136,6 +136,29 @@ function directStorageEndpoint(){
   return `${url.origin}/storage/v1/upload/resumable`;
 }
 
+function isCompactJwt(value=''){
+  const parts=String(value || '').trim().split('.');
+  return parts.length===3 && parts.every(part=>part.length>0 && /^[A-Za-z0-9_-]+$/.test(part));
+}
+
+function sessionRefreshError(){
+  return new Error('Your Flowtel session needs to be refreshed. Sign out and sign back in, then reselect the same file to resume.');
+}
+
+async function mailboxAccessToken({forceRefresh=false}={}){
+  let response=forceRefresh
+    ? await supabase.auth.refreshSession()
+    : await supabase.auth.getSession();
+  let token=response.data?.session?.access_token || '';
+
+  if(!forceRefresh && (response.error || !isCompactJwt(token))){
+    response=await supabase.auth.refreshSession();
+    token=response.data?.session?.access_token || '';
+  }
+  if(response.error || !isCompactJwt(token)) throw sessionRefreshError();
+  return token;
+}
+
 function uploadFailure(error,file){
   const source=String(error?.originalResponse?.getBody?.() || error?.message || error || '').trim();
   if(/413|maximum allowed size|exceeded.*size|too large|file size/i.test(source)){
@@ -143,6 +166,9 @@ function uploadFailure(error,file){
   }
   if(/mime|content.?type|not allowed|unsupported.*type/i.test(source)){
     return new Error('This file type was rejected by private Storage. Choose a supported video, audio, image, document, spreadsheet, presentation, PDF, or ZIP file.');
+  }
+  if(/invalid compact jws|invalid jwt|jwt expired|unauthorized|not authenticated/i.test(source)){
+    return sessionRefreshError();
   }
   if(/network|failed to fetch|load failed|timeout|timed out|connection|offline/i.test(source)){
     return new Error('The private upload was interrupted. Keep this page open and press Send again with the same file; large uploads will resume from the last saved chunk.');
@@ -168,9 +194,7 @@ export async function uploadPriestessMailboxFile(path,file,onProgress){
     return;
   }
 
-  const {data,error}=await supabase.auth.getSession();
-  if(error) throw error;
-  if(!data?.session) throw new Error('Enter through the Flowtel before sending a private file.');
+  const initialAccessToken=await mailboxAccessToken();
 
   let tusModule;
   try{
@@ -186,16 +210,12 @@ export async function uploadPriestessMailboxFile(path,file,onProgress){
       endpoint:directStorageEndpoint(),
       retryDelays:[0,3000,5000,10000,20000,60000],
       headers:{
-        authorization:`Bearer ${data.session.access_token}`,
-        apikey:SUPABASE_PUBLISHABLE_KEY,
+        authorization:`Bearer ${initialAccessToken}`,
         'x-upsert':'false',
       },
       async onBeforeRequest(request){
-        const {data:freshData,error:freshError}=await supabase.auth.getSession();
-        if(freshError) throw freshError;
-        if(!freshData?.session) throw new Error('Your Flowtel session expired during the private upload. Sign in again, reselect the same file, and press Send to resume.');
-        request.setHeader('authorization',`Bearer ${freshData.session.access_token}`);
-        request.setHeader('apikey',SUPABASE_PUBLISHABLE_KEY);
+        const accessToken=await mailboxAccessToken();
+        request.setHeader('authorization',`Bearer ${accessToken}`);
         request.setHeader('x-upsert','false');
       },
       uploadDataDuringCreation:true,

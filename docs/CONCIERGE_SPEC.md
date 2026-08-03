@@ -80,3 +80,30 @@ Assigned clients will live here soon.
 ```
 
 No full assigned-client data model should be built until the Passport and practitioner network model are ready.
+
+## Owner Administration Roadmap
+
+### Profile Review Desk
+
+Add a dedicated **Profile Review Desk** card beneath Owner Administration.
+
+The card should:
+
+- open `/flow-fm/review/`;
+- show the number of Priestess Profiles currently submitted for witnessing;
+- use a quiet gold alert treatment while profiles are awaiting review;
+- clear each alert only after the owner approves the profile or requests refinement;
+- preserve the existing Profile Studio status and review history rather than creating a second review system.
+
+### Priestess Planning Activity
+
+Add a private owner activity feed for meaningful member planning updates.
+
+Track when a member saves:
+
+- Hourly Flow Rate changes;
+- Availability rhythm changes.
+
+Each activity item should show the member, the area changed, the Flowtel timestamp, and a link to her owner Priestess profile. Repeated saves made as part of one editing session should be condensed so the Concierge Desk remains calm. Owner acknowledgment may clear the alert, but the activity history must remain append-only.
+
+These roadmap items are owner visibility features. They must not expose one member's private planning data to another member or broaden approved-Practitioner permissions.

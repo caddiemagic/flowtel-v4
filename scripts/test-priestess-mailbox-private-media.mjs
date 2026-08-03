@@ -23,6 +23,12 @@ assert(shared.includes('PRIESTESS_MAILBOX_MAX_BYTES = 1 * 1024 * 1024 * 1024'),'
 assert(shared.includes('PRIESTESS_MAILBOX_RESUMABLE_THRESHOLD_BYTES = 6 * 1024 * 1024'),'Large-file threshold is not 6 MB.');
 assert(shared.includes('findPreviousUploads'),'Large uploads cannot discover a resumable transfer.');
 assert(shared.includes('onBeforeRequest'),'Large uploads do not refresh authentication before chunk requests.');
+assert(shared.includes('isCompactJwt'),'Large uploads do not validate the session token before sending it.');
+assert(shared.includes('supabase.auth.refreshSession()'),'Malformed or stale sessions are not refreshed before upload.');
+assert(shared.includes('Your Flowtel session needs to be refreshed.'),'The member-facing session repair message is missing.');
+assert(!shared.includes('SUPABASE_PUBLISHABLE_KEY'),'The resumable mailbox module still imports the opaque publishable key.');
+assert(!shared.includes("request.setHeader('apikey'"),'The resumable mailbox request still sends the publishable key as a JWT-style header.');
+assert(!/headers:\s*\{[\s\S]*?apikey:/m.test(shared),'The resumable mailbox base headers still include apikey.');
 assert(shared.includes('preparePendingTransfer'),'Retry-safe transfer identity is missing.');
 assert(shared.includes('fingerprint:()=>Promise.resolve'),'Resumable uploads do not use a path-specific fingerprint.');
 assert(member.includes('sendPrivateFileToConcierge'),'Member uploads are not using the private-file function.');
@@ -33,4 +39,4 @@ assert(manager.includes('admin-mailbox-return-progress'),'Owner return progress 
 assert(manager.includes('CLEAR WITHOUT DOWNLOADING'),'Owner cannot clear an inbound notification without downloading.');
 assert(manager.includes('clearMailboxFileNotification'),'Owner notification-clear action is not wired to the mailbox helper.');
 
-console.log('Flowtel v0.10.80.3 Priestess Mailbox private-media behavior tests passed.');
+console.log('Flowtel v0.10.80.4 Priestess Mailbox private-media behavior tests passed.');

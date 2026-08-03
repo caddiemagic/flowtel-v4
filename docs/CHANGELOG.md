@@ -1,3 +1,13 @@
+## v0.10.80.4 — Priestess Mailbox Resumable Authentication Hotfix
+
+- Removes the opaque Supabase publishable key from Mailbox TUS upload headers so Storage no longer interprets it as an invalid compact JWT/JWS.
+- Uses only the signed-in member JWT in the resumable `Authorization` header and refreshes it before each request.
+- Validates and refreshes malformed or stale sessions before upload creation.
+- Replaces raw authentication errors with a clear Flowtel session-refresh message.
+- Preserves the 1 GB boundary, 6 MB chunks, retries, progress, resume behavior, safe file list, private history, and owner alert clearance.
+- Records the future Profile Review Desk card and Hourly Flow Rate/Availability owner activity feed in the Concierge roadmap.
+- Requires no new migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.80.3 — Priestess Mailbox 1 GB Media + Inbox Clearance
 
 - Replaces the unprocessed 10 GB draft with a **1 GB per-file** Priestess Mailbox boundary.

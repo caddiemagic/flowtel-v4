@@ -1,5 +1,5 @@
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from '/shared/beta-access.js';
-// Flowtel v0.10.80.3 — editable prepared bios plus large-media Mailbox alerts.
+// Flowtel v0.10.80.4 — editable prepared bios plus large-media Mailbox alerts.
 // This page intentionally renders the form before any Supabase/profile imports finish.
 // The form should never stay stuck on loading placeholders.
 
@@ -108,7 +108,7 @@ function renderProfileMailboxAlert(rows=[]){
 async function loadProfileMailboxAlert(){
   if(isViewingAnotherMember(currentProfile)) return;
   try{
-    mailboxApi ||= await import('/shared/priestess-mailbox.js?v=0.10.80.3');
+    mailboxApi ||= await import('/shared/priestess-mailbox.js?v=0.10.80.4');
     const rows=await mailboxApi.listMyPriestessMailbox();
     renderProfileMailboxAlert(rows);
   }catch(error){
