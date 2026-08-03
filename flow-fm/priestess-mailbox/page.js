@@ -26,7 +26,8 @@ function fileSizeLabel(bytes=0){
   const value=Number(bytes)||0;
   if(value<1024) return `${value} B`;
   if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
-  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  if(value<1024*1024*1024) return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  return `${(value/(1024*1024*1024)).toFixed(value>=10*1024*1024*1024?0:2)} GB`;
 }
 function mailboxDateLabel(value){
   if(!value) return '';
@@ -73,7 +74,7 @@ function renderMailbox(){
       <form class="priestess-mailbox-form" id="priestessMailboxForm">
         <label><span>Private file title</span><input name="subject" maxlength="120" placeholder="A recording for Megan" /></label>
         <label><span>Note for Megan — optional</span><textarea name="message" rows="4" maxlength="1000" placeholder="What would you like her to know before opening this file?"></textarea></label>
-        <label class="mailbox-file-picker"><span>Choose a private file</span><input name="private_file" type="file" accept="${escapeHtml(mailboxApi.PRIESTESS_MAILBOX_ACCEPT)}" required /><small>Video, audio, images, PDFs, documents, spreadsheets, presentations, or ZIP files · up to 250 MB</small></label>
+        <label class="mailbox-file-picker"><span>Choose a private file</span><input name="private_file" type="file" accept="${escapeHtml(mailboxApi.PRIESTESS_MAILBOX_ACCEPT)}" required /><small>Video, audio, images, PDFs, documents, spreadsheets, presentations, or ZIP files · up to 1 GB</small></label>
         <div class="mailbox-selected-file" id="priestessMailboxSelectedFile" hidden></div>
         <button type="submit">Send Private File to Megan</button>
         <div class="mailbox-upload-progress" id="priestessMailboxProgress" hidden aria-hidden="true"><span></span></div>
@@ -181,7 +182,7 @@ async function loadMailbox(){
 async function init(){
   try{
     const flowtel=await import('/shared/flowtel.js?v=0.10.80.2');
-    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.2');
+    mailboxApi=await import('/shared/priestess-mailbox.js?v=0.10.80.3');
     currentProfile=await flowtel.getCurrentProfile();
     if(!canUseMailbox(currentProfile)){
       replacePageWithPhaseTwoGate({featureName:'Priestess Mailbox',title:'Reserved for Flow FM',copy:'The Priestess Mailbox is available to Flow FM and Council members moving private files through the Flowtel.'});

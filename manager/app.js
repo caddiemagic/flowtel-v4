@@ -12,7 +12,7 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
 import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.2";
+import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, clearMailboxFileNotification, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.3";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
@@ -1957,11 +1957,16 @@ function managerFileSize(bytes=0){
   const value=Number(bytes)||0;
   if(value<1024) return `${value} B`;
   if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
-  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  if(value<1024*1024*1024) return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  return `${(value/(1024*1024*1024)).toFixed(value>=10*1024*1024*1024?0:2)} GB`;
 }
 function mailboxFileAdminMarkup(file){
   const returned=file.direction==='to_practitioner';
-  return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Private file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:`<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">${file.received_at?'DOWNLOAD AGAIN':'DOWNLOAD + MARK RECEIVED'}</button><span>${file.received_at?`Received ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}`:'Awaiting download'}</span>`}</div></article>`;
+  const handled=!!file.received_at;
+  const ownerActions=handled
+    ? `<button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">DOWNLOAD AGAIN</button><span>Notification cleared ${escapeHtml(managerDateLabel(file.received_at,{withTime:true}))}</span>`
+    : `<div class="admin-mailbox-file-actions"><button type="button" data-admin-mailbox-download="${escapeHtml(file.file_id)}" data-admin-mailbox-path="${escapeHtml(file.storage_path)}">DOWNLOAD + CLEAR</button><button class="quiet" type="button" data-admin-mailbox-clear="${escapeHtml(file.file_id)}">CLEAR WITHOUT DOWNLOADING</button></div><span>Waiting for you</span>`;
+  return `<article class="admin-mailbox-file ${returned?'is-return':'is-original'}"><div><p>${returned?'RETURNED TO PRIESTESS':'FROM PRIESTESS'}</p><h4>${escapeHtml(file.original_filename||'Private file')}</h4><span>${escapeHtml(managerFileSize(file.size_bytes))} · ${escapeHtml(managerDateLabel(file.uploaded_at,{withTime:true}))}</span>${file.file_note?`<em>${escapeHtml(file.file_note)}</em>`:''}</div><div>${returned?`<span>${file.downloaded_at?'Downloaded by Priestess':'Waiting for Priestess'}</span>`:ownerActions}</div></article>`;
 }
 function priestessInboxEditorProtected(){
   return priestessInboxUploadInFlight || priestessInboxFilePickerOpen || (activeFilter==='priestess-mailbox' && !!(priestessInboxDraft.file || priestessInboxDraft.recipient || priestessInboxDraft.subject || priestessInboxDraft.note));
@@ -1995,8 +2000,8 @@ function renderPriestessMailboxQueue(){
   const awaiting=priestessMailboxRows.filter(row=>row.direction==='to_admin'&&!row.received_at).length;
   const recipientOptions=priestessMailboxRecipients.map(recipient=>`<option value="${escapeHtml(recipient.member_id)}" ${String(recipient.member_id)===String(priestessInboxDraft.recipient)?'selected':''}>${escapeHtml(recipient.display_name||recipient.email)}${recipient.email?` · ${escapeHtml(recipient.email)}`:''}</option>`).join('');
   queue.innerHTML=`<section class="admin-mailbox-dashboard"><header><div><p class="eyebrow">PRIESTESS INBOX</p><h3>${awaiting} ${awaiting===1?'file is':'files are'} waiting for you.</h3><p>Receive practitioner files, return edited media, or send a private file directly to another woman inside Flow FM.</p></div><span>${threads.length} THREADS</span></header>
-  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her Priestess Mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 250 MB</span><input name="file" type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" ${usablePriestessInboxFile(priestessInboxDraft.file)?'':'required'} /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
-  <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return a private file · up to 250 MB</span><input type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" data-return-file /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your private file is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND PRIVATE FILE BACK</button><div class="admin-mailbox-return-progress" hidden><span></span></div><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
+  <form class="admin-mailbox-send" id="adminMailboxSendForm"><div><p class="eyebrow">SEND A PRIVATE FILE</p><h3>Deliver directly to her Priestess Inbox.</h3><p>The file stays private and appears inside her Priestess Mailbox.</p></div><label><span>Recipient</span><select name="recipient" required><option value="">Choose a Priestess</option>${recipientOptions}</select></label><label><span>Subject</span><input name="subject" maxlength="240" placeholder="A file from the Flowtel" value="${escapeHtml(priestessInboxDraft.subject)}" required /></label><label><span>Private note — optional</span><input name="note" maxlength="500" placeholder="A note she will see with the file" value="${escapeHtml(priestessInboxDraft.note)}" /></label><label><span>Choose file · up to 1 GB</span><input name="file" type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" ${usablePriestessInboxFile(priestessInboxDraft.file)?'':'required'} /></label><button type="submit">SEND THROUGH THE FLOWTEL</button>${priestessInboxSelectedMarkup()}<div class="admin-mailbox-send-progress" hidden><span></span></div><p role="status"></p></form>
+  <div class="admin-mailbox-thread-list">${threads.length?threads.map(thread=>`<article class="admin-mailbox-thread" data-mailbox-thread="${escapeHtml(thread.thread_id)}" data-mailbox-practitioner="${escapeHtml(thread.practitioner_id)}"><header><div class="admin-mailbox-priestess"><img src="${escapeHtml(safeManagerImage(thread.profile_photo_url))}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'" /><div><p class="eyebrow">${escapeHtml(thread.practitioner_name||'Flow FM Priestess')}</p><h3>${escapeHtml(thread.subject||'Private Flowtel file')}</h3><span>${escapeHtml(thread.practitioner_email||'')} · ${escapeHtml(managerDateLabel(thread.thread_created_at,{withTime:true}))}</span></div></div><strong>${escapeHtml(String(thread.thread_status||'').replaceAll('_',' '))}</strong></header>${thread.thread_message?`<p class="admin-mailbox-message">${escapeHtml(thread.thread_message)}</p>`:''}<div class="admin-mailbox-files">${thread.files.map(mailboxFileAdminMarkup).join('')}</div><div class="admin-mailbox-return"><label><span>Return a private file · up to 1 GB</span><input type="file" accept="${escapeHtml(PRIESTESS_MAILBOX_ACCEPT)}" data-return-file /></label><label><span>Note to the Priestess — optional</span><input type="text" maxlength="500" placeholder="Your private file is ready" data-return-note /></label><button type="button" data-return-thread="${escapeHtml(thread.thread_id)}" data-return-practitioner="${escapeHtml(thread.practitioner_id)}">SEND PRIVATE FILE BACK</button><div class="admin-mailbox-return-progress" hidden><span></span></div><p role="status"></p></div></article>`).join(''):'<p class="honors-empty">No Priestess files have arrived yet.</p>'}</div></section>`;
   bindAdminMailboxControls();
 }
 async function adminDownloadMailbox(button){
@@ -2022,10 +2027,24 @@ async function adminDownloadMailbox(button){
     await loadPriestessMailboxData();
     updateStats();
     renderPriestessMailboxQueue();
-    if(managerMessage) managerMessage.textContent='Priestess file downloaded and marked received.';
+    if(managerMessage) managerMessage.textContent='Priestess file downloaded and the notification was cleared.';
   }catch(error){
     popup?.close();console.error(error);button.disabled=false;button.textContent=original;
     if(managerMessage) managerMessage.textContent=error?.message||'This private file could not be prepared.';
+  }
+}
+async function adminClearMailboxNotification(button){
+  const original=button.textContent;
+  button.disabled=true;button.textContent='CLEARING…';
+  try{
+    await clearMailboxFileNotification(button.dataset.adminMailboxClear);
+    await loadPriestessMailboxData();
+    updateStats();
+    renderPriestessMailboxQueue();
+    if(managerMessage) managerMessage.textContent='The notification was cleared. The private file remains available in this thread.';
+  }catch(error){
+    console.error(error);button.disabled=false;button.textContent=original;
+    if(managerMessage) managerMessage.textContent=error?.message||'This Mailbox notification could not be cleared.';
   }
 }
 function bindAdminMailboxControls(){
@@ -2075,6 +2094,7 @@ function bindAdminMailboxControls(){
     }
   });
   queue.querySelectorAll('[data-admin-mailbox-download]').forEach(button=>button.addEventListener('click',()=>adminDownloadMailbox(button)));
+  queue.querySelectorAll('[data-admin-mailbox-clear]').forEach(button=>button.addEventListener('click',()=>adminClearMailboxNotification(button)));
   queue.querySelectorAll('[data-return-thread]').forEach(button=>button.addEventListener('click',async()=>{
     const card=button.closest('[data-mailbox-thread]');
     const fileInput=card?.querySelector('[data-return-file]');

@@ -1,3 +1,13 @@
+## v0.10.80.3 — Priestess Mailbox 1 GB Media + Inbox Clearance
+
+- Replaces the unprocessed 10 GB draft with a **1 GB per-file** Priestess Mailbox boundary.
+- Adds **Clear Without Downloading** for owner-side incoming files; the alert clears while the private file and thread remain available.
+- Keeps **Download + Clear** for files Megan wants to receive immediately.
+- Aligns member-to-owner, owner thread-return, and owner direct-delivery RPC validation with the supported video, audio, image, document, spreadsheet, presentation, PDF, and ZIP formats.
+- Keeps resumable 6 MB TUS transfer chunks, authentication refresh, retries, progress reporting, and 14-day pending-transfer identity.
+- Preserves existing mailbox history, RLS, private paths, alerts, and Caddie Magic v0.5.2.
+- Requires `database/migration-063-priestess-mailbox-1gb-inbox-clearance.sql`.
+
 ## v0.10.80.2 — Priestess Mailbox Private Media Exchange
 
 - Expands member-to-owner Priestess Mailbox uploads from audio-only to supported video, audio, image, document, spreadsheet, presentation, PDF, and ZIP files.

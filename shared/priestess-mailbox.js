@@ -1,10 +1,10 @@
-// Flowtel v0.10.80.2 — private, resumable Priestess media exchange helpers.
+// Flowtel v0.10.80.3 — private, resumable Priestess large-media exchange helpers.
 
 import { supabase } from './supabase.js';
 import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY } from '../config/supabase-config.js';
 
 export const PRIESTESS_MAILBOX_BUCKET = 'flowtel-priestess-mailbox';
-export const PRIESTESS_MAILBOX_MAX_BYTES = 250 * 1024 * 1024;
+export const PRIESTESS_MAILBOX_MAX_BYTES = 1 * 1024 * 1024 * 1024;
 export const PRIESTESS_MAILBOX_RESUMABLE_THRESHOLD_BYTES = 6 * 1024 * 1024;
 export const PRIESTESS_MAILBOX_FILE_EXTENSIONS = [
   'pdf','txt','csv','zip','doc','docx','xls','xlsx','ppt','pptx',
@@ -49,7 +49,7 @@ function isFileLike(file){
 }
 
 const pendingTransfers=new Map();
-const PENDING_TRANSFER_TTL_MS=7*24*60*60*1000;
+const PENDING_TRANSFER_TTL_MS=14*24*60*60*1000;
 
 function transferFileKey(file){
   return [file?.name||'',Number(file?.size)||0,file?.type||'',Number(file?.lastModified)||0].join('|');
@@ -100,7 +100,8 @@ function fileSizeLabel(bytes=0){
   const value=Number(bytes)||0;
   if(value<1024) return `${value} B`;
   if(value<1024*1024) return `${(value/1024).toFixed(1)} KB`;
-  return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  if(value<1024*1024*1024) return `${(value/(1024*1024)).toFixed(value>=10*1024*1024?0:1)} MB`;
+  return `${(value/(1024*1024*1024)).toFixed(value>=10*1024*1024*1024?0:2)} GB`;
 }
 
 export function validatePriestessMailboxFile(file){
@@ -111,7 +112,7 @@ export function validatePriestessMailboxFile(file){
   }
   if(Number(file.size)<=0) throw new Error('This private file appears to be empty.');
   if(Number(file.size)>PRIESTESS_MAILBOX_MAX_BYTES){
-    throw new Error(`${file.name} is ${fileSizeLabel(file.size)}. The Priestess Mailbox currently accepts files up to 250 MB.`);
+    throw new Error(`${file.name} is ${fileSizeLabel(file.size)}. The Priestess Mailbox currently accepts files up to 1 GB.`);
   }
   return file;
 }
@@ -138,7 +139,7 @@ function directStorageEndpoint(){
 function uploadFailure(error,file){
   const source=String(error?.originalResponse?.getBody?.() || error?.message || error || '').trim();
   if(/413|maximum allowed size|exceeded.*size|too large|file size/i.test(source)){
-    return new Error(`${file?.name || 'This file'} is larger than the live Storage limit. The Priestess Mailbox currently supports files up to 250 MB, and the Supabase project-wide limit must be at least that high.`);
+    return new Error(`${file?.name || 'This file'} is larger than the live Storage limit. The Priestess Mailbox currently supports files up to 1 GB, and the Supabase project-wide limit must be at least that high.`);
   }
   if(/mime|content.?type|not allowed|unsupported.*type/i.test(source)){
     return new Error('This file type was rejected by private Storage. Choose a supported video, audio, image, document, spreadsheet, presentation, PDF, or ZIP file.');
@@ -183,11 +184,19 @@ export async function uploadPriestessMailboxFile(path,file,onProgress){
   await new Promise((resolve,reject)=>{
     const upload=new Upload(file,{
       endpoint:directStorageEndpoint(),
-      retryDelays:[0,3000,5000,10000,20000],
+      retryDelays:[0,3000,5000,10000,20000,60000],
       headers:{
         authorization:`Bearer ${data.session.access_token}`,
         apikey:SUPABASE_PUBLISHABLE_KEY,
         'x-upsert':'false',
+      },
+      async onBeforeRequest(request){
+        const {data:freshData,error:freshError}=await supabase.auth.getSession();
+        if(freshError) throw freshError;
+        if(!freshData?.session) throw new Error('Your Flowtel session expired during the private upload. Sign in again, reselect the same file, and press Send to resume.');
+        request.setHeader('authorization',`Bearer ${freshData.session.access_token}`);
+        request.setHeader('apikey',SUPABASE_PUBLISHABLE_KEY);
+        request.setHeader('x-upsert','false');
       },
       uploadDataDuringCreation:true,
       removeFingerprintOnSuccess:true,
@@ -270,11 +279,11 @@ export async function listAdminPriestessMailbox(){
   return data || [];
 }
 
-export async function createMailboxDownloadUrl(storagePath,expiresIn = 900){
+export async function createMailboxDownloadUrl(storagePath,expiresIn = 21600){
   if(!storagePath) throw new Error('This mailbox file has no storage path.');
   const { data, error } = await supabase.storage
     .from(PRIESTESS_MAILBOX_BUCKET)
-    .createSignedUrl(storagePath,Math.max(60,Math.min(Number(expiresIn)||900,3600)));
+    .createSignedUrl(storagePath,Math.max(300,Math.min(Number(expiresIn)||21600,43200)));
   if(error) throw error;
   if(!data?.signedUrl) throw new Error('Flowtel could not prepare this private download.');
   return data.signedUrl;
@@ -286,6 +295,12 @@ export async function markMailboxFileReceived(fileId){
   });
   if(error) throw error;
   return data;
+}
+
+// Clears the owner alert without deleting or downloading the private file.
+// The existing received_at field is the canonical handled/notification state.
+export async function clearMailboxFileNotification(fileId){
+  return markMailboxFileReceived(fileId);
 }
 
 export async function returnPrivateFile({ threadId, practitionerId, file, note='', onProgress } = {}){

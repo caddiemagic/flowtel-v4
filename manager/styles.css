@@ -973,3 +973,8 @@ body.concierge-team-view .queue{margin-top:18px}
 .admin-mailbox-return input[type="file"]{padding:8px;font-size:.76rem}
 .admin-mailbox-return input[type="file"]::file-selector-button{margin-right:8px;padding:8px 10px;border:1px solid rgba(199,116,109,.26);border-radius:999px;background:rgba(248,231,227,.72);color:var(--brown);font:700 .54rem Arial,sans-serif;letter-spacing:.07em;text-transform:uppercase;cursor:pointer}
 .admin-mailbox-return button:disabled{opacity:.58;cursor:wait}
+
+/* Flowtel v0.10.80.3 — 1 GB private-media exchange + clearable owner alerts. */
+.admin-mailbox-file-actions{display:grid;gap:7px;justify-items:stretch}
+.admin-mailbox-file-actions .quiet{background:transparent;color:var(--soft-brown);border-color:rgba(109,78,65,.16)}
+.admin-mailbox-file-actions .quiet:hover{background:rgba(248,231,227,.35)}
