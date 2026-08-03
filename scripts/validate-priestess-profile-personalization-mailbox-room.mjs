@@ -17,7 +17,7 @@ assert(profilePage.includes('bioHasCustomEdits'),'Personalized bio protection is
 assert(profilePage.includes("frameworkSelection(record,'bio')"),'Saved template choice is not restored.');
 assert(!profileHtml.includes('id="priestessMailboxSection"'),'The full mailbox still lives inside Profile Studio.');
 assert(profileHtml.includes('/flow-fm/priestess-mailbox/'),'Profile Studio mailbox doorway is missing.');
-for(const token of ['priestess-mailbox-card','priestessMailboxSection','page.js?v=0.10.80.4']) assert(mailboxHtml.includes(token),`Dedicated mailbox HTML is missing ${token}.`);
+for(const token of ['priestess-mailbox-card','priestessMailboxSection','page.js?v=0.10.80.5']) assert(mailboxHtml.includes(token),`Dedicated mailbox HTML is missing ${token}.`);
 for(const token of ['listMyPriestessMailbox','sendPrivateFileToConcierge','createMailboxDownloadUrl','markReturnedAudioDownloaded']) assert(mailboxPage.includes(token),`Dedicated mailbox logic is missing ${token}.`);
 assert(manager.includes('href="/flow-fm/priestess-mailbox/"'),'Concierge Team Rooms do not link to the Priestess Mailbox.');
 assert(vercel.rewrites.some(row=>row.source==='/flow-fm/priestess-mailbox'),'Priestess Mailbox rewrite is missing.');

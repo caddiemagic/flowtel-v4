@@ -12,7 +12,7 @@ import { moonCycleForDate, adjacentMoonCycle, moonCycleDays, moonLabelForDate, n
 import { createPlayerInvitation, listPlayerInvitations, listCaddieMagicPlayers, revokePlayerInvitation, setCaddieMagicPlayerAccess, buildPlayerInviteUrl } from "../shared/caddie-magic-access.js?v=0.5.2";
 import { invitePlayerToCaddieNetwork, listCaddieNetworkProfiles, setCaddieProfileStatus, listCourseRequests, reviewCourseRequest, listCaddieMasterAccess, setVipCaddieMasterMessaging, getCaddieMasterCommandCenter, listCaddieConciergeTeam, listCourseCatalog } from "../shared/caddie-magic-network.js?v=0.5.2";
 import { getHonorsDashboard, getHonorsLedger, honorsCalculation, listHonorsPractitioners, recordHonorsEntry } from "../shared/flowtel-honors.js?v=0.10.56";
-import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, clearMailboxFileNotification, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.4";
+import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessMailbox, listMyPriestessMailbox, listPriestessInboxRecipients, markMailboxFileReceived, clearMailboxFileNotification, returnPrivateFile, sendPrivateFileToPriestess } from "../shared/priestess-mailbox.js?v=0.10.80.5";
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";

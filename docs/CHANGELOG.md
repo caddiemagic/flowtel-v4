@@ -1,3 +1,11 @@
+## v0.10.80.5 — Priestess Mailbox Signed Upload Authorization Hotfix
+
+- Replaces direct TUS bearer-token handling with a Supabase signed upload token created through the authenticated Storage SDK.
+- Sends the signed token to the resumable endpoint through `x-signature`, avoiding the false session-refresh loop seen after v0.10.80.4.
+- Removes the client-side compact-JWT shape check and forced session refresh that incorrectly blocked valid signed-in users.
+- Keeps the 1 GB per-file boundary, 6 MB chunks, retry/resume behavior, upload progress, safe file formats, private history, and owner alert clearance.
+- Requires no migration and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.80.4 — Priestess Mailbox Resumable Authentication Hotfix
 
 - Removes the opaque Supabase publishable key from Mailbox TUS upload headers so Storage no longer interprets it as an invalid compact JWT/JWS.
