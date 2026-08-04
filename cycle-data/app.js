@@ -1,5 +1,5 @@
 import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
-import { listMyAccessibleClients } from "../shared/flowtel.js?v=0.10.81";
+import { listMyAccessibleClients } from "../shared/flowtel.js?v=0.10.81.2";
 import { supabase } from "../shared/supabase.js";
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
 
@@ -334,6 +334,7 @@ function renderPowderRoom(rows,season){
   entryList.innerHTML=rows.length
     ? rows.map((row,index)=>powderNoteMarkup(row,index)).join("")
     : `<div class="empty-state powder-empty"><p>No one has left a note in this Powder Room yet. The mirror is waiting.</p></div>`;
+  schedulePowderRoomLayout();
 }
 
 function powderNoteMarkup(row,index){
@@ -344,12 +345,40 @@ function powderNoteMarkup(row,index){
   const actual=row.cycle_day_actual ?? row.cycle_day_recorded ?? "—";
   const dayLabel=actual === "—" || actual === null || actual === undefined ? "DAY —" : `DAY ${actual}`;
   return `
-    <article class="powder-note ${toneClass}">
+    <article class="powder-note ${toneClass}" data-powder-note>
       <p class="powder-note-text">${escapeHtml(note)}</p>
       <p class="powder-note-meta"><span>${escapeHtml(dayLabel)}</span><span>${escapeHtml(moon)}</span></p>
     </article>
   `;
 }
+
+
+let powderLayoutFrame=0;
+function layoutPowderRoomNotes(){
+  const cloud=document.querySelector('.powder-note-cloud');
+  if(!cloud)return;
+  const notes=[...cloud.querySelectorAll('[data-powder-note]')];
+  if(!notes.length)return;
+  const style=getComputedStyle(cloud);
+  const rowHeight=parseFloat(style.gridAutoRows)||8;
+  const rowGap=parseFloat(style.rowGap)||18;
+  notes.forEach(note=>{
+    note.style.gridRowEnd='auto';
+  });
+  notes.forEach(note=>{
+    const height=note.getBoundingClientRect().height;
+    const span=Math.max(1,Math.ceil((height+rowGap)/(rowHeight+rowGap)));
+    note.style.gridRowEnd=`span ${span}`;
+  });
+}
+function schedulePowderRoomLayout(){
+  window.cancelAnimationFrame(powderLayoutFrame);
+  powderLayoutFrame=window.requestAnimationFrame(()=>{
+    layoutPowderRoomNotes();
+    window.setTimeout(layoutPowderRoomNotes,80);
+  });
+}
+window.addEventListener('resize',schedulePowderRoomLayout,{passive:true});
 
 function renderEntries(rows,{anonymous=false,title="Entries",eyebrow="CHECK-IN LOG"}={}){
   entryList.className="entry-list";

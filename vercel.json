@@ -99,6 +99,10 @@
       "destination": "/manager/acuity/index.html"
     },
     {
+      "source": "/manager/availability",
+      "destination": "/manager/availability/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },

@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Flow FM Availability | Flowtel</title>
+  <link rel="stylesheet" href="/manager/styles.css?v=0.10.81.2">
+  <link rel="stylesheet" href="/manager/availability/styles.css?v=0.10.81.2">
+</head>
+<body>
+  <main class="availability-admin-shell">
+    <a class="availability-back" href="/manager/">← Concierge Desk</a>
+    <section class="availability-admin-hero">
+      <p class="eyebrow">OWNER ADMINISTRATION</p>
+      <h1>Flow FM Availability</h1>
+      <p>Witness the seasonal call rhythms each Flow FM and Council member has saved. This room is read-only; every Priestess remains sovereign over her own availability.</p>
+    </section>
+
+    <section class="availability-summary" id="availabilitySummary" hidden></section>
+
+    <section class="availability-toolbar" id="availabilityToolbar" hidden>
+      <label>
+        Find a Priestess
+        <input id="availabilitySearch" type="search" placeholder="Search by name or location">
+      </label>
+      <label>
+        View
+        <select id="availabilityFilter">
+          <option value="all">All Members</option>
+          <option value="available_now">Available Now</option>
+          <option value="accepting_clients">Accepting Clients</option>
+          <option value="incomplete">Incomplete Rhythms</option>
+          <option value="recently_updated">Recently Updated</option>
+        </select>
+      </label>
+    </section>
+
+    <p class="availability-admin-message" id="availabilityMessage" role="status">Opening Flow FM availability…</p>
+    <section class="availability-member-grid" id="availabilityMemberGrid"></section>
+    <section class="availability-admin-gate" id="availabilityGate" hidden></section>
+  </main>
+  <script type="module" src="/manager/availability/app.js?v=0.10.81.2"></script>
+</body>
+</html>

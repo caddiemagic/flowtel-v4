@@ -3877,3 +3877,161 @@ body.personal-room-key-is-open{
   .womb-magic-mentor-grid{grid-template-columns:1fr}
   .womb-magic-calendar-step label,.womb-magic-calendar-step .secondary{width:100%!important}
 }
+
+/* Flowtel v0.10.81.2 — Womb Magic booking clarity + elegant Priestess cards */
+.womb-magic-suite-intro{display:block}
+.womb-magic-suite-action{
+  display:flex!important;
+  align-items:center;
+  justify-content:center;
+  width:100%!important;
+  min-height:40px;
+  margin:18px 0 0!important;
+  border-radius:999px!important;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.womb-magic-choice-row{margin-bottom:18px}
+.womb-magic-mentor-grid{
+  grid-template-columns:repeat(auto-fit,minmax(285px,1fr));
+  gap:14px;
+  margin:14px 0 24px;
+}
+.wm-mentor-card{
+  min-height:104px;
+  gap:16px;
+  padding:17px 18px;
+  border-color:rgba(111,77,67,.13);
+  border-radius:22px;
+  background:rgba(255,253,249,.8);
+  box-shadow:0 12px 30px rgba(109,78,65,.045);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.wm-mentor-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(216,168,79,.38);
+  box-shadow:0 16px 34px rgba(109,78,65,.075);
+}
+.wm-mentor-card.active{
+  border-color:rgba(184,130,38,.52)!important;
+  background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.42));
+  box-shadow:0 0 0 2px rgba(216,168,79,.08),0 16px 34px rgba(109,78,65,.07)!important;
+}
+.wm-mentor-card img{
+  width:64px;
+  height:64px;
+  flex-basis:64px;
+  border-width:1px;
+  box-shadow:0 7px 18px rgba(109,78,65,.1);
+}
+.wm-mentor-copy{gap:4px}
+.wm-mentor-copy strong{
+  font-family:var(--serif);
+  font-size:1.35rem;
+  font-weight:400;
+  line-height:1.05;
+  letter-spacing:0;
+  text-transform:none;
+}
+.wm-mentor-copy small{
+  font-family:var(--serif);
+  font-size:.88rem;
+  font-weight:400;
+  line-height:1.28;
+  letter-spacing:0;
+  text-transform:none;
+  overflow-wrap:normal;
+}
+.wm-mentor-location{color:var(--soft-brown)}
+.wm-mentor-timezone{color:rgba(109,78,65,.68)!important;font-size:.8rem!important}
+.womb-magic-calendar-step{margin:22px 0 16px}
+.womb-magic-calendar-step label{width:min(100%,260px)}
+.womb-magic-calendar-step input{width:100%}
+.womb-magic-date-grid{
+  display:grid;
+  gap:12px;
+  margin:14px 0 0;
+}
+.wm-date-option{
+  min-width:0;
+  border:1px solid rgba(111,77,67,.13);
+  border-radius:20px;
+  background:rgba(255,253,249,.62);
+  overflow:hidden;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.wm-date-option.active{
+  border-color:rgba(184,130,38,.58);
+  background:rgba(255,253,249,.96);
+  box-shadow:0 14px 34px rgba(109,78,65,.07);
+}
+.wm-date-button{
+  width:100%;
+  min-height:48px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+.wm-date-button.active{
+  border:0!important;
+  box-shadow:none!important;
+  background:linear-gradient(90deg,rgba(248,231,227,.58),rgba(255,253,249,.92));
+}
+.wm-date-detail{
+  padding:18px 20px 22px;
+  border-top:1px solid rgba(216,168,79,.22);
+}
+.wm-date-detail h4{
+  margin:0 0 14px;
+  font-family:var(--serif);
+  font-size:1.24rem;
+  font-weight:400;
+  color:var(--brown);
+}
+.womb-magic-time-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:10px;
+  margin:0;
+}
+.wm-time-button{
+  display:grid;
+  gap:3px;
+  min-width:0;
+  min-height:58px;
+  padding:11px 14px;
+  border:1px solid rgba(111,77,67,.17);
+  border-radius:16px;
+  background:#fffaf5;
+  color:var(--brown);
+  cursor:pointer;
+}
+.wm-time-button strong{font:400 1.02rem/1.1 var(--serif)}
+.wm-time-button small{font:.72rem/1.2 var(--serif);color:rgba(109,78,65,.68)}
+.wm-time-button.active{
+  border-color:rgba(184,130,38,.62)!important;
+  background:rgba(248,231,227,.72);
+  box-shadow:0 0 0 2px rgba(216,168,79,.08)!important;
+}
+.wm-loading-copy,.wm-empty-copy{
+  margin:0;
+  padding:17px 6px;
+  color:var(--soft-brown);
+  font-style:italic;
+}
+.wm-date-detail .womb-magic-consent-card{margin-top:18px}
+[data-wm-consent-home]:empty{display:none}
+@media(max-width:760px){
+  .womb-magic-suite-action{width:100%!important}
+  .womb-magic-mentor-grid{grid-template-columns:1fr}
+  .wm-mentor-card{min-height:92px;padding:15px}
+  .wm-mentor-card img{width:58px;height:58px;flex-basis:58px}
+  .wm-mentor-copy strong{font-size:1.22rem}
+  .womb-magic-time-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){.womb-magic-time-grid{grid-template-columns:1fr}}

@@ -59,7 +59,7 @@ assert(!clientHtml.includes('id="loungeReplayNotes"'), 'Replay Notes should be h
 assert(!clientJs.includes('lodging_idea') && !clientJs.includes('calling_reflection'), 'The Lounge still exposes detailed seasonal planning fields.');
 assert(clientJs.includes('saveHourlyFlowRateFourSeasonLocations'), 'The Lounge does not save to the canonical Hourly Flow Rate plan.');
 assert(clientCss.includes('.lounge-season-planner-form') && clientCss.includes('.lounge-season-save'), 'Simplified Lounge styling is missing.');
-assert(clientHtml.includes('styles.css?v=0.10.81.1') && clientHtml.includes('app.js?v=0.10.81.1'), 'Client cache keys are not aligned with the current deployed baseline.');
+assert(clientHtml.includes('styles.css?v=0.10.81.2') && clientHtml.includes('app.js?v=0.10.81.2'), 'Client cache keys are not aligned with the current deployed baseline.');
 
 assert(hfrJs.includes('hourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not read the canonical location label.');
 assert(hfrJs.includes('saveHourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not write the canonical location label.');

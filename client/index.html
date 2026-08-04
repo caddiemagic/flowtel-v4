@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.81.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.81.2" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -216,8 +216,8 @@
               <h3>Book your Womb Magic call.</h3>
               <p>Choose any available Flow FM Priestess for one private 45-minute call each month.</p>
             </div>
-            <button class="secondary mentor-schedule-button" type="button" data-wm-toggle aria-expanded="false">Schedule Womb Magic</button>
           </div>
+          <button class="secondary womb-magic-suite-action" type="button" data-wm-toggle aria-expanded="false">Schedule Womb Magic</button>
           <section class="womb-magic-suite-summary" data-wm-summary hidden aria-live="polite"></section>
           <section class="womb-magic-inline-panel" data-wm-panel hidden aria-hidden="true">
             <header class="womb-magic-inline-heading">
@@ -238,10 +238,9 @@
               <div class="womb-magic-mentor-grid" data-wm-mentor-grid hidden></div>
               <div class="womb-magic-calendar-step">
                 <label>Choose a month<input type="month" data-wm-month></label>
-                <button class="secondary" type="button" data-wm-load-dates>See Available Dates</button>
               </div>
               <div class="womb-magic-date-grid" data-wm-date-grid></div>
-              <div class="womb-magic-time-grid" data-wm-time-grid></div>
+              <div data-wm-consent-home>
               <section class="womb-magic-consent-card" data-wm-consent hidden>
                 <h4>Prepare your Womb Magic call</h4>
                 <p data-wm-consent-copy></p>
@@ -249,6 +248,7 @@
                 <label class="womb-magic-consent-check"><input type="checkbox" data-wm-consent-input><span>I understand and consent to this temporary access.</span></label>
                 <button type="button" data-wm-book disabled>Consent + Book My Call</button>
               </section>
+              </div>
             </section>
             <section class="womb-magic-inline-gate" data-wm-gate hidden></section>
           </section>
@@ -393,6 +393,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.81.1"></script>
+  <script type="module" src="./app.js?v=0.10.81.2"></script>
 </body>
 </html>

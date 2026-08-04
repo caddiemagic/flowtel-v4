@@ -3,7 +3,7 @@ import { supabase } from "../shared/supabase.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.78";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { ownerRecognizeTeamMember, listAdminTeamMapPresences } from "../shared/team-map.js?v=0.10.56";
-import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess, currentUserHasConciergeTeamAccess } from "../shared/flowtel.js?v=0.10.78.1";
+import { getFrontDeskStays, witnessStay, prepareRoomAfterCheckout, clockOutPractitioner, getFlowFmInitiationStatus, flowFmProgressPercent, listConnectionRequestsForPractitioner, connectWithGuest, listMyClients, getTodayStayForClient, currentUserHasConciergeAccess, currentUserHasConciergeTeamAccess } from "../shared/flowtel.js?v=0.10.81.2";
 import { isExplicitTurndownSubmitter } from "../shared/turndown-state.js?v=0.10.78.1";
 import { listCaddieReviewRequests, completeCaddieReviewRequest, closeCaddieReviewRequest } from "../shared/caddie-magic-reviews.js?v=0.5.2";
 import { listCompassPlayers, markAssignmentNoted } from "../shared/caddie-magic-compass.js?v=0.5.2";
@@ -16,7 +16,8 @@ import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessM
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
-import { loadUpcomingServiceCalls } from "../shared/acuity-scheduling.js?v=0.10.81.1";
+import { loadUpcomingServiceCalls } from "../shared/acuity-scheduling.js?v=0.10.81.2";
+import { loadFlowFmAvailabilityOwnerView } from "../shared/flow-fm-availability-admin.js?v=0.10.81.2";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -178,6 +179,7 @@ let upcomingGolfCalendarCycleStart="";
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let upcomingServiceCallCount=0;
+let flowFmAvailabilityRows=[];
 let memberDirectoryRows=[];
 let memberDirectoryServiceAvailable=true;
 let memberDirectoryAccessFilter="active";
@@ -839,6 +841,13 @@ function updateStats(){
   setText("clientsCount",currentClientsCount);
   setText("upcomingCallsCount",upcomingServiceCallCount);
   setText("upcomingCallsNote",upcomingServiceCallCount>0?"Womb Magic calls + client snapshots":"No calls currently scheduled");
+  const availabilityStarted=flowFmAvailabilityRows.filter(row=>Number(row.completed_season_count||0)>0).length;
+  const availabilityRecent=flowFmAvailabilityRows.filter(row=>{
+    const stamp=new Date(row.availability_updated_at||0).getTime();
+    return Number.isFinite(stamp)&&stamp>Date.now()-7*86400000;
+  }).length;
+  setText("flowFmAvailabilityCount",availabilityStarted);
+  setText("flowFmAvailabilityNote",availabilityRecent>0?`${availabilityRecent} updated this week`:"View seasonal rhythms");
   setText("clientConnectionCount",currentConnectionRequestsCount);
   setText("priestessTeamCount",priestessConciergeTeam.length);
   setText("priestessTeamProfileCount",priestessConciergeTeam.filter(row=>row.profile_status!=="not_started").length);
@@ -885,6 +894,9 @@ function updateStats(){
 
   const priestessTeamCard=document.querySelector('[data-filter="priestess-team"]');
   if(priestessTeamCard) priestessTeamCard.classList.toggle("has-alert",priestessConciergeTeam.some(row=>row.profile_status==="submitted"));
+
+  const flowFmAvailabilityCard=document.querySelector('a[href="/manager/availability/"]');
+  if(flowFmAvailabilityCard) flowFmAvailabilityCard.classList.toggle("has-alert",availabilityRecent>0);
 
   const memberDirectoryCard=document.querySelector('[data-filter="member-directory"]');
   if(memberDirectoryCard) memberDirectoryCard.classList.toggle("has-alert",membersNeedingReview>0);
@@ -3115,6 +3127,11 @@ async function loadUpcomingServiceCallCount(){
   }
 }
 
+async function loadFlowFmAvailabilityCount(){
+  try{flowFmAvailabilityRows=await loadFlowFmAvailabilityOwnerView();}
+  catch(error){console.warn("Flow FM Availability owner count is not available yet.",error);flowFmAvailabilityRows=[];}
+}
+
 async function loadDesk({silent=false}={}){
   if(deskRefreshInFlight) return;
   deskRefreshInFlight=true;
@@ -3127,6 +3144,7 @@ async function loadDesk({silent=false}={}){
     if(isOwnerDesk()){
       await loadMemberDirectory();
       await loadPriestessConciergeTeam();
+      await loadFlowFmAvailabilityCount();
       await loadCaddiePlayerAccess();
       await loadCaddieNetworkData();
       await loadCaddieReviews();

@@ -1,3 +1,14 @@
+## v0.10.81.2 — Womb Magic Booking Flow + Mentor and Availability Visibility
+
+- Restores the full-width Schedule Womb Magic action inside the Suite.
+- Automatically refreshes Acuity dates when First Available, Priestess, or month filters change.
+- Expands available times and consent directly beneath the selected date.
+- Redesigns Priestess booking cards with lighter, cleaner typography and spacing.
+- Opens Mentor to the Moon eligibility to approved Flow FM/Council practitioners who are accepting clients and have Concierge Team access.
+- Packs Powder Room mirror notes into a dense masonry-style layout while preserving tilt, variation, and anonymity.
+- Adds the owner-only Flow FM Availability room with seasonal rhythms, status, timezone, update date, and filters.
+- Requires migration 065 and preserves migration 064, the Acuity/webhook/consent foundation, and Caddie Magic v0.5.2.
+
 ## v0.10.81.1 — Womb Magic Suite + Upcoming Calls Polish
 
 - Moves the complete Womb Magic booking, consent, rescheduling, and cancellation experience into the Suite's existing Complimentary Mentor Call card.

@@ -624,3 +624,37 @@ body:not(.powder-room-mode) .hero-card h1{
 .metric-grid.client-quadrant-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.client-chart-filters{grid-column:1/-1;display:grid;grid-template-columns:minmax(180px,1fr) minmax(180px,1fr) auto;gap:10px;align-items:end;padding-bottom:4px}.client-chart-filters label{display:grid;gap:6px;color:var(--rose);font:700 .62rem Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}.client-chart-filters select{width:100%;border:1px solid var(--line);border-radius:12px;padding:10px;background:#fffdfa;color:var(--ink);font:400 .88rem Georgia,serif;text-transform:none;letter-spacing:0}.client-chart-filters>span{padding:10px 12px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:700 .6rem Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
 .client-season-quadrant{display:grid;gap:5px;min-height:132px;padding:18px;border:1px solid var(--line);border-radius:18px;background:rgba(251,247,239,.7);color:var(--ink);text-align:left}.client-season-quadrant:hover,.client-season-quadrant:focus-visible{border-color:var(--gold);box-shadow:0 12px 28px rgba(111,75,64,.08)}.client-season-quadrant small{color:var(--rose);font:700 .64rem Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase}.client-season-quadrant strong{font-size:2rem;font-weight:400}.client-season-quadrant span{color:var(--muted);font-size:.8rem}
 @media(max-width:720px){.metric-grid.client-quadrant-grid{grid-template-columns:1fr}.client-chart-filters{grid-column:auto;grid-template-columns:1fr}.client-chart-filters>span{justify-self:start}}
+
+/* Flowtel v0.10.81.2 — dense, organic Powder Room mirror wall */
+.powder-note-cloud{
+  display:grid;
+  grid-template-columns:repeat(8,minmax(0,1fr));
+  grid-auto-flow:dense;
+  grid-auto-rows:8px;
+  align-items:start;
+  gap:18px 20px;
+  min-height:60vh;
+  padding:10px 4px 80px;
+}
+.powder-note{
+  width:auto!important;
+  margin:0!important;
+  align-self:start;
+  transform:rotate(var(--tilt));
+  transform-origin:center;
+}
+.powder-note--1{grid-column:span 2;--tilt:-1.5deg}
+.powder-note--2{grid-column:span 3;--tilt:1.1deg}
+.powder-note--3{grid-column:span 2;--tilt:-.6deg}
+.powder-note--4{grid-column:span 2;--tilt:1.7deg}
+.powder-note--5{grid-column:span 3;--tilt:-1deg}
+.powder-note--6{grid-column:span 2;--tilt:.7deg}
+.powder-note--7{grid-column:span 3;--tilt:-1.8deg}
+.powder-note--8{grid-column:span 2;--tilt:1.3deg}
+@media(max-width:1100px){
+  .powder-note-cloud{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+@media(max-width:760px){
+  .powder-note-cloud{display:grid;grid-template-columns:1fr;grid-auto-rows:auto;grid-auto-flow:row;gap:16px;padding-bottom:42px}
+  .powder-note{grid-column:1!important;grid-row:auto!important;width:100%!important;transform:none!important}
+}

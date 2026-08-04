@@ -5,8 +5,8 @@ import {
   bookWombMagicCall,
   rescheduleWombMagicCall,
   cancelWombMagicCall,
-} from '/shared/acuity-scheduling.js?v=0.10.81.1';
-import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.81.1';
+} from '/shared/acuity-scheduling.js?v=0.10.81.2';
+import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.81.2';
 
 function escapeHtml(value){
   return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
@@ -35,12 +35,10 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
   const mentorGrid=root.querySelector('[data-wm-mentor-grid]');
   const monthInput=root.querySelector('[data-wm-month]');
   const dateGrid=root.querySelector('[data-wm-date-grid]');
-  const timeGrid=root.querySelector('[data-wm-time-grid]');
   const consentCard=root.querySelector('[data-wm-consent]');
   const consentCopy=root.querySelector('[data-wm-consent-copy]');
   const consentInput=root.querySelector('[data-wm-consent-input]');
   const bookButton=root.querySelector('[data-wm-book]');
-  const loadDatesButton=root.querySelector('[data-wm-load-dates]');
   const firstAvailableButton=root.querySelector('[data-wm-first-available]');
   const choosePriestessButton=root.querySelector('[data-wm-choose-priestess]');
   const phoneInput=root.querySelector('[data-wm-phone]');
@@ -48,21 +46,25 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
   let data=null;
   let providerId='';
   let selectedSlot=null;
+  let selectedDate='';
   let rescheduling=null;
   let loadingPromise=null;
   let autoOpened=false;
+  let datesRequest=0;
+  let timesRequest=0;
+  let refreshTimer=null;
 
   const now=new Date();
   if(monthInput&&!monthInput.value) monthInput.value=`${now.getFullYear()}-${pad(now.getMonth()+1)}`;
 
   function setMessage(text=''){if(message)message.textContent=text;}
   function memberTimezone(){return normalizeTimezone(data?.member_timezone);}
-  function formatDate(value,{withTime=true,weekday=true}={}){
+  function formatDate(value,{withTime=true,weekday=true,long=false}={}){
     const date=new Date(value);
     if(Number.isNaN(date.getTime())) return String(value||'');
     const options=withTime
       ? {month:'long',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:memberTimezone(),...(weekday?{weekday:'long'}:{})}
-      : {month:'short',day:'numeric',timeZone:'UTC',...(weekday?{weekday:'short'}:{})};
+      : {month:long?'long':'short',day:'numeric',timeZone:'UTC',...(weekday?{weekday:long?'long':'short'}:{})};
     return new Intl.DateTimeFormat('en-US',options).format(date);
   }
   function formatCallTime(value){
@@ -87,21 +89,28 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     const calendar=String(item?.calendarID||item?.calendar_id||'');
     return data?.providers?.find(provider=>String(provider.calendar_id)===calendar)||data?.providers?.find(provider=>provider.provider_id===providerId)||null;
   }
-  function resetSelection(){
+  function returnConsentCard(){
+    const home=root.querySelector('[data-wm-consent-home]');
+    if(home&&consentCard&&consentCard.parentElement!==home)home.appendChild(consentCard);
+  }
+  function clearSlotSelection(){
     selectedSlot=null;
-    if(dateGrid)dateGrid.innerHTML='';
-    if(timeGrid)timeGrid.innerHTML='';
     if(consentCard)consentCard.hidden=true;
     if(consentInput)consentInput.checked=false;
     if(bookButton)bookButton.disabled=true;
   }
+  function resetSelection({clearDates=true}={}){
+    selectedDate='';
+    clearSlotSelection();
+    returnConsentCard();
+    if(clearDates&&dateGrid)dateGrid.innerHTML='';
+  }
   function providerMeta(provider){
-    const items=[];
-    if(provider.location)items.push(provider.location);
     const listedZone=provider.listed_timezone||'';
-    const zoneName=timezoneDisplayName(listedZone,new Date());
-    if(zoneName)items.push(zoneName);
-    return items;
+    return {
+      location:String(provider.location||'').trim(),
+      timezone:timezoneDisplayName(listedZone,new Date()),
+    };
   }
   function renderMentors(){
     if(!mentorGrid||!data)return;
@@ -110,13 +119,19 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
       const image=provider.photo_url||'/assets/flowtel-pinkrose.png';
       return `<button class="wm-mentor-card ${providerId===provider.provider_id?'active':''}" data-wm-provider-id="${escapeHtml(provider.provider_id)}" type="button" aria-pressed="${providerId===provider.provider_id?'true':'false'}">
         <img src="${escapeHtml(image)}" alt="" onerror="this.onerror=null;this.src='/assets/flowtel-pinkrose.png'">
-        <span class="wm-mentor-copy"><strong>${escapeHtml(provider.display_name)}</strong>${meta.length?`<small>${meta.map(escapeHtml).join(' · ')}</small>`:''}</span>
+        <span class="wm-mentor-copy">
+          <strong>${escapeHtml(provider.display_name)}</strong>
+          ${meta.location?`<small class="wm-mentor-location">${escapeHtml(meta.location)}</small>`:''}
+          ${meta.timezone?`<small class="wm-mentor-timezone">${escapeHtml(meta.timezone)}</small>`:''}
+        </span>
       </button>`;
     }).join('');
-    mentorGrid.querySelectorAll('[data-wm-provider-id]').forEach(button=>button.addEventListener('click',()=>{
+    mentorGrid.querySelectorAll('[data-wm-provider-id]').forEach(button=>button.addEventListener('click',async()=>{
       providerId=button.dataset.wmProviderId||'';
+      firstAvailableButton?.classList.remove('active');
+      choosePriestessButton?.classList.add('active');
       renderMentors();
-      resetSelection();
+      await loadDates();
     }));
   }
   function renderSummary(call){
@@ -192,6 +207,7 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     if(panel){panel.hidden=false;panel.setAttribute('aria-hidden','false');}
     if(toggle)toggle.setAttribute('aria-expanded','true');
     if(!skipRefresh||!data)await refresh();
+    if(data?.eligible||rescheduling)await loadDates();
     panel?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   function close(){
@@ -220,41 +236,87 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
       close();
     }catch(error){setMessage(error?.message||'This call could not be cancelled.');}
   }
+  function queueDateRefresh(delay=120){
+    window.clearTimeout(refreshTimer);
+    refreshTimer=window.setTimeout(()=>{void loadDates();},delay);
+  }
   async function loadDates(){
-    if(!data)return;
+    if(!data||!monthInput?.value||(!data.eligible&&!rescheduling))return;
+    const request=++datesRequest;
     try{
-      setMessage('Opening available dates…');
+      setMessage('Gathering available dates…');
       resetSelection();
+      dateGrid.innerHTML='<p class="wm-loading-copy">Gathering available dates…</p>';
       const result=await loadWombMagicDates({month:monthInput.value,provider_id:providerId,timezone:memberTimezone()});
-      const dates=(result.dates||[]).map(dateValue).filter(Boolean);
-      dateGrid.innerHTML=dates.length?dates.map(date=>`<button type="button" class="wm-date-button" data-wm-date="${date}">${escapeHtml(formatDate(`${date}T12:00:00Z`,{withTime:false}))}</button>`).join(''):'<p>No dates are currently open in this month.</p>';
+      if(request!==datesRequest)return;
+      const dates=[...new Set((result.dates||[]).map(dateValue).filter(Boolean))];
+      dateGrid.innerHTML=dates.length?dates.map(date=>`
+        <article class="wm-date-option" data-wm-date-option="${escapeHtml(date)}">
+          <button type="button" class="wm-date-button" data-wm-date="${escapeHtml(date)}" aria-expanded="false">${escapeHtml(formatDate(`${date}T12:00:00Z`,{withTime:false}))}</button>
+          <section class="wm-date-detail" data-wm-date-detail hidden>
+            <h4>Available times for ${escapeHtml(formatDate(`${date}T12:00:00Z`,{withTime:false,long:true}))}</h4>
+            <div class="womb-magic-time-grid" data-wm-time-grid></div>
+            <div data-wm-consent-host></div>
+          </section>
+        </article>`).join(''):'<p class="wm-empty-copy">No Womb Magic appointments are available this month. Choose another month or Priestess.</p>';
       dateGrid.querySelectorAll('[data-wm-date]').forEach(button=>button.addEventListener('click',()=>loadTimes(button.dataset.wmDate,button)));
       setMessage('');
-    }catch(error){setMessage(error?.message||'Available dates could not be opened.');}
+    }catch(error){
+      if(request!==datesRequest)return;
+      dateGrid.innerHTML='';
+      setMessage(error?.message||'Available dates could not be opened.');
+    }
   }
   async function loadTimes(date,button){
+    const request=++timesRequest;
+    selectedDate=date;
+    clearSlotSelection();
+    returnConsentCard();
+    dateGrid.querySelectorAll('[data-wm-date-option]').forEach(option=>{
+      const active=option.dataset.wmDateOption===date;
+      option.classList.toggle('active',active);
+      const dateButton=option.querySelector('[data-wm-date]');
+      const detail=option.querySelector('[data-wm-date-detail]');
+      if(dateButton){dateButton.classList.toggle('active',active);dateButton.setAttribute('aria-expanded',String(active));}
+      if(detail)detail.hidden=!active;
+    });
+    const option=button.closest('[data-wm-date-option]');
+    const detail=option?.querySelector('[data-wm-date-detail]');
+    const timeGrid=option?.querySelector('[data-wm-time-grid]');
+    if(!timeGrid)return;
     try{
-      dateGrid.querySelectorAll('button').forEach(item=>item.classList.toggle('active',item===button));
       setMessage('Finding available times…');
-      if(timeGrid)timeGrid.innerHTML='';
-      if(consentCard)consentCard.hidden=true;
+      timeGrid.innerHTML='<p class="wm-loading-copy">Finding available times…</p>';
       const result=await loadWombMagicTimes({date,provider_id:providerId,timezone:memberTimezone(),ignore_appointment_id:rescheduling?.acuity_appointment_id});
+      if(request!==timesRequest||selectedDate!==date)return;
       const slots=result.times||[];
-      timeGrid.innerHTML=slots.length?slots.map((slot,index)=>`<button type="button" class="wm-time-button" data-wm-slot="${index}">${escapeHtml(formatTimeOnly(slotValue(slot)))}</button>`).join(''):'<p>No times remain on this date.</p>';
-      timeGrid.querySelectorAll('[data-wm-slot]').forEach(item=>item.addEventListener('click',()=>selectSlot(slots[Number(item.dataset.wmSlot)],item)));
+      timeGrid.innerHTML=slots.length?slots.map((slot,index)=>{
+        const provider=providerForSlot(slot);
+        const providerLine=!providerId&&provider?.display_name?`<small>${escapeHtml(provider.display_name)}</small>`:'';
+        return `<button type="button" class="wm-time-button" data-wm-slot="${index}"><strong>${escapeHtml(formatTimeOnly(slotValue(slot)))}</strong>${providerLine}</button>`;
+      }).join(''):'<p class="wm-empty-copy">No times remain on this date.</p>';
+      timeGrid.querySelectorAll('[data-wm-slot]').forEach(item=>item.addEventListener('click',()=>selectSlot(slots[Number(item.dataset.wmSlot)],item,detail)));
       timeGrid.__slots=slots;
       setMessage('');
-    }catch(error){setMessage(error?.message||'Available times could not be opened.');}
+      option?.scrollIntoView({behavior:'smooth',block:'nearest'});
+    }catch(error){
+      if(request!==timesRequest)return;
+      timeGrid.innerHTML='';
+      setMessage(error?.message||'Available times could not be opened.');
+    }
   }
-  function selectSlot(slot,button){
+  function selectSlot(slot,button,detail){
     selectedSlot=slot;
-    timeGrid.querySelectorAll('button').forEach(item=>item.classList.toggle('active',item===button));
+    detail?.querySelectorAll('[data-wm-slot]').forEach(item=>item.classList.toggle('active',item===button));
     const provider=providerForSlot(slot);
-    if(provider)providerId=provider.provider_id;
+    if(provider){providerId=provider.provider_id;renderMentors();}
     if(consentCopy)consentCopy.textContent=data.service.consent_language;
+    const host=detail?.querySelector('[data-wm-consent-host]');
+    if(host&&consentCard)host.appendChild(consentCard);
     if(consentCard)consentCard.hidden=false;
     if(consentInput)consentInput.checked=false;
     if(bookButton){bookButton.disabled=true;bookButton.textContent=rescheduling?'Confirm New Time':'Consent + Book My Call';}
+    consentCard?.scrollIntoView({behavior:'smooth',block:'nearest'});
   }
   async function submitBooking(){
     const provider=providerForSlot(selectedSlot);
@@ -276,21 +338,26 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
 
   toggle?.addEventListener('click',()=>panel?.hidden?open():close());
   closeButton?.addEventListener('click',close);
-  firstAvailableButton?.addEventListener('click',()=>{
+  firstAvailableButton?.addEventListener('click',async()=>{
     providerId='';
     mentorGrid.hidden=true;
     firstAvailableButton.classList.add('active');
     choosePriestessButton?.classList.remove('active');
-    resetSelection();
+    renderMentors();
+    await loadDates();
   });
   choosePriestessButton?.addEventListener('click',()=>{
     mentorGrid.hidden=false;
     firstAvailableButton?.classList.remove('active');
     choosePriestessButton.classList.add('active');
     renderMentors();
-    resetSelection();
+    if(providerId)queueDateRefresh(0);
+    else{
+      resetSelection();
+      setMessage('Choose a Priestess to see her available dates.');
+    }
   });
-  loadDatesButton?.addEventListener('click',loadDates);
+  monthInput?.addEventListener('change',()=>queueDateRefresh(0));
   consentInput?.addEventListener('change',()=>{if(bookButton)bookButton.disabled=!consentInput.checked;});
   bookButton?.addEventListener('click',submitBooking);
 

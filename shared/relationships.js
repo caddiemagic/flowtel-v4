@@ -3,7 +3,7 @@ import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 
 const BASE_MENTOR_SELECT = "id, display_name, first_name, last_name, email, role, membership_type, practitioner_level, flowfm_started_at, is_initiated";
-const EXTENDED_MENTOR_SELECT = `${BASE_MENTOR_SELECT}, mentor_title, mentor_bio, mentor_photo_url, mentor_specialties, mentor_accepting_clients, mentor_sort_order, mentor_scheduling_url, scheduling_url, booking_url, serving_wing`;
+const EXTENDED_MENTOR_SELECT = `${BASE_MENTOR_SELECT}, mentor_title, mentor_bio, mentor_photo_url, mentor_specialties, mentor_accepting_clients, mentor_sort_order, mentor_scheduling_url, scheduling_url, booking_url, serving_wing, concierge_access_enabled`;
 export const MENTOR_DATA_CONSENT_LANGUAGE = "By inviting this mentor, you consent to share your Flowtel cycle data, check-ins, reflections, and stay history with them while you are connected.";
 
 const SELECT_RELATIONSHIP = `
@@ -18,19 +18,35 @@ const FALLBACK_SELECT_RELATIONSHIP = `
   client:client_id (id, display_name, first_name, last_name, email, role, membership_type)
 `;
 
-// Release 0.10.15 login recovery:
-// Keep mentor-list gating self-contained so the guest app is not fragile if
-// the rollout helper file is missed during a partial deploy.
-const PHASE_1_RESTRICT_MENTORS_TO_ADMIN_OWNER = true;
-
+// Flowtel v0.10.81.2: Mentor visibility is no longer owner-only. The preferred
+// database function requires eligible Flow FM/Council membership, Accepting
+// Clients, and approved Concierge Team access. The local fallback mirrors those
+// rules for a cached deployment before migration 065 is installed.
 function roleKey(profile={}){
   return String(profile?.role || "").trim().toLowerCase();
 }
 
-function mentorIsVisibleInPhaseOne(profile={}){
+function normalizedMembership(value){
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function hasEligibleMentorMembership(profile={}){
+  const membership=normalizedMembership(profile.membership_type);
+  return Number(profile.membership_rank || 0)>=2
+    || membership==="flowfm"
+    || membership.startsWith("flowfm")
+    || membership==="council"
+    || ["owner","admin"].includes(roleKey(profile))
+    || profile.is_initiated===true
+    || Boolean(profile.flowfm_started_at);
+}
+
+function mentorIsEligible(profile={}){
   if(profile?.mentor_accepting_clients !== true) return false;
-  if(!PHASE_1_RESTRICT_MENTORS_TO_ADMIN_OWNER) return true;
-  return ["admin","owner"].includes(roleKey(profile));
+  if(!hasEligibleMentorMembership(profile)) return false;
+  const role=roleKey(profile);
+  if(["owner","admin"].includes(role)) return true;
+  return role==="practitioner" && profile?.concierge_access_enabled===true;
 }
 
 
@@ -77,6 +93,13 @@ async function selectRelationshipById(id){
 export async function listMentors(){
   const currentUser=await getCurrentUser().catch(()=>null);
 
+  const rpc=await supabase.rpc("flowtel_list_available_mentors");
+  if(!rpc.error){
+    return (rpc.data || []).filter(profile=>!currentUser?.id || profile.id!==currentUser.id);
+  }
+
+  if(!isMissingFunctionError(rpc.error)) throw rpc.error;
+
   let query=supabase
     .from("profiles")
     .select(EXTENDED_MENTOR_SELECT)
@@ -99,9 +122,7 @@ export async function listMentors(){
   if(error) throw error;
 
   return (data || []).filter(profile=>{
-    if(!mentorIsVisibleInPhaseOne(profile)) return false;
-    // A practitioner is still a guest first, but no guest should be able to
-    // invite themselves as their own Mentor to the Moon.
+    if(!mentorIsEligible(profile)) return false;
     if(currentUser?.id && profile.id === currentUser.id) return false;
     return true;
   });
