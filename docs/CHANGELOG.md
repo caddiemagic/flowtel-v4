@@ -1,3 +1,14 @@
+## v0.10.81 — Acuity Scheduling + Consented Client Access
+
+- Adds the first live Acuity-powered Flowtel service: one complimentary 45-minute Womb Magic call per calendar month for Queendom members.
+- Lets members choose first available or a specific mapped Flow FM Priestess and book real Acuity availability in their saved timezone.
+- Creates explicit, appointment-scoped consent so the Priestess holding the call may view the member’s Cycle Data and Flow Map through seven days after the appointment.
+- Preserves one ongoing Mentor to the Moon; a Womb Magic Priestess is a temporary service relationship, not a second permanent mentor.
+- Adds Upcoming Calls to Concierge Team Rooms and Acuity Scheduling plus Profile Review Desk to Owner Administration.
+- Adds owner calendar/appointment-type mapping, signed webhook synchronization, rescheduling, cancellation, and append-only appointment/access history.
+- Requires migration 064 and server-only `ACUITY_USER_ID` / `ACUITY_API_KEY` environment variables.
+- Leaves Caddie Magic at v0.5.2.
+
 ## v0.10.80.6 — Priestess Mailbox Upload Reliability Repair
 
 - Removes the custom TUS bearer-token and signed-token authorization pathways that both failed against the live Supabase project.

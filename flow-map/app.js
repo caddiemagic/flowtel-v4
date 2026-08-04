@@ -1,5 +1,5 @@
 import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
-import { listMyClients } from "../shared/flowtel.js?v=0.10.52";
+import { listMyAccessibleClients } from "../shared/flowtel.js?v=0.10.81";
 import { supabase } from "../shared/supabase.js";
 
 const intro=document.getElementById("flowMapIntro");
@@ -303,7 +303,7 @@ async function init(){
     if(openCycleDataLink) openCycleDataLink.href=cycleDataHref();
     if(printableFlowMapLink) printableFlowMapLink.href="/flow-map/printable/";
 
-    currentClients=await listMyClients().catch(()=>[]);
+    currentClients=await listMyAccessibleClients().catch(()=>[]);
     const targetId=requestedClientId();
     const scope=requestedScope();
     currentMode=scope==="all" ? "all" : targetId ? "client" : "self";

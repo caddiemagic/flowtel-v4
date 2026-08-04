@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.80.6" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.81" />
 </head>
 
 <body>
@@ -66,6 +66,7 @@
           <button class="stat-card" type="button" data-filter="queue"><span>Turndown Service</span><strong id="awaitingTurndownCount">0</strong><em>Authorized requests awaiting care</em></button>
           <button class="stat-card" type="button" data-filter="clients"><span>Your Clients</span><strong id="clientsCount">0</strong><em><b id="clientConnectionCount">0</b> new mentor requests</em></button>
           <a class="stat-card stat-card-link" href="/flow-fm/availability/"><span>Availability</span><strong>OPEN</strong><em>Seasonal weekly availability</em></a>
+          <a class="stat-card stat-card-link" href="/flow-fm/upcoming-calls/"><span>Upcoming Calls</span><strong>LIVE</strong><em>Womb Magic calls + client snapshots</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/profile-studio/"><span>Profile Studio</span><strong>OPEN</strong><em>Priestess identity + offerings</em></a>
           <a class="stat-card stat-card-link" data-team-priestess-mailbox href="/flow-fm/priestess-mailbox/"><span>Priestess Mailbox</span><strong id="teamPriestessMailboxStatus">OPEN</strong><em id="teamPriestessMailboxNote">Private files + returns</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/time-space/"><span>Time + Space</span><strong>WORLD</strong><em>Global Priestess Team</em></a>
@@ -76,6 +77,8 @@
         <header><div><p class="eyebrow">OWNER ADMINISTRATION</p><h2>Private Flowtel command center</h2></div><span>OWNER ONLY</span></header>
         <div class="stats">
           <button class="stat-card" type="button" data-filter="priestess-team"><span>Priestess Concierge Team</span><strong id="priestessTeamCount">0</strong><em><b id="priestessTeamProfileCount">0</b> profiles started</em></button>
+          <a class="stat-card stat-card-link" href="/manager/acuity/"><span>Acuity Scheduling</span><strong>SETUP</strong><em>Map Womb Magic calendars</em></a>
+          <a class="stat-card stat-card-link" href="/flow-fm/review/"><span>Profile Review Desk</span><strong>OPEN</strong><em>Witness submitted Priestess profiles</em></a>
           <button class="stat-card" type="button" data-filter="member-directory"><span>Flowtel Members</span><strong id="flowtelMemberCount">0</strong><em><b id="flowtelMemberReviewCount">0</b> need review</em></button>
           <button class="stat-card" type="button" data-filter="admin-team-map"><span>28-Day Team Map</span><strong id="adminTeamMapCount">0</strong><em>Team members in motion</em></button>
           <button class="stat-card" type="button" data-filter="honors"><span>Flowtel Honors</span><strong id="honorsAvailablePoints">0</strong><em><b id="honorsPractitionerCount">0</b> Priestess balances</em></button>
@@ -137,7 +140,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.80.6").catch(function(error){
+    import("./app.js?v=0.10.81").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

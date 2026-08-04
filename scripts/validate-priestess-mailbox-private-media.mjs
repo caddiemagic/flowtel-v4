@@ -27,7 +27,7 @@ for(const token of ['.mailbox-selected-file','.mailbox-upload-progress','.mailbo
 assert(!memberJs.includes('Choose your audio'),'Member uploader is still audio-only.');
 assert(!memberJs.includes('name="audio_file"'),'Member upload field is still audio-only.');
 
-for(const token of ['app.js?v=0.10.80.6','Private files awaiting you']) assert(managerHtml.includes(token),`Manager private-media shell is missing ${token}.`);
+for(const token of ['app.js?v=0.10.81','Private files awaiting you']) assert(managerHtml.includes(token),`Manager private-media shell is missing ${token}.`);
 for(const token of ['PRIESTESS_MAILBOX_ACCEPT','returnPrivateFile','data-return-file','SEND PRIVATE FILE BACK','admin-mailbox-return-progress','CLEAR WITHOUT DOWNLOADING','clearMailboxFileNotification']) assert(managerJs.includes(token),`Manager private-media return is missing ${token}.`);
 for(const token of ['.admin-mailbox-return-progress','input[type="file"]::file-selector-button','.admin-mailbox-file-actions']) assert(managerCss.includes(token),`Manager private-media styling is missing ${token}.`);
 assert(!managerJs.includes('Return edited audio'),'Owner return remains audio-only.');

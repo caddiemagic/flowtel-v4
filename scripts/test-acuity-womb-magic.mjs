@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+const api=fs.readFileSync(new URL('../api/acuity.js',import.meta.url),'utf8');
+const migration=fs.readFileSync(new URL('../database/migration-064-acuity-womb-magic-scheduling.sql',import.meta.url),'utf8');
+const member=fs.readFileSync(new URL('../flow-fm/womb-magic/page.js',import.meta.url),'utf8');
+assert.match(api,/case 'book'/);
+assert.match(api,/case 'reschedule'/);
+assert.match(api,/case 'cancel'/);
+assert.match(api,/WOMB_MAGIC_CONSENT_LANGUAGE/);
+assert.match(migration,/flowtel_appointment_access_grants/);
+assert.match(migration,/flowtel_can_view_cycle_subject/);
+assert.match(migration,/access_days_after/);
+assert.match(member,/Consent \+ Book My Call/);
+console.log('Acuity Womb Magic behavior checks passed.');

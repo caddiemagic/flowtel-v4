@@ -95,6 +95,10 @@
       "destination": "/manager/priestess-team/index.html"
     },
     {
+      "source": "/manager/acuity",
+      "destination": "/manager/acuity/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },
@@ -125,6 +129,14 @@
     {
       "source": "/flow-fm/availability",
       "destination": "/flow-fm/availability/index.html"
+    },
+    {
+      "source": "/flow-fm/womb-magic",
+      "destination": "/flow-fm/womb-magic/index.html"
+    },
+    {
+      "source": "/flow-fm/upcoming-calls",
+      "destination": "/flow-fm/upcoming-calls/index.html"
     },
     {
       "source": "/flow-fm/portal",
@@ -176,6 +188,45 @@
     }
   ],
   "headers": [
+    {
+      "source": "/manager/acuity",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/flow-fm/upcoming-calls",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
+    {
+      "source": "/flow-fm/womb-magic",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
     {
       "source": "/flow-fm/priestess-mailbox",
       "headers": [

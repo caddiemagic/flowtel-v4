@@ -296,3 +296,36 @@ export async function cancelMentorRequest(relationshipId){
   if(error) throw error;
   return true;
 }
+
+export async function listMyServiceClients(){
+  const user=await getCurrentUser();
+  if(!user) throw new Error('No signed-in user.');
+  const {data,error}=await supabase.rpc('flowtel_list_my_service_clients');
+  if(error){
+    const message=String(error.message||'').toLowerCase();
+    if(error.code==='42883'||message.includes('does not exist')) return [];
+    throw error;
+  }
+  return (data||[]).map(item=>({
+    id:`service:${item.appointment_id}`,
+    client_id:item.client_id,
+    practitioner_id:user.id,
+    status:'connected',
+    relationship_kind:'service_appointment',
+    appointment_id:item.appointment_id,
+    service_key:item.service_key,
+    service_name:item.service_name,
+    starts_at:item.starts_at,
+    ends_at:item.ends_at,
+    access_until:item.access_until,
+    access_scope:item.access_scope,
+    client:{id:item.client_id,display_name:item.display_name,email:item.email},
+  }));
+}
+
+export async function listMyAccessibleClients(){
+  const [permanent,temporary]=await Promise.all([listMyClients(),listMyServiceClients()]);
+  const merged=new Map();
+  for(const item of [...temporary,...permanent]) merged.set(item.client_id,item);
+  return [...merged.values()];
+}

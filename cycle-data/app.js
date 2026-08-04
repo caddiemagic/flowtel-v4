@@ -1,5 +1,5 @@
 import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
-import { listMyClients } from "../shared/flowtel.js?v=0.10.52";
+import { listMyAccessibleClients } from "../shared/flowtel.js?v=0.10.81";
 import { supabase } from "../shared/supabase.js";
 import { isPractitionerLevel, replacePageWithPhaseTwoGate } from "../shared/beta-access.js";
 
@@ -423,7 +423,7 @@ async function init(){
       return;
     }
 
-    const clients=await listMyClients().catch(()=>[]);
+    const clients=await listMyAccessibleClients().catch(()=>[]);
     const targetId=requestedClientId();
     const season=requestedSeason();
     const scope=requestedScope();
