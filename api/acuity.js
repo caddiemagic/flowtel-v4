@@ -81,6 +81,7 @@ async function mappedProviders(context,service){
       calendar_id:item.acuity_calendar_id,
       calendar_name:item.acuity_calendar_name||item.display_name||'Acuity Calendar',
       timezone:validTimezone(item.timezone||priestess.timezone||profile.timezone),
+      listed_timezone:String(priestess.timezone||profile.timezone||'').trim(),
       photo_url:priestess.profile_photo_url||profile.profile_photo_url||profile.photo_url||'',
       bio:priestess.bio||'',
       modalities:priestess.modalities||'',

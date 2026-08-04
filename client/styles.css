@@ -3820,3 +3820,60 @@ body.personal-room-key-is-open{
 .suite-arrival .suite-external-actions{gap:10px;flex-wrap:wrap}
 .suite-arrival .suite-external-actions .queendom-return-link{min-width:220px;max-width:310px}
 @media(max-width:640px){.suite-arrival .suite-external-actions .queendom-return-link{max-width:none}}
+
+/* Flowtel v0.10.81.1 — inline Womb Magic scheduling */
+.womb-magic-suite-card{overflow:hidden}
+.womb-magic-suite-intro{display:flex;align-items:flex-end;justify-content:space-between;gap:22px}
+.womb-magic-suite-intro>div{min-width:0}
+.womb-magic-suite-intro .mentor-schedule-button{flex:0 0 auto;width:auto!important;min-width:210px}
+.womb-magic-suite-summary{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:18px;padding:18px 20px;border:1px solid rgba(216,168,79,.34);border-radius:20px;background:linear-gradient(135deg,rgba(248,231,227,.56),rgba(255,253,249,.92))}
+.wm-suite-summary-copy{display:grid;gap:3px}
+.wm-suite-summary-copy .eyebrow{margin:0}
+.wm-suite-summary-copy strong{font-family:var(--serif);font-size:clamp(1.15rem,2vw,1.45rem);font-weight:600;color:var(--brown)}
+.wm-suite-summary-copy span{color:var(--soft-brown)}
+.wm-suite-summary-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.wm-suite-summary-actions .secondary{width:auto!important;min-width:0!important;margin:0;padding:10px 15px}
+.womb-magic-inline-panel{margin-top:22px;padding-top:22px;border-top:1px solid rgba(216,168,79,.28)}
+.womb-magic-inline-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.womb-magic-inline-heading h3{margin:.2rem 0 .45rem}
+.womb-magic-close{width:auto!important;min-width:96px!important;margin:0!important}
+.womb-magic-inline-message{min-height:1.45em;margin:12px 0 0;color:var(--soft-brown);font-style:italic}
+.womb-magic-choice-row{display:flex;gap:10px;flex-wrap:wrap;margin:20px 0 16px}
+.womb-magic-choice-row .secondary{width:auto!important;min-width:0!important;margin:0;padding:10px 16px}
+.womb-magic-choice-row .active,.wm-mentor-card.active,.wm-date-button.active,.wm-time-button.active{border-color:rgba(184,130,38,.9)!important;box-shadow:0 0 0 3px rgba(216,168,79,.12)}
+.womb-magic-mentor-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:12px 0 20px}
+.wm-mentor-card{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:11px 13px;border:1px solid rgba(111,77,67,.18);border-radius:18px;background:rgba(255,253,249,.92);color:var(--brown);text-align:left;cursor:pointer;box-shadow:none}
+.wm-mentor-card:hover{transform:translateY(-1px);border-color:rgba(216,168,79,.54);box-shadow:0 10px 24px rgba(109,78,65,.08)}
+.wm-mentor-card img{width:52px;height:52px;flex:0 0 52px;border-radius:50%;object-fit:cover;border:1px solid rgba(216,168,79,.4);box-shadow:0 5px 14px rgba(109,78,65,.12)}
+.wm-mentor-copy{display:grid;gap:3px;min-width:0}
+.wm-mentor-copy strong{font-family:var(--serif);font-size:1.08rem;line-height:1.15;color:var(--brown)}
+.wm-mentor-copy small{font-size:.72rem;line-height:1.35;color:var(--soft-brown);overflow-wrap:anywhere}
+.womb-magic-calendar-step{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin:20px 0 14px}
+.womb-magic-calendar-step label,.womb-magic-phone-field{display:grid;gap:7px;color:var(--brown)}
+.womb-magic-calendar-step input,.womb-magic-phone-field input{min-height:46px;padding:0 13px;border:1px solid rgba(111,77,67,.22);border-radius:14px;background:rgba(255,253,249,.96);color:var(--brown)}
+.womb-magic-calendar-step .secondary{width:auto!important;min-width:180px!important;margin:0!important}
+.womb-magic-date-grid,.womb-magic-time-grid{display:flex;gap:9px;flex-wrap:wrap;margin:12px 0}
+.wm-date-button,.wm-time-button{min-width:112px;padding:11px 14px;border:1px solid rgba(111,77,67,.2);border-radius:15px;background:#fffaf5;color:var(--brown);cursor:pointer}
+.womb-magic-consent-card{margin-top:22px;padding:20px;border:1px solid rgba(216,168,79,.26);border-radius:20px;background:rgba(248,231,227,.64)}
+.womb-magic-consent-card h4{margin:.1rem 0 .55rem;font-family:var(--serif);font-size:1.3rem}
+.womb-magic-consent-check{display:flex;align-items:flex-start;gap:10px;margin:17px 0}
+.womb-magic-consent-check input{margin-top:4px}
+.womb-magic-consent-card>button{width:auto;min-height:46px;padding:0 20px;border:0;border-radius:14px;background:var(--brown);color:#fff}
+.womb-magic-consent-card>button:disabled{opacity:.46}
+.womb-magic-current-call,.womb-magic-inline-gate{margin-top:18px;padding:18px 20px;border:1px solid rgba(216,168,79,.3);border-radius:20px;background:rgba(255,253,249,.88)}
+.womb-magic-current-call header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.womb-magic-current-call h4{margin:.2rem 0;font-family:var(--serif);font-size:1.35rem}
+.wm-call-status{padding:6px 10px;border:1px solid rgba(184,130,38,.72);border-radius:999px;font-size:.68rem;letter-spacing:.12em}
+.wm-current-call-time{display:grid;gap:2px;margin-top:16px;padding:15px 17px;border-radius:16px;background:rgba(248,231,227,.52)}
+.wm-current-call-time strong{font-family:var(--serif);font-size:1.18rem}
+.wm-current-call-time span{font-size:1rem}
+.wm-call-meta,.wm-call-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.wm-call-meta span{padding:7px 11px;border-radius:999px;background:rgba(255,253,249,.92);font-size:.78rem}
+.wm-call-actions .secondary{width:auto!important;min-width:0!important;margin:0!important;padding:10px 15px}
+@media(max-width:760px){
+  .womb-magic-suite-intro,.womb-magic-suite-summary,.womb-magic-inline-heading{align-items:stretch;flex-direction:column}
+  .womb-magic-suite-intro .mentor-schedule-button,.womb-magic-close{width:100%!important}
+  .wm-suite-summary-actions{justify-content:flex-start}
+  .womb-magic-mentor-grid{grid-template-columns:1fr}
+  .womb-magic-calendar-step label,.womb-magic-calendar-step .secondary{width:100%!important}
+}

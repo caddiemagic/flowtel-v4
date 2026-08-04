@@ -7,6 +7,7 @@ import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateFourSeasonLocations } from "../shared/hourly-flow-rate.js?v=0.10.72";
 import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
+import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.81.1";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -47,6 +48,7 @@ let currentStay=null;
 let unreadConciergeStays=[];
 let unreadConciergeLoadKey="";
 let unreadConciergeLoadToken=0;
+const wombMagicBooking=mountWombMagicBooking();
 
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
@@ -1209,6 +1211,7 @@ function renderSuite(stay){
   void loadUnreadConciergeNotes(stay);
   renderPractitionerConnection();
   updatePhaseOneSuiteLinks();
+  void wombMagicBooking.refresh({silent:true});
 
   renderWheel(actualDay);
   window.requestAnimationFrame(()=>{

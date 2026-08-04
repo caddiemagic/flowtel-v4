@@ -37,7 +37,7 @@ assert(hallHtml.includes('<h1>13 Moons</h1>'), 'Initiation Hall title was not ch
 assert(!hallHtml.includes('The Doors Ahead'), 'The old Initiation Hall title remains.');
 assert(hallHtml.includes('CURRENT MOON') && hallHtml.includes('NEXT STEP'), 'Initiation Hall orientation labels are incomplete.');
 assert(hallHtml.includes('ROOMS + TOOLS'), 'Initiation Hall support-room hierarchy is missing.');
-assert(hallHtml.includes('app.js?v=0.10.77') && hallHtml.includes('styles.css?v=0.10.77'), 'Initiation Hall cache keys are stale.');
+assert(hallHtml.includes('app.js?v=0.10.81.1') && hallHtml.includes('styles.css?v=0.10.77'), 'Initiation Hall cache keys are stale.');
 assert(hallUi.includes("label: 'Availability'"), 'Flow FM navigation still says Client-Facing Calls.');
 assert(hallApp.includes("eyebrow:'AVAILABILITY'"), 'Availability support-room label is stale.');
 assert(hallCss.includes('Initiation Hall quiet-luxury rhythm'), 'Quiet-luxury Initiation Hall styling is missing.');
@@ -45,7 +45,7 @@ assert(hallCss.includes('grid-template-columns:repeat(3,minmax(0,1fr))'), 'Moon 
 assert(hallCss.includes('.temple-door-crown') && hallCss.includes('display:none!important'), 'Ornate Moon-door decoration is not restrained.');
 
 assert(clientApp.includes("const LOUNGE_SEASON_ORDER=['autumn','summer','winter','spring'];"), 'Four Seasons quadrant order must be Autumn, Summer, Winter, Spring.');
-assert(clientHtml.includes('app.js?v=0.10.78.2') && clientHtml.includes('styles.css?v=0.10.75'), 'Client cache keys are stale.');
+assert(clientHtml.includes('app.js?v=0.10.81.1') && clientHtml.includes('styles.css?v=0.10.81.1'), 'Client cache keys are stale.');
 
 assert(changelog.includes('v0.10.75'), 'Changelog is missing v0.10.75.');
 assert(release.includes('Queendom Beta Launch Experience'), 'Release note title is missing.');

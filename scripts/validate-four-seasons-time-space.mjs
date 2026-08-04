@@ -59,7 +59,7 @@ assert(!clientHtml.includes('id="loungeReplayNotes"'), 'Replay Notes should be h
 assert(!clientJs.includes('lodging_idea') && !clientJs.includes('calling_reflection'), 'The Lounge still exposes detailed seasonal planning fields.');
 assert(clientJs.includes('saveHourlyFlowRateFourSeasonLocations'), 'The Lounge does not save to the canonical Hourly Flow Rate plan.');
 assert(clientCss.includes('.lounge-season-planner-form') && clientCss.includes('.lounge-season-save'), 'Simplified Lounge styling is missing.');
-assert(clientHtml.includes('styles.css?v=0.10.75') && clientHtml.includes('app.js?v=0.10.78.2'), 'Client cache keys are not aligned with the current deployed baseline.');
+assert(clientHtml.includes('styles.css?v=0.10.81.1') && clientHtml.includes('app.js?v=0.10.81.1'), 'Client cache keys are not aligned with the current deployed baseline.');
 
 assert(hfrJs.includes('hourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not read the canonical location label.');
 assert(hfrJs.includes('saveHourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not write the canonical location label.');
@@ -84,7 +84,7 @@ assert(timeCss.includes('.time-space-grid') && timeCss.includes('.outer-season')
 assert(!/mapbox|google\.maps|leaflet|<svg[^>]*world/i.test(`${timeHtml}\n${timeJs}`), 'The intentionally deferred plotted map or external location SDK was added.');
 
 assert(flowFmJs.includes("href:'/flow-fm/time-space/'"), 'Flow FM support-room doorway is missing.');
-assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.77'), 'Flow FM hallway cache key is stale.');
+assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.81.1'), 'Flow FM hallway cache key is stale.');
 assert(managerHtml.includes('href="/flow-fm/time-space/"') && managerHtml.includes('Time + Space'), 'Owner Concierge doorway is missing.');
 assert(managerHtml.includes('styles.css?v=0.10.81') && managerHtml.includes('app.js?v=0.10.81'), 'Concierge cache keys are stale.');
 assert(managerCss.includes('.stat-card-link'), 'Owner Time + Space card styling is missing.');

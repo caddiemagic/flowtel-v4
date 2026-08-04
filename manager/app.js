@@ -16,6 +16,7 @@ import { PRIESTESS_MAILBOX_ACCEPT, createMailboxDownloadUrl, listAdminPriestessM
 import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "../shared/replay-notes.js?v=0.10.64";
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
+import { loadUpcomingServiceCalls } from "../shared/acuity-scheduling.js?v=0.10.81.1";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -176,6 +177,7 @@ let upcomingGolfServiceAvailable=true;
 let upcomingGolfCalendarCycleStart="";
 let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
+let upcomingServiceCallCount=0;
 let memberDirectoryRows=[];
 let memberDirectoryServiceAvailable=true;
 let memberDirectoryAccessFilter="active";
@@ -835,6 +837,8 @@ function updateStats(){
   setText("guestsInHouse",inHouse);
   setText("extendedStay",extendedCount);
   setText("clientsCount",currentClientsCount);
+  setText("upcomingCallsCount",upcomingServiceCallCount);
+  setText("upcomingCallsNote",upcomingServiceCallCount>0?"Womb Magic calls + client snapshots":"No calls currently scheduled");
   setText("clientConnectionCount",currentConnectionRequestsCount);
   setText("priestessTeamCount",priestessConciergeTeam.length);
   setText("priestessTeamProfileCount",priestessConciergeTeam.filter(row=>row.profile_status!=="not_started").length);
@@ -875,6 +879,9 @@ function updateStats(){
 
   const clientsCard=document.querySelector('[data-filter="clients"]');
   if(clientsCard) clientsCard.classList.toggle("has-alert",currentConnectionRequestsCount>0);
+
+  const upcomingCallsCard=document.querySelector('a[href="/flow-fm/upcoming-calls/"]');
+  if(upcomingCallsCard) upcomingCallsCard.classList.toggle("has-alert",upcomingServiceCallCount>0);
 
   const priestessTeamCard=document.querySelector('[data-filter="priestess-team"]');
   if(priestessTeamCard) priestessTeamCard.classList.toggle("has-alert",priestessConciergeTeam.some(row=>row.profile_status==="submitted"));
@@ -3096,6 +3103,18 @@ async function loadPriestessConciergeTeam(){
 }
 
 
+
+async function loadUpcomingServiceCallCount(){
+  try{
+    const result=await loadUpcomingServiceCalls();
+    const now=Date.now();
+    upcomingServiceCallCount=(result.calls||[]).filter(call=>["pending","scheduled","rescheduled"].includes(String(call?.status||"")) && new Date(call?.ends_at||call?.starts_at).getTime()>now).length;
+  }catch(error){
+    console.warn("Upcoming Calls count is not available yet.",error);
+    upcomingServiceCallCount=0;
+  }
+}
+
 async function loadDesk({silent=false}={}){
   if(deskRefreshInFlight) return;
   deskRefreshInFlight=true;
@@ -3104,6 +3123,7 @@ async function loadDesk({silent=false}={}){
     await renderConnectionRequests();
     await renderMyClients();
     await loadMemberPriestessMailboxData();
+    await loadUpcomingServiceCallCount();
     if(isOwnerDesk()){
       await loadMemberDirectory();
       await loadPriestessConciergeTeam();

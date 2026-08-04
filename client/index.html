@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.75" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.81.1" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -210,10 +210,48 @@
             </article>
 
         <article class="practitioner-card womb-magic-suite-card" id="wombMagicSuiteCard">
-          <p class="eyebrow">COMPLIMENTARY MENTOR CALL</p>
-          <h3>Book your Womb Magic call.</h3>
-          <p>Choose any available Flow FM Priestess for one private 45-minute call each month.</p>
-          <div class="mentor-card-actions"><a class="secondary mentor-schedule-button" href="/flow-fm/womb-magic/">Schedule Womb Magic</a></div>
+          <div id="complimentary-mentor-call" class="womb-magic-suite-intro">
+            <div>
+              <p class="eyebrow">COMPLIMENTARY MENTOR CALL</p>
+              <h3>Book your Womb Magic call.</h3>
+              <p>Choose any available Flow FM Priestess for one private 45-minute call each month.</p>
+            </div>
+            <button class="secondary mentor-schedule-button" type="button" data-wm-toggle aria-expanded="false">Schedule Womb Magic</button>
+          </div>
+          <section class="womb-magic-suite-summary" data-wm-summary hidden aria-live="polite"></section>
+          <section class="womb-magic-inline-panel" data-wm-panel hidden aria-hidden="true">
+            <header class="womb-magic-inline-heading">
+              <div>
+                <p class="eyebrow">WOMB MAGIC</p>
+                <h3>Find your available Priestess.</h3>
+                <p>Choose first available or select the Priestess you feel drawn to.</p>
+              </div>
+              <button class="secondary womb-magic-close" type="button" data-wm-close>Close</button>
+            </header>
+            <p class="womb-magic-inline-message" data-wm-message role="status"></p>
+            <section class="womb-magic-current-call" data-wm-current-call hidden></section>
+            <section class="womb-magic-booking-experience" data-wm-experience hidden>
+              <div class="womb-magic-choice-row">
+                <button class="secondary active" type="button" data-wm-first-available>First Available</button>
+                <button class="secondary" type="button" data-wm-choose-priestess>Choose a Priestess</button>
+              </div>
+              <div class="womb-magic-mentor-grid" data-wm-mentor-grid hidden></div>
+              <div class="womb-magic-calendar-step">
+                <label>Choose a month<input type="month" data-wm-month></label>
+                <button class="secondary" type="button" data-wm-load-dates>See Available Dates</button>
+              </div>
+              <div class="womb-magic-date-grid" data-wm-date-grid></div>
+              <div class="womb-magic-time-grid" data-wm-time-grid></div>
+              <section class="womb-magic-consent-card" data-wm-consent hidden>
+                <h4>Prepare your Womb Magic call</h4>
+                <p data-wm-consent-copy></p>
+                <label class="womb-magic-phone-field">Phone for appointment reminders<input type="tel" autocomplete="tel" placeholder="Optional unless required by Acuity" data-wm-phone></label>
+                <label class="womb-magic-consent-check"><input type="checkbox" data-wm-consent-input><span>I understand and consent to this temporary access.</span></label>
+                <button type="button" data-wm-book disabled>Consent + Book My Call</button>
+              </section>
+            </section>
+            <section class="womb-magic-inline-gate" data-wm-gate hidden></section>
+          </section>
         </article>
 
         <section class="mentor-panel hidden" id="mentorPanel" aria-live="polite">
@@ -355,6 +393,6 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.78.2"></script>
+  <script type="module" src="./app.js?v=0.10.81.1"></script>
 </body>
 </html>

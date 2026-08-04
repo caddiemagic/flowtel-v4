@@ -1,3 +1,13 @@
+## v0.10.81.1 — Womb Magic Suite + Upcoming Calls Polish
+
+- Moves the complete Womb Magic booking, consent, rescheduling, and cancellation experience into the Suite's existing Complimentary Mentor Call card.
+- Redirects the legacy Womb Magic room into the Suite and removes Womb Magic from Flow FM navigation so Queendom members are not exposed to the Initiation Hall shell.
+- Condenses participating Priestess cards to profile photo, name, and profile-supplied location/timezone only.
+- Groups Priestess calls into This Week, Next Week, and Later with a date-focused appointment design.
+- Converts technical timezone IDs into human-readable timezone names and removes the weekday from Access closes.
+- Replaces the Concierge Desk's LIVE label with the real number of active upcoming calls, including 0 when empty.
+- Requires no migration, preserves migration 064 and the working Acuity/webhook/consent foundation, and leaves Caddie Magic at v0.5.2.
+
 ## v0.10.81 — Acuity Scheduling + Consented Client Access
 
 - Adds the first live Acuity-powered Flowtel service: one complimentary 45-minute Womb Magic call per calendar month for Queendom members.
