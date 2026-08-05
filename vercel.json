@@ -87,6 +87,10 @@
       "destination": "/caddie-magic/index.html"
     },
     {
+      "source": "/manager/caddie-scheduling",
+      "destination": "/manager/caddie-scheduling/index.html"
+    },
+    {
       "source": "/manager/caddie-team",
       "destination": "/manager/caddie-team/index.html"
     },
@@ -279,7 +283,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.2"
+          "value": "0.6.0"
         }
       ]
     },
@@ -292,7 +296,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.2"
+          "value": "0.6.0"
         }
       ]
     },
@@ -305,7 +309,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.2"
+          "value": "0.6.0"
         }
       ]
     },
@@ -318,7 +322,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.5.2"
+          "value": "0.6.0"
         }
       ]
     },

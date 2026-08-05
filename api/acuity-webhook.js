@@ -65,10 +65,12 @@ async function handler(req,res){
     if(appointment.calendarID)patch.acuity_calendar_id=String(appointment.calendarID);
     await fetchJson(serviceUrl(context,'flowtel_external_appointments',`id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify(patch)});
     if(status==='cancelled'){
-      await fetchJson(serviceUrl(context,'flowtel_appointment_access_grants',`appointment_id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({status:'revoked',revoked_at:nowIso(),revoked_reason:'Acuity appointment cancelled',updated_at:nowIso()})});
+      const table=local.source_product==='caddie_magic'?'caddie_magic_appointment_access_grants':'flowtel_appointment_access_grants';
+      await fetchJson(serviceUrl(context,table,`appointment_id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({status:'revoked',revoked_at:nowIso(),revoked_reason:'Acuity appointment cancelled',updated_at:nowIso()})});
     }else if(patch.ends_at){
       const activeUntil=new Date(new Date(patch.ends_at).getTime()+7*86400000).toISOString();
-      await fetchJson(serviceUrl(context,'flowtel_appointment_access_grants',`appointment_id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({active_until:activeUntil,status:'active',revoked_at:null,revoked_reason:null,updated_at:nowIso()})});
+      const table=local.source_product==='caddie_magic'?'caddie_magic_appointment_access_grants':'flowtel_appointment_access_grants';
+      await fetchJson(serviceUrl(context,table,`appointment_id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({active_until:activeUntil,status:'active',revoked_at:null,revoked_reason:null,updated_at:nowIso()})});
     }
     await logEvent(context,{acuity_appointment_id:acuityId,action,appointment_id:local.id,calendar_id:calendarId||local.acuity_calendar_id,appointment_type_id:appointmentTypeId||local.acuity_appointment_type_id,processing_status:'processed',detail:{status},processed_at:nowIso()});
     return res.status(200).json({ok:true});

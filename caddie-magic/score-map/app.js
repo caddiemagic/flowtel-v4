@@ -1,9 +1,9 @@
-// Caddie Magic v0.5.2 — 28-Day Pattern Window + Mobile Controls
+// Caddie Magic v0.6.0 — 28-Day Pattern Window + Mobile Controls
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
 import { getMoonMagic } from "../../shared/moon.js";
-import { averageValidGolfScore, validGolfScore } from "../../shared/caddie-magic-score-calculations.js?v=0.5.2";
+import { averageValidGolfScore, validGolfScore } from "../../shared/caddie-magic-score-calculations.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 

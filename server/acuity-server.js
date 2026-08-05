@@ -39,7 +39,7 @@ function acuityHeaders({userId,apiKey}){
     Authorization:`Basic ${Buffer.from(`${userId}:${apiKey}`).toString('base64')}`,
     'Content-Type':'application/json',
     Accept:'application/json',
-    'User-Agent':'Flowtel Acuity Bridge/0.10.81',
+    'User-Agent':'Flowtel + Caddie Magic Acuity Bridge/0.10.81.3-0.6.0',
   };
 }
 
@@ -78,7 +78,7 @@ async function profileForUser(context,userId=context.user.id){
 }
 
 async function productAccessForUser(context,userId=context.user.id){
-  const rows=await fetchJson(serviceRestUrl(context,'flowtel_product_access',`select=flowtel_access,access_role,access_source&user_id=eq.${encodeURIComponent(userId)}&limit=1`),{
+  const rows=await fetchJson(serviceRestUrl(context,'flowtel_product_access',`select=*&user_id=eq.${encodeURIComponent(userId)}&limit=1`),{
     method:'GET',headers:serviceHeaders(context.serviceKey),
   });
   return Array.isArray(rows)?rows[0]||null:null;
@@ -104,6 +104,21 @@ async function requireFlowtelMember(req){
     throw error;
   }
   return {...context,profile,access};
+}
+
+
+async function caddiePlayerProfileForUser(context,userId=context.user.id){
+  const rows=await fetchJson(serviceRestUrl(context,'caddie_magic_player_profiles',`select=*&user_id=eq.${encodeURIComponent(userId)}&limit=1`),{method:'GET',headers:serviceHeaders(context.serviceKey)});
+  return Array.isArray(rows)?rows[0]||null:null;
+}
+async function requireCaddieMagicPlayer(req){
+  const context=await requireUser(req);
+  const [profile,access,playerProfile]=await Promise.all([profileForUser(context),productAccessForUser(context),caddiePlayerProfileForUser(context)]);
+  if(!access?.caddie_magic_access||!playerProfile){const error=new Error('A Caddie Magic Player key is required to schedule a session.');error.statusCode=403;throw error;}
+  return {...context,profile,access,playerProfile};
+}
+async function requireCaddieMagicOwner(req){
+  const context=await requireOwner(req);const profile=await profileForUser(context);return {...context,profile};
 }
 
 async function requireFlowtelProvider(req){
@@ -203,6 +218,9 @@ module.exports={
   readRequestBody,
   requireFlowtelMember,
   requireFlowtelOwner,
+  requireCaddieMagicPlayer,
+  requireCaddieMagicOwner,
+  caddiePlayerProfileForUser,
   requireFlowtelProvider,
   safeJsonParse,
   sendAcuityError,

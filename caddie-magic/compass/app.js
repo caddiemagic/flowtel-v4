@@ -1,10 +1,10 @@
-// Caddie Magic v0.5.2 — player-owned Compass with four Cardinal Club rooms.
+// Caddie Magic v0.6.0 — player-owned Compass with four Cardinal Club rooms.
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
-import { getMyCaddieMagicProfile, getMyActiveCompass, saveMyCompass } from "../../shared/caddie-magic-compass.js?v=0.5.2";
-import { getMyUpcomingGolfEvents, saveUpcomingGolfEvent, deleteUpcomingGolfEvent } from "../../shared/caddie-magic-schedule.js?v=0.5.2";
-import { moonLabelForDate } from "../../shared/caddie-magic-moon-calendar.js?v=0.5.2";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
+import { getMyCaddieMagicProfile, getMyActiveCompass, saveMyCompass } from "../../shared/caddie-magic-compass.js?v=0.6.0";
+import { getMyUpcomingGolfEvents, saveUpcomingGolfEvent, deleteUpcomingGolfEvent } from "../../shared/caddie-magic-schedule.js?v=0.6.0";
+import { moonLabelForDate } from "../../shared/caddie-magic-moon-calendar.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 let playerProfile = null;

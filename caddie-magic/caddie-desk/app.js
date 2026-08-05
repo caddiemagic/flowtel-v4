@@ -1,6 +1,6 @@
-// Caddie Magic v0.5.2 — simplified Caddie Profile, controlled courses, and shared scheduling.
+// Caddie Magic v0.6.0 — simplified Caddie Profile, controlled courses, and shared scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
 import {
   getMyCaddieProfile,
   saveMyCaddieProfile,
@@ -8,6 +8,8 @@ import {
   listMyPlayerRequests,
   respondToPlayerRequest,
   listMyConsultations,
+  listMyUpcomingCaddieSessions,
+  getCaddieAppointmentSnapshot,
   cancelConsultation,
   completeConsultation,
   getPlayerConsultationSnapshot,
@@ -21,7 +23,7 @@ import {
   removeMyCaddieScheduleException,
   getMyCaddieTeamMessages,
   sendMyCaddieTeamMessage,
-} from "../../shared/caddie-magic-network.js?v=0.5.2";
+} from "../../shared/caddie-magic-network.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -34,6 +36,7 @@ const DAYPARTS = [
 let profile = null;
 let requests = [];
 let consultations = [];
+let acuitySessions = [];
 let courseCatalog = [];
 let courseSettings = { selected: [], pending: [] };
 let schedule = { weekly: [], exceptions: [], service: { duration_minutes: 45 } };
@@ -337,6 +340,28 @@ function renderRequests() {
   });
 }
 
+function renderAcuitySessions() {
+  const rows = acuitySessions.filter((item) => item.viewer_role === "provider" || item.viewer_role === "caddie_master");
+  const card = $("acuitySessionsDeskCard");
+  if (card) card.classList.toggle("hidden", !isActive());
+  $("acuitySessionCount").textContent = `${rows.length} upcoming`;
+  $("acuitySessionList").innerHTML = rows.length
+    ? rows.map((item) => `<article class="desk-consultation-row">
+        <div>
+          <h3>${escapeHtml(item.player_name || "Caddie Magic Player")}</h3>
+          <p>${escapeHtml(formatDateTime(item.starts_at))} · ${escapeHtml(item.service_name || "Player Session")}</p>
+          <p>Preparation access closes ${escapeHtml(formatDateTime(item.access_until))}</p>
+        </div>
+        <div class="desk-row-actions">
+          <button class="cm-button" type="button" data-open-appointment-snapshot="${escapeHtml(item.appointment_id)}">Open Player Preparation</button>
+        </div>
+      </article>`).join("")
+    : `<div class="desk-empty">No Acuity sessions are scheduled.</div>`;
+  document.querySelectorAll("[data-open-appointment-snapshot]").forEach((button) => {
+    button.addEventListener("click", () => openAppointmentSnapshot(button.dataset.openAppointmentSnapshot));
+  });
+}
+
 function renderConsultations() {
   const rows = consultations.filter((item) => item.viewer_role === "caddie");
   $("deskConsultationList").innerHTML = rows.length
@@ -393,6 +418,42 @@ function snapshotEntries(entries = []) {
         ${entry.score != null ? `<strong>${escapeHtml(entry.score)}</strong>` : ""}
       </article>`).join("")}</div>`
     : `<div class="desk-empty">No shared entries are available.</div>`;
+}
+
+async function openAppointmentSnapshot(appointmentId) {
+  $("snapshotContent").innerHTML = `<div class="snapshot-wrap"><p class="cm-eyebrow">SESSION PREPARATION</p><h2>Opening consented Player data...</h2></div>`;
+  $("snapshotDialog").showModal();
+  try {
+    const snapshot = await getCaddieAppointmentSnapshot(appointmentId);
+    const player = snapshot?.player || {};
+    const request = snapshot?.request || {};
+    const compass = snapshot?.compass || null;
+    const upcoming = Array.isArray(snapshot?.upcoming_golf) ? snapshot.upcoming_golf : [];
+    $("snapshotContent").innerHTML = `<div class="snapshot-wrap">
+      <p class="cm-eyebrow">APPOINTMENT-SCOPED PLAYER PREPARATION</p>
+      <h2>${escapeHtml(player.name || "Player")}</h2>
+      <p class="cm-muted">This read-only doorway exists only for the session you are holding. It does not change the Player’s permanent Caddie relationship.</p>
+      <section class="snapshot-section"><div class="snapshot-grid">
+        <article class="snapshot-data-card"><span>Session</span><strong>${escapeHtml(formatDateTime(snapshot?.appointment?.starts_at))}</strong></article>
+        <article class="snapshot-data-card"><span>Access Closes</span><strong>${escapeHtml(formatDateTime(snapshot?.access?.active_until))}</strong></article>
+        <article class="snapshot-data-card"><span>Score Range</span><strong>${escapeHtml(player.handicap_or_score_range || "Not provided")}</strong></article>
+        <article class="snapshot-data-card"><span>Home Course</span><strong>${escapeHtml(player.home_course || "Not provided")}</strong></article>
+        <article class="snapshot-data-card"><span>Main Goal</span><p>${escapeHtml(player.main_goal || request.consultation_goal || "Not provided")}</p></article>
+        <article class="snapshot-data-card"><span>Biggest Frustration</span><p>${escapeHtml(player.biggest_frustration || "Not provided")}</p></article>
+      </div></section>
+      ${compass ? `<section class="snapshot-section"><p class="cm-eyebrow">CADDIE COMPASS</p><div class="snapshot-grid">
+        <article class="snapshot-data-card"><span>North Club</span><strong>${escapeHtml(compass.north_club)}</strong></article>
+        <article class="snapshot-data-card"><span>East Club</span><strong>${escapeHtml(compass.east_club)}</strong></article>
+        <article class="snapshot-data-card"><span>West Club</span><strong>${escapeHtml(compass.west_club)}</strong></article>
+        <article class="snapshot-data-card"><span>South Club</span><strong>${escapeHtml(compass.south_club)}</strong></article>
+      </div></section>` : ""}
+      ${Array.isArray(snapshot?.scorecard) && snapshot.scorecard.length ? `<section class="snapshot-section"><p class="cm-eyebrow">SCORECARD</p>${snapshotEntries(snapshot.scorecard)}</section>` : ""}
+      ${Array.isArray(snapshot?.score_map) && snapshot.score_map.length ? `<section class="snapshot-section"><p class="cm-eyebrow">SCORE MAP</p>${snapshotEntries(snapshot.score_map)}</section>` : ""}
+      ${upcoming.length ? `<section class="snapshot-section"><p class="cm-eyebrow">UPCOMING GOLF</p>${upcoming.map((event) => `<article class="snapshot-entry"><time>${escapeHtml(formatDate(event.date_start))}</time><p>${escapeHtml(event.title || event.course || "Upcoming Golf")}</p><strong>${escapeHtml(event.event_type || "")}</strong></article>`).join("")}</section>` : ""}
+    </div>`;
+  } catch (error) {
+    $("snapshotContent").innerHTML = `<div class="snapshot-wrap"><p class="cm-message error">${escapeHtml(error?.message || "The preparation view could not be opened.")}</p></div>`;
+  }
 }
 
 async function openSnapshot(requestId) {
@@ -454,13 +515,15 @@ async function refreshTeamMessages() {
 
 async function reloadOperationalData() {
   if (!isActive()) return;
-  [requests, consultations, schedule, teamMessages] = await Promise.all([
+  [requests, consultations, acuitySessions, schedule, teamMessages] = await Promise.all([
     listMyPlayerRequests(),
     listMyConsultations(),
+    listMyUpcomingCaddieSessions().catch(() => []),
     getMyCaddieSchedule(),
     getMyCaddieTeamMessages().catch(() => []),
   ]);
   renderRequests();
+  renderAcuitySessions();
   renderConsultations();
   renderWeeklySchedule();
   renderScheduleExceptions();

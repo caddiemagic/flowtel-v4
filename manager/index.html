@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Concierge Desk</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.81.2" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.81.3" />
 </head>
 
 <body>
@@ -79,7 +79,7 @@
           <button class="stat-card" type="button" data-filter="priestess-team"><span>Priestess Concierge Team</span><strong id="priestessTeamCount">0</strong><em><b id="priestessTeamProfileCount">0</b> profiles started</em></button>
           <a class="stat-card stat-card-link" href="/manager/acuity/"><span>Acuity Scheduling</span><strong>SETUP</strong><em>Map Womb Magic calendars</em></a>
           <a class="stat-card stat-card-link" href="/flow-fm/review/"><span>Profile Review Desk</span><strong>OPEN</strong><em>Witness submitted Priestess profiles</em></a>
-          <a class="stat-card stat-card-link" href="/manager/availability/"><span>Flow FM Availability</span><strong id="flowFmAvailabilityCount">0</strong><em id="flowFmAvailabilityNote">View seasonal rhythms</em></a>
+          <a class="stat-card stat-card-link" href="/manager/availability/"><span>Flow FM Availability</span><strong id="flowFmAvailabilityCount">0</strong><em id="flowFmAvailabilityNote">Exact days, hours + timezones</em></a>
           <button class="stat-card" type="button" data-filter="member-directory"><span>Flowtel Members</span><strong id="flowtelMemberCount">0</strong><em><b id="flowtelMemberReviewCount">0</b> need review</em></button>
           <button class="stat-card" type="button" data-filter="admin-team-map"><span>28-Day Team Map</span><strong id="adminTeamMapCount">0</strong><em>Team members in motion</em></button>
           <button class="stat-card" type="button" data-filter="honors"><span>Flowtel Honors</span><strong id="honorsAvailablePoints">0</strong><em><b id="honorsPractitionerCount">0</b> Priestess balances</em></button>
@@ -100,6 +100,7 @@
           <button class="stat-card" type="button" data-filter="caddie-team"><span>Caddie Concierge Team</span><strong id="caddieTeamCount">0</strong><em>Active Caddies</em></button>
           <button class="stat-card" type="button" data-filter="caddie-reviews"><span>Scorecard Reviews</span><strong id="caddieReviewCount">0</strong><em>Caddie Master pattern requests</em></button>
           <button class="stat-card" type="button" data-filter="caddie-compass"><span>Caddie Compass</span><strong id="caddieCompassCount">0</strong><em><b id="caddieCompassPlayerCount">0</b> players mapped</em></button>
+          <a class="stat-card stat-card-link" href="/manager/caddie-scheduling/"><span>Session Scheduling</span><strong>SETUP</strong><em>Map Megan + Caddie calendars</em></a>
           <button class="stat-card" type="button" data-filter="upcoming-golf"><span>Upcoming Golf</span><strong id="upcomingGolfCount">0</strong><em>Admin calendar</em></button>
         </div>
       </section>
@@ -141,7 +142,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.81.2").catch(function(error){
+    import("./app.js?v=0.10.81.3").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

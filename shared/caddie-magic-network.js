@@ -1,4 +1,4 @@
-// Caddie Magic v0.5.2 — Caddie Network, command center, courses, and shared scheduling.
+// Caddie Magic v0.6.0 — Caddie Network, command center, courses, and shared scheduling.
 
 import { supabase } from "./supabase.js";
 
@@ -174,6 +174,21 @@ export async function listMyConsultations() {
 export async function getPlayerConsultationSnapshot(requestId) {
   const { data, error } = await supabase.rpc("caddie_magic_get_player_consultation_snapshot", {
     p_request_id: requestId,
+  });
+  if (error) throw error;
+  return data || null;
+}
+
+
+export async function listMyUpcomingCaddieSessions() {
+  const { data, error } = await supabase.rpc("caddie_magic_list_my_upcoming_sessions");
+  if (error) throw error;
+  return data || [];
+}
+
+export async function getCaddieAppointmentSnapshot(appointmentId) {
+  const { data, error } = await supabase.rpc("caddie_magic_get_appointment_snapshot", {
+    p_appointment_id: appointmentId,
   });
   if (error) throw error;
   return data || null;

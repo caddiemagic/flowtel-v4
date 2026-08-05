@@ -8,6 +8,7 @@ const PRIESTESS_TITLE_OPTIONS = [
   { value: 'moon-priestess', label: 'Moon Priestess' },
   { value: 'womb-priestess', label: 'Womb Priestess' },
   { value: 'medicine-woman', label: 'Medicine Woman' },
+  { value: 'siren-priestess', label: 'Siren Priestess' },
 ];
 const PRIESTESS_BIO_TEMPLATES = [
   { value: 'rose-priestess-heart-opening', titleValue: 'rose-priestess', label: 'Rose Priestess · Heart Opening', copy: 'As a Rose Priestess, I guide women through the path of the rose—a journey of opening the heart, deepening self-love, and embodying the sacred feminine. My work invites women to cultivate a life rooted in beauty, devotion, pleasure, and authentic expression. Through ceremony, embodiment practices, and heart-centered healing, I help women remember that they are worthy of receiving the love, abundance, and support they desire. My intention is to create spaces where women can soften into their truth, reconnect with their hearts, and bloom into the fullest expression of who they came here to be.' },
@@ -16,6 +17,9 @@ const PRIESTESS_BIO_TEMPLATES = [
   { value: 'moon-priestess-intuition', titleValue: 'moon-priestess', label: 'Moon Priestess · Intuition + Timing', copy: 'As a Moon Priestess, I help women work with lunar timing, intuition, and cyclical awareness so they can stop forcing and start flowing. My spaces are designed to help women hear themselves more clearly, honor the season they are in, and trust the timing of their becoming.' },
   { value: 'womb-priestess-creative-power', titleValue: 'womb-priestess', label: 'Womb Priestess · Creative Power', copy: 'As a Womb Priestess, I support women in reconnecting with the wisdom, creativity, and power that lives within their bodies. My work invites women to listen to their womb, honor their cycles, release what no longer belongs, and create from a place of rooted inner authority. Through womb work, embodiment, and feminine practice, I help women remember that their body is not a burden—it is a compass.' },
   { value: 'womb-priestess-cycle-tracking', titleValue: 'womb-priestess', label: 'Womb Priestess · Cycle Wisdom', copy: 'As a Womb Priestess, I guide women into deeper relationship with their cycles, their womb wisdom, and the creative intelligence of the body. My work helps women understand their inner seasons, make decisions with more self-trust, and build lives that honor their energy instead of overriding it.' },
+
+  { value: 'siren-priestess-voice-alchemy', titleValue: 'siren-priestess', label: 'Siren Priestess · Voice Alchemy', copy: 'As a Siren Priestess, I guide women into the magnetic intelligence of their own voice. My work weaves sound, breath, embodied expression, speaking, singing, and vocal ritual to help women release what has silenced them, speak their truth, and create resonance through the medicine of being fully heard.' },
+  { value: 'siren-priestess-magnetic-expression', titleValue: 'siren-priestess', label: 'Siren Priestess · Magnetic Expression', copy: 'As a Siren Priestess, I help women reclaim expression as a source of magnetism. Through voice alchemy, sound, storytelling, and embodied communication, I support women in trusting what wants to move through them and sharing their medicine with clarity, beauty, and unmistakable presence.' },
   { value: 'medicine-woman-ceremony', titleValue: 'medicine-woman', label: 'Medicine Woman · Ceremony + Healing', copy: 'As a Medicine Woman, I create grounded, intuitive spaces for women to reconnect with their bodies, their truth, and the medicine they already carry. My work may weave ceremony, embodiment, breath, ritual, reflection, and feminine wisdom to support women through transformation, remembrance, and deeper self-trust.' },
   { value: 'medicine-woman-embodiment', titleValue: 'medicine-woman', label: 'Medicine Woman · Embodiment + Remembrance', copy: 'As a Medicine Woman, I walk with women as they remember their own inner medicine. I hold spaces for embodiment, emotional release, intuitive reflection, and sacred reconnection so women can feel more rooted in who they are and more resourced in how they move through the world.' },
 ];
@@ -27,6 +31,10 @@ const PRIESTESS_OFFERING_OPTIONS = [
   { value: 'breathwork-journey', label: 'Breathwork Journey' },
   { value: 'ceremony', label: 'Ceremony' },
   { value: 'inner-seasons-consultation', label: 'Inner Seasons Consultation' },
+  { value: 'voice-activation', label: 'Voice Activation' },
+  { value: 'vocal-alchemy-journey', label: 'Vocal Alchemy Journey' },
+  { value: 'magnetic-expression-mentorship', label: 'Magnetic Expression Mentorship' },
+  { value: 'sound-and-siren-ceremony', label: 'Sound + Siren Ceremony' },
 ];
 const FLOWTEL_TIMEZONE_OPTIONS = [
   { value: 'America/Los_Angeles', label: 'Pacific Time — America/Los_Angeles' },
@@ -182,8 +190,14 @@ function canTendOwnProfile(profile){ return !!profile?.id && !isViewingAnotherMe
 function requestedMemberId(){ return new URLSearchParams(window.location.search).get('member') || new URLSearchParams(window.location.search).get('client') || null; }
 function isViewingAnotherMember(profile){ return !!requestedMemberId() && requestedMemberId() !== profile?.id; }
 function selectedTitleValue(record={}){
+  const framework=frameworkSelection(record,'title');
+  if(PRIESTESS_TITLE_OPTIONS.some(item=>item.value===framework)) return framework;
   const existing=String(record.priestess_title || record.modalities || '').trim();
   return PRIESTESS_TITLE_OPTIONS.find(item => item.value === existing || item.label === existing)?.value || 'rose-priestess';
+}
+function publishedTitleForRecord(record={}){
+  const value=String(record.published_title || record.modalities || record.priestess_title || '').trim();
+  return value || labelForPriestessTitle(selectedTitleValue(record));
 }
 function frameworkSelection(record={},key=''){
   const source=String(record.framework_language || record.frameworkLanguage || '');
@@ -246,7 +260,8 @@ function valuesFromForm(form){
   const titleValue=String(data.get('title_value') || 'rose-priestess');
   const bioValue=String(data.get('bio_template') || bioTemplatesForTitle(titleValue)[0]?.value || PRIESTESS_BIO_TEMPLATES[0].value);
   const bio=String(data.get('bio_custom') || bioTemplateCopy(bioValue) || '').trim();
-  const title=labelForPriestessTitle(titleValue);
+  const suggestedTitle=labelForPriestessTitle(titleValue);
+  const title=String(data.get('published_title') || suggestedTitle).trim() || suggestedTitle;
   const offeringValues=data.getAll('offerings').map(value => String(value));
   const offerings=offeringLabelsFromValues(offeringValues).join(', ');
   const location=String(data.get('location') || '').trim();
@@ -308,7 +323,7 @@ function profileReviewNotes(profile){
 }
 function renderDisplayProfile(profile={}){
   const name=profile.display_name || profile.priestess_name || profile.member_name || 'Priestess Profile';
-  const title=labelForPriestessTitle(profile.priestess_title || profile.modalities || 'rose-priestess');
+  const title=String(profile.published_title || profile.modalities || profile.priestess_title || labelForPriestessTitle(selectedTitleValue(profile))).trim() || 'Priestess';
   const locationLine=String(profile.location || '').trim();
   const timezone=String(profile.timezone || '').trim();
   const website=safeHref(profile.website_url);
@@ -343,7 +358,7 @@ function renderProfileFromRecord(record={}){
     priestess_name: record.display_name || record.priestess_name || '',
     legal_first_name: record.legal_first_name || record.first_name || '',
     legal_last_name: record.legal_last_name || record.last_name || '',
-    modalities: labelForPriestessTitle(titleValue),
+    modalities: publishedTitleForRecord(record),
     bio: record.bio || findBioTemplate('').copy,
     offerings: record.offerings || '',
     location: displayLocation(record) ? (record.location || '') : '',
@@ -544,7 +559,8 @@ function renderProfileStudio(record=currentPriestessProfile){
         <div class="form-grid"><label><span>Legal First Name — private</span><input name="legal_first_name" autocomplete="given-name" required value="${escapeHtml(profile.legal_first_name || profile.first_name || '')}" placeholder="Megan" /></label><label><span>Legal Last Name — private</span><input name="legal_last_name" autocomplete="family-name" required value="${escapeHtml(profile.legal_last_name || profile.last_name || '')}" placeholder="Johnson" /></label></div>
         <label><span>Priestess Display Name</span><input name="display_name" autocomplete="nickname" required value="${escapeHtml(profile.display_name || profile.priestess_name || '')}" placeholder="Megan Michele" /><small class="field-help">This is the name shown in your Suite, Team Map, Concierge Desk, mentor spaces, and Priestess profile.</small></label>
       </section>`}
-    <label><span>Title</span><select name="title_value">${renderTitleOptions(titleValue)}</select></label>
+    <label><span>Choose a Guiding Archetype</span><select name="title_value" data-previous-value="${escapeHtml(titleValue)}">${renderTitleOptions(titleValue)}</select><small class="field-help">Use these profiles as guidance. Your public title can be completely your own.</small></label>
+    <label><span>Your Published Title</span><input name="published_title" maxlength="100" value="${escapeHtml(publishedTitleForRecord(profile))}" placeholder="Siren Priestess, Voice Alchemist, Sacred Expression Guide…" /><small class="field-help">This is the title shown on your Priestess Profile. Changing it does not remove the archetype guiding your bio.</small></label>
     <label><span>Choose a Profile Description</span><select name="bio_template" data-previous-value="${escapeHtml(bioValue)}">${renderBioOptions(titleValue,bioValue)}</select><small class="field-help">Begin with language that already holds the essence of your work.</small></label>
     <section class="selected-bio-preview selected-bio-preview--editable" data-selected-bio-preview>
       <p class="eyebrow" data-selected-bio-label>PREPARED DESCRIPTION</p>
@@ -573,6 +589,12 @@ function bindProfileForm(){
   const bioEditor=form.querySelector('[name="bio_custom"]');
   const bioStatus=form.querySelector('[data-bio-edit-status]');
   titleSelect?.addEventListener('change',()=>{
+    const previousArchetype=titleSelect.dataset.previousValue || '';
+    const titleInput=form.querySelector('[name="published_title"]');
+    const oldSuggested=labelForPriestessTitle(previousArchetype);
+    const currentPublished=String(titleInput?.value || '').trim();
+    if(titleInput && (!currentPublished || currentPublished===oldSuggested)) titleInput.value=labelForPriestessTitle(titleSelect.value);
+    titleSelect.dataset.previousValue=titleSelect.value;
     const previous=bioSelect?.dataset.previousValue || bioSelect?.value || '';
     const preserve=bioHasCustomEdits(form,previous);
     const options=bioTemplatesForTitle(titleSelect.value);

@@ -7,6 +7,7 @@ export const PRIESTESS_TITLE_OPTIONS = [
   { value: 'moon-priestess', label: 'Moon Priestess' },
   { value: 'womb-priestess', label: 'Womb Priestess' },
   { value: 'medicine-woman', label: 'Medicine Woman' },
+  { value: 'siren-priestess', label: 'Siren Priestess' },
 ];
 
 export const PRIESTESS_BIO_TEMPLATES = [
@@ -46,6 +47,19 @@ export const PRIESTESS_BIO_TEMPLATES = [
     label: 'Womb Priestess · Cycle Wisdom',
     copy: `As a Womb Priestess, I guide women into deeper relationship with their cycles, their womb wisdom, and the creative intelligence of the body. My work helps women understand their inner seasons, make decisions with more self-trust, and build lives that honor their energy instead of overriding it.`,
   },
+
+  {
+    value: 'siren-priestess-voice-alchemy',
+    titleValue: 'siren-priestess',
+    label: 'Siren Priestess · Voice Alchemy',
+    copy: `As a Siren Priestess, I guide women into the magnetic intelligence of their own voice. My work weaves sound, breath, embodied expression, speaking, singing, and vocal ritual to help women release what has silenced them, speak their truth, and create resonance through the medicine of being fully heard.`,
+  },
+  {
+    value: 'siren-priestess-magnetic-expression',
+    titleValue: 'siren-priestess',
+    label: 'Siren Priestess · Magnetic Expression',
+    copy: `As a Siren Priestess, I help women reclaim expression as a source of magnetism. Through voice alchemy, sound, storytelling, and embodied communication, I support women in trusting what wants to move through them and sharing their medicine with clarity, beauty, and unmistakable presence.`,
+  },
   {
     value: 'medicine-woman-ceremony',
     titleValue: 'medicine-woman',
@@ -68,6 +82,10 @@ export const PRIESTESS_OFFERING_OPTIONS = [
   { value: 'breathwork-journey', label: 'Breathwork Journey' },
   { value: 'ceremony', label: 'Ceremony' },
   { value: 'inner-seasons-consultation', label: 'Inner Seasons Consultation' },
+  { value: 'voice-activation', label: 'Voice Activation' },
+  { value: 'vocal-alchemy-journey', label: 'Vocal Alchemy Journey' },
+  { value: 'magnetic-expression-mentorship', label: 'Magnetic Expression Mentorship' },
+  { value: 'sound-and-siren-ceremony', label: 'Sound + Siren Ceremony' },
 ];
 
 export const FLOWTEL_TIMEZONE_OPTIONS = [

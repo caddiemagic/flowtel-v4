@@ -1,14 +1,15 @@
-// Caddie Magic v0.5.2 — Network reintegration, Caddie Master services, and review credits
+// Caddie Magic v0.6.0 — Network reintegration, Caddie Master services, and review credits
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.5.2";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.5.2";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.5.2";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.5.2";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.5.2";
-import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.5.2";
-import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.5.2";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.6.0";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.6.0";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.6.0";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.6.0";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.6.0";
+import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.6.0";
+import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.6.0";
+import { mountCaddieMagicBooking } from "../shared/caddie-magic-booking.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -233,6 +234,7 @@ function showState(state) {
   historyCard?.classList.toggle("hidden", !isPortal);
   caddieReviewCard?.classList.toggle("hidden", !isPortal);
   assignmentsCard?.classList.toggle("hidden", !isPortal);
+  $("sessionBookingCard")?.classList.toggle("hidden", !isPortal);
 }
 
 async function signIn() {
@@ -1005,6 +1007,7 @@ async function bootPortal(seed = {}) {
     await loadPortalData();
     renderPortal();
     showState("portal");
+    mountCaddieMagicBooking($("caddieMagicBookingRoot"));
   } catch (error) {
     console.error(error);
     showState("auth");

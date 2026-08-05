@@ -1,3 +1,14 @@
+## v0.10.81.3 — Suite Action Harmony + Availability Detail + Siren Profiles / Caddie Magic v0.6.0
+
+- Unifies Save Reflection, Choose Your Mentor, and Schedule Womb Magic as matching soft-pink, full-width Suite actions and removes the empty Womb Magic pill.
+- Rebuilds the owner Flow FM Availability room in the cream-and-rose Flowtel system with restrained headers, exact weekdays, exact time windows, and human-readable timezones.
+- Adds Siren Priestess guidance for voice alchemy, sound, and magnetic expression.
+- Lets Priestesses keep a guided archetype while publishing a custom visible title.
+- Adds Caddie Magic Player scheduling with Megan or an accepted Caddie through the existing Acuity bridge.
+- Adds Caddie-styled automatic dates/times, rescheduling, cancellation, upcoming-session counts, owner mapping, provider sessions, and appointment-scoped Player preparation.
+- Reuses the existing Acuity credentials and `changed` webhook.
+- Requires migration 066 and never reruns or renames either migration 052 file.
+
 ## v0.10.81.2 — Womb Magic Booking Flow + Mentor and Availability Visibility
 
 - Restores the full-width Schedule Womb Magic action inside the Suite.

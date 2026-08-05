@@ -1,6 +1,6 @@
-// Caddie Magic v0.5.2 — player Caddie directory, request, and accepted-only consultation scheduling.
+// Caddie Magic v0.6.0 — player Caddie directory, request, and accepted-only consultation scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.5.2";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
 import {
   listAvailableCaddies,
   requestCaddie,
@@ -10,7 +10,7 @@ import {
   bookConsultation,
   listMyConsultations,
   cancelConsultation,
-} from "../../shared/caddie-magic-network.js?v=0.5.2";
+} from "../../shared/caddie-magic-network.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 let caddies = [];

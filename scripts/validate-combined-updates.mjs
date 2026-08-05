@@ -126,7 +126,7 @@ assert(!files.caddieHtml.includes('id="nextNewMoonValue"'));
 assert(!files.caddieHtml.includes('id="nextFullMoonValue"'));
 assert(files.caddieJs.includes('averageValidGolfScore'));
 assert(files.scoreJs.includes('validGolfScore(entry.score) !== null'));
-assert(files.caddieHtml.includes('?v=0.5.2'),'Caddie v0.5.2 cache keys are missing.');
+assert(files.caddieHtml.includes('?v=0.6.0'),'Caddie v0.6.0 cache keys are missing.');
 assert(!files.caddieHtml.includes('cm-version'),'Caddie version pill must not be user-facing.');
 
 assert(files.managerHtml.includes('data-filter="member-directory"'),'Owner Member Directory card is missing.');

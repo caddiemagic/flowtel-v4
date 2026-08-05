@@ -4,13 +4,13 @@ This directory is the canonical Caddie Magic product surface inside the shared F
 
 ## Canonical pages
 
-- `/caddie-magic/` — Player Profile, Moon Scorecard, entry logging, Caddie Network status, and service doorway
+- `/caddie-magic/` — Player Profile, Moon Scorecard, entry logging, Caddie Network status, and Acuity-powered Player session scheduling
 - `/caddie-magic/score-map/` — private player Score Map
 - `/caddie-magic/collective-map/` — anonymous Locker Room
 - `/caddie-magic/compass/` — player-owned Caddie Compass and Calendar
 - `/caddie-magic/compass/club/` — personalized North, East, South, or West Cardinal Club room
 - `/caddie-magic/caddies/` — approved Caddie directory, player request, accepted-only availability, and consultation scheduling
-- `/caddie-magic/caddie-desk/` — owner-approved Caddie Profile, private Caddie Team messages, player requests, availability, consultations, and read-only preparation
+- `/caddie-magic/caddie-desk/` — owner-approved Caddie Profile, private Caddie Team messages, player requests, availability, Acuity sessions, and read-only preparation
 - `/caddie-magic/compass/admin/` — retained legacy owner/admin Compass history surface; not part of Caddie Network permissions
 
 ## Current service boundary
@@ -22,7 +22,7 @@ Caddies may:
 - maintain a professional Caddie Profile;
 - accept or decline player requests;
 - set simple recurring Calls/Caddying availability and date exceptions;
-- see scheduled consultations and mark completed meetings;
+- see Acuity-booked sessions and open appointment-scoped Player preparation;
 - privately message The Caddie Master through the Caddie Team chamber;
 - open only the player data consented to for accepted consultation preparation.
 
@@ -33,6 +33,11 @@ Caddies may not:
 - leave Caddie Master Notes or complete Scorecard Reviews;
 - edit player Scorecard, Score Map, Compass, or Calendar records;
 - access Flowtel unless separately granted Flowtel product access.
+
+## Scheduling administration
+
+- `/manager/caddie-scheduling/` — owner-only Acuity appointment-type, calendar, provider, payment-mode, and upcoming-session mapping.
+- The existing `/api/acuity-webhook` endpoint routes updates by `source_product`; no second webhook is needed.
 
 ## Shared Caddie Magic modules
 
@@ -53,6 +58,6 @@ Caddie Magic players use the explicit product-access registry introduced in migr
 
 Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity. Migration 055 adds the owner Command Center, separate private Caddie Team messages, Upcoming Golf acknowledgment, team profiles, and Compass Consecration.
 
-Current integrated version: **Caddie Magic v0.5.2 / Flowtel v0.10.70**.
+Current integrated version: **Caddie Magic v0.6.0 / Flowtel v0.10.81.3**.
 
 Run `node scripts/validate-caddie-magic.mjs` before shipping a merged release.

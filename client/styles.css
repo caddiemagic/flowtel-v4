@@ -3878,7 +3878,7 @@ body.personal-room-key-is-open{
   .womb-magic-calendar-step label,.womb-magic-calendar-step .secondary{width:100%!important}
 }
 
-/* Flowtel v0.10.81.2 — Womb Magic booking clarity + elegant Priestess cards */
+/* Flowtel v0.10.81.3 — Womb Magic booking clarity + elegant Priestess cards */
 .womb-magic-suite-intro{display:block}
 .womb-magic-suite-action{
   display:flex!important;
@@ -4035,3 +4035,34 @@ body.personal-room-key-is-open{
   .womb-magic-time-grid{grid-template-columns:1fr 1fr}
 }
 @media(max-width:480px){.womb-magic-time-grid{grid-template-columns:1fr}}
+
+
+/* Flowtel v0.10.81.3 — unified Suite action buttons */
+#saveReflectionButton,
+#choosePractitionerButton,
+.womb-magic-suite-action{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  min-height:48px!important;
+  margin:18px 0 0!important;
+  padding:14px 20px!important;
+  border:1px solid rgba(109,78,65,.14)!important;
+  border-radius:999px!important;
+  background:var(--blush-2)!important;
+  color:var(--brown)!important;
+  box-shadow:0 10px 24px rgba(109,78,65,.08)!important;
+  font-family:Arial,sans-serif!important;
+  font-size:.75rem!important;
+  font-weight:700!important;
+  letter-spacing:.12em!important;
+  text-transform:uppercase!important;
+}
+#saveReflectionButton:hover,
+#choosePractitionerButton:hover,
+.womb-magic-suite-action:hover{background:var(--blush)!important;transform:translateY(-1px)}
+.mentor-card-actions{display:block!important}
+.mentor-card-actions #choosePractitionerButton{max-width:none!important}
+.womb-magic-suite-card::after,
+.womb-magic-suite-action::after{content:none!important;display:none!important}

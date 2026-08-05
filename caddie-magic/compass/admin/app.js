@@ -1,7 +1,7 @@
-// Caddie Magic v0.5.2 — Owner Compass + Direct Message Reply
+// Caddie Magic v0.6.0 — Owner Compass + Direct Message Reply
 
 import { supabase } from "../../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.5.2";
+import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.6.0";
 import {
   listCompassPlayers,
   getCompassForPlayer,
@@ -11,9 +11,9 @@ import {
   sendCompassDispatch,
   adminUpdateCompassAssignment,
   markPlayerMessagesRead,
-} from "../../../shared/caddie-magic-compass.js?v=0.5.2";
-import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.5.2";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../../shared/caddie-magic-moon-calendar.js?v=0.5.2";
+} from "../../../shared/caddie-magic-compass.js?v=0.6.0";
+import { listUpcomingGolfEvents } from "../../../shared/caddie-magic-schedule.js?v=0.6.0";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../../../shared/caddie-magic-moon-calendar.js?v=0.6.0";
 
 const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(window.location.search);

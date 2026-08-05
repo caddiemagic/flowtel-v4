@@ -7,8 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../styles.css?v=0.5.2" />
-  <link rel="stylesheet" href="./styles.css?v=0.5.2" />
+  <link rel="stylesheet" href="../styles.css?v=0.6.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.6.0" />
 </head>
 <body>
   <main class="cm-shell caddie-desk-shell">
@@ -140,8 +140,8 @@
           <div class="exception-list" id="scheduleExceptionList"></div>
         </div>
         <div class="acuity-note">
-          <strong>Acuity + Zoom Integration Prepared</strong>
-          <p>Your recurring template is stored in Caddie Magic now. A future release will connect each Caddie’s own Acuity calendar and Zoom host before live external booking is activated.</p>
+          <strong>Acuity Scheduling Is Live</strong>
+          <p>Your Caddie Master maps your approved Acuity calendar and services. The recurring rhythm above remains a private planning reference; real Player booking times come directly from Acuity.</p>
         </div>
       </section>
 
@@ -175,6 +175,18 @@
         <div class="request-list" id="requestList"></div>
       </section>
 
+      <section class="cm-card hidden" id="acuitySessionsDeskCard">
+        <div class="desk-heading">
+          <div>
+            <p class="cm-eyebrow">UPCOMING PLAYER SESSIONS</p>
+            <h2>Sessions booked through Acuity.</h2>
+            <p class="cm-muted">Open the consented Player preparation view before the call. Access closes seven days after the appointment.</p>
+          </div>
+          <span class="desk-count" id="acuitySessionCount">0 upcoming</span>
+        </div>
+        <div class="consultation-list" id="acuitySessionList"></div>
+      </section>
+
       <section class="cm-card hidden" id="consultationsDeskCard">
         <div class="desk-heading">
           <div>
@@ -193,6 +205,6 @@
     <div id="snapshotContent"></div>
   </dialog>
 
-  <script type="module" src="./app.js?v=0.5.2"></script>
+  <script type="module" src="./app.js?v=0.6.0"></script>
 </body>
 </html>

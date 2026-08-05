@@ -17,3 +17,6 @@
 .profile-mailbox-badge{display:inline-flex;align-items:center;justify-content:center;min-height:28px;padding:0 11px;border:1px solid rgba(216,168,79,.62);border-radius:999px;background:#fff8e8;color:#8a6540;font:700 .62rem Arial,sans-serif;letter-spacing:.1em}
 .profile-mailbox-doorway.has-alert{border-color:rgba(216,168,79,.62);background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(255,247,226,.82));box-shadow:0 20px 52px rgba(216,168,79,.16)}
 @media(max-width:760px){.profile-mailbox-actions{justify-items:stretch}.profile-mailbox-badge{justify-self:start}}
+
+/* Flowtel v0.10.81.3 — editable published Priestess title */
+.profile-form [name="published_title"]{font-family:Georgia,serif;font-size:1.08rem}

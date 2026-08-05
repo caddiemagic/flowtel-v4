@@ -1,13 +1,13 @@
 import { getCurrentUser, signInWithEmail, signUpWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.49";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.75";
-import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, currentUserHasConciergeTeamAccess, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.81.2";
+import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, currentUserHasConciergeTeamAccess, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.81.3";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
 import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateFourSeasonLocations } from "../shared/hourly-flow-rate.js?v=0.10.72";
 import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
-import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.81.2";
+import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.81.3";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
