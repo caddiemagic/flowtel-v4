@@ -5,8 +5,8 @@ import {
   bookWombMagicCall,
   rescheduleWombMagicCall,
   cancelWombMagicCall,
-} from '/shared/acuity-scheduling.js?v=0.10.81.2';
-import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.81.2';
+} from '/shared/acuity-scheduling.js?v=0.10.82';
+import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.82';
 
 function escapeHtml(value){
   return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
@@ -84,6 +84,10 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     const short=timezoneShortName(zone,date);
     return `${time}${short?` ${short}`:''}`;
   }
+  function meetingAction(call,label='Enter Womb Magic'){
+    if(!call?.meeting_url)return '';
+    return `<a class="wm-enter-womb-magic" href="${escapeHtml(call.meeting_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
+  }
   function providerForSlot(item){
     if(item?.provider_id) return data?.providers?.find(provider=>provider.provider_id===item.provider_id)||null;
     const calendar=String(item?.calendarID||item?.calendar_id||'');
@@ -152,7 +156,7 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     const time=formatCallTime(call.starts_at);
     summary.hidden=false;
     toggle.hidden=true;
-    summary.innerHTML=`<div class="wm-suite-summary-copy"><p class="eyebrow">YOUR WOMB MAGIC CALL</p><strong>${escapeHtml(time.dateLine)}</strong><span>${escapeHtml(time.timeLine)} · With ${escapeHtml(call.practitioner_name||'a Flow FM Priestess')}</span></div><div class="wm-suite-summary-actions"><button type="button" class="secondary" data-wm-view>View Details</button><button type="button" class="secondary" data-wm-reschedule>Reschedule</button><button type="button" class="secondary" data-wm-cancel>Cancel</button></div>`;
+    summary.innerHTML=`<div class="wm-suite-summary-copy"><p class="eyebrow">YOUR WOMB MAGIC CALL</p><strong>${escapeHtml(time.dateLine)}</strong><span>${escapeHtml(time.timeLine)} · With ${escapeHtml(call.practitioner_name||'a Flow FM Priestess')}</span></div><div class="wm-suite-summary-actions">${meetingAction(call)}<button type="button" class="secondary" data-wm-view>View Details</button><button type="button" class="secondary" data-wm-reschedule>Reschedule</button><button type="button" class="secondary" data-wm-cancel>Cancel</button></div>`;
     summary.querySelector('[data-wm-view]')?.addEventListener('click',()=>open());
     summary.querySelector('[data-wm-reschedule]')?.addEventListener('click',()=>beginReschedule(call));
     summary.querySelector('[data-wm-cancel]')?.addEventListener('click',()=>cancelCall(call));
@@ -162,7 +166,9 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     if(!call){currentCall.hidden=true;currentCall.innerHTML='';return;}
     const time=formatCallTime(call.starts_at);
     currentCall.hidden=false;
-    currentCall.innerHTML=`<header><div><p class="eyebrow">YOUR UPCOMING CALL</p><h4>Womb Magic with ${escapeHtml(call.practitioner_name||'a Flow FM Priestess')}</h4></div><span class="wm-call-status">${escapeHtml(String(call.status||'scheduled').toUpperCase())}</span></header><div class="wm-current-call-time"><strong>${escapeHtml(time.dateLine)}</strong><span>${escapeHtml(time.timeLine)}</span></div><div class="wm-call-meta"><span>45 minutes</span><span>${escapeHtml(timezoneDisplayName(memberTimezone(),new Date(call.starts_at)))}</span></div><div class="wm-call-actions"><button type="button" class="secondary" data-wm-reschedule-current>Reschedule</button><button type="button" class="secondary" data-wm-cancel-current>Cancel Call</button></div>`;
+    const meeting=meetingAction(call);
+    const meetingPending=meeting?'':'<p class="wm-meeting-pending">Your Zoom room will appear here as soon as Acuity finishes preparing it.</p>';
+    currentCall.innerHTML=`<header><div><p class="eyebrow">YOUR UPCOMING CALL</p><h4>Womb Magic with ${escapeHtml(call.practitioner_name||'a Flow FM Priestess')}</h4></div><span class="wm-call-status">${escapeHtml(String(call.status||'scheduled').toUpperCase())}</span></header><div class="wm-current-call-time"><strong>${escapeHtml(time.dateLine)}</strong><span>${escapeHtml(time.timeLine)}</span></div><div class="wm-call-meta"><span>45 minutes</span><span>${escapeHtml(timezoneDisplayName(memberTimezone(),new Date(call.starts_at)))}</span></div>${meetingPending}<div class="wm-call-actions">${meeting}<button type="button" class="secondary" data-wm-reschedule-current>Reschedule</button><button type="button" class="secondary" data-wm-cancel-current>Cancel Call</button></div>`;
     currentCall.querySelector('[data-wm-reschedule-current]')?.addEventListener('click',()=>beginReschedule(call));
     currentCall.querySelector('[data-wm-cancel-current]')?.addEventListener('click',()=>cancelCall(call));
   }

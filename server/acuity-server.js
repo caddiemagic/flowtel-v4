@@ -1,4 +1,4 @@
-// Server-only Acuity helpers for Flowtel v0.10.81.
+// Server-only Acuity helpers for Flowtel v0.10.82.
 // Acuity credentials remain in Vercel environment variables and never enter browser code.
 
 const crypto = require('crypto');
@@ -20,6 +20,36 @@ const WOMB_MAGIC_CONSENT_LANGUAGE='By booking this Womb Magic call, you allow th
 function safeJsonParse(value){try{return JSON.parse(value);}catch(error){return null;}}
 function normalizeId(value){const text=String(value ?? '').trim();return /^\d+$/.test(text)?text:'';}
 function compactText(value,max=500){return String(value ?? '').trim().slice(0,max);}
+function extractZoomMeetingUrl(appointment={}){
+  const location=appointment&&typeof appointment==='object'&&!Array.isArray(appointment)
+    ? appointment.location ?? appointment.locationUrl ?? appointment.locationURL ?? ''
+    : appointment;
+  const values=[];
+  const collect=(value,depth=0)=>{
+    if(depth>3||value===null||value===undefined)return;
+    if(typeof value==='string'){values.push(value);return;}
+    if(Array.isArray(value)){value.forEach(item=>collect(item,depth+1));return;}
+    if(typeof value==='object'){
+      for(const key of ['url','href','link','location','value','text']) if(key in value) collect(value[key],depth+1);
+    }
+  };
+  collect(location);
+  const allowedRoots=['zoom.us','zoom.com','zoomgov.com'];
+  for(const raw of values){
+    const decoded=String(raw).replace(/&amp;/gi,'&').replace(/&#38;/gi,'&').replace(/&quot;/gi,'\"');
+    const candidates=decoded.match(/https?:\/\/[^\s<>\"']+/gi)||[];
+    for(let candidate of candidates){
+      candidate=candidate.replace(/[),.;]+$/g,'');
+      try{
+        const url=new URL(candidate);
+        const hostname=url.hostname.toLowerCase();
+        const allowed=allowedRoots.some(root=>hostname===root||hostname.endsWith(`.${root}`));
+        if(url.protocol==='https:'&&allowed)return url.toString();
+      }catch(error){}
+    }
+  }
+  return '';
+}
 function encodePath(value=''){return String(value).split('/').map(encodeURIComponent).join('/');}
 function flowtelPublicOrigin(){return String(process.env.FLOWTEL_PUBLIC_ORIGIN || 'https://app.theflowtel.com').replace(/\/$/,'');}
 
@@ -39,7 +69,7 @@ function acuityHeaders({userId,apiKey}){
     Authorization:`Basic ${Buffer.from(`${userId}:${apiKey}`).toString('base64')}`,
     'Content-Type':'application/json',
     Accept:'application/json',
-    'User-Agent':'Flowtel + Caddie Magic Acuity Bridge/0.10.81.3-0.6.0',
+    'User-Agent':'Flowtel + Caddie Magic Acuity Bridge/0.10.82-0.6.0',
   };
 }
 
@@ -207,6 +237,7 @@ module.exports={
   compactText,
   dateOnlyInZone,
   encodePath,
+  extractZoomMeetingUrl,
   firstLastForBooking,
   flowtelPublicOrigin,
   normalizeEmail,

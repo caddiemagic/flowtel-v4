@@ -1,3 +1,13 @@
+## v0.10.82 — Enter Womb Magic / Caddie Magic v0.6.0
+
+- Adds **ENTER WOMB MAGIC** to the booked member's Suite when Acuity supplies a valid Zoom appointment location.
+- Adds **BEGIN WOMB MAGIC** to the assigned Priestess's Upcoming Calls card for the same appointment.
+- Extracts only HTTPS Zoom URLs from Acuity appointment locations and never exposes the raw Acuity appointment payload to browser code.
+- Refreshes an active Acuity appointment server-side when its stored payload does not yet contain the Zoom room.
+- Preserves rescheduling, cancellation, signed webhook synchronization, monthly eligibility, and appointment-scoped consent/access.
+- Requires no migration and no new environment variables; the next migration remains 067.
+- Leaves Caddie Magic at v0.6.0 with no scheduling or permission changes.
+
 ## v0.10.81.3 — Suite Action Harmony + Availability Detail + Siren Profiles / Caddie Magic v0.6.0
 
 - Unifies Save Reflection, Choose Your Mentor, and Schedule Womb Magic as matching soft-pink, full-width Suite actions and removes the empty Womb Magic pill.

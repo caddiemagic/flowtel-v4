@@ -4066,3 +4066,40 @@ body.personal-room-key-is-open{
 .mentor-card-actions #choosePractitionerButton{max-width:none!important}
 .womb-magic-suite-card::after,
 .womb-magic-suite-action::after{content:none!important;display:none!important}
+
+/* Flowtel v0.10.82 — Enter Womb Magic Zoom doorway */
+.wm-enter-womb-magic{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  flex:1 0 100%;
+  min-height:46px;
+  padding:12px 18px;
+  border:1px solid rgba(184,130,38,.48);
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--blush-2),rgba(255,253,249,.98));
+  color:var(--brown);
+  box-shadow:0 10px 24px rgba(109,78,65,.09);
+  font-family:Arial,sans-serif;
+  font-size:.74rem;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-decoration:none;
+  text-transform:uppercase;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease;
+}
+.wm-enter-womb-magic:hover{
+  transform:translateY(-1px);
+  border-color:rgba(184,130,38,.72);
+  background:var(--blush);
+  box-shadow:0 13px 28px rgba(109,78,65,.12);
+}
+.wm-meeting-pending{
+  margin:13px 0 0;
+  padding:10px 13px;
+  border-radius:14px;
+  background:rgba(248,231,227,.46);
+  color:var(--soft-brown);
+  font-size:.86rem;
+  font-style:italic;
+}

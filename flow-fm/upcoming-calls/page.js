@@ -1,6 +1,6 @@
-import { renderTopNav,escapeHtml } from '/flow-fm/ui.js?v=0.10.81.1';
-import { loadUpcomingServiceCalls } from '/shared/acuity-scheduling.js?v=0.10.81.1';
-import { browserTimezone,normalizeTimezone,timezoneDisplayName,timezoneShortName } from '/shared/timezone-labels.js?v=0.10.81.1';
+import { renderTopNav,escapeHtml } from '/flow-fm/ui.js?v=0.10.82';
+import { loadUpcomingServiceCalls } from '/shared/acuity-scheduling.js?v=0.10.82';
+import { browserTimezone,normalizeTimezone,timezoneDisplayName,timezoneShortName } from '/shared/timezone-labels.js?v=0.10.82';
 
 const nav=document.getElementById('topNav');
 const list=document.getElementById('callsList');
@@ -57,6 +57,8 @@ function clientTimezoneLabel(call){
 }
 function callCard(call){
   const parts=dateParts(call.starts_at);
+  const meeting=call?.meeting_url?`<a class="call-launch" href="${escapeHtml(call.meeting_url)}" target="_blank" rel="noopener noreferrer">Begin Womb Magic</a>`:'';
+  const meetingPending=meeting?'':'<span class="call-meeting-pending">Zoom room preparing</span>';
   return `<article class="call-card">
     <div class="call-date-focus" aria-label="${escapeHtml(`${parts.weekday}, ${parts.month} ${parts.day}`)}">
       <span>${escapeHtml(parts.month)}</span>
@@ -73,7 +75,7 @@ function callCard(call){
         <div><small>Client timezone</small><strong>${escapeHtml(clientTimezoneLabel(call))}</strong></div>
         <div><small>Access closes</small><strong>${escapeHtml(accessCloseLabel(call.access_until))}</strong></div>
       </div>
-      <div class="call-actions"><a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div>
+      <div class="call-actions">${meeting}${meetingPending}<a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div>
     </div>
   </article>`;
 }

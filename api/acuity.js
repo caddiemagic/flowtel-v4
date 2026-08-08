@@ -2,6 +2,7 @@ const {
   WOMB_MAGIC_CONSENT_LANGUAGE,
   acuityFetch,
   appointmentTimes,
+  extractZoomMeetingUrl,
   firstLastForBooking,
   normalizeId,
   periodKeyFor,
@@ -31,6 +32,23 @@ function statusFromAcuity(appointment,action=''){
 function dateTimeFromAcuity(appointment){
   return appointment?.datetime || appointment?.datetimeCreated || appointment?.time || '';
 }
+function meetingUrlFor(appointment={}){
+  if(!['pending','scheduled','rescheduled'].includes(String(appointment?.status||'')))return '';
+  return extractZoomMeetingUrl(appointment?.external_payload||{});
+}
+async function refreshMeetingPayload(context,appointment={}){
+  if(!['pending','scheduled','rescheduled'].includes(String(appointment?.status||''))||!appointment?.acuity_appointment_id||meetingUrlFor(appointment))return appointment;
+  try{
+    const acuity=await acuityFetch(`/appointments/${enc(appointment.acuity_appointment_id)}`);
+    if(!acuity||typeof acuity!=='object'||!Object.keys(acuity).length)return appointment;
+    const synced=nowIso();
+    await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`id=eq.${enc(appointment.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({external_payload:acuity,last_synced_at:synced,updated_at:synced})});
+    return {...appointment,external_payload:acuity,last_synced_at:synced,updated_at:synced};
+  }catch(error){
+    console.warn('Acuity Zoom location refresh failed.',appointment?.acuity_appointment_id,error?.message||error);
+    return appointment;
+  }
+}
 function publicAppointment(appointment={}){
   return {
     id:appointment.id,
@@ -45,6 +63,7 @@ function publicAppointment(appointment={}){
     client_timezone:appointment.client_timezone,
     service_period_key:appointment.service_period_key,
     access_until:appointment.access_until||null,
+    meeting_url:meetingUrlFor(appointment)||null,
   };
 }
 async function getService(context){
@@ -93,13 +112,14 @@ async function mappedProviders(context,service){
 async function appointmentRowsForMember(context,service){
   const rows=array(await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`select=*&customer_user_id=eq.${enc(context.user.id)}&source_product=eq.flowtel&service_type_id=eq.${enc(service.id)}&order=starts_at.desc&limit=100`),{headers:serviceHeaders(context.serviceKey)}));
   if(!rows.length)return [];
-  const providerIds=[...new Set(rows.map(item=>item.provider_id))];
+  const hydratedRows=await Promise.all(rows.map(item=>refreshMeetingPayload(context,item)));
+  const providerIds=[...new Set(hydratedRows.map(item=>item.provider_id))];
   const actualProviders=providerIds.length?array(await fetchJson(serviceRestUrl(context,'flowtel_provider_scheduling_profiles',`select=id,user_id,display_name&id=in.(${providerIds.map(enc).join(',')})`), {headers:serviceHeaders(context.serviceKey)})):[];
   const profileMap=await profilesByIds(context,actualProviders.map(item=>item.user_id));
   const providerMap=new Map(actualProviders.map(item=>[item.id,item]));
-  const grants=array(await fetchJson(serviceRestUrl(context,'flowtel_appointment_access_grants',`select=appointment_id,active_until,status&appointment_id=in.(${rows.map(item=>enc(item.id)).join(',')})`),{headers:serviceHeaders(context.serviceKey)}).catch(()=>[]));
+  const grants=array(await fetchJson(serviceRestUrl(context,'flowtel_appointment_access_grants',`select=appointment_id,active_until,status&appointment_id=in.(${hydratedRows.map(item=>enc(item.id)).join(',')})`),{headers:serviceHeaders(context.serviceKey)}).catch(()=>[]));
   const grantMap=new Map(grants.map(item=>[item.appointment_id,item]));
-  return rows.map(item=>{
+  return hydratedRows.map(item=>{
     const provider=providerMap.get(item.provider_id)||{};
     const profile=profileMap.get(provider.user_id)||{};
     return publicAppointment({...item,practitioner_id:provider.user_id,practitioner_name:provider.display_name||profileDisplayName(profile,'Flowtel Priestess'),service_name:service.service_name,access_until:grantMap.get(item.id)?.active_until});
@@ -197,7 +217,7 @@ async function reschedule(req,body){
   await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`id=eq.${enc(appointment.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({starts_at:times.startsAt,ends_at:times.endsAt,status:'rescheduled',client_timezone:timezone,last_synced_at:nowIso(),external_payload:acuity,updated_at:nowIso()})});
   const activeUntil=new Date(new Date(times.endsAt).getTime()+Number(service.access_days_after||7)*86400000).toISOString();
   await fetchJson(serviceRestUrl(context,'flowtel_appointment_access_grants',`appointment_id=eq.${enc(appointment.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({active_until:activeUntil,status:'active',revoked_at:null,revoked_reason:null,updated_at:nowIso()})});
-  return {ok:true,appointment:publicAppointment({...appointment,starts_at:times.startsAt,ends_at:times.endsAt,status:'rescheduled',client_timezone:timezone,access_until:activeUntil})};
+  return {ok:true,appointment:publicAppointment({...appointment,starts_at:times.startsAt,ends_at:times.endsAt,status:'rescheduled',client_timezone:timezone,access_until:activeUntil,external_payload:acuity})};
 }
 async function cancel(req,body){
   const context=await requireFlowtelMember(req);const appointment=await ownedAppointment(context,String(body.appointment_id||''));
@@ -210,7 +230,14 @@ async function cancel(req,body){
 async function providerCalls(req){
   const context=await requireFlowtelProvider(req);
   const rows=await fetchJson(`${context.supabaseUrl}/rest/v1/rpc/flowtel_list_my_upcoming_service_calls`,{method:'POST',headers:{...serviceHeaders(context.serviceKey),'Authorization':`Bearer ${context.token}`},body:'{}'});
-  return {ok:true,calls:array(rows)};
+  const calls=array(rows);
+  if(!calls.length)return {ok:true,calls:[]};
+  const appointmentIds=[...new Set(calls.map(item=>item.appointment_id).filter(Boolean))];
+  if(!appointmentIds.length)return {ok:true,calls:calls.map(call=>({...call,meeting_url:null}))};
+  const stored=array(await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`select=id,acuity_appointment_id,status,external_payload&source_product=eq.flowtel&id=in.(${appointmentIds.map(enc).join(',')})`),{headers:serviceHeaders(context.serviceKey)}));
+  const hydrated=await Promise.all(stored.map(item=>refreshMeetingPayload(context,item)));
+  const appointmentMap=new Map(hydrated.map(item=>[item.id,item]));
+  return {ok:true,calls:calls.map(call=>({...call,meeting_url:meetingUrlFor(appointmentMap.get(call.appointment_id)||{})||null}))};
 }
 async function ownerSetup(req){
   const context=await requireFlowtelOwner(req);const [me,calendars,types,profiles,service]=await Promise.all([acuityFetch('/me'),acuityFetch('/calendars'),acuityFetch('/appointment-types'),fetchJson(serviceRestUrl(context,'profiles','select=*'),{headers:serviceHeaders(context.serviceKey)}),getService(context)]);
