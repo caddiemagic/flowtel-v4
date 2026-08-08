@@ -921,7 +921,7 @@ begin
     raise exception 'That event has been cancelled.' using errcode='22023';
   end if;
   v_rank := public.flowtel_queendom_event_member_rank(v_member);
-  if v_rank<case when v_event.audience='flowfm' then 2 else 1 end then
+  if v_rank < (case when v_event.audience='flowfm' then 2 else 1 end) then
     raise exception 'This event is inside Flow FM.' using errcode='42501';
   end if;
 
@@ -963,7 +963,7 @@ begin
     raise exception 'That event is not currently open.' using errcode='22023';
   end if;
   v_rank := public.flowtel_queendom_event_member_rank(v_member);
-  if v_rank<case when v_event.audience='flowfm' then 2 else 1 end then
+  if v_rank < (case when v_event.audience='flowfm' then 2 else 1 end) then
     raise exception 'This Zoom room is reserved for Flow FM members.' using errcode='42501';
   end if;
   if nullif(trim(coalesce(v_event.zoom_url,'')),'') is null then

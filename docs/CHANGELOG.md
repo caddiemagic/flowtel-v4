@@ -1,3 +1,11 @@
+## v0.10.83.2 — Calendar Migration Syntax Hotfix
+
+- Repairs two invalid PL/pgSQL `IF ... CASE` comparisons in migration 067 that prevented the Flowtel Calendar schema from installing.
+- Keeps the migration wrapped in the same transaction and preserves all existing Queendom/Flow FM event membership and Zoom-access rules.
+- Live database order is now: run the corrected migration 067, then migration 068.
+- Adds no new migration number; the next new migration remains 069.
+- Leaves Caddie Magic at v0.6.0.
+
 ## v0.10.83.1 — Flowtel Calendar Polish
 
 - Aligns **Upcoming Events in the Queendom** and **My Calendar** to the established 760px Lounge content width and removes the extra membership-explanation sentence from the Lounge hero copy.

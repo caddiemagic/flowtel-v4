@@ -25,7 +25,7 @@ assert.equal(canJoin(1,'flowfm'),false);
 assert.equal(canJoin(2,'queendom'),true);
 assert.equal(canJoin(2,'flowfm'),true);
 assert.equal(canJoin(3,'flowfm'),true);
-assert(migration.includes("v_rank<case when v_event.audience='flowfm' then 2 else 1 end"));
+assert(migration.includes("v_rank < (case when v_event.audience='flowfm' then 2 else 1 end) then"));
 assert(!migration.slice(migration.indexOf('function public.flowtel_get_queendom_event_join_details'),migration.indexOf('function public.flowtel_admin_list_queendom_events')).includes('cancelled_at is null'));
 
 // Owner/Priestess call visibility is intentionally different from member event visibility.
