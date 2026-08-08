@@ -1,3 +1,13 @@
+## v0.10.83.3 — Event Artwork + Quarter-Hour Time Picker Hotfix
+
+- Fixes Queendom event artwork uploads by adding the missing authenticated Owner/Admin `SELECT` policy required by Supabase Storage when `upsert=true` is used for stable event cover paths.
+- Re-asserts the event artwork bucket and its Owner/Admin insert/update/delete policies in migration 069 as an idempotent live repair.
+- Replaces the browser's unrestricted minute picker in Owner Event Administration with a compact 12-hour selector whose minute choices are only `:00`, `:15`, `:30`, and `:45`.
+- Keeps End time optional and preserves existing event time storage as canonical 24-hour `HH:MM` values behind the editor.
+- Adds clearer setup guidance if event artwork Storage permissions are ever missing again.
+- Requires `database/migration-069-queendom-event-artwork-storage.sql` after migrations 067 and 068; next migration is 070.
+- Leaves Caddie Magic at v0.6.0.
+
 ## v0.10.83.2 — Calendar Migration Syntax Hotfix
 
 - Repairs two invalid PL/pgSQL `IF ... CASE` comparisons in migration 067 that prevented the Flowtel Calendar schema from installing.

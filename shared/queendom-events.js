@@ -1,4 +1,4 @@
-// Flowtel v0.10.83.1 — Queendom events, linked Flow FM hosts, protected Zoom access, and unified calendar.
+// Flowtel v0.10.83.3 — Queendom events, linked Flow FM hosts, protected Zoom access, and event artwork Storage repair.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';
@@ -98,8 +98,12 @@ export async function uploadQueendomEventImage(eventId,file){
     cacheControl:'3600',
   });
   if(error){
-    if(/bucket.*not found|not found.*bucket/i.test(String(error.message||''))){
-      throw new Error('Event artwork storage is not installed yet. Run Flowtel migrations 067 and 068, then try the image again.');
+    const detail=String(error.message||'');
+    if(/bucket.*not found|not found.*bucket/i.test(detail)){
+      throw new Error('Event artwork storage is not installed yet. Run Flowtel migrations 067, 068, and 069, then try the image again.');
+    }
+    if(/row-level security|42501|unauthorized/i.test(detail)){
+      throw new Error('Event artwork permission is not installed yet. Run Flowtel migration 069, refresh the Events room, and try the image again.');
     }
     throw error;
   }

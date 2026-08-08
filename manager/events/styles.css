@@ -4,3 +4,6 @@
 
 /* Flowtel v0.10.83.1 — linked event hosts */
 .event-admin-host{margin-top:5px!important}.event-admin-host a{color:var(--ink);text-decoration:underline;text-decoration-color:rgba(215,166,83,.55);text-underline-offset:3px}
+
+/* Flowtel v0.10.83.3 — quarter-hour event time picker */
+.event-time-parts{display:grid;grid-template-columns:minmax(72px,1.15fr) minmax(78px,1fr) minmax(76px,1fr);gap:8px}.event-time-parts select{min-width:0;padding-left:12px;padding-right:10px}.event-time-parts select:disabled{opacity:.5;background:#f8f3ef}@media(max-width:420px){.event-time-parts{grid-template-columns:1fr 1fr 1fr;gap:6px}.event-time-parts select{padding-left:9px;padding-right:6px}}

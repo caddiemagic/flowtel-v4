@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Flowtel owner event administration for the Queendom Calendar." />
   <title>Queendom Events | Flowtel</title>
-  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83.1" />
+  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83.3" />
 </head>
 <body>
   <main class="events-admin-shell">
@@ -45,8 +45,22 @@
             <label><span>Type</span><select id="eventType"><option value="ceremony">Ceremony</option><option value="workshop">Workshop</option><option value="call">Call</option><option value="other">Other</option></select></label>
             <label><span>Audience</span><select id="eventAudience"><option value="queendom">Queendom — all members</option><option value="flowfm">Flow FM — visible to all, join protected</option></select></label>
             <label><span>Date</span><input id="eventDate" type="date" required /></label>
-            <label><span>Start time</span><input id="eventStartTime" type="time" required /></label>
-            <label><span>End time</span><input id="eventEndTime" type="time" /></label>
+            <label class="event-time-field"><span>Start time</span>
+              <div class="event-time-parts" data-time-group="start">
+                <select id="eventStartHour" aria-label="Start hour" required></select>
+                <select id="eventStartMinute" aria-label="Start minutes"><option value="00">:00</option><option value="15">:15</option><option value="30">:30</option><option value="45">:45</option></select>
+                <select id="eventStartPeriod" aria-label="Start AM or PM"><option value="AM">AM</option><option value="PM">PM</option></select>
+              </div>
+              <input id="eventStartTime" type="hidden" />
+            </label>
+            <label class="event-time-field"><span>End time</span>
+              <div class="event-time-parts" data-time-group="end">
+                <select id="eventEndHour" aria-label="End hour"></select>
+                <select id="eventEndMinute" aria-label="End minutes"><option value="00">:00</option><option value="15">:15</option><option value="30">:30</option><option value="45">:45</option></select>
+                <select id="eventEndPeriod" aria-label="End AM or PM"><option value="AM">AM</option><option value="PM">PM</option></select>
+              </div>
+              <input id="eventEndTime" type="hidden" />
+            </label>
             <label><span>Timezone</span><select id="eventTimezone" required>
               <option value="America/Los_Angeles">Pacific Time — Pacific Standard / Daylight Time</option>
               <option value="America/Denver">Mountain Time — Mountain Standard / Daylight Time</option>
@@ -91,6 +105,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/manager/events/app.js?v=0.10.83.1"></script>
+  <script type="module" src="/manager/events/app.js?v=0.10.83.3"></script>
 </body>
 </html>

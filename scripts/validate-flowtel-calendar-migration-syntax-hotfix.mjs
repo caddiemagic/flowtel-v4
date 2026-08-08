@@ -20,6 +20,6 @@ assert(!migration.includes(invalid), 'Invalid IF/CASE syntax is still present.')
 assert(migration.includes('flowtel_set_queendom_event_registration'), 'Registration function missing.');
 assert(migration.includes('flowtel_get_queendom_event_join_details'), 'Join-details function missing.');
 assert(release.includes('run again from the beginning'), 'Release instructions must tell the owner to rerun corrected migration 067.');
-assert(changelog.startsWith('## v0.10.83.2'), 'Changelog must begin with v0.10.83.2.');
+assert(changelog.includes('## v0.10.83.2 — Calendar Migration Syntax Hotfix'), 'Changelog must retain v0.10.83.2 history.');
 
 console.log('Flowtel v0.10.83.2 migration syntax hotfix validator passed.');
