@@ -107,6 +107,10 @@
       "destination": "/manager/availability/index.html"
     },
     {
+      "source": "/manager/events",
+      "destination": "/manager/events/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },
@@ -121,6 +125,10 @@
     {
       "source": "/moonbox",
       "destination": "/moonbox/index.html"
+    },
+    {
+      "source": "/queendom-calendar",
+      "destination": "/queendom-calendar/index.html"
     },
     {
       "source": "/flow-map/printable",
@@ -196,6 +204,19 @@
     }
   ],
   "headers": [
+    {
+      "source": "/manager/events",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        }
+      ]
+    },
     {
       "source": "/manager/acuity",
       "headers": [

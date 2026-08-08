@@ -1,6 +1,6 @@
-import { renderTopNav,escapeHtml } from '/flow-fm/ui.js?v=0.10.82';
-import { loadUpcomingServiceCalls } from '/shared/acuity-scheduling.js?v=0.10.82';
-import { browserTimezone,normalizeTimezone,timezoneDisplayName,timezoneShortName } from '/shared/timezone-labels.js?v=0.10.82';
+import { renderTopNav,escapeHtml } from '/flow-fm/ui.js?v=0.10.83';
+import { loadUpcomingServiceCalls } from '/shared/acuity-scheduling.js?v=0.10.83';
+import { browserTimezone,normalizeTimezone,timezoneDisplayName,timezoneShortName } from '/shared/timezone-labels.js?v=0.10.83';
 
 const nav=document.getElementById('topNav');
 const list=document.getElementById('callsList');
@@ -67,7 +67,7 @@ function callCard(call){
     </div>
     <div class="call-card-body">
       <header>
-        <div><p class="eyebrow">${escapeHtml(call.service_name||'WOMB MAGIC')}</p><h2>${escapeHtml(call.client_name||'Flowtel Guest')}</h2></div>
+        <div><p class="eyebrow">${escapeHtml(call.service_name||'WOMB MAGIC')}</p><h2>${escapeHtml(call.client_name||'Flowtel Guest')}</h2>${call.provider_name?`<p class="call-provider">Held by ${escapeHtml(call.provider_name)}</p>`:''}</div>
         <span class="status">${escapeHtml(String(call.status||'scheduled').toUpperCase())}</span>
       </header>
       <p class="call-time">${escapeHtml(parts.time)}</p>

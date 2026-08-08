@@ -17,7 +17,7 @@ import { labelForWorkshopReplayNoteType, listAdminWorkshopReplayNotes } from "..
 import { archiveLoungeVideo, createLoungeVideoOwnerDownloadUrl, discardPendingLoungeVideo, finalizePendingLoungeVideo, getPendingLoungeVideoUpload, listAdminLoungeVideos, uploadLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { loungeVideoFileSize } from "../shared/lounge-video-core.js?v=0.10.65";
 import { loadUpcomingServiceCalls } from "../shared/acuity-scheduling.js?v=0.10.81.3";
-import { loadFlowFmAvailabilityOwnerView } from "../shared/flow-fm-availability-admin.js?v=0.10.81.3";
+import { loadFlowFmAvailabilityOwnerView, loadFlowFmAvailabilityMonthOwnerView } from "../shared/flow-fm-availability-admin.js?v=0.10.83";
 
 document.documentElement.dataset.conciergeAppBooted="true";
 
@@ -180,6 +180,7 @@ let currentConnectionRequestsCount=0;
 let currentClientsCount=0;
 let upcomingServiceCallCount=0;
 let flowFmAvailabilityRows=[];
+let flowFmAvailabilityMonthUpdates=[];
 let memberDirectoryRows=[];
 let memberDirectoryServiceAvailable=true;
 let memberDirectoryAccessFilter="active";
@@ -846,8 +847,9 @@ function updateStats(){
     const stamp=new Date(row.availability_updated_at||0).getTime();
     return Number.isFinite(stamp)&&stamp>Date.now()-7*86400000;
   }).length;
-  setText("flowFmAvailabilityCount",availabilityStarted);
-  setText("flowFmAvailabilityNote",availabilityRecent>0?`${availabilityRecent} updated this week`:"View seasonal rhythms");
+  const availabilityPending=flowFmAvailabilityMonthUpdates.filter(row=>row.pending_owner_update===true).length;
+  setText("flowFmAvailabilityCount",availabilityPending||availabilityStarted);
+  setText("flowFmAvailabilityNote",availabilityPending>0?`${availabilityPending} Acuity ${availabilityPending===1?"update":"updates"} waiting`:(availabilityRecent>0?`${availabilityRecent} updated this week`:"View seasonal rhythms"));
   setText("clientConnectionCount",currentConnectionRequestsCount);
   setText("priestessTeamCount",priestessConciergeTeam.length);
   setText("priestessTeamProfileCount",priestessConciergeTeam.filter(row=>row.profile_status!=="not_started").length);
@@ -896,7 +898,7 @@ function updateStats(){
   if(priestessTeamCard) priestessTeamCard.classList.toggle("has-alert",priestessConciergeTeam.some(row=>row.profile_status==="submitted"));
 
   const flowFmAvailabilityCard=document.querySelector('a[href="/manager/availability/"]');
-  if(flowFmAvailabilityCard) flowFmAvailabilityCard.classList.toggle("has-alert",availabilityRecent>0);
+  if(flowFmAvailabilityCard) flowFmAvailabilityCard.classList.toggle("has-alert",availabilityPending>0);
 
   const memberDirectoryCard=document.querySelector('[data-filter="member-directory"]');
   if(memberDirectoryCard) memberDirectoryCard.classList.toggle("has-alert",membersNeedingReview>0);
@@ -3128,8 +3130,16 @@ async function loadUpcomingServiceCallCount(){
 }
 
 async function loadFlowFmAvailabilityCount(){
-  try{flowFmAvailabilityRows=await loadFlowFmAvailabilityOwnerView();}
-  catch(error){console.warn("Flow FM Availability owner count is not available yet.",error);flowFmAvailabilityRows=[];}
+  try{
+    [flowFmAvailabilityRows,flowFmAvailabilityMonthUpdates]=await Promise.all([
+      loadFlowFmAvailabilityOwnerView(),
+      loadFlowFmAvailabilityMonthOwnerView(),
+    ]);
+  }catch(error){
+    console.warn("Flow FM Availability owner count is not available yet.",error);
+    flowFmAvailabilityRows=[];
+    flowFmAvailabilityMonthUpdates=[];
+  }
 }
 
 async function loadDesk({silent=false}={}){

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Flowtel owner event administration for the Queendom Calendar." />
+  <title>Queendom Events | Flowtel</title>
+  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83" />
+</head>
+<body>
+  <main class="events-admin-shell">
+    <nav class="events-admin-nav">
+      <a href="/manager/">← Concierge Desk</a>
+      <a href="/queendom-calendar/">View Queendom Calendar</a>
+    </nav>
+
+    <section class="events-admin-hero">
+      <p class="eyebrow">OWNER ADMINISTRATION</p>
+      <h1>Queendom Events</h1>
+      <p>Create the event once. Flowtel will use it in the Lounge, My Calendar, the Queendom Calendar, and the Squarespace embed.</p>
+    </section>
+
+    <section class="events-admin-gate" id="eventsAdminGate">
+      <p>Opening the Queendom calendar desk…</p>
+    </section>
+
+    <section class="events-admin-workspace" id="eventsAdminWorkspace" hidden>
+      <section class="event-editor-card">
+        <header>
+          <div>
+            <p class="eyebrow">CALENDAR EVENT</p>
+            <h2 id="eventEditorTitle">Create an event</h2>
+            <p>Meeting credentials remain private. Queendom members can see Flow FM events, but only eligible members can receive the Zoom room.</p>
+          </div>
+          <button type="button" class="quiet-button" id="newEventButton">New Event</button>
+        </header>
+
+        <form id="eventEditorForm">
+          <input type="hidden" id="eventId" />
+          <input type="hidden" id="eventImagePath" />
+          <input type="hidden" id="eventImageUrl" />
+
+          <div class="event-form-grid">
+            <label class="wide"><span>Event name</span><input id="eventTitle" maxlength="180" required placeholder="New Moon Ceremony" /></label>
+            <label><span>Type</span><select id="eventType"><option value="ceremony">Ceremony</option><option value="workshop">Workshop</option><option value="call">Call</option><option value="other">Other</option></select></label>
+            <label><span>Audience</span><select id="eventAudience"><option value="queendom">Queendom — all members</option><option value="flowfm">Flow FM — visible to all, join protected</option></select></label>
+            <label><span>Date</span><input id="eventDate" type="date" required /></label>
+            <label><span>Start time</span><input id="eventStartTime" type="time" required /></label>
+            <label><span>End time</span><input id="eventEndTime" type="time" /></label>
+            <label><span>Timezone</span><input id="eventTimezone" list="eventTimezoneList" value="America/Los_Angeles" required /></label>
+            <label><span>Host</span><input id="eventHost" maxlength="180" placeholder="Megan Michele" /></label>
+            <label class="wide"><span>Description</span><textarea id="eventDescription" maxlength="4000" rows="4" placeholder="What will members experience?"></textarea></label>
+            <label class="wide"><span>Zoom link</span><input id="eventZoomUrl" type="url" placeholder="https://us02web.zoom.us/j/…" /></label>
+            <label><span>Zoom passcode</span><input id="eventZoomPasscode" maxlength="200" autocomplete="off" /></label>
+            <label><span>Publishing</span><select id="eventStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="cancelled" disabled>Cancelled</option></select></label>
+          </div>
+
+          <datalist id="eventTimezoneList">
+            <option value="America/Los_Angeles"></option><option value="America/Denver"></option><option value="America/Chicago"></option><option value="America/New_York"></option><option value="America/Phoenix"></option><option value="Pacific/Honolulu"></option><option value="Europe/London"></option><option value="Europe/Paris"></option><option value="Australia/Sydney"></option>
+          </datalist>
+
+          <section class="event-image-editor">
+            <div class="event-image-preview" id="eventImagePreview"><span>EVENT IMAGE</span></div>
+            <div>
+              <label class="event-image-picker"><span>Calendar artwork</span><input id="eventImageFile" type="file" accept="image/jpeg,image/png,image/webp" /></label>
+              <p>JPG, PNG, or WebP · up to 10 MB. The same artwork appears everywhere this event is shown.</p>
+            </div>
+          </section>
+
+          <div class="event-form-actions">
+            <button type="submit" id="saveEventButton">Save Event</button>
+            <button type="button" class="danger-button" id="cancelEventButton" hidden>Cancel Event</button>
+          </div>
+          <p class="event-form-message" id="eventFormMessage" role="status"></p>
+        </form>
+      </section>
+
+      <section class="event-list-card">
+        <header>
+          <div><p class="eyebrow">MASTER CALENDAR</p><h2>Events in Flowtel</h2></div>
+          <span id="eventCount">0 EVENTS</span>
+        </header>
+        <div class="event-admin-list" id="eventAdminList"></div>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="/manager/events/app.js?v=0.10.83"></script>
+</body>
+</html>

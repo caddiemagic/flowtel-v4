@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Queendom Calendar — ceremonies, workshops, and Flow FM gatherings." />
+  <title>The Queendom Calendar | Flowtel</title>
+  <link rel="stylesheet" href="/queendom-calendar/styles.css?v=0.10.83" />
+</head>
+<body>
+  <main class="queendom-calendar-shell" id="calendarShell">
+    <nav class="calendar-nav" id="calendarNav">
+      <a href="/client/?lounge=1">← Flowtel Lounge</a>
+      <span>THE QUEENDOM CALENDAR</span>
+    </nav>
+    <header class="calendar-hero" id="calendarHero">
+      <p class="eyebrow">THE QUEENDOM</p>
+      <h1>Upcoming Events</h1>
+      <p>Ceremonies, workshops, community calls, and the gatherings happening inside Flow FM — all in one place.</p>
+    </header>
+
+    <section class="calendar-card">
+      <div class="calendar-toolbar">
+        <div class="calendar-month-nav">
+          <button type="button" id="previousMonth" aria-label="Previous month">‹</button>
+          <button type="button" id="nextMonth" aria-label="Next month">›</button>
+        </div>
+        <h2 id="calendarMonth">Calendar</h2>
+        <div class="calendar-legend"><span>QUEENDOM</span><span>FLOW FM</span></div>
+      </div>
+      <div class="calendar-weekdays" aria-hidden="true"><span>Monday</span><span>Tuesday</span><span>Wednesday</span><span>Thursday</span><span>Friday</span><span>Saturday</span><span>Sunday</span></div>
+      <div class="calendar-grid" id="calendarGrid" aria-live="polite"></div>
+      <p class="calendar-message" id="calendarMessage" role="status"></p>
+    </section>
+  </main>
+
+  <dialog class="event-dialog" id="eventDialog">
+    <button class="event-dialog-close" type="button" data-close-event aria-label="Close event">×</button>
+    <div id="eventDialogContent"></div>
+  </dialog>
+
+  <script type="module" src="/queendom-calendar/app.js?v=0.10.83"></script>
+</body>
+</html>

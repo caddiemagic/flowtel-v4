@@ -5,8 +5,8 @@ import {
   bookWombMagicCall,
   rescheduleWombMagicCall,
   cancelWombMagicCall,
-} from '/shared/acuity-scheduling.js?v=0.10.82';
-import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.82';
+} from '/shared/acuity-scheduling.js?v=0.10.83';
+import { normalizeTimezone, timezoneDisplayName, timezoneShortName } from '/shared/timezone-labels.js?v=0.10.83';
 
 function escapeHtml(value){
   return String(value??'').replace(/[&<>'"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[char]));
@@ -84,7 +84,7 @@ export function mountWombMagicBooking(root=document.getElementById('wombMagicSui
     const short=timezoneShortName(zone,date);
     return `${time}${short?` ${short}`:''}`;
   }
-  function meetingAction(call,label='Enter Womb Magic'){
+  function meetingAction(call,label='Join Zoom'){
     if(!call?.meeting_url)return '';
     return `<a class="wm-enter-womb-magic" href="${escapeHtml(call.meeting_url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(label)}</a>`;
   }

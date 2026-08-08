@@ -7,7 +7,9 @@ import { effectiveFlowFmRank } from "../shared/rollout.js?v=0.10.64";
 import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateFourSeasonLocations } from "../shared/hourly-flow-rate.js?v=0.10.72";
 import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
-import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.82";
+import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.83";
+import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
+import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails } from "../shared/queendom-events.js?v=0.10.83";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -43,6 +45,9 @@ let loungeWorkshopLoadPromise=null;
 let loungeWorkshopLoadedVideoId=null;
 let loungeSeasonPlan=null;
 let loungeSeasonPlannerBusy=false;
+let loungeEventsLoadPromise=null;
+let loungeEvents=[];
+let loungeWombMagicState=null;
 let currentMentorRelationship=null;
 let currentStay=null;
 let unreadConciergeStays=[];
@@ -57,6 +62,7 @@ function updatePhaseOneSuiteLinks(){
   const workshopAllowed=effectiveFlowFmRank(currentProfile || {})>=2;
   if(workshopCard) workshopCard.classList.toggle("hidden", !workshopAllowed);
   if(workshopAllowed){ void prepareLoungeWorkshopVideo(); void prepareLoungeSeasonPlanner(); }
+  if(currentProfile) void prepareLoungeEvents();
   renderSuiteClockInButton();
 }
 
@@ -722,7 +728,7 @@ function showScene(name){
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareLoungeEvents();window.scrollTo({top:0,behavior:"smooth"});}
   if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
 }
 
@@ -2365,6 +2371,17 @@ const LOUNGE_SEASON_PLACEHOLDERS={
   autumn:'Joshua Tree, California',
 };
 function loungeEscape(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));}
+function loungeEventClock(value){const m=/^(\d{2}):(\d{2})/.exec(String(value||''));if(!m)return'';const d=new Date(Date.UTC(2026,0,1,Number(m[1]),Number(m[2])));return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'}).format(d);}
+function loungeEventDate(value){const d=/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?new Date(`${value}T12:00:00Z`):null;return d?new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(d):String(value||'');}
+function loungeEventType(value){return({workshop:'WORKSHOP',ceremony:'CEREMONY',call:'CALL',other:'EVENT'})[value]||'EVENT';}
+function loungeEventTime(event){return`${loungeEventClock(event.start_time)}${event.end_time?`–${loungeEventClock(event.end_time)}`:''}`;}
+function loungeCommunityEventMarkup(event,{compact=false}={}){const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>';const locked=event.audience==='flowfm'&&!event.can_join,cancelled=event.status==='cancelled';let actions='';if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';else if(locked)actions='<span class="lounge-event-locked">FLOW FM MEMBERS ONLY</span>';else actions=`<button type="button" class="lounge-seat-button ${event.is_registered?'is-saved':''}" data-lounge-seat="${loungeEscape(event.event_id)}">${event.is_registered?'✓ SEAT SAVED':'SAVE MY SEAT'}</button>${event.zoom_ready?`<button type="button" class="lounge-join-button" data-lounge-join="${loungeEscape(event.event_id)}">JOIN ZOOM</button>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}`;return`<article class="lounge-event-row ${compact?'is-compact':''} ${locked?'is-locked':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))} · ${loungeEscape(loungeEventTime(event))} · ${loungeEscape(event.event_timezone||'America/Los_Angeles')}</p>${event.host_name?`<span>Hosted by ${loungeEscape(event.host_name)}</span>`:''}<p class="lounge-event-passcode" data-lounge-passcode="${loungeEscape(event.event_id)}"></p></div><div class="lounge-event-actions">${actions}</div></article>`;}
+function loungeActiveWombMagicCall(){const all=[loungeWombMagicState?.consuming_appointment,...(loungeWombMagicState?.appointments||[])].filter(Boolean),now=Date.now();return all.find(item=>['pending','scheduled','rescheduled'].includes(String(item.status||''))&&new Date(item.ends_at||item.starts_at).getTime()>now)||null;}
+function loungeWombMagicMarkup(call){if(!call)return'';const d=new Date(call.starts_at),zone=currentProfile?.timezone||'America/Los_Angeles';const date=Number.isNaN(d.getTime())?String(call.starts_at||''):new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:zone}).format(d);return`<article class="lounge-event-row is-compact is-womb-magic"><div class="lounge-event-art"><span class="lounge-event-placeholder">🌹</span></div><div class="lounge-event-copy"><p class="eyebrow">WOMB MAGIC · PERSONAL CALL</p><h4>Womb Magic with ${loungeEscape(call.practitioner_name||'a Flow FM Priestess')}</h4><p>${loungeEscape(date)}</p></div><div class="lounge-event-actions">${call.meeting_url?`<a class="lounge-join-button" href="${loungeEscape(call.meeting_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}</div></article>`;}
+function bindLoungeEventActions(root){root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{event.is_registered=!event.is_registered;await setQueendomEventRegistration(event.event_id,event.is_registered);renderLoungeEvents();}catch(error){event.is_registered=!event.is_registered;button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));root?.querySelectorAll('[data-lounge-join]').forEach(button=>button.addEventListener('click',async()=>{const id=button.dataset.loungeJoin,popup=window.open('about:blank','_blank');if(popup)popup.opener=null;button.disabled=true;button.textContent='OPENING…';try{const details=await getQueendomEventJoinDetails(id),pass=document.querySelector(`[data-lounge-passcode="${CSS.escape(id)}"]`);if(pass&&details?.zoom_passcode)pass.textContent=`Zoom passcode: ${details.zoom_passcode}`;if(popup)popup.location.href=details.zoom_url;else window.open(details.zoom_url,'_blank','noopener,noreferrer');button.disabled=false;button.textContent='JOIN ZOOM';}catch(error){if(popup)popup.close();button.disabled=false;button.textContent='JOIN ZOOM';const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'The Zoom room could not open.';}}));}
+function loungeTodayIso(){const zone=currentProfile?.timezone||'America/Los_Angeles';try{const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${values.year}-${values.month}-${values.day}`;}catch{return new Date().toISOString().slice(0,10);}}
+function renderLoungeEvents(){const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;const today=loungeTodayIso(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,5),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event)).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{compact:true})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);if(status)status.textContent='';}
+async function prepareLoungeEvents({force=false}={}){if(loungeEventsLoadPromise&&!force)return loungeEventsLoadPromise;loungeEventsLoadPromise=(async()=>{const status=document.getElementById('loungeEventsStatus');if(status)status.textContent='Opening the Queendom calendar…';try{const [events,womb]=await Promise.all([listQueendomEvents({monthCount:6}),loadWombMagicScheduling().catch(()=>null)]);loungeEvents=events;loungeWombMagicState=womb;renderLoungeEvents();return events;}catch(error){if(status)status.textContent=error?.message||'Upcoming events could not open just now.';return[];}finally{loungeEventsLoadPromise=null;}})();return loungeEventsLoadPromise;}
 function loungeSeasonDateRange(season){
   const format=value=>{const [y,m,d]=String(value||'').slice(0,10).split('-').map(Number);return y?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d))):'—';};
   return `${format(season.starts_on)} – ${format(season.ends_on)}`;

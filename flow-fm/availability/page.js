@@ -1,7 +1,7 @@
-import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.79';
-import { effectiveFlowFmRank } from '/shared/rollout.js?v=0.10.64';
-import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.79';
-import { loadFlowFmAvailability, saveFlowFmAvailabilitySeason } from '/shared/flow-fm-availability.js?v=0.10.79';
+import { getCurrentProfile } from '/shared/flowtel.js?v=0.10.83';
+import { effectiveFlowFmRank } from '/shared/rollout.js?v=0.10.83';
+import { renderTopNav, escapeHtml } from '/flow-fm/ui.js?v=0.10.83';
+import { loadFlowFmAvailability, saveFlowFmAvailabilitySeason, loadFlowFmAvailabilityMonth, saveFlowFmAvailabilityMonthDay, submitFlowFmAvailabilityMonth } from '/shared/flow-fm-availability.js?v=0.10.83';
 import {
   FLOW_FM_INNER_SEASONS,
   FLOW_FM_WEEKDAYS,
@@ -12,7 +12,7 @@ import {
   summarizeFlowFmAvailabilityDays,
   formatFlowFmAvailabilityDayList,
   formatFlowFmAvailabilityTime,
-} from '/shared/flow-fm-availability-core.js?v=0.10.79';
+} from '/shared/flow-fm-availability-core.js?v=0.10.83';
 
 const topNav=document.getElementById('topNav');
 const experience=document.getElementById('availabilityExperience');
@@ -21,8 +21,24 @@ const overview=document.getElementById('availabilityOverview');
 const editor=document.getElementById('availabilityEditor');
 const anchorCopy=document.getElementById('availabilityAnchorCopy');
 const message=document.getElementById('availabilityMessage');
+const calendarSection=document.getElementById('availabilityCalendarSection');
+const calendarStatus=document.getElementById('availabilityCalendarStatus');
+const calendarMonth=document.getElementById('availabilityCalendarMonth');
+const calendarGrid=document.getElementById('availabilityCalendarGrid');
+const calendarMessage=document.getElementById('availabilityCalendarMessage');
+const dayEditor=document.getElementById('availabilityDayEditor');
+const monthPrevious=document.getElementById('availabilityMonthPrevious');
+const monthNext=document.getElementById('availabilityMonthNext');
+const submitMonthButton=document.getElementById('submitAvailabilityMonth');
+const calendarFooterTitle=document.getElementById('availabilityCalendarFooterTitle');
+const calendarFooterCopy=document.getElementById('availabilityCalendarFooterCopy');
 let state=null;
 let draft=null;
+let monthState=null;
+let monthCursor='';
+let minimumMonthStart='';
+let selectedCalendarDate='';
+let dayDraft=null;
 
 const SEASON_DETAILS={
   'Inner Winter':{label:'WINTER',invitation:'Protect rest, restoration and quieter connection.'},
@@ -300,6 +316,9 @@ async function saveRhythm(){
     for(const season of draft.copyTargets){state=await saveFlowFmAvailabilitySeason({innerSeason:season,days});}
     renderOverview();
     message.textContent=draft.copyTargets.size?`Your rhythm was saved to ${draft.season} and ${draft.copyTargets.size} other ${draft.copyTargets.size===1?'season':'seasons'}.`:`Your ${draft.season} rhythm was saved.`;
+    if(monthCursor){
+      try{monthState=await loadFlowFmAvailabilityMonth(monthCursor);renderCalendar();}catch(error){console.warn('Monthly Availability could not refresh after the seasonal rhythm changed.',error);}
+    }
     closeEditor();
     overview.scrollIntoView({behavior:'smooth',block:'start'});
   }catch(error){
@@ -307,6 +326,174 @@ async function saveRhythm(){
     output.textContent=error?.message||'This rhythm could not be saved.';
   }
 }
+function isoDate(value){
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?String(value):'';
+}
+function isoDateObject(value){
+  const iso=isoDate(value);
+  return iso?new Date(`${iso}T12:00:00Z`):null;
+}
+function monthLabel(value){
+  const date=isoDateObject(value);
+  return date?new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(date):'Calendar';
+}
+function dateLabel(value){
+  const date=isoDateObject(value);
+  return date?new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(date):String(value||'');
+}
+function shiftMonth(value,amount){
+  const date=isoDateObject(value);
+  if(!date)return '';
+  date.setUTCMonth(date.getUTCMonth()+amount,1);
+  return date.toISOString().slice(0,10);
+}
+function calendarWindowLabel(window){
+  return `${formatFlowFmAvailabilityTime(window.start)}–${formatFlowFmAvailabilityTime(window.end)}`;
+}
+function calendarDayFor(date){
+  return (Array.isArray(monthState?.days)?monthState.days:[]).find(day=>day.calendar_date===date)||null;
+}
+function renderCalendarFooter(){
+  const submitted=monthState?.status==='submitted';
+  const acknowledged=Boolean(monthState?.owner_acknowledged_at);
+  calendarStatus.textContent=submitted?'SUBMITTED':'DRAFT';
+  calendarStatus.classList.toggle('is-submitted',submitted);
+  if(submitted){
+    calendarFooterTitle.textContent=acknowledged?'This month has been updated in Acuity.':'Your availability has been sent to the Flowtel owner.';
+    calendarFooterCopy.textContent=acknowledged?'Any new date change will automatically reopen an Acuity update alert.':'Changes you save now automatically alert the owner so Acuity can stay aligned.';
+    submitMonthButton.textContent='Submitted';
+    submitMonthButton.disabled=true;
+  }else{
+    calendarFooterTitle.textContent='Prepare this month before submitting it.';
+    calendarFooterCopy.textContent='Your draft stays private until you submit it to the Flowtel owner for Acuity.';
+    submitMonthButton.textContent=`Submit ${monthLabel(monthState?.month_start||monthCursor)} Availability`;
+    submitMonthButton.disabled=false;
+  }
+}
+function renderCalendar(){
+  if(!monthState)return;
+  monthCursor=monthState.month_start||monthCursor;
+  calendarMonth.textContent=monthLabel(monthCursor);
+  const first=isoDateObject(monthCursor);
+  const blanks=first?(first.getUTCDay()+6)%7:0;
+  const today=isoDate(monthState.flowtel_date);
+  const blankCells=Array.from({length:blanks},()=>'<div class="availability-calendar-blank" aria-hidden="true"></div>').join('');
+  const days=monthState.days||[];
+  const dayCells=days.map(day=>{
+    const date=isoDateObject(day.calendar_date);
+    const number=date?date.getUTCDate():'—';
+    const past=Boolean(today&&day.calendar_date<today);
+    const windows=Array.isArray(day.windows)?day.windows:[];
+    const available=day.is_available===true&&windows.length>0;
+    const timeMarkup=available?windows.map(window=>`<span>${escapeHtml(calendarWindowLabel(window))}</span>`).join(''):'';
+    const season=String(day.projected_inner_season||'').replace('Inner ','');
+    const classes=['availability-calendar-day',available?'has-availability':'',day.is_override?'is-override':'',selectedCalendarDate===day.calendar_date?'is-selected':''].filter(Boolean).join(' ');
+    const aria=`${dateLabel(day.calendar_date)}. ${day.projected_inner_season||''}, cycle day ${day.projected_cycle_day||''}. ${available?windows.map(calendarWindowLabel).join(', '):'Unavailable'}${day.is_override?'. Edited for this date':''}`;
+    return `<button type="button" class="${classes}" data-calendar-date="${escapeHtml(day.calendar_date)}" aria-label="${escapeHtml(aria)}" ${past?'disabled':''}><span class="availability-calendar-date">${escapeHtml(number)}</span><span class="availability-calendar-times">${timeMarkup}</span><span class="availability-calendar-season">${escapeHtml(season)}</span></button>`;
+  }).join('');
+  const trailing=(7-((blanks+days.length)%7))%7;
+  const trailingCells=Array.from({length:trailing},()=>'<div class="availability-calendar-blank" aria-hidden="true"></div>').join('');
+  calendarGrid.innerHTML=blankCells+dayCells+trailingCells;
+  calendarGrid.querySelectorAll('[data-calendar-date]:not(:disabled)').forEach(button=>button.addEventListener('click',()=>openDayEditor(button.dataset.calendarDate)));
+  monthPrevious.disabled=!minimumMonthStart||monthCursor<=minimumMonthStart;
+  monthNext.disabled=Boolean(minimumMonthStart&&monthCursor>=shiftMonth(minimumMonthStart,12));
+  renderCalendarFooter();
+}
+async function loadCalendarMonth(monthStart=null,{focus=false}={}){
+  calendarMessage.textContent='Mapping your Inner Season rhythm onto the calendar…';
+  dayEditor.hidden=true;dayEditor.innerHTML='';selectedCalendarDate='';dayDraft=null;
+  try{
+    monthState=await loadFlowFmAvailabilityMonth(monthStart);
+    monthCursor=monthState?.month_start||monthStart||'';
+    if(!minimumMonthStart)minimumMonthStart=monthCursor;
+    calendarSection.hidden=false;
+    calendarMessage.textContent='';
+    renderCalendar();
+    if(focus)calendarSection.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(error){
+    calendarSection.hidden=false;
+    calendarGrid.innerHTML='';
+    calendarMessage.textContent=error?.message||'This monthly calendar could not be opened yet.';
+    throw error;
+  }
+}
+function calendarEditorWindow(window,index){
+  return `<div class="availability-day-window" data-calendar-window="${index}"><label><span>From</span><input type="time" name="start" value="${escapeHtml(window.start||'')}" /></label><label><span>To</span><input type="time" name="end" value="${escapeHtml(window.end||'')}" /></label><button type="button" data-remove-calendar-window="${index}" ${dayDraft.windows.length===1?'hidden':''}>Remove</button></div>`;
+}
+function syncDayDraftFromInputs(){
+  if(!dayDraft||dayEditor.hidden)return;
+  const checkbox=dayEditor.querySelector('[data-calendar-day-available]');
+  if(checkbox)dayDraft.available=checkbox.checked;
+  const rows=[...dayEditor.querySelectorAll('[data-calendar-window]')];
+  if(rows.length)dayDraft.windows=rows.map(row=>({start:row.querySelector('[name="start"]').value,end:row.querySelector('[name="end"]').value}));
+}
+function renderDayEditor(){
+  const day=calendarDayFor(selectedCalendarDate);
+  if(!day||!dayDraft){dayEditor.hidden=true;return;}
+  const submitted=monthState?.status==='submitted';
+  const sourceCopy=day.is_override?'This date is using a one-day edit.':'This date is following your saved Inner Season rhythm.';
+  dayEditor.innerHTML=`<header class="availability-day-editor-header"><div><p class="eyebrow">${escapeHtml(day.projected_inner_season||'INNER SEASON')} · DAY ${escapeHtml(day.projected_cycle_day||'')}</p><h3 id="availabilityDayEditorTitle">${escapeHtml(dateLabel(day.calendar_date))}</h3><p>${escapeHtml(sourceCopy)}</p></div><button type="button" class="availability-day-editor-close">Close</button></header><div class="availability-day-editor-controls"><label class="availability-day-toggle"><input type="checkbox" data-calendar-day-available ${dayDraft.available?'checked':''}><span>Available for client calls</span></label><div class="availability-day-window-list" ${dayDraft.available?'':'hidden'}>${dayDraft.windows.map(calendarEditorWindow).join('')}</div><button type="button" class="availability-day-add-window" data-add-calendar-window ${dayDraft.available?'':'hidden'}>Add another time window</button></div><div class="availability-day-editor-actions"><button type="button" class="use-seasonal-day">Use ${escapeHtml(day.projected_inner_season||'Seasonal')} Rhythm</button><div><button type="button" class="save-calendar-day">Save Day</button></div></div><p class="availability-day-editor-message" role="status">${submitted?'Saving a change after submission will alert the Flowtel owner to update Acuity.':''}</p>`;
+  dayEditor.hidden=false;
+  dayEditor.querySelector('.availability-day-editor-close')?.addEventListener('click',()=>{dayEditor.hidden=true;selectedCalendarDate='';dayDraft=null;renderCalendar();});
+  dayEditor.querySelector('[data-calendar-day-available]')?.addEventListener('change',event=>{
+    syncDayDraftFromInputs();dayDraft.available=event.target.checked;
+    if(dayDraft.available&&dayDraft.windows.length===0)dayDraft.windows=[{start:'09:00',end:'12:00'}];
+    renderDayEditor();
+  });
+  dayEditor.querySelector('[data-add-calendar-window]')?.addEventListener('click',()=>{
+    syncDayDraftFromInputs();if(dayDraft.windows.length<8)dayDraft.windows.push({start:'13:00',end:'14:00'});renderDayEditor();
+  });
+  dayEditor.querySelectorAll('[data-remove-calendar-window]').forEach(button=>button.addEventListener('click',()=>{
+    syncDayDraftFromInputs();if(dayDraft.windows.length>1)dayDraft.windows.splice(Number(button.dataset.removeCalendarWindow),1);renderDayEditor();
+  }));
+  dayEditor.querySelector('.save-calendar-day')?.addEventListener('click',saveCalendarDay);
+  dayEditor.querySelector('.use-seasonal-day')?.addEventListener('click',resetCalendarDay);
+}
+function openDayEditor(date){
+  const day=calendarDayFor(date);if(!day)return;
+  selectedCalendarDate=date;
+  const windows=(Array.isArray(day.windows)?day.windows:[]).map(window=>({start:String(window.start||'').slice(0,5),end:String(window.end||'').slice(0,5)}));
+  dayDraft={available:day.is_available===true,windows:windows.length?windows:[{start:'09:00',end:'12:00'}]};
+  renderCalendar();renderDayEditor();dayEditor.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+async function saveCalendarDay(){
+  syncDayDraftFromInputs();
+  const output=dayEditor.querySelector('.availability-day-editor-message');
+  const button=dayEditor.querySelector('.save-calendar-day');
+  if(dayDraft.available&&!dayDraft.windows.length){output.textContent='Add at least one time window.';return;}
+  for(const window of dayDraft.windows){if(!window.start||!window.end||window.start>=window.end){output.textContent='Each time window must end after it begins.';return;}}
+  button.disabled=true;button.textContent='SAVING…';
+  try{
+    const wasSubmitted=monthState?.status==='submitted';
+    monthState=await saveFlowFmAvailabilityMonthDay({calendarDate:selectedCalendarDate,isAvailable:dayDraft.available,windows:dayDraft.windows});
+    calendarMessage.textContent=wasSubmitted?'Saved. The Flowtel owner has been alerted to update Acuity.':'Saved to your monthly draft.';
+    renderCalendar();openDayEditor(selectedCalendarDate);
+  }catch(error){button.disabled=false;button.textContent='SAVE DAY';output.textContent=error?.message||'This date could not be saved.';}
+}
+async function resetCalendarDay(){
+  const button=dayEditor.querySelector('.use-seasonal-day');
+  const output=dayEditor.querySelector('.availability-day-editor-message');
+  button.disabled=true;
+  try{
+    const wasSubmitted=monthState?.status==='submitted';
+    monthState=await saveFlowFmAvailabilityMonthDay({calendarDate:selectedCalendarDate,isAvailable:false,windows:[],useSeasonal:true});
+    calendarMessage.textContent=wasSubmitted?'Seasonal rhythm restored. The Flowtel owner has been alerted to update Acuity.':'This date is following your Inner Season rhythm again.';
+    renderCalendar();openDayEditor(selectedCalendarDate);
+  }catch(error){button.disabled=false;output.textContent=error?.message||'This date could not be restored.';}
+}
+async function submitCalendarMonth(){
+  if(!monthCursor||monthState?.status==='submitted')return;
+  submitMonthButton.disabled=true;submitMonthButton.textContent='SUBMITTING…';calendarMessage.textContent='Sending your calendar to the Flowtel owner…';
+  try{
+    monthState=await submitFlowFmAvailabilityMonth(monthCursor);
+    calendarMessage.textContent='Submitted. The Flowtel owner has been alerted to update Acuity.';
+    renderCalendar();
+  }catch(error){submitMonthButton.disabled=false;submitMonthButton.textContent='SUBMIT AVAILABILITY';calendarMessage.textContent=error?.message||'This calendar could not be submitted.';}
+}
+monthPrevious?.addEventListener('click',()=>{if(monthCursor&&!monthPrevious.disabled)loadCalendarMonth(shiftMonth(monthCursor,-1),{focus:true}).catch(()=>{});});
+monthNext?.addEventListener('click',()=>{if(monthCursor&&!monthNext.disabled)loadCalendarMonth(shiftMonth(monthCursor,1),{focus:true}).catch(()=>{});});
+submitMonthButton?.addEventListener('click',submitCalendarMonth);
+
 async function init(){
   topNav.innerHTML=renderTopNav('availability');
   try{
@@ -317,9 +504,10 @@ async function init(){
       return;
     }
     state=await loadFlowFmAvailability();
-    anchorCopy.textContent=`Times are shown in ${state?.timezone||'your saved profile timezone'}. You can change one season at a time or copy a rhythm across seasons.`;
+    anchorCopy.textContent=`Times are shown in ${state?.timezone||'your saved profile timezone'}. Set the rhythm for each Inner Season, then use the monthly calendar below to make real-date exceptions.`;
     experience.hidden=false;
     renderOverview();
+    try{await loadCalendarMonth(null);}catch(error){console.warn('Cycle-aware Availability calendar is not available yet.',error);}
   }catch(error){
     gate.hidden=false;
     gate.innerHTML=`<p class="eyebrow">AVAILABILITY</p><h1>This room could not open yet.</h1><p>${escapeHtml(error?.message||'Please return through the Flowtel and try again.')}</p>`;

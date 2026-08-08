@@ -1,3 +1,14 @@
+## v0.10.83 — The Flowtel Calendar / Caddie Magic v0.6.0
+
+- Adds a cycle-aware monthly Priestess Availability calendar that projects saved Inner Season rhythms onto real dates, supports one-day overrides, monthly submission, and an owner Acuity-update queue.
+- Preserves Priestess-only Upcoming Calls while keeping Owner/Admin visibility of all Womb Magic calls and adding **Held by [Priestess]** to owner-wide cards.
+- Aligns the Womb Magic consent row on desktop/mobile and renames the client appointment doorway to **JOIN ZOOM** while preserving **BEGIN WOMB MAGIC** for Priestesses.
+- Adds **Upcoming Events in the Queendom** and **My Calendar** to the Lounge, with one-click **Save My Seat**, protected membership-aware Zoom access, and private personal Womb Magic appointments.
+- Adds the unified visual **Queendom Calendar** with event artwork plus an anonymous-safe `?embed=1` view for Squarespace, so one Flowtel event can power every calendar surface.
+- Adds Owner/Admin Queendom event creation with Ceremony/Workshop/Call/Other types, Queendom/Flow FM audiences, manual Zoom link/passcode, artwork, Draft/Published lifecycle, and history-preserving cancellation.
+- Requires `database/migration-067-flowtel-calendar.sql`; no new Vercel environment variables are required.
+- Leaves Caddie Magic at v0.6.0 with no product or permission changes.
+
 ## v0.10.82 — Enter Womb Magic / Caddie Magic v0.6.0
 
 - Adds **ENTER WOMB MAGIC** to the booked member's Suite when Acuity supplies a valid Zoom appointment location.

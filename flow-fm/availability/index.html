@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Flow FM Inner Season availability for 1:1 client-facing calls." />
   <title>Availability | Flowtel</title>
-  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.79" />
-  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.79" />
-  <link rel="stylesheet" href="/flow-fm/availability/styles.css?v=0.10.79" />
-  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.79" />
+  <link rel="stylesheet" href="/flow-fm/styles.css?v=0.10.83" />
+  <link rel="stylesheet" href="/flow-fm/design-system.css?v=0.10.83" />
+  <link rel="stylesheet" href="/flow-fm/availability/styles.css?v=0.10.83" />
+  <link rel="stylesheet" href="/flow-fm/platform.css?v=0.10.83" />
 </head>
 <body class="flowfm-platform-page availability-page">
   <main class="availability-shell">
@@ -35,8 +35,45 @@
       <section id="availabilityEditor" class="availability-editor" hidden aria-labelledby="availabilityEditorTitle"></section>
     </section>
 
+    <section class="availability-calendar-card" id="availabilityCalendarSection" hidden>
+      <header class="availability-calendar-heading">
+        <div>
+          <p class="eyebrow">MONTHLY AVAILABILITY</p>
+          <h2>Your calendar, mapped to your cycle</h2>
+          <p>Flowtel applies your Inner Season rhythm to the real calendar. Click any future date to make a one-day change without changing your seasonal rhythm.</p>
+        </div>
+        <span class="availability-calendar-status" id="availabilityCalendarStatus">DRAFT</span>
+      </header>
+
+      <div class="availability-calendar-toolbar">
+        <div class="availability-month-nav">
+          <button type="button" id="availabilityMonthPrevious" aria-label="Previous month">←</button>
+          <button type="button" id="availabilityMonthNext" aria-label="Next month">→</button>
+        </div>
+        <h3 id="availabilityCalendarMonth">Calendar</h3>
+      </div>
+
+      <div class="availability-calendar-scroll">
+        <div class="availability-calendar-weekdays" aria-hidden="true">
+          <span>Monday</span><span>Tuesday</span><span>Wednesday</span><span>Thursday</span><span>Friday</span><span>Saturday</span><span>Sunday</span>
+        </div>
+        <div class="availability-calendar-grid" id="availabilityCalendarGrid" aria-live="polite"></div>
+      </div>
+      <p class="availability-calendar-message" id="availabilityCalendarMessage" role="status"></p>
+
+      <section class="availability-day-editor" id="availabilityDayEditor" hidden aria-labelledby="availabilityDayEditorTitle"></section>
+
+      <footer class="availability-calendar-footer">
+        <div>
+          <strong id="availabilityCalendarFooterTitle">Prepare this month before submitting it.</strong>
+          <span id="availabilityCalendarFooterCopy">Your draft stays private until you submit it to the Flowtel owner for Acuity.</span>
+        </div>
+        <button type="button" class="submit-availability-month" id="submitAvailabilityMonth">Submit Availability</button>
+      </footer>
+    </section>
+
     <section class="availability-gate" id="availabilityGate" hidden></section>
   </main>
-  <script type="module" src="/flow-fm/availability/page.js?v=0.10.79"></script>
+  <script type="module" src="/flow-fm/availability/page.js?v=0.10.83"></script>
 </body>
 </html>
