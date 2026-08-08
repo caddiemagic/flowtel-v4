@@ -1,5 +1,6 @@
 import { getCurrentProfile } from '/shared/profiles.js?v=0.10.83';
-import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails } from '/shared/queendom-events.js?v=0.10.83';
+import { timezoneDisplayName } from '/shared/timezone-labels.js?v=0.10.83.1';
+import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails } from '/shared/queendom-events.js?v=0.10.83.1';
 
 const shell=document.getElementById('calendarShell');
 const nav=document.getElementById('calendarNav');
@@ -28,6 +29,8 @@ function formatClock(value){const m=/^(\d{2}):(\d{2})/.exec(String(value||''));i
 function eventTypeLabel(value){return ({workshop:'WORKSHOP',ceremony:'CEREMONY',call:'CALL',other:'EVENT'})[value]||'EVENT';}
 function audienceLabel(value){return value==='flowfm'?'FLOW FM':'QUEENDOM';}
 function eventTime(event){return `${formatClock(event.start_time)}${event.end_time?`–${formatClock(event.end_time)}`:''}`;}
+function eventTimezone(event){const date=/^\d{4}-\d{2}-\d{2}$/.test(String(event?.event_date||''))?new Date(`${event.event_date}T12:00:00Z`):new Date();return timezoneDisplayName(event?.event_timezone||'America/Los_Angeles',date)||'Pacific Time';}
+function hostLine(event){if(!event?.host_name)return'';const name=esc(event.host_name);if(memberMode&&!embed&&event.host_member_id)return `<span>Hosted by <a href="/flow-fm/team-map/profile/?member=${encodeURIComponent(event.host_member_id)}">${name}</a></span>`;return `<span>Hosted by ${name}</span>`;}
 function eventsForDate(date){return events.filter(event=>event.event_date===date);}
 function eventTile(event){
   const image=event.image_url?`<img src="${esc(event.image_url)}" alt="">`:'<div class="event-tile-placeholder">✦</div>';
@@ -54,7 +57,7 @@ function actionMarkup(event){
 }
 function renderDialog(event){
   const image=event.image_url?`<img class="event-dialog-image" src="${esc(event.image_url)}" alt="">`:'<div class="event-dialog-image event-dialog-placeholder">✦</div>';
-  dialogContent.innerHTML=`${image}<section class="event-dialog-copy"><p class="eyebrow">${esc(eventTypeLabel(event.event_type))} · ${esc(audienceLabel(event.audience))}</p><h2>${esc(event.title)}</h2><p class="event-dialog-when"><strong>${esc(detailDate(event))}</strong><span>${esc(eventTime(event))} · ${esc(event.event_timezone||'America/Los_Angeles')}</span>${event.host_name?`<span>Hosted by ${esc(event.host_name)}</span>`:''}</p>${event.description?`<p class="event-dialog-description">${esc(event.description)}</p>`:''}${actionMarkup(event)}</section>`;
+  dialogContent.innerHTML=`${image}<section class="event-dialog-copy"><p class="eyebrow">${esc(eventTypeLabel(event.event_type))} · ${esc(audienceLabel(event.audience))}</p><h2>${esc(event.title)}</h2><p class="event-dialog-when"><strong>${esc(detailDate(event))}</strong><span>${esc(eventTime(event))} · ${esc(eventTimezone(event))}</span>${hostLine(event)}</p>${event.description?`<p class="event-dialog-description">${esc(event.description)}</p>`:''}${actionMarkup(event)}</section>`;
   dialogContent.querySelector('[data-save-seat]')?.addEventListener('click',()=>toggleRegistration(event));
   dialogContent.querySelector('[data-join-event]')?.addEventListener('click',button=>joinEvent(event,button));
 }

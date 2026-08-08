@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Flowtel owner event administration for the Queendom Calendar." />
   <title>Queendom Events | Flowtel</title>
-  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83" />
+  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83.1" />
 </head>
 <body>
   <main class="events-admin-shell">
@@ -47,17 +47,24 @@
             <label><span>Date</span><input id="eventDate" type="date" required /></label>
             <label><span>Start time</span><input id="eventStartTime" type="time" required /></label>
             <label><span>End time</span><input id="eventEndTime" type="time" /></label>
-            <label><span>Timezone</span><input id="eventTimezone" list="eventTimezoneList" value="America/Los_Angeles" required /></label>
-            <label><span>Host</span><input id="eventHost" maxlength="180" placeholder="Megan Michele" /></label>
+            <label><span>Timezone</span><select id="eventTimezone" required>
+              <option value="America/Los_Angeles">Pacific Time — Pacific Standard / Daylight Time</option>
+              <option value="America/Denver">Mountain Time — Mountain Standard / Daylight Time</option>
+              <option value="America/Chicago">Central Time — Central Standard / Daylight Time</option>
+              <option value="America/New_York">Eastern Time — Eastern Standard / Daylight Time</option>
+              <option value="America/Phoenix">Arizona Time — Mountain Standard Time</option>
+              <option value="Pacific/Honolulu">Hawaii Time — Hawaii Standard Time</option>
+              <option value="Europe/London">United Kingdom Time — GMT / British Summer Time</option>
+              <option value="Europe/Paris">Central European Time — CET / CEST</option>
+              <option value="Australia/Sydney">Australian Eastern Time — AEST / AEDT</option>
+            </select></label>
+            <label><span>Host</span><select id="eventHost"><option value="">Choose a Flow FM host</option></select></label>
             <label class="wide"><span>Description</span><textarea id="eventDescription" maxlength="4000" rows="4" placeholder="What will members experience?"></textarea></label>
             <label class="wide"><span>Zoom link</span><input id="eventZoomUrl" type="url" placeholder="https://us02web.zoom.us/j/…" /></label>
             <label><span>Zoom passcode</span><input id="eventZoomPasscode" maxlength="200" autocomplete="off" /></label>
             <label><span>Publishing</span><select id="eventStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="cancelled" disabled>Cancelled</option></select></label>
           </div>
 
-          <datalist id="eventTimezoneList">
-            <option value="America/Los_Angeles"></option><option value="America/Denver"></option><option value="America/Chicago"></option><option value="America/New_York"></option><option value="America/Phoenix"></option><option value="Pacific/Honolulu"></option><option value="Europe/London"></option><option value="Europe/Paris"></option><option value="Australia/Sydney"></option>
-          </datalist>
 
           <section class="event-image-editor">
             <div class="event-image-preview" id="eventImagePreview"><span>EVENT IMAGE</span></div>
@@ -84,6 +91,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/manager/events/app.js?v=0.10.83"></script>
+  <script type="module" src="/manager/events/app.js?v=0.10.83.1"></script>
 </body>
 </html>

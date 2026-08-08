@@ -110,7 +110,7 @@ assert(files['manager/index.html'].includes('/manager/events/'));
 assert(files['client/index.html'].includes('app.js?v=0.10.83'));
 assert(files['flow-fm/availability/index.html'].includes('page.js?v=0.10.83'));
 assert(files['flow-fm/upcoming-calls/index.html'].includes('page.js?v=0.10.83'));
-assert(files['docs/CHANGELOG.md'].startsWith('## v0.10.83 — The Flowtel Calendar'));
+assert(files['docs/CHANGELOG.md'].includes('## v0.10.83 — The Flowtel Calendar'));
 assert(files['docs/RELEASE-0.10.83.md'].includes('migration-067-flowtel-calendar.sql'));
 
 // Migration integrity basics.

@@ -1,4 +1,4 @@
-// Flowtel v0.10.83 — Queendom events, member registration, protected Zoom access, and unified calendar.
+// Flowtel v0.10.83.1 — Queendom events, linked Flow FM hosts, protected Zoom access, and unified calendar.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';
@@ -7,7 +7,13 @@ export const QUEENDOM_EVENT_IMAGE_TYPES=['image/jpeg','image/png','image/webp'];
 
 async function rpc(name,args={}){
   const {data,error}=await supabase.rpc(name,args);
-  if(error)throw error;
+  if(error){
+    const detail=String(error.message||'');
+    if(/schema cache/i.test(detail)&&/queendom.*event|flowtel_(?:list|public|admin|set|get)_queendom/i.test(`${name} ${detail}`)){
+      throw new Error('The Flowtel Calendar database setup is not complete yet. Run migrations 067 and 068, then refresh this room.');
+    }
+    throw error;
+  }
   return data;
 }
 
@@ -45,6 +51,11 @@ export async function loadQueendomEventsAdmin(){
   return Array.isArray(data)?data:[];
 }
 
+export async function loadQueendomEventHostsAdmin(){
+  const data=await rpc('flowtel_admin_list_queendom_event_hosts');
+  return Array.isArray(data)?data:[];
+}
+
 export async function saveQueendomEventAdmin(payload={}){
   return rpc('flowtel_admin_save_queendom_event',{
     p_event_id:payload.event_id||null,
@@ -62,6 +73,7 @@ export async function saveQueendomEventAdmin(payload={}){
     p_image_path:String(payload.image_path||'').trim()||null,
     p_image_url:String(payload.image_url||'').trim()||null,
     p_status:String(payload.status||'draft').trim().toLowerCase(),
+    p_host_member_id:payload.host_member_id||null,
   });
 }
 
@@ -85,7 +97,12 @@ export async function uploadQueendomEventImage(eventId,file){
     contentType:file.type,
     cacheControl:'3600',
   });
-  if(error)throw error;
+  if(error){
+    if(/bucket.*not found|not found.*bucket/i.test(String(error.message||''))){
+      throw new Error('Event artwork storage is not installed yet. Run Flowtel migrations 067 and 068, then try the image again.');
+    }
+    throw error;
+  }
   const {data}=supabase.storage.from(QUEENDOM_EVENT_IMAGE_BUCKET).getPublicUrl(path);
   if(!data?.publicUrl)throw new Error('The image uploaded, but Flowtel could not prepare its calendar URL.');
   return {image_path:path,image_url:`${data.publicUrl}?v=${Date.now()}`};

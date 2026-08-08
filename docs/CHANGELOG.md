@@ -1,3 +1,12 @@
+## v0.10.83.1 — Flowtel Calendar Polish
+
+- Aligns **Upcoming Events in the Queendom** and **My Calendar** to the established 760px Lounge content width and removes the extra membership-explanation sentence from the Lounge hero copy.
+- Replaces technical event timezone IDs with named timezone choices in Owner Administration and human-readable timezone names in member/calendar displays.
+- Replaces the free-text event Host field with a Flow FM/Council member dropdown and links authenticated event host names to their Flowtel Priestess profiles.
+- Saves the event record before optional artwork upload so a Storage failure cannot discard the event itself.
+- Adds migration 068 to repair/ensure the Queendom event artwork bucket, add `host_member_id`, add the owner host-directory RPC, refresh the event member/admin RPCs, and request an immediate PostgREST schema-cache reload.
+- Requires migration 067 first; leaves Caddie Magic at v0.6.0.
+
 ## v0.10.83 — The Flowtel Calendar / Caddie Magic v0.6.0
 
 - Adds a cycle-aware monthly Priestess Availability calendar that projects saved Inner Season rhythms onto real dates, supports one-day overrides, monthly submission, and an owner Acuity-update queue.
