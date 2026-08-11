@@ -1,3 +1,13 @@
+## v0.10.84.3 — Upcoming Events Navigation + Lounge Repair
+
+- Fixed the Lounge Upcoming Events runtime regression caused by the missing `loungeTodayIso` helper by reusing the canonical Flowtel Time `localTodayISO()` path.
+- Restored the next 3 Upcoming Events, saved-seat state, and My Upcoming Events rendering in the Lounge.
+- Replaced raw JavaScript exception text in the Lounge with a guest-safe fallback while retaining console diagnostics.
+- Added **GO TO MY SUITE** and **RETURN TO THE LOUNGE** navigation to the full Upcoming Events page.
+- Repeated **RETURN TO THE LOUNGE** at the bottom of the full agenda for long-page navigation.
+- Kept internal Flowtel navigation hidden from the public/Queendom embed.
+- No Supabase migration required; next migration remains 070.
+
 ## v0.10.84.2 — Queendom Calendar + Lounge Polish
 
 - Simplifies the Lounge to one centered **Upcoming Events in the Queendom** discovery surface showing only the next 3 events with **Save My Seat** as the primary action.

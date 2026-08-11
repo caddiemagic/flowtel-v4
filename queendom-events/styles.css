@@ -54,3 +54,11 @@
   .agenda-embed-featured .agenda-art,.agenda-event.is-embed-compact .agenda-art{grid-column:1}
   .agenda-embed-featured .agenda-copy,.agenda-event.is-embed-compact .agenda-copy{grid-column:1}
 }
+
+/* Flowtel v0.10.84.3 — internal navigation for the full Upcoming Events room */
+.agenda-flowtel-nav{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.agenda-flowtel-nav-top{margin:0 0 24px}
+.agenda-flowtel-nav-bottom{margin:30px 0 0}
+.agenda-flowtel-nav a{display:inline-flex;align-items:center;justify-content:center;min-height:42px;border:1px solid rgba(184,130,38,.42);border-radius:999px;padding:10px 20px;background:#fffaf7;color:var(--ink);font:700 10px/1.1 Montserrat,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-decoration:none}
+.is-embed .agenda-flowtel-nav{display:none}
+@media(max-width:560px){.agenda-flowtel-nav{display:grid;grid-template-columns:1fr;width:100%}.agenda-flowtel-nav a{width:100%}.is-embed .agenda-flowtel-nav{display:none}}

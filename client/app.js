@@ -2504,13 +2504,13 @@ function bindLoungeEventActions(root){
 }
 function renderLoungeEvents(){
   const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;
-  const today=loungeTodayIso(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,3),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);
+  const today=localTodayISO(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,3),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);
   upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event,{mode:'discover'})).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';
   const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());
   mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{mode:'manage'})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';
   bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);if(status&&!eventDoorwayMessage)status.textContent='';
 }
-async function prepareLoungeEvents({force=false}={}){if(loungeEventsLoadPromise&&!force)return loungeEventsLoadPromise;loungeEventsLoadPromise=(async()=>{const status=document.getElementById('loungeEventsStatus');if(status)status.textContent='Opening the Queendom calendar…';try{const [events,womb]=await Promise.all([listQueendomEvents({monthCount:6}),loadWombMagicScheduling().catch(()=>null)]);loungeEvents=events;loungeWombMagicState=womb;renderLoungeEvents();return events;}catch(error){if(status)status.textContent=error?.message||'Upcoming events could not open just now.';return[];}finally{loungeEventsLoadPromise=null;}})();return loungeEventsLoadPromise;}
+async function prepareLoungeEvents({force=false}={}){if(loungeEventsLoadPromise&&!force)return loungeEventsLoadPromise;loungeEventsLoadPromise=(async()=>{const status=document.getElementById('loungeEventsStatus');if(status)status.textContent='Opening the Queendom calendar…';try{const [events,womb]=await Promise.all([listQueendomEvents({monthCount:6}),loadWombMagicScheduling().catch(()=>null)]);loungeEvents=events;loungeWombMagicState=womb;renderLoungeEvents();return events;}catch(error){console.error('Flowtel Lounge events could not open or render.',error);if(status)status.textContent='Upcoming events could not open just now.';return[];}finally{loungeEventsLoadPromise=null;}})();return loungeEventsLoadPromise;}
 function loungeSeasonDateRange(season){
   const format=value=>{const [y,m,d]=String(value||'').slice(0,10).split('-').map(Number);return y?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d))):'—';};
   return `${format(season.starts_on)} – ${format(season.ends_on)}`;

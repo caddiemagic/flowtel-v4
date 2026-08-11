@@ -5,10 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Upcoming Queendom events — ceremonies, workshops, calls, and Flow FM gatherings." />
   <title>Upcoming Events in the Queendom | Flowtel</title>
-  <link rel="stylesheet" href="/queendom-events/styles.css?v=0.10.84.2" />
+  <link rel="stylesheet" href="/queendom-events/styles.css?v=0.10.84.3" />
 </head>
 <body>
   <main class="agenda-shell" id="agendaShell">
+    <nav class="agenda-flowtel-nav agenda-flowtel-nav-top" aria-label="Flowtel navigation">
+      <a href="/client/?suite=1">GO TO MY SUITE</a>
+      <a href="/client/?lounge=1">RETURN TO THE LOUNGE</a>
+    </nav>
+
     <header class="agenda-hero" id="agendaHero">
       <p class="eyebrow">THE QUEENDOM</p>
       <h1>Upcoming Events</h1>
@@ -26,8 +31,12 @@
 
     <section class="agenda-list" id="agendaList" aria-live="polite"></section>
     <p class="agenda-status" id="agendaStatus" role="status"></p>
+
+    <nav class="agenda-flowtel-nav agenda-flowtel-nav-bottom" aria-label="Return to Flowtel Lounge">
+      <a href="/client/?lounge=1">RETURN TO THE LOUNGE</a>
+    </nav>
   </main>
 
-  <script type="module" src="/queendom-events/app.js?v=0.10.84.2"></script>
+  <script type="module" src="/queendom-events/app.js?v=0.10.84.3"></script>
 </body>
 </html>

@@ -4,11 +4,11 @@ Updated: August 10, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.84.2 Queendom Calendar + Lounge Polish
+## Current — v0.10.84.3 Upcoming Events Navigation + Lounge Repair
 
-Focus: concise event discovery and cleaner calendar marketing surfaces. The Lounge now defaults to the next three events, My Upcoming Events opens only when requested, the Queendom embed is capped to one featured + three coming-up events, and event artwork is preserved without cropping.
+Focus: stabilize the event discovery experience after the v0.10.84.2 calendar polish. The Lounge again renders the next three events using canonical Flowtel Time, and the full Upcoming Events room now has clear Suite/Lounge navigation at the top plus a Lounge return at the bottom.
 
-The v0.10.84.1 Womb Magic recording/library consent remains in force for new Womb Magic bookings. Keep SMS/Twilio work deferred so the event foundation can be live-tested first.
+The v0.10.84.2 concise embed/artwork behavior and the v0.10.84.1 Womb Magic recording/library consent remain in force. Keep SMS/Twilio work deferred so the event foundation can be live-tested first.
 
 ## Deferred — Flowtel Messaging + Wake Up Text
 
