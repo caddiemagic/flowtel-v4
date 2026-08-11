@@ -15,7 +15,7 @@ const {
 }=require('./guest-house-server.js');
 
 const ACUITY_API_BASE='https://acuityscheduling.com/api/v1';
-const WOMB_MAGIC_CONSENT_LANGUAGE='By booking this Womb Magic call, you allow the Priestess holding your appointment to view your Flowtel cycle data, check-ins, reflections, Flow Map, and stay history so she can prepare for and hold your call. Her access begins when the call is booked and ends seven days after the appointment.';
+const WOMB_MAGIC_CONSENT_LANGUAGE='By booking this Womb Magic call, you allow the Priestess holding your appointment to view your Flowtel cycle data, check-ins, reflections, Flow Map, and stay history so she can prepare for and hold your call. Her access begins when the call is booked and ends seven days after the appointment. Your Womb Magic call will be recorded and uploaded to the Flow FM Library for training purposes, where it will be shared with care and integrity.';
 
 function safeJsonParse(value){try{return JSON.parse(value);}catch(error){return null;}}
 function normalizeId(value){const text=String(value ?? '').trim();return /^\d+$/.test(text)?text:'';}

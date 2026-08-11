@@ -4,11 +4,11 @@ Updated: August 10, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.84 My Upcoming Events
+## Current — v0.10.84.1 Womb Magic Recording Consent
 
-Focus: event discovery, registration continuation, My Upcoming Events, personal-calendar handoff, and the Queendom chronological agenda embed.
+Focus: explicit recording and Flow FM Library training consent for new Womb Magic bookings. The v0.10.84 My Upcoming Events calendar and registration foundation remains the current event system.
 
-Keep SMS/Twilio work out of this release so the event foundation can be live-tested first.
+Keep SMS/Twilio work deferred so the event foundation can be live-tested first.
 
 ## Deferred — Flowtel Messaging + Wake Up Text
 

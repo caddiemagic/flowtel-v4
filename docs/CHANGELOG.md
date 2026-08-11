@@ -1,3 +1,10 @@
+## v0.10.84.1 — Womb Magic Recording Consent
+
+- Updates Womb Magic booking consent to explicitly disclose that calls will be recorded and uploaded to the Flow FM Library for training purposes, shared with care and integrity.
+- Updates the booking checkbox so the member explicitly consents to both temporary Priestess data access and call recording/library use before booking is enabled.
+- Persists the updated canonical consent language on newly booked Womb Magic appointments and appointment access grants using the existing consent-language fields.
+- Requires no migration; next migration remains 070. Existing previously booked appointments are not retroactively re-consented. Caddie Magic remains v0.6.0.
+
 ## v0.10.84 — My Upcoming Events
 
 - Adds a chronological **Upcoming Events** agenda at `/queendom-events/` with artwork, month grouping, audience filters, and an embed-safe `?embed=1` mode for the Queendom/Squarespace.
