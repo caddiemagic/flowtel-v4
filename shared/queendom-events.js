@@ -1,4 +1,4 @@
-// Flowtel v0.10.83.3 — Queendom events, linked Flow FM hosts, protected Zoom access, and event artwork Storage repair.
+// Flowtel v0.10.84 — Queendom events shared by the Lounge, My Upcoming Events, and sanitized public agenda/calendar embeds.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';

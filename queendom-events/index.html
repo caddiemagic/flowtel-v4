@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Upcoming Queendom events — ceremonies, workshops, calls, and Flow FM gatherings." />
+  <title>Upcoming Events in the Queendom | Flowtel</title>
+  <link rel="stylesheet" href="/queendom-events/styles.css?v=0.10.84" />
+</head>
+<body>
+  <main class="agenda-shell" id="agendaShell">
+    <header class="agenda-hero" id="agendaHero">
+      <p class="eyebrow">THE QUEENDOM</p>
+      <h1>Upcoming Events</h1>
+      <p>Save your seat for the ceremonies, workshops, and calls you want to be part of. Flowtel will keep everything you choose together.</p>
+    </header>
+
+    <nav class="agenda-tools" aria-label="Upcoming event filters">
+      <div class="agenda-filters" id="agendaFilters">
+        <button type="button" class="is-active" data-audience="all">All Events</button>
+        <button type="button" data-audience="queendom">Queendom</button>
+        <button type="button" data-audience="flowfm">Flow FM</button>
+      </div>
+      <div class="agenda-months" id="agendaMonths" aria-label="Jump to month"></div>
+    </nav>
+
+    <section class="agenda-list" id="agendaList" aria-live="polite"></section>
+    <p class="agenda-status" id="agendaStatus" role="status"></p>
+  </main>
+
+  <script type="module" src="/queendom-events/app.js?v=0.10.84"></script>
+</body>
+</html>

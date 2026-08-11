@@ -131,6 +131,10 @@
       "destination": "/queendom-calendar/index.html"
     },
     {
+      "source": "/queendom-events",
+      "destination": "/queendom-events/index.html"
+    },
+    {
       "source": "/flow-map/printable",
       "destination": "/flow-map/printable/index.html"
     },

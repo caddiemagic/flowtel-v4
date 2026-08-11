@@ -92,7 +92,7 @@ assert(!joinFn.includes('flowtel_queendom_event_registrations'),'Registration mu
 assert(functionBody('flowtel_admin_save_queendom_event').includes('Cancelled events stay in history and cannot be republished'));
 
 // Member/Lounge calendar and owner creation desk.
-for(const token of ['UPCOMING EVENTS IN THE QUEENDOM','MY CALENDAR','/queendom-calendar/']) assert(files['client/index.html'].includes(token),`Lounge is missing ${token}.`);
+for(const token of ['UPCOMING EVENTS IN THE QUEENDOM','MY UPCOMING EVENTS']) assert(files['client/index.html'].includes(token),`Lounge is missing ${token}.`);
 for(const token of ['SAVE MY SEAT','JOIN ZOOM','FLOW FM MEMBERS ONLY','loadWombMagicScheduling']) assert(files['client/app.js'].includes(token),`Lounge calendar is missing ${token}.`);
 for(const token of ['Event name','Audience','Zoom link','Zoom passcode','Calendar artwork']) assert(files['manager/events/index.html'].includes(token),`Event admin is missing ${token}.`);
 assert(files['manager/events/app.js'].includes('uploadQueendomEventImage'));
@@ -107,7 +107,7 @@ const vercel=JSON.parse(files['vercel.json']);
 const rewrites=new Set((vercel.rewrites||[]).map(item=>item.source));
 for(const route of ['/manager/events','/queendom-calendar']) assert(rewrites.has(route),`Missing Vercel rewrite: ${route}`);
 assert(files['manager/index.html'].includes('/manager/events/'));
-assert(files['client/index.html'].includes('app.js?v=0.10.83'));
+assert(/app\.js\?v=0\.10\.(?:83(?:\.\d+)?|8[4-9]|\d{3,})/.test(files['client/index.html']));
 assert(files['flow-fm/availability/index.html'].includes('page.js?v=0.10.83'));
 assert(files['flow-fm/upcoming-calls/index.html'].includes('page.js?v=0.10.83'));
 assert(files['docs/CHANGELOG.md'].includes('## v0.10.83 — The Flowtel Calendar'));

@@ -1,3 +1,14 @@
+## v0.10.84 — My Upcoming Events
+
+- Adds a chronological **Upcoming Events** agenda at `/queendom-events/` with artwork, month grouping, audience filters, and an embed-safe `?embed=1` mode for the Queendom/Squarespace.
+- Adds a **SAVE MY SEAT** continuation doorway: remembered Flowtel sessions register immediately; signed-out members authenticate first and then the pending event registration resumes automatically.
+- Preserves the one-stay-per-Flowtel-Day arrival rule: members who have not checked in still complete normal arrival before Flowtel opens My Upcoming Events.
+- Renames the Lounge's **My Calendar** section to **MY UPCOMING EVENTS** and makes it the registration landing destination.
+- Adds **ADD TO CALENDAR** for saved community events with Google Calendar and Apple/Outlook `.ics` handoff while intentionally keeping protected Zoom URLs/passcodes out of personal-calendar payloads.
+- Keeps Flow FM events visible as marketing to Queendom members while preserving the existing database membership gate for registration and Zoom access.
+- Records the deferred Twilio-powered Wake Up Text + event-reminder specification in `docs/FLOWTEL_ROADMAP.md`; no SMS provider integration ships in this release.
+- Requires no migration or new environment variables; next migration remains 070. Caddie Magic remains v0.6.0.
+
 ## v0.10.83.3 — Event Artwork + Quarter-Hour Time Picker Hotfix
 
 - Fixes Queendom event artwork uploads by adding the missing authenticated Owner/Admin `SELECT` policy required by Supabase Storage when `upsert=true` is used for stable event cover paths.

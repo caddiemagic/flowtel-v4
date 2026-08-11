@@ -27,8 +27,8 @@ for(const token of ["meetingAction(call,label='Join Zoom')",'wm-enter-womb-magic
 for(const token of ['Begin Womb Magic','call-launch','noopener noreferrer','Zoom room preparing']) assert(files['flow-fm/upcoming-calls/page.js'].includes(token));
 assert(files['client/styles.css'].includes('Flowtel v0.10.82 — Enter Womb Magic Zoom doorway'));
 assert(files['flow-fm/upcoming-calls/styles.css'].includes('Flowtel v0.10.82 — Priestess Zoom doorway'));
-assert(/styles\.css\?v=0\.10\.8[23](?:\.1)?/.test(files['client/index.html']));
-assert(/app\.js\?v=0\.10\.8[23](?:\.1)?/.test(files['client/index.html']));
+assert(/styles\.css\?v=0\.10\.(?:8[2-9]|\d{3,})(?:\.\d+)?/.test(files['client/index.html']));
+assert(/app\.js\?v=0\.10\.(?:8[2-9]|\d{3,})(?:\.\d+)?/.test(files['client/index.html']));
 assert(files['client/app.js'].includes('womb-magic-booking.js?v=0.10.83'));
 assert(files['flow-fm/upcoming-calls/index.html'].includes('page.js?v=0.10.83'));
 assert(files['docs/RELEASE-0.10.82.md'].includes('No database migration is required'));

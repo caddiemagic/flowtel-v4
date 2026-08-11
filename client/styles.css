@@ -4116,3 +4116,8 @@ body.personal-room-key-is-open{
 
 /* Flowtel v0.10.83.1 — event host profile links */
 .lounge-event-copy>span a{color:inherit;text-decoration:underline;text-decoration-color:rgba(184,130,38,.42);text-underline-offset:3px}
+
+/* Flowtel v0.10.84 — My Upcoming Events + personal-calendar handoff */
+#my-upcoming-events{scroll-margin-top:22px}
+.lounge-add-calendar{display:grid;gap:7px}.lounge-calendar-options{display:grid;grid-template-columns:1fr 1fr;gap:6px}.lounge-calendar-options[hidden]{display:none}.lounge-calendar-options a,.lounge-calendar-options button{min-height:34px!important;padding:7px 9px!important;font-size:.58rem!important;background:rgba(255,253,249,.92)!important}.lounge-calendar-button[aria-expanded="true"]{background:#f6eee8!important}
+@media(max-width:760px){.lounge-add-calendar{grid-column:1/-1}.lounge-calendar-options{grid-template-columns:1fr 1fr}}

@@ -40,6 +40,6 @@ const shared=fs.readFileSync('shared/queendom-events.js','utf8');
 assert(shared.includes('Run Flowtel migration 069'),'Storage RLS error should point Owner to migration 069.');
 
 const changelog=fs.readFileSync('docs/CHANGELOG.md','utf8');
-assert(changelog.startsWith('## v0.10.83.3'),'Changelog must begin with v0.10.83.3.');
+assert(changelog.includes('## v0.10.83.3 — Event Artwork + Quarter-Hour Time Picker Hotfix'),'Changelog must retain the v0.10.83.3 entry.');
 
 console.log(`Flowtel v0.10.83.3 artwork/time hotfix validator passed (${files.length} release files checked).`);

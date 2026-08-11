@@ -9,7 +9,7 @@ import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyF
 import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
 import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.83";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
-import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails } from "../shared/queendom-events.js?v=0.10.83.1";
+import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails } from "../shared/queendom-events.js?v=0.10.84";
 import { timezoneDisplayName } from "../shared/timezone-labels.js?v=0.10.83.1";
 
 const lobbyScene=document.getElementById("lobbyScene");
@@ -49,6 +49,9 @@ let loungeSeasonPlannerBusy=false;
 let loungeEventsLoadPromise=null;
 let loungeEvents=[];
 let loungeWombMagicState=null;
+let eventDoorwayEventId=String(urlParam("saveEvent")||"").trim();
+let eventDoorwayRegistrationHandled=false;
+let eventDoorwayMessage="";
 let currentMentorRelationship=null;
 let currentStay=null;
 let unreadConciergeStays=[];
@@ -486,12 +489,49 @@ function removePasswordRecoveryParams(){
   passwordRecoveryMode=false;
 }
 
+async function registerPendingEventDoorway(){
+  if(!eventDoorwayEventId || eventDoorwayRegistrationHandled || !currentProfile?.id) return;
+  eventDoorwayRegistrationHandled=true;
+  try{
+    await setQueendomEventRegistration(eventDoorwayEventId,true);
+    eventDoorwayMessage="Your seat is saved. Your event is waiting in My Upcoming Events.";
+  }catch(error){
+    const detail=String(error?.message||"");
+    eventDoorwayMessage=/inside Flow FM/i.test(detail)
+      ? "This gathering is inside Flow FM. You can still see what is happening, but registration is reserved for Flow FM members."
+      : (detail || "Your seat could not be saved just now.");
+  }
+}
+
+function cleanEventDoorwayUrl(){
+  if(!eventDoorwayEventId) return;
+  const url=new URL(window.location.href);
+  url.searchParams.delete("saveEvent");
+  url.searchParams.delete("eventReturn");
+  url.searchParams.set("lounge","1");
+  url.hash="my-upcoming-events";
+  window.history.replaceState({},"",`${url.pathname}${url.search}${url.hash}`);
+  eventDoorwayEventId="";
+}
+
+function focusMyUpcomingEvents(){
+  if(!eventDoorwayEventId) return;
+  window.setTimeout(()=>{
+    const section=document.getElementById("my-upcoming-events");
+    if(section) section.scrollIntoView({behavior:"smooth",block:"start"});
+    const status=document.getElementById("loungeEventsStatus");
+    if(status && eventDoorwayMessage) status.textContent=eventDoorwayMessage;
+    cleanEventDoorwayUrl();
+  },350);
+}
+
 async function continueAuthenticatedEntrance(){
   if(!currentProfile?.id) return;
 
   setAuthenticatedAccountVisible(true);
   clearCachedSuiteStayIfItBelongsToAnotherGuest();
   setMessage("");
+  await registerPendingEventDoorway();
   await refreshConciergeTeamAccess();
   await prepareDailyStayState();
 
@@ -506,6 +546,11 @@ async function continueAuthenticatedEntrance(){
   currentStay=null;
   pendingArrivalStay=null;
   showCheckIn();
+  if(eventDoorwayEventId){
+    setMessage(eventDoorwayMessage
+      ? `${eventDoorwayMessage} Check in for today and Flowtel will take you straight to My Upcoming Events.`
+      : "Check in for today and Flowtel will take you straight to My Upcoming Events.");
+  }
 }
 
 function requiresPersonalRoomKey(profile=currentProfile){
@@ -729,7 +774,7 @@ function showScene(name){
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareLoungeEvents();window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareLoungeEvents({force:Boolean(eventDoorwayEventId)}).finally(()=>focusMyUpcomingEvents());window.scrollTo({top:0,behavior:"smooth"});}
   if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
 }
 
@@ -2078,6 +2123,7 @@ function profilePromptStorageKey(){
 }
 
 function maybeRouteToProfileConfirmation(){
+  if(eventDoorwayEventId) return false;
   if(!currentProfile || !profileNeedsConfirmation(currentProfile)) return false;
   const params=new URLSearchParams(window.location.search);
   if(params.get("profileReturn")==="1") return false;
@@ -2167,7 +2213,7 @@ async function handleCheckIn(){
 
       setTimeout(()=>{
         renderSuite(stay);
-        showScene("suite");
+        showScene(eventDoorwayEventId?"lounge":"suite");
         maybeRouteToProfileConfirmation();
       },950);
     },650);
@@ -2378,10 +2424,63 @@ function loungeEventType(value){return({workshop:'WORKSHOP',ceremony:'CEREMONY',
 function loungeEventTime(event){return`${loungeEventClock(event.start_time)}${event.end_time?`–${loungeEventClock(event.end_time)}`:''}`;}
 function loungeEventTimezone(event){const date=/^\d{4}-\d{2}-\d{2}$/.test(String(event?.event_date||''))?new Date(`${event.event_date}T12:00:00Z`):new Date();return timezoneDisplayName(event?.event_timezone||'America/Los_Angeles',date)||'Pacific Time';}
 function loungeHostMarkup(event){if(!event?.host_name)return'';const name=loungeEscape(event.host_name);return event.host_member_id?`<span>Hosted by <a href="/flow-fm/team-map/profile/?member=${encodeURIComponent(event.host_member_id)}">${name}</a></span>`:`<span>Hosted by ${name}</span>`;}
-function loungeCommunityEventMarkup(event,{compact=false}={}){const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>';const locked=event.audience==='flowfm'&&!event.can_join,cancelled=event.status==='cancelled';let actions='';if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';else if(locked)actions='<span class="lounge-event-locked">FLOW FM MEMBERS ONLY</span>';else actions=`<button type="button" class="lounge-seat-button ${event.is_registered?'is-saved':''}" data-lounge-seat="${loungeEscape(event.event_id)}">${event.is_registered?'✓ SEAT SAVED':'SAVE MY SEAT'}</button>${event.zoom_ready?`<button type="button" class="lounge-join-button" data-lounge-join="${loungeEscape(event.event_id)}">JOIN ZOOM</button>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}`;return`<article class="lounge-event-row ${compact?'is-compact':''} ${locked?'is-locked':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))} · ${loungeEscape(loungeEventTime(event))} · ${loungeEscape(loungeEventTimezone(event))}</p>${loungeHostMarkup(event)}<p class="lounge-event-passcode" data-lounge-passcode="${loungeEscape(event.event_id)}"></p></div><div class="lounge-event-actions">${actions}</div></article>`;}
+function calendarFlowtelUrl(){return `${window.location.origin}/client/?lounge=1#my-upcoming-events`;}
+function calendarLocalStamp(dateValue,timeValue){
+  const date=String(dateValue||'').replace(/-/g,'');
+  const match=/^(\d{2}):(\d{2})/.exec(String(timeValue||''));
+  return date&&match?`${date}T${match[1]}${match[2]}00`:'';
+}
+function calendarEndParts(event){
+  if(event.end_time)return {date:event.event_date,time:event.end_time};
+  const [year,month,day]=String(event.event_date||'').split('-').map(Number);
+  const match=/^(\d{2}):(\d{2})/.exec(String(event.start_time||''));
+  if(!year||!month||!day||!match)return {date:event.event_date,time:event.start_time};
+  const value=new Date(Date.UTC(year,month-1,day,Number(match[1]),Number(match[2])+60));
+  return {date:value.toISOString().slice(0,10),time:value.toISOString().slice(11,16)};
+}
+function communityGoogleCalendarUrl(event){
+  const start=calendarLocalStamp(event.event_date,event.start_time),endParts=calendarEndParts(event),end=calendarLocalStamp(endParts.date,endParts.time);
+  const url=new URL('https://calendar.google.com/calendar/render');
+  url.searchParams.set('action','TEMPLATE');
+  url.searchParams.set('text',event.title||'Flowtel Event');
+  url.searchParams.set('dates',`${start}/${end}`);
+  url.searchParams.set('ctz',event.event_timezone||'America/Los_Angeles');
+  url.searchParams.set('details',`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`);
+  url.searchParams.set('location','The Flowtel');
+  return url.toString();
+}
+function icsEscape(value){return String(value??'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function downloadCommunityCalendar(event){
+  const start=calendarLocalStamp(event.event_date,event.start_time),endParts=calendarEndParts(event),end=calendarLocalStamp(endParts.date,endParts.time),zone=event.event_timezone||'America/Los_Angeles';
+  if(!start||!end)return;
+  const uid=`queendom-event-${event.event_id}@flowtel`;
+  const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  const description=`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`;
+  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Flowtel//Queendom Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',`UID:${icsEscape(uid)}`,`DTSTAMP:${stamp}`,`DTSTART;TZID=${icsEscape(zone)}:${start}`,`DTEND;TZID=${icsEscape(zone)}:${end}`,`SUMMARY:${icsEscape(event.title||'Flowtel Event')}`,`DESCRIPTION:${icsEscape(description)}`,'LOCATION:The Flowtel',`URL:${calendarFlowtelUrl()}`,'END:VEVENT','END:VCALENDAR',''].join('\r\n');
+  const blob=new Blob([body],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');
+  link.href=url;link.download=`${String(event.title||'flowtel-event').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'flowtel-event'}.ics`;document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+function loungeCalendarMarkup(event){
+  if(!event?.is_registered)return'';
+  return `<div class="lounge-add-calendar"><button type="button" class="lounge-calendar-button" data-lounge-calendar-toggle="${loungeEscape(event.event_id)}">ADD TO CALENDAR</button><div class="lounge-calendar-options" data-lounge-calendar-options="${loungeEscape(event.event_id)}" hidden><a href="${loungeEscape(communityGoogleCalendarUrl(event))}" target="_blank" rel="noopener noreferrer">GOOGLE</a><button type="button" data-lounge-calendar-ics="${loungeEscape(event.event_id)}">APPLE / OUTLOOK</button></div></div>`;
+}
+function loungeCommunityEventMarkup(event,{compact=false}={}){
+  const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>';
+  const locked=event.audience==='flowfm'&&!event.can_join,cancelled=event.status==='cancelled';
+  let actions='';
+  if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';
+  else if(locked)actions='<span class="lounge-event-locked">FLOW FM MEMBERS ONLY</span>';
+  else actions=`<button type="button" class="lounge-seat-button ${event.is_registered?'is-saved':''}" data-lounge-seat="${loungeEscape(event.event_id)}">${event.is_registered?'✓ SEAT SAVED':'SAVE MY SEAT'}</button>${event.zoom_ready?`<button type="button" class="lounge-join-button" data-lounge-join="${loungeEscape(event.event_id)}">JOIN ZOOM</button>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}${compact?loungeCalendarMarkup(event):''}`;
+  return`<article class="lounge-event-row ${compact?'is-compact':''} ${locked?'is-locked':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))} · ${loungeEscape(loungeEventTime(event))} · ${loungeEscape(loungeEventTimezone(event))}</p>${loungeHostMarkup(event)}<p class="lounge-event-passcode" data-lounge-passcode="${loungeEscape(event.event_id)}"></p></div><div class="lounge-event-actions">${actions}</div></article>`;
+}
 function loungeActiveWombMagicCall(){const all=[loungeWombMagicState?.consuming_appointment,...(loungeWombMagicState?.appointments||[])].filter(Boolean),now=Date.now();return all.find(item=>['pending','scheduled','rescheduled'].includes(String(item.status||''))&&new Date(item.ends_at||item.starts_at).getTime()>now)||null;}
 function loungeWombMagicMarkup(call){if(!call)return'';const d=new Date(call.starts_at),zone=currentProfile?.timezone||'America/Los_Angeles';const date=Number.isNaN(d.getTime())?String(call.starts_at||''):new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:zone}).format(d);return`<article class="lounge-event-row is-compact is-womb-magic"><div class="lounge-event-art"><span class="lounge-event-placeholder">🌹</span></div><div class="lounge-event-copy"><p class="eyebrow">WOMB MAGIC · PERSONAL CALL</p><h4>Womb Magic with ${loungeEscape(call.practitioner_name||'a Flow FM Priestess')}</h4><p>${loungeEscape(date)}</p></div><div class="lounge-event-actions">${call.meeting_url?`<a class="lounge-join-button" href="${loungeEscape(call.meeting_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}</div></article>`;}
-function bindLoungeEventActions(root){root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{event.is_registered=!event.is_registered;await setQueendomEventRegistration(event.event_id,event.is_registered);renderLoungeEvents();}catch(error){event.is_registered=!event.is_registered;button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));root?.querySelectorAll('[data-lounge-join]').forEach(button=>button.addEventListener('click',async()=>{const id=button.dataset.loungeJoin,popup=window.open('about:blank','_blank');if(popup)popup.opener=null;button.disabled=true;button.textContent='OPENING…';try{const details=await getQueendomEventJoinDetails(id),pass=document.querySelector(`[data-lounge-passcode="${CSS.escape(id)}"]`);if(pass&&details?.zoom_passcode)pass.textContent=`Zoom passcode: ${details.zoom_passcode}`;if(popup)popup.location.href=details.zoom_url;else window.open(details.zoom_url,'_blank','noopener,noreferrer');button.disabled=false;button.textContent='JOIN ZOOM';}catch(error){if(popup)popup.close();button.disabled=false;button.textContent='JOIN ZOOM';const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'The Zoom room could not open.';}}));}
+function bindLoungeEventActions(root){
+  root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{event.is_registered=!event.is_registered;await setQueendomEventRegistration(event.event_id,event.is_registered);renderLoungeEvents();}catch(error){event.is_registered=!event.is_registered;button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));
+  root?.querySelectorAll('[data-lounge-join]').forEach(button=>button.addEventListener('click',async()=>{const id=button.dataset.loungeJoin,popup=window.open('about:blank','_blank');if(popup)popup.opener=null;button.disabled=true;button.textContent='OPENING…';try{const details=await getQueendomEventJoinDetails(id),pass=document.querySelector(`[data-lounge-passcode="${CSS.escape(id)}"]`);if(pass&&details?.zoom_passcode)pass.textContent=`Zoom passcode: ${details.zoom_passcode}`;if(popup)popup.location.href=details.zoom_url;else window.open(details.zoom_url,'_blank','noopener,noreferrer');button.disabled=false;button.textContent='JOIN ZOOM';}catch(error){if(popup)popup.close();button.disabled=false;button.textContent='JOIN ZOOM';const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'The Zoom room could not open.';}}));
+  root?.querySelectorAll('[data-lounge-calendar-toggle]').forEach(button=>button.addEventListener('click',()=>{const options=root.querySelector(`[data-lounge-calendar-options="${CSS.escape(button.dataset.loungeCalendarToggle)}"]`);if(!options)return;options.hidden=!options.hidden;button.setAttribute('aria-expanded',options.hidden?'false':'true');}));
+  root?.querySelectorAll('[data-lounge-calendar-ics]').forEach(button=>button.addEventListener('click',()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeCalendarIcs);if(event)downloadCommunityCalendar(event);}));
+}
 function loungeTodayIso(){const zone=currentProfile?.timezone||'America/Los_Angeles';try{const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${values.year}-${values.month}-${values.day}`;}catch{return new Date().toISOString().slice(0,10);}}
 function renderLoungeEvents(){const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;const today=loungeTodayIso(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,5),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event)).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{compact:true})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);if(status)status.textContent='';}
 async function prepareLoungeEvents({force=false}={}){if(loungeEventsLoadPromise&&!force)return loungeEventsLoadPromise;loungeEventsLoadPromise=(async()=>{const status=document.getElementById('loungeEventsStatus');if(status)status.textContent='Opening the Queendom calendar…';try{const [events,womb]=await Promise.all([listQueendomEvents({monthCount:6}),loadWombMagicScheduling().catch(()=>null)]);loungeEvents=events;loungeWombMagicState=womb;renderLoungeEvents();return events;}catch(error){if(status)status.textContent=error?.message||'Upcoming events could not open just now.';return[];}finally{loungeEventsLoadPromise=null;}})();return loungeEventsLoadPromise;}
