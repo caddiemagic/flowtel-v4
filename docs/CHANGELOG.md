@@ -1,3 +1,12 @@
+## v0.10.84.2 — Queendom Calendar + Lounge Polish
+
+- Simplifies the Lounge to one centered **Upcoming Events in the Queendom** discovery surface showing only the next 3 events with **Save My Seat** as the primary action.
+- Removes the always-visible redundant My Upcoming Events card and the phrase **“The experiences you have chosen.”**; My Upcoming Events now opens on demand for saved events, Womb Magic, Join Zoom, and Add to Calendar.
+- Makes the Queendom `?embed=1` agenda concise: one featured next event + 3 compact Coming Up events + **View All Upcoming Events**.
+- Adds cross-origin-safe iframe height messaging for a cleaner auto-sizing Squarespace embed.
+- Preserves the full 16:10 event artwork with `object-fit: contain` across agenda/embed/Lounge event cards instead of cropping the event posters.
+- Requires no migration or environment-variable changes; next migration remains 070. Caddie Magic remains v0.6.0.
+
 ## v0.10.84.1 — Womb Magic Recording Consent
 
 - Updates Womb Magic booking consent to explicitly disclose that calls will be recorded and uploaded to the Flow FM Library for training purposes, shared with care and integrity.

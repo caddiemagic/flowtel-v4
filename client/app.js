@@ -514,14 +514,30 @@ function cleanEventDoorwayUrl(){
   eventDoorwayEventId="";
 }
 
+function setLoungeEventsView(view,{scroll=true}={}){
+  const discovery=document.getElementById("loungeEventsCard");
+  const mine=document.getElementById("my-upcoming-events");
+  if(!discovery||!mine) return;
+  const showMine=view==="mine";
+  discovery.classList.toggle("hidden",showMine);
+  discovery.setAttribute("aria-hidden",showMine?"true":"false");
+  mine.classList.toggle("hidden",!showMine);
+  mine.setAttribute("aria-hidden",showMine?"false":"true");
+  if(showMine) renderLoungeEvents();
+  if(scroll){
+    const target=showMine?mine:discovery;
+    window.setTimeout(()=>target.scrollIntoView({behavior:"smooth",block:"start"}),40);
+  }
+}
+
 function focusMyUpcomingEvents(){
-  if(!eventDoorwayEventId) return;
+  const wantsMyEvents=Boolean(eventDoorwayEventId)||window.location.hash==="#my-upcoming-events";
+  if(!wantsMyEvents) return;
   window.setTimeout(()=>{
-    const section=document.getElementById("my-upcoming-events");
-    if(section) section.scrollIntoView({behavior:"smooth",block:"start"});
+    setLoungeEventsView("mine",{scroll:true});
     const status=document.getElementById("loungeEventsStatus");
     if(status && eventDoorwayMessage) status.textContent=eventDoorwayMessage;
-    cleanEventDoorwayUrl();
+    if(eventDoorwayEventId) cleanEventDoorwayUrl();
   },350);
 }
 
@@ -2360,6 +2376,8 @@ document.getElementById("checkoutButton").addEventListener("click",handleCheckou
 const returnLobbyButton=document.getElementById("returnLobbyButton");
 if(returnLobbyButton) returnLobbyButton.addEventListener("click",openCheckoutFromSuite);
 document.getElementById("flowtelLoungeButton").addEventListener("click",()=>showScene("lounge"));
+document.getElementById("openMyUpcomingEventsButton")?.addEventListener("click",()=>{window.history.replaceState({},"",`${window.location.pathname}${window.location.search}#my-upcoming-events`);setLoungeEventsView("mine",{scroll:true});});
+document.getElementById("backToUpcomingEventsButton")?.addEventListener("click",()=>{window.history.replaceState({},"",`${window.location.pathname}${window.location.search}`);setLoungeEventsView("discover",{scroll:true});});
 document.getElementById("backToSuiteButton").addEventListener("click",()=>{showScene("suite");window.scrollTo({top:0,behavior:"smooth"});});
 const checkoutReturnButton=document.getElementById("checkoutReturnButton");
 if(checkoutReturnButton) checkoutReturnButton.addEventListener("click",()=>{showScene("lobby");window.scrollTo({top:0,behavior:"smooth"});});
@@ -2464,25 +2482,34 @@ function loungeCalendarMarkup(event){
   if(!event?.is_registered)return'';
   return `<div class="lounge-add-calendar"><button type="button" class="lounge-calendar-button" data-lounge-calendar-toggle="${loungeEscape(event.event_id)}">ADD TO CALENDAR</button><div class="lounge-calendar-options" data-lounge-calendar-options="${loungeEscape(event.event_id)}" hidden><a href="${loungeEscape(communityGoogleCalendarUrl(event))}" target="_blank" rel="noopener noreferrer">GOOGLE</a><button type="button" data-lounge-calendar-ics="${loungeEscape(event.event_id)}">APPLE / OUTLOOK</button></div></div>`;
 }
-function loungeCommunityEventMarkup(event,{compact=false}={}){
+function loungeCommunityEventMarkup(event,{mode="discover"}={}){
   const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>';
   const locked=event.audience==='flowfm'&&!event.can_join,cancelled=event.status==='cancelled';
   let actions='';
-  if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';
-  else if(locked)actions='<span class="lounge-event-locked">FLOW FM MEMBERS ONLY</span>';
-  else actions=`<button type="button" class="lounge-seat-button ${event.is_registered?'is-saved':''}" data-lounge-seat="${loungeEscape(event.event_id)}">${event.is_registered?'✓ SEAT SAVED':'SAVE MY SEAT'}</button>${event.zoom_ready?`<button type="button" class="lounge-join-button" data-lounge-join="${loungeEscape(event.event_id)}">JOIN ZOOM</button>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}${compact?loungeCalendarMarkup(event):''}`;
-  return`<article class="lounge-event-row ${compact?'is-compact':''} ${locked?'is-locked':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))} · ${loungeEscape(loungeEventTime(event))} · ${loungeEscape(loungeEventTimezone(event))}</p>${loungeHostMarkup(event)}<p class="lounge-event-passcode" data-lounge-passcode="${loungeEscape(event.event_id)}"></p></div><div class="lounge-event-actions">${actions}</div></article>`;
+  if(cancelled) actions='<span class="lounge-event-locked">CANCELLED</span>';
+  else if(locked) actions='<span class="lounge-event-locked">FLOW FM MEMBERS ONLY</span>';
+  else if(mode==='discover') actions=event.is_registered
+    ?'<span class="lounge-event-locked lounge-seat-saved">✓ SEAT SAVED</span>'
+    :`<button type="button" class="lounge-seat-button" data-lounge-seat="${loungeEscape(event.event_id)}">SAVE MY SEAT</button>`;
+  else actions=`${event.zoom_ready?`<button type="button" class="lounge-join-button" data-lounge-join="${loungeEscape(event.event_id)}">JOIN ZOOM</button>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}${loungeCalendarMarkup(event)}`;
+  return`<article class="lounge-event-row ${mode==='manage'?'is-compact':''} ${locked?'is-locked':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))} · ${loungeEscape(loungeEventTime(event))} · ${loungeEscape(loungeEventTimezone(event))}</p>${loungeHostMarkup(event)}<p class="lounge-event-passcode" data-lounge-passcode="${loungeEscape(event.event_id)}"></p></div><div class="lounge-event-actions">${actions}</div></article>`;
 }
 function loungeActiveWombMagicCall(){const all=[loungeWombMagicState?.consuming_appointment,...(loungeWombMagicState?.appointments||[])].filter(Boolean),now=Date.now();return all.find(item=>['pending','scheduled','rescheduled'].includes(String(item.status||''))&&new Date(item.ends_at||item.starts_at).getTime()>now)||null;}
 function loungeWombMagicMarkup(call){if(!call)return'';const d=new Date(call.starts_at),zone=currentProfile?.timezone||'America/Los_Angeles';const date=Number.isNaN(d.getTime())?String(call.starts_at||''):new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:zone}).format(d);return`<article class="lounge-event-row is-compact is-womb-magic"><div class="lounge-event-art"><span class="lounge-event-placeholder">🌹</span></div><div class="lounge-event-copy"><p class="eyebrow">WOMB MAGIC · PERSONAL CALL</p><h4>Womb Magic with ${loungeEscape(call.practitioner_name||'a Flow FM Priestess')}</h4><p>${loungeEscape(date)}</p></div><div class="lounge-event-actions">${call.meeting_url?`<a class="lounge-join-button" href="${loungeEscape(call.meeting_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}</div></article>`;}
 function bindLoungeEventActions(root){
-  root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{event.is_registered=!event.is_registered;await setQueendomEventRegistration(event.event_id,event.is_registered);renderLoungeEvents();}catch(error){event.is_registered=!event.is_registered;button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));
+  root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{await setQueendomEventRegistration(event.event_id,true);event.is_registered=true;renderLoungeEvents();}catch(error){button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));
   root?.querySelectorAll('[data-lounge-join]').forEach(button=>button.addEventListener('click',async()=>{const id=button.dataset.loungeJoin,popup=window.open('about:blank','_blank');if(popup)popup.opener=null;button.disabled=true;button.textContent='OPENING…';try{const details=await getQueendomEventJoinDetails(id),pass=document.querySelector(`[data-lounge-passcode="${CSS.escape(id)}"]`);if(pass&&details?.zoom_passcode)pass.textContent=`Zoom passcode: ${details.zoom_passcode}`;if(popup)popup.location.href=details.zoom_url;else window.open(details.zoom_url,'_blank','noopener,noreferrer');button.disabled=false;button.textContent='JOIN ZOOM';}catch(error){if(popup)popup.close();button.disabled=false;button.textContent='JOIN ZOOM';const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'The Zoom room could not open.';}}));
-  root?.querySelectorAll('[data-lounge-calendar-toggle]').forEach(button=>button.addEventListener('click',()=>{const options=root.querySelector(`[data-lounge-calendar-options="${CSS.escape(button.dataset.loungeCalendarToggle)}"]`);if(!options)return;options.hidden=!options.hidden;button.setAttribute('aria-expanded',options.hidden?'false':'true');}));
+  root?.querySelectorAll('[data-lounge-calendar-toggle]').forEach(button=>button.addEventListener('click',()=>{const options=root.querySelector(`[data-lounge-calendar-options="${CSS.escape(button.dataset.loungeCalendarToggle)}"]`);if(!options)return;const opening=options.hidden;options.hidden=!opening;button.setAttribute('aria-expanded',opening?'true':'false');}));
   root?.querySelectorAll('[data-lounge-calendar-ics]').forEach(button=>button.addEventListener('click',()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeCalendarIcs);if(event)downloadCommunityCalendar(event);}));
 }
-function loungeTodayIso(){const zone=currentProfile?.timezone||'America/Los_Angeles';try{const parts=new Intl.DateTimeFormat('en-US',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const values=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${values.year}-${values.month}-${values.day}`;}catch{return new Date().toISOString().slice(0,10);}}
-function renderLoungeEvents(){const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;const today=loungeTodayIso(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,5),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event)).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{compact:true})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);if(status)status.textContent='';}
+function renderLoungeEvents(){
+  const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;
+  const today=loungeTodayIso(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,3),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);
+  upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event,{mode:'discover'})).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';
+  const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());
+  mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{mode:'manage'})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';
+  bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);if(status&&!eventDoorwayMessage)status.textContent='';
+}
 async function prepareLoungeEvents({force=false}={}){if(loungeEventsLoadPromise&&!force)return loungeEventsLoadPromise;loungeEventsLoadPromise=(async()=>{const status=document.getElementById('loungeEventsStatus');if(status)status.textContent='Opening the Queendom calendar…';try{const [events,womb]=await Promise.all([listQueendomEvents({monthCount:6}),loadWombMagicScheduling().catch(()=>null)]);loungeEvents=events;loungeWombMagicState=womb;renderLoungeEvents();return events;}catch(error){if(status)status.textContent=error?.message||'Upcoming events could not open just now.';return[];}finally{loungeEventsLoadPromise=null;}})();return loungeEventsLoadPromise;}
 function loungeSeasonDateRange(season){
   const format=value=>{const [y,m,d]=String(value||'').slice(0,10).split('-').map(Number);return y?new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(y,m-1,d))):'—';};

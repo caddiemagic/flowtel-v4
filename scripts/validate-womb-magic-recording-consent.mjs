@@ -28,6 +28,6 @@ assert(client.includes('data-wm-book disabled'),'Booking must remain disabled be
 assert(api.includes('consent_language:WOMB_MAGIC_CONSENT_LANGUAGE'),'New appointment must persist canonical consent language.');
 assert(api.includes('consent_granted_at:nowIso()'),'New appointment must persist consent timestamp.');
 assert(release.includes('new bookings made after deployment'),'Release note must document non-retroactive consent scope.');
-assert(changelog.startsWith('## v0.10.84.1'),'Changelog must begin with v0.10.84.1.');
+assert(changelog.includes('## v0.10.84.1 — Womb Magic Recording Consent'),'Changelog must retain the v0.10.84.1 entry.');
 
 console.log(`Flowtel v0.10.84.1 Womb Magic recording consent validator passed (${required.length} release files checked).`);
