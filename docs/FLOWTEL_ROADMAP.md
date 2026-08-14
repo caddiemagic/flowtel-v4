@@ -1,14 +1,20 @@
 # Flowtel Roadmap
 
-Updated: August 10, 2026
+Updated: August 14, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.84.3 Upcoming Events Navigation + Lounge Repair
+## Current — v0.10.85 Event Access + Beta Exit
 
-Focus: stabilize the event discovery experience after the v0.10.84.2 calendar polish. The Lounge again renders the next three events using canonical Flowtel Time, and the full Upcoming Events room now has clear Suite/Lounge navigation at the top plus a Lounge return at the bottom.
+Focus: close the open Queendom-event access and member-authentication work before the next project handoff. Flowtel now separates event visibility, entitlement, registration, payment, preparation, and private-room access; adds Host + Co-host, editable preparation, attendee guides, separate live-room timing, Flowtel Time + member-local time, and a within-the-hour registered-event doorway.
 
-The v0.10.84.2 concise embed/artwork behavior and the v0.10.84.1 Womb Magic recording/library consent remain in force. Keep SMS/Twilio work deferred so the event foundation can be live-tested first.
+Ticketed events support separate Public / Queendom / Flow FM rules. Squarespace Orders API verification is the current payment authority. A paid order creates an event entitlement; a refund revokes it while preserving history. Public paid attendees can use a limited Event Pass without receiving Queendom/Flow FM product access. A true push webhook remains optional future work because Squarespace webhook subscriptions require OAuth; v0.10.85 uses secure API-key verification when the attendee returns/checks/opens the event.
+
+The member-facing beta password doorway is removed from the normal Flowtel arrival experience. Returning sessions auto-enter; signed-out members use email/password; first-time members use an existing verified Flowtel profile or a PAID mapped Squarespace membership product before account creation; a short-lived server-only signup admission prevents public Auth metadata/URL parameters from granting product access; Forgot Password uses Supabase Auth recovery. Production launch requires custom SMTP/redirect configuration documented in `docs/SUPABASE-AUTH-EMAIL-SETUP.md`.
+
+### Immediate closeout after live verification
+
+After migration 070, SMTP, Squarespace Commerce API permissions, and the v0.10.85 live test checklist are green, stop feature development long enough to produce the requested **complete project handoff**, current release roadmap, migration/environment register, regression watchlist, and exact next-development recommendation.
 
 ## Deferred — Flowtel Messaging + Wake Up Text
 

@@ -31,7 +31,9 @@ assert(agendaHtml.includes('data-audience="all"')&&agendaHtml.includes('data-aud
 assert(agendaApp.includes("listPublicQueendomEvents({monthCount:12})"),'Agenda must use the sanitized public event feed.');
 assert(agendaApp.includes("target=\"_top\""),'Embedded Save My Seat links must escape the iframe into Flowtel.');
 assert(agendaApp.includes("target.searchParams.set('saveEvent',event.event_id)"),'Agenda must carry only the event id into the registration doorway.');
-assert(!agendaApp.includes('zoom_url')&&!agendaApp.includes('zoom_passcode'),'Public agenda must never request or render Zoom credentials.');
+assert(agendaApp.includes('getQueendomEventJoinDetails'),'Authenticated agenda may open the protected Event Room.');
+const publicRpc=fs.readFileSync('database/migration-070-event-access-beta-exit.sql','utf8').match(/create or replace function public\.flowtel_public_queendom_events[\s\S]*?grant execute on function public\.flowtel_public_queendom_events/)?.[0]||'';
+assert(publicRpc&&!publicRpc.includes("'zoom_url'")&&!publicRpc.includes("'zoom_passcode'"),'Sanitized public RPC must not expose Zoom credentials.');
 assert(agendaCss.includes('.agenda-month-events')&&agendaCss.includes('.agenda-event'),'Agenda event presentation missing.');
 assert(clientHtml.includes('MY UPCOMING EVENTS'),'Lounge must use My Upcoming Events language.');
 assert(clientHtml.includes('id="my-upcoming-events"'),'My Upcoming Events anchor missing.');
@@ -42,6 +44,6 @@ assert(clientApp.includes('ADD TO CALENDAR')&&clientApp.includes('calendar.googl
 assert(clientApp.includes('Join from My Upcoming Events in the Flowtel')&&!clientApp.includes('zoom_url`'),'Calendar handoff should point back to Flowtel, not serialize Zoom credentials.');
 assert(vercel.rewrites.some(route=>route.source==='/queendom-events'&&route.destination==='/queendom-events/index.html'),'Vercel agenda route missing.');
 assert(roadmap.includes('Deferred — Flowtel Messaging + Wake Up Text')&&roadmap.includes('6:00 AM')&&roadmap.includes('Day 1–28 affirmation library'),'Wake Up Text roadmap detail missing.');
-assert(changelog.startsWith('## v0.10.84'),'Changelog must begin with v0.10.84.');
+assert(changelog.includes('## v0.10.84'),'Changelog must retain the v0.10.84 release history.');
 
 console.log(`Flowtel v0.10.84 My Upcoming Events validator passed (${required.length} release files checked).`);

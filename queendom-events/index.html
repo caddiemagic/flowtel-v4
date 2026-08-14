@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Upcoming Queendom events — ceremonies, workshops, calls, and Flow FM gatherings." />
   <title>Upcoming Events in the Queendom | Flowtel</title>
-  <link rel="stylesheet" href="/queendom-events/styles.css?v=0.10.84.3" />
+  <link rel="stylesheet" href="/queendom-events/styles.css?v=0.10.85" />
 </head>
 <body>
   <main class="agenda-shell" id="agendaShell">
@@ -19,6 +19,8 @@
       <h1>Upcoming Events</h1>
       <p>Save your seat for the ceremonies, workshops, and calls you want to be part of. Flowtel will keep everything you choose together.</p>
     </header>
+
+    <section class="agenda-live-alert" id="agendaLiveAlert" hidden aria-live="polite"></section>
 
     <nav class="agenda-tools" aria-label="Upcoming event filters">
       <div class="agenda-filters" id="agendaFilters">
@@ -35,8 +37,55 @@
     <nav class="agenda-flowtel-nav agenda-flowtel-nav-bottom" aria-label="Return to Flowtel Lounge">
       <a href="/client/?lounge=1">RETURN TO THE LOUNGE</a>
     </nav>
+
+
+    <div class="agenda-modal" id="agendaEventRoom" hidden aria-hidden="true">
+      <div class="agenda-modal-backdrop" data-close-event-room></div>
+      <section class="agenda-modal-card agenda-event-room-card" role="dialog" aria-modal="true" aria-labelledby="agendaEventRoomTitle">
+        <button type="button" class="agenda-modal-close" data-close-event-room aria-label="Close event room">×</button>
+        <div id="agendaEventRoomContent"></div>
+        <p class="agenda-modal-status" id="agendaEventRoomStatus" role="status"></p>
+      </section>
+    </div>
+
+    <div class="agenda-modal" id="agendaAccessModal" hidden aria-hidden="true">
+      <div class="agenda-modal-backdrop" data-close-access></div>
+      <section class="agenda-modal-card agenda-access-card" role="dialog" aria-modal="true" aria-labelledby="agendaAccessTitle">
+        <button type="button" class="agenda-modal-close" data-close-access aria-label="Close event access">×</button>
+        <p class="eyebrow">YOUR EVENT PASS</p>
+        <h2 id="agendaAccessTitle">Access your event.</h2>
+        <p id="agendaAccessIntro">Sign in with your Flowtel account, or create an Event Pass after your ticket purchase is confirmed.</p>
+
+        <div class="agenda-access-tabs" role="tablist" aria-label="Event access">
+          <button type="button" class="is-active" data-access-tab="signin">SIGN IN</button>
+          <button type="button" data-access-tab="create">CREATE EVENT PASS</button>
+        </div>
+
+        <form class="agenda-access-form" id="agendaSignInForm">
+          <label>Email<input id="agendaSignInEmail" type="email" autocomplete="email" required></label>
+          <label>Password<input id="agendaSignInPassword" type="password" autocomplete="current-password" required></label>
+          <button type="submit" class="agenda-primary-action">SIGN IN + OPEN EVENT</button>
+          <button type="button" class="agenda-link-button" id="agendaForgotPassword">Forgot your password?</button>
+        </form>
+
+        <form class="agenda-access-form" id="agendaCreatePassForm" hidden>
+          <label>Ticket email<input id="agendaPassEmail" type="email" autocomplete="email" required></label>
+          <label>Create password<input id="agendaPassPassword" type="password" autocomplete="new-password" minlength="10" required></label>
+          <label>Confirm password<input id="agendaPassConfirm" type="password" autocomplete="new-password" minlength="10" required></label>
+          <button type="submit" class="agenda-primary-action">CREATE EVENT PASS</button>
+          <p class="agenda-access-note">Your Event Pass opens only the event you purchased. It does not create a Queendom or Flow FM membership.</p>
+        </form>
+
+        <form class="agenda-access-form" id="agendaRecoveryForm" hidden>
+          <label>New password<input id="agendaRecoveryPassword" type="password" autocomplete="new-password" minlength="10" required></label>
+          <label>Confirm password<input id="agendaRecoveryConfirm" type="password" autocomplete="new-password" minlength="10" required></label>
+          <button type="submit" class="agenda-primary-action">SAVE NEW PASSWORD</button>
+        </form>
+        <p class="agenda-modal-status" id="agendaAccessStatus" role="status"></p>
+      </section>
+    </div>
   </main>
 
-  <script type="module" src="/queendom-events/app.js?v=0.10.84.3"></script>
+  <script type="module" src="/queendom-events/app.js?v=0.10.85"></script>
 </body>
 </html>

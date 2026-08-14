@@ -59,7 +59,7 @@ assert(!clientHtml.includes('id="loungeReplayNotes"'), 'Replay Notes should be h
 assert(!clientJs.includes('lodging_idea') && !clientJs.includes('calling_reflection'), 'The Lounge still exposes detailed seasonal planning fields.');
 assert(clientJs.includes('saveHourlyFlowRateFourSeasonLocations'), 'The Lounge does not save to the canonical Hourly Flow Rate plan.');
 assert(clientCss.includes('.lounge-season-planner-form') && clientCss.includes('.lounge-season-save'), 'Simplified Lounge styling is missing.');
-assert(clientHtml.includes('styles.css?v=0.10.81.3') && clientHtml.includes('app.js?v=0.10.81.3'), 'Client cache keys are not aligned with the current deployed baseline.');
+assert(/styles\.css\?v=0\.10\.(?:81\.3|8[2-9]|\d{3,})/.test(clientHtml) && /app\.js\?v=0\.10\.(?:81\.3|8[2-9]|\d{3,})/.test(clientHtml), 'Client cache keys regressed below the Four Seasons baseline.');
 
 assert(hfrJs.includes('hourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not read the canonical location label.');
 assert(hfrJs.includes('saveHourlyFlowRateSeasonLocation'), 'Hourly Flow Rate does not write the canonical location label.');
@@ -86,7 +86,7 @@ assert(!/mapbox|google\.maps|leaflet|<svg[^>]*world/i.test(`${timeHtml}\n${timeJ
 assert(flowFmJs.includes("href:'/flow-fm/time-space/'"), 'Flow FM support-room doorway is missing.');
 assert(flowFmHtml.includes('/flow-fm/app.js?v=0.10.81.1'), 'Flow FM hallway cache key is stale.');
 assert(managerHtml.includes('href="/flow-fm/time-space/"') && managerHtml.includes('Time + Space'), 'Owner Concierge doorway is missing.');
-assert(managerHtml.includes('styles.css?v=0.10.81') && managerHtml.includes('app.js?v=0.10.81'), 'Concierge cache keys are stale.');
+assert(/styles\.css\?v=0\.10\.(?:81(?:\.\d+)?|8[2-9]|\d{3,})/.test(managerHtml) && /app\.js\?v=0\.10\.(?:81(?:\.\d+)?|8[2-9]|\d{3,})/.test(managerHtml), 'Concierge cache keys regressed below the Time + Space baseline.');
 assert(managerCss.includes('.stat-card-link'), 'Owner Time + Space card styling is missing.');
 
 const rewrite = (vercel.rewrites || []).find((row) => row.source === '/flow-fm/time-space');

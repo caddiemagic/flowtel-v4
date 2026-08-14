@@ -7,3 +7,9 @@
 
 /* Flowtel v0.10.83.3 — quarter-hour event time picker */
 .event-time-parts{display:grid;grid-template-columns:minmax(72px,1.15fr) minmax(78px,1fr) minmax(76px,1fr);gap:8px}.event-time-parts select{min-width:0;padding-left:12px;padding-right:10px}.event-time-parts select:disabled{opacity:.5;background:#f8f3ef}@media(max-width:420px){.event-time-parts{grid-template-columns:1fr 1fr 1fr;gap:6px}.event-time-parts select{padding-left:9px;padding-right:6px}}
+/* v0.10.85 — Event Access + registered-experience editor */
+.event-access-editor{margin:22px 0;padding:22px;border:1px solid rgba(190,145,75,.34);border-radius:20px;background:rgba(255,249,245,.72)}
+.event-access-editor h3{margin:4px 0 6px;font-family:Georgia,serif;color:#68483d;font-size:1.45rem}.event-access-editor header p:last-child{margin:0;color:#8b6a5c}
+.event-access-grid{display:grid;gap:10px;margin:18px 0}.event-access-row{display:grid;grid-template-columns:120px minmax(180px,1fr) 120px;gap:10px;align-items:center}.event-access-row strong{font-family:Arial,sans-serif;font-size:.76rem;letter-spacing:.1em;text-transform:uppercase;color:#6b4a3e}.event-access-row select,.event-access-row input{width:100%;min-height:46px;border:1px solid rgba(167,120,92,.34);border-radius:14px;background:#fffdfb;padding:10px 12px;color:#6b4a3e}
+.event-form-grid label small{display:block;margin-top:6px;color:#9b7b6c;font-size:.78rem;line-height:1.35}
+@media(max-width:700px){.event-access-row{grid-template-columns:1fr}.event-access-row strong{margin-top:5px}}

@@ -1,3 +1,23 @@
+## v0.10.85 — Event Access + Beta Exit
+
+- Adds tiered event admission rules for Public, Queendom, and Flow FM: each tier may be Included, Ticket Required, or Not Available.
+- Prevents ticket-required attendees from using **SAVE MY SEAT** until a paid Squarespace order is verified; adds **BUY TICKET** plus secure ticket verification.
+- Adds Squarespace Contacts + Orders API verification by exact authenticated email and exact mapped product ID; PAID grants an event entitlement/registration and REFUNDED revokes active access while preserving history.
+- Remembers an authenticated member's pending ticket when she leaves through BUY TICKET and automatically attempts verification when she returns to Flowtel; keeps Check My Ticket as a fallback.
+- Adds limited **Event Pass** accounts for public paid attendees without granting Suite, Lounge, Queendom, Flow FM, Council, or Caddie Magic product access.
+- Adds the private Registered Event Room with recording status, editable **HOW TO PREPARE**, optional attendee guide, protected Zoom/passcode, and registered-only private in-person location details.
+- Defaults How to Prepare to private space + candle/incense + tea + journal/pen guidance while keeping it editable per event.
+- Adds a separate **Live room / gathering time** so an experience such as Movie Night may begin at 10 AM while its Zoom gathering begins at 1 PM.
+- Adds within-the-hour registered-event countdowns for both the experience start and, when different, the later live-room/gathering time; event start opens the Event Room and the live phase uses type-aware **JOIN WORKSHOP / JOIN CEREMONY / JOIN CALL / OPEN EVENT** actions.
+- Adds optional linked **Co-host** support across Owner event administration, calendar/Lounge/My Upcoming Events, profile links, and privacy-aware local-time display.
+- Displays events in canonical **FLOWTEL TIME** (`America/Los_Angeles`, date-correct PST/PDT) plus **YOUR TIME** when the signed-in member has a different saved timezone.
+- Removes the member-facing shared beta-password/test-account doorway from the normal `/client/` arrival UI; remembered sessions auto-enter, signed-out members use email/password, and first-time members may create a private account only from an existing verified Flowtel profile or a PAID mapped Squarespace membership product (a generic Squarespace contact is not enough).
+- Writes a 24-hour **server-only signup admission** after membership verification; direct Supabase signup metadata or URL membership parameters cannot grant Flowtel product access by themselves.
+- Completes the browser-side Supabase Forgot Password and email-confirmation return paths; production launch requires Custom SMTP + allowed redirect configuration.
+- Adds migration `070-event-access-beta-exit.sql`, new ticket-verification server boundary, Supabase auth-email setup guide, and Squarespace event-ticket setup guide.
+- Intentionally does not ship an API-key Squarespace webhook because Webhook Subscriptions require OAuth; true push order webhooks remain optional future work.
+- Requires migration 070 and a Squarespace key with Contacts Read Only + Orders Read Only; next migration is 071. Caddie Magic remains v0.6.0.
+
 ## v0.10.84.3 — Upcoming Events Navigation + Lounge Repair
 
 - Fixed the Lounge Upcoming Events runtime regression caused by the missing `loungeTodayIso` helper by reusing the canonical Flowtel Time `localTodayISO()` path.

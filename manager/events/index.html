@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Flowtel owner event administration for the Queendom Calendar." />
   <title>Queendom Events | Flowtel</title>
-  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.83.3" />
+  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.85" />
 </head>
 <body>
   <main class="events-admin-shell">
@@ -73,11 +73,40 @@
               <option value="Australia/Sydney">Australian Eastern Time — AEST / AEDT</option>
             </select></label>
             <label><span>Host</span><select id="eventHost"><option value="">Choose a Flow FM host</option></select></label>
+            <label><span>Co-host</span><select id="eventCoHost"><option value="">No co-host</option></select></label>
             <label class="wide"><span>Description</span><textarea id="eventDescription" maxlength="4000" rows="4" placeholder="What will members experience?"></textarea></label>
+            <label class="wide"><span>How to prepare</span><textarea id="eventHowToPrepare" maxlength="4000" rows="4">Find a private space. Light a candle + incense. Make tea. Grab a journal + pen. Arrive a few minutes early and let yourself settle in.</textarea></label>
+            <label class="wide"><span>Attendee guide URL</span><input id="eventGuideUrl" type="url" placeholder="https://…/check-in-guide.pdf" /><small>Optional. Only registered, entitled attendees receive this link. If Squarespace delivers the PDF automatically with the ticket purchase, you can leave this blank.</small></label>
+            <label><span>Will this be recorded?</span><select id="eventRecorded"><option value="false">No</option><option value="true">Yes</option></select></label>
+            <label><span>Location type</span><select id="eventLocationType"><option value="zoom">Zoom</option><option value="in_person">In person</option><option value="hybrid">Hybrid</option></select></label>
+            <label class="wide"><span>Private location details</span><textarea id="eventPrivateLocation" rows="3" maxlength="2000" placeholder="Exact address, parking, arrival notes, or other attendee-only directions."></textarea></label>
+            <label class="event-time-field"><span>Live room / gathering time</span>
+              <div class="event-time-parts" data-time-group="live">
+                <select id="eventLiveHour" aria-label="Live room hour"></select>
+                <select id="eventLiveMinute" aria-label="Live room minutes"><option value="00">:00</option><option value="15">:15</option><option value="30">:30</option><option value="45">:45</option></select>
+                <select id="eventLivePeriod" aria-label="Live room AM or PM"><option value="AM">AM</option><option value="PM">PM</option></select>
+              </div>
+              <input id="eventLiveTime" type="hidden" />
+              <small>Optional. Use this when the experience begins earlier than the live Zoom/gathering. Movie Night can start at 10 AM and open Zoom at 1 PM.</small>
+            </label>
             <label class="wide"><span>Zoom link</span><input id="eventZoomUrl" type="url" placeholder="https://us02web.zoom.us/j/…" /></label>
             <label><span>Zoom passcode</span><input id="eventZoomPasscode" maxlength="200" autocomplete="off" /></label>
             <label><span>Publishing</span><select id="eventStatus"><option value="draft">Draft</option><option value="published">Published</option><option value="cancelled" disabled>Cancelled</option></select></label>
           </div>
+
+          <section class="event-access-editor">
+            <header><div><p class="eyebrow">EVENT ACCESS</p><h3>Who is included?</h3><p>Visibility and admission are separate. Ticketed tiers see BUY TICKET until Flowtel verifies payment.</p></div></header>
+            <div class="event-access-grid">
+              <div class="event-access-row"><strong>Public</strong><select id="eventPublicAccess"><option value="unavailable">Not available</option><option value="included">Included / free</option><option value="ticket">Ticket required</option></select><input id="eventPublicPrice" type="number" min="0" step="0.01" placeholder="Price" /></div>
+              <div class="event-access-row"><strong>Queendom</strong><select id="eventQueendomAccess"><option value="included">Included / free</option><option value="ticket">Ticket required</option><option value="unavailable">Not available</option></select><input id="eventQueendomPrice" type="number" min="0" step="0.01" placeholder="Price" /></div>
+              <div class="event-access-row"><strong>Flow FM</strong><select id="eventFlowfmAccess"><option value="included">Included / free</option><option value="ticket">Ticket required</option><option value="unavailable">Not available</option></select><input id="eventFlowfmPrice" type="number" min="0" step="0.01" placeholder="Price" /></div>
+            </div>
+            <div class="event-form-grid">
+              <label><span>Currency</span><select id="eventCurrency"><option value="USD">USD</option><option value="CAD">CAD</option><option value="GBP">GBP</option><option value="EUR">EUR</option><option value="AUD">AUD</option></select></label>
+              <label class="wide"><span>Buy Ticket link</span><input id="eventTicketUrl" type="url" placeholder="https://your-squarespace-site.com/movie-night" /></label>
+              <label class="wide"><span>Squarespace product ID</span><input id="eventProductId" placeholder="Product ID used to verify paid orders" /><small>Use the product ID from the Squarespace ticket/download product.</small></label>
+            </div>
+          </section>
 
 
           <section class="event-image-editor">
@@ -105,6 +134,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/manager/events/app.js?v=0.10.83.3"></script>
+  <script type="module" src="/manager/events/app.js?v=0.10.85"></script>
 </body>
 </html>

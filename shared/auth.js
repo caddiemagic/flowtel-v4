@@ -35,6 +35,20 @@ export async function signUpWithEmail(email, password) {
   return data.user;
 }
 
+export async function createAccountWithEmail(email, password, { redirectTo = "", metadata = {} } = {}) {
+  const options = { data: metadata || {} };
+  if (redirectTo) options.emailRedirectTo = redirectTo;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options,
+  });
+
+  if (error) throw error;
+  return data;
+}
+
 export async function updateCurrentPassword(password) {
   const { data, error } = await supabase.auth.updateUser({ password });
 

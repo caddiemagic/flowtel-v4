@@ -1,8 +1,9 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.50 — Team Map Membership + Owner Turndown Routing Repair.
+// Flowtel v0.10.85 — Beta Exit member verification + legacy compatibility.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
+const { commerceApiKey, customerOrders } = require("../server/squarespace-commerce.js");
 const DEFAULT_BETA_PASSWORD = "FlowtelBeta!2026";
 
 function betaTemporaryPassword() {
@@ -33,7 +34,12 @@ function normalizeMembership(value) {
 }
 
 function membershipRank(value) {
-  return { queendom: 1, flowfm: 2, council: 3 }[normalizeMembership(value)] || 0;
+  const cleaned = String(value || "").toLowerCase().replace(/[^a-z]/g, "");
+  if (!cleaned) return 0;
+  if (cleaned === "queen" || cleaned === "queendom") return 1;
+  if (cleaned === "flow" || cleaned === "flowfm" || cleaned === "flowfmmember") return 2;
+  if (cleaned === "council") return 3;
+  return 0;
 }
 
 function membershipFromRank(rank, fallback = "queendom") {
@@ -42,6 +48,62 @@ function membershipFromRank(rank, fallback = "queendom") {
   if (value >= 2) return "flowfm";
   if (value >= 1) return "queendom";
   return normalizeMembership(fallback);
+}
+
+
+function configuredMembershipProductIds() {
+  const parse = (value) => [...new Set(String(value || "").split(/[\s,]+/).map((item) => item.trim()).filter(Boolean))];
+  return {
+    queendom: parse(process.env.SQUARESPACE_QUEENDOM_PRODUCT_IDS),
+    flowfm: parse(process.env.SQUARESPACE_FLOWFM_PRODUCT_IDS),
+    council: parse(process.env.SQUARESPACE_COUNCIL_PRODUCT_IDS),
+  };
+}
+
+function orderContainsAnyProduct(order, productIds = []) {
+  const wanted = new Set(productIds.map(String));
+  return (Array.isArray(order?.lineItems) ? order.lineItems : []).some((line) => wanted.has(String(line?.productId || "")));
+}
+
+function newestMembershipOrder(orders = [], productIds = []) {
+  return orders
+    .filter((order) => orderContainsAnyProduct(order, productIds))
+    .sort((a, b) => new Date(b?.modifiedOn || b?.createdOn || 0).getTime() - new Date(a?.modifiedOn || a?.createdOn || 0).getTime())[0] || null;
+}
+
+async function verifySquarespaceMembershipPurchase(contact) {
+  const ids = configuredMembershipProductIds();
+  const configured = Object.values(ids).some((rows) => rows.length);
+  if (!configured) {
+    const error = new Error("New-member purchase verification is not configured yet. Add the Squarespace Queendom/Flow FM membership product IDs in Vercel before opening first-time account creation.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const apiKey = commerceApiKey();
+  if (!apiKey) {
+    const error = new Error("Squarespace Commerce verification is not configured on Vercel.");
+    error.statusCode = 503;
+    throw error;
+  }
+  if (!contact?.id) {
+    const error = new Error("Flowtel could not match this email to a Squarespace customer record.");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const orders = await customerOrders(contact.id, apiKey);
+  for (const membership of ["council", "flowfm", "queendom"]) {
+    if (!ids[membership].length) continue;
+    const order = newestMembershipOrder(orders, ids[membership]);
+    if (order?.paymentState === "PAID") {
+      return { membershipType: membership, orderId: order.id || null };
+    }
+  }
+
+  const error = new Error("This email exists in Squarespace, but Flowtel could not verify an active Queendom or Flow FM membership purchase. Use the email you used at checkout, or contact the Flowtel if your membership was purchased another way.");
+  error.statusCode = 403;
+  throw error;
 }
 
 function resolveMembership(requestedMembership, existingProfile = null, authUser = null) {
@@ -98,6 +160,18 @@ function publicContact(contact, requestedEmail) {
   };
 }
 
+function contactFromExistingProfile(profile, email) {
+  return {
+    id: profile?.squarespace_contact_id || null,
+    firstName: profile?.first_name || null,
+    lastName: profile?.last_name || null,
+    email: normalizeEmail(profile?.squarespace_contact_email || profile?.email || email),
+    locale: null,
+    unverified: false,
+    source: "existing-flowtel-profile",
+  };
+}
+
 function trustedDoorwayContact(email, reason = "trusted doorway beta fallback") {
   return {
     id: null,
@@ -118,7 +192,7 @@ function canUseTrustedDoorway(body = {}) {
 }
 
 async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
-  const apiKey = process.env.SQUARESPACE_API_KEY;
+  const apiKey = process.env.SQUARESPACE_COMMERCE_API_KEY || process.env.SQUARESPACE_API_KEY;
 
   if (!apiKey) {
     if (trustedDoorway) {
@@ -135,7 +209,7 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.21",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.85",
     },
     body: JSON.stringify({
       searchString: email,
@@ -219,12 +293,41 @@ async function readSupabaseJson(url, options = {}) {
 
 
 async function findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email }) {
-  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,display_name,first_name,last_name,membership_type,membership_rank,flowfm_started_at,is_initiated&email=eq.${encodeURIComponent(email)}&limit=1`;
+  const url = `${supabaseUrl}/rest/v1/profiles?select=id,email,role,display_name,first_name,last_name,membership_type,membership_rank,flowfm_started_at,is_initiated,squarespace_contact_id,squarespace_contact_email&email=eq.${encodeURIComponent(email)}&limit=1`;
   const data = await readSupabaseJson(url, {
     method: "GET",
     headers: supabaseAdminHeaders(serviceKey),
   });
   return Array.isArray(data) ? data[0] || null : null;
+}
+
+async function upsertMemberSignupAdmission({ supabaseUrl, serviceKey, email, membershipType, source, sourceOrderId = null, squarespaceContactId = null }) {
+  const normalizedEmail = normalizeEmail(email);
+  const rank = membershipRank(membershipType);
+  if (!normalizedEmail || rank < 1) throw new Error("Flowtel could not prepare a verified membership admission for this email.");
+
+  const payload = {
+    email: normalizedEmail,
+    membership_type: membershipFromRank(rank, membershipType),
+    membership_rank: rank,
+    source: source || "squarespace-membership",
+    source_order_id: sourceOrderId || null,
+    squarespace_contact_id: squarespaceContactId || null,
+    expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    claimed_by: null,
+    claimed_at: null,
+    updated_at: new Date().toISOString(),
+  };
+
+  await readSupabaseJson(`${supabaseUrl}/rest/v1/flowtel_member_signup_admissions?on_conflict=email`, {
+    method: "POST",
+    headers: {
+      ...supabaseAdminHeaders(serviceKey),
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify(payload),
+  });
+  return payload;
 }
 
 async function findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
@@ -426,13 +529,78 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const trustedDoorway = canUseTrustedDoorway(body);
-    const contact = await querySquarespaceContact(email, { trustedDoorway });
+    const verifyOnly = intent === "verify" || intent === "verify-only" || intent === "signup";
+    const trustedDoorway = verifyOnly ? false : canUseTrustedDoorway(body);
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
     const existingProfile = serviceKey && supabaseUrl
       ? await findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email })
       : null;
+
+    // Beta exit: account creation is now performed by Supabase Auth in the browser
+    // with the member's own password and email-confirmation flow. The bridge only
+    // verifies an exact Squarespace contact and returns the already-known membership.
+    // A URL parameter can never promote a brand-new account to Flow FM/Council.
+    if (verifyOnly) {
+      const existingRank = Math.max(
+        Number(existingProfile?.membership_rank || 0),
+        membershipRank(existingProfile?.membership_type),
+        ["practitioner", "admin", "owner"].includes(String(existingProfile?.role || "").toLowerCase()) ? 2 : 0,
+        existingProfile?.flowfm_started_at || existingProfile?.is_initiated ? 2 : 0,
+      );
+      let contact = existingRank >= 1 ? contactFromExistingProfile(existingProfile, email) : null;
+      let purchase = null;
+      if (existingRank < 1) {
+        contact = await querySquarespaceContact(email, { trustedDoorway: false });
+        purchase = await verifySquarespaceMembershipPurchase(contact);
+      } else {
+        // Existing canonical Flowtel membership is sufficient for beta-exit account
+        // creation. Squarespace contact enrichment is best-effort so an older
+        // member is not locked out merely because Contacts is incomplete.
+        try {
+          contact = await querySquarespaceContact(email, { trustedDoorway: false });
+        } catch (error) {
+          console.warn("Flowtel bridge: existing member Squarespace contact enrichment skipped.", error?.message || error);
+        }
+      }
+      const resolvedMembership = existingRank >= 1
+        ? membershipFromRank(existingRank, "queendom")
+        : purchase.membershipType;
+
+      if (!serviceKey || !supabaseUrl) {
+        const configError = new Error("Supabase server verification is not configured on Vercel.");
+        configError.statusCode = 503;
+        throw configError;
+      }
+
+      await upsertMemberSignupAdmission({
+        supabaseUrl,
+        serviceKey,
+        email,
+        membershipType: resolvedMembership,
+        source: existingRank >= 1 ? "existing-flowtel-membership" : "squarespace-membership-purchase",
+        sourceOrderId: purchase?.orderId || null,
+        squarespaceContactId: contact?.id || existingProfile?.squarespace_contact_id || null,
+      });
+
+      res.status(200).json({
+        ok: true,
+        membershipType: resolvedMembership,
+        membershipLabel: MEMBERSHIP_LABEL[resolvedMembership] || "Flowtel",
+        contact,
+        verified: true,
+        bridgeMode: existingRank >= 1 ? "existing-flowtel-membership" : "squarespace-paid-membership",
+        bridgeNote: purchase?.orderId ? `Verified Squarespace membership order ${purchase.orderId}.` : null,
+        supabaseUserPrepared: false,
+        accountStatus: existingProfile ? "existing-profile" : "new",
+        temporaryPasswordCreated: false,
+        personalPasswordPreserved: Boolean(existingProfile),
+        note: "Squarespace member verified. Create or sign in to the Flowtel with your private password.",
+      });
+      return;
+    }
+
+    const contact = await querySquarespaceContact(email, { trustedDoorway });
     const authResult = await ensureSupabaseAuthUser({
       email,
       contact,

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.84.3" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.85" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -24,21 +24,7 @@
             Enter through your protected Idyll Collective member doorway.
           </p>
 
-          <div class="member-bridge-card" id="memberBridgeCard">
-            <label for="memberEmail">Member email</label>
-            <input id="memberEmail" type="email" autocomplete="email" />
-            <p class="microcopy bridge-question">Have you stayed at the Flowtel before?</p>
-            <button id="memberBridgeNewButton" type="button">I'm New</button>
-            <button id="memberBridgeReturningButton" type="button" class="secondary">I've Stayed Before</button>
-            <p class="microcopy">
-              On your first visit, use the temporary Flowtel beta password. You’ll create your own private password before entering your Suite. Flowtel can then remember you on this browser.
-            </p>
-          </div>
-
-          <details class="dev-login-card" id="devLoginCard">
-            <summary>Secure Flowtel Login</summary>
-            <p class="microcopy" id="loginGuidance">Enter the password connected to your Flowtel account.</p>
-
+          <div class="flowtel-login-card" id="flowtelLoginCard">
             <label for="email">Email</label>
             <input id="email" type="email" autocomplete="email" />
 
@@ -47,7 +33,28 @@
 
             <button id="signInButton" type="button">Enter the Flowtel</button>
             <button id="forgotPasswordButton" type="button" class="text-button">Forgot your password?</button>
-          </details>
+            <button id="showNewAccountButton" type="button" class="secondary">First time here? Create your account</button>
+          </div>
+
+          <div class="flowtel-new-account-card hidden" id="newAccountCard" aria-hidden="true">
+            <p class="eyebrow">YOUR FIRST STAY</p>
+            <h3>Create your Flowtel account</h3>
+            <p class="microcopy">Use the email connected to your Queendom membership and choose your own private password.</p>
+
+            <label for="newAccountEmail">Email</label>
+            <input id="newAccountEmail" type="email" autocomplete="email" />
+
+            <label for="newAccountPassword">Create password</label>
+            <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="10" />
+
+            <label for="newAccountPasswordConfirm">Confirm password</label>
+            <input id="newAccountPasswordConfirm" type="password" autocomplete="new-password" minlength="10" />
+            <p class="microcopy">Use at least 10 characters.</p>
+
+            <button id="createAccountButton" type="button">Create My Flowtel Account</button>
+            <button id="backToLoginButton" type="button" class="secondary">I already have an account</button>
+            <p id="newAccountStatus" class="microcopy" role="status" aria-live="polite"></p>
+          </div>
 
           <p class="microcopy">
             Need help entering the Flowtel? Message the Front Desk.
@@ -308,6 +315,7 @@
             <h3>There is always something happening here.</h3>
             <p>Ceremonies, workshops, and calls across the Queendom and Flow FM.</p>
           </header>
+          <div class="lounge-live-event-alert hidden" id="loungeLiveEventAlert" aria-live="polite"></div>
           <div class="lounge-event-list lounge-event-list-discovery" id="loungeUpcomingEvents"></div>
           <div class="lounge-events-footer-actions">
             <a class="lounge-calendar-link" href="/queendom-events/">View All Upcoming Events</a>
@@ -399,7 +407,7 @@
       <label for="confirmFlowtelPassword">Confirm new password</label>
       <input id="confirmFlowtelPassword" type="password" autocomplete="new-password" minlength="10" />
 
-      <p class="personal-room-key-requirements">Use at least 10 characters. Do not reuse the temporary beta password.</p>
+      <p class="personal-room-key-requirements">Use at least 10 characters and choose something private to you.</p>
       <p id="personalRoomKeyMessage" class="personal-room-key-message" role="status" aria-live="polite"></p>
 
       <button id="savePersonalRoomKeyButton" type="button">Create My Private Room Key</button>
@@ -419,6 +427,14 @@
       <div class="flowtel-loading-progress" aria-hidden="true"><span></span></div>
     </section>
   </div>
-  <script type="module" src="./app.js?v=0.10.84.3"></script>
+  <section class="event-room-overlay hidden" id="eventRoomOverlay" aria-hidden="true">
+    <div class="event-room-modal" role="dialog" aria-modal="true" aria-labelledby="eventRoomTitle">
+      <button type="button" class="event-room-close" id="eventRoomClose" aria-label="Close event room">×</button>
+      <div id="eventRoomContent"><p>Opening your event room…</p></div>
+      <p class="event-room-status" id="eventRoomStatus" role="status"></p>
+    </div>
+  </section>
+
+  <script type="module" src="./app.js?v=0.10.85"></script>
 </body>
 </html>

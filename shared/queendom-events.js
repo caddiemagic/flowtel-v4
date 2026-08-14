@@ -1,4 +1,4 @@
-// Flowtel v0.10.84 — Queendom events shared by the Lounge, My Upcoming Events, and sanitized public agenda/calendar embeds.
+// Flowtel v0.10.85 — Queendom events, Event Pass access, registered rooms, and public agenda/calendar embeds.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';
@@ -10,7 +10,7 @@ async function rpc(name,args={}){
   if(error){
     const detail=String(error.message||'');
     if(/schema cache/i.test(detail)&&/queendom.*event|flowtel_(?:list|public|admin|set|get)_queendom/i.test(`${name} ${detail}`)){
-      throw new Error('The Flowtel Calendar database setup is not complete yet. Run migrations 067 and 068, then refresh this room.');
+      throw new Error('The Flowtel Calendar database setup is not complete yet. Confirm migrations 067 through 070 are installed, then refresh this room.');
     }
     throw error;
   }
@@ -74,12 +74,44 @@ export async function saveQueendomEventAdmin(payload={}){
     p_image_url:String(payload.image_url||'').trim()||null,
     p_status:String(payload.status||'draft').trim().toLowerCase(),
     p_host_member_id:payload.host_member_id||null,
+    p_co_host_member_id:payload.co_host_member_id||null,
+    p_how_to_prepare:String(payload.how_to_prepare||'').trim()||null,
+    p_attendee_guide_url:String(payload.attendee_guide_url||'').trim()||null,
+    p_will_be_recorded:Boolean(payload.will_be_recorded),
+    p_location_type:String(payload.location_type||'zoom').trim().toLowerCase(),
+    p_private_location:String(payload.private_location||'').trim()||null,
+    p_live_room_time:payload.live_room_time||null,
+    p_public_access:String(payload.public_access||'unavailable').trim().toLowerCase(),
+    p_queendom_access:String(payload.queendom_access||'included').trim().toLowerCase(),
+    p_flowfm_access:String(payload.flowfm_access||'included').trim().toLowerCase(),
+    p_public_price:payload.public_price===''||payload.public_price==null?null:Number(payload.public_price),
+    p_queendom_price:payload.queendom_price===''||payload.queendom_price==null?null:Number(payload.queendom_price),
+    p_flowfm_price:payload.flowfm_price===''||payload.flowfm_price==null?null:Number(payload.flowfm_price),
+    p_access_currency:String(payload.access_currency||'USD').trim().toUpperCase(),
+    p_ticket_url:String(payload.ticket_url||'').trim()||null,
+    p_squarespace_product_id:String(payload.squarespace_product_id||'').trim()||null,
   });
 }
 
 export async function cancelQueendomEventAdmin(eventId){
   if(!eventId)throw new Error('Choose an event first.');
   return rpc('flowtel_admin_cancel_queendom_event',{p_event_id:eventId});
+}
+
+export async function verifyQueendomEventTicket(eventId){
+  if(!eventId)throw new Error('Choose an event first.');
+  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  if(sessionError)throw sessionError;
+  const token=sessionData?.session?.access_token;
+  if(!token)throw new Error('Enter the Flowtel before checking your ticket.');
+  const response=await fetch('/api/event-ticket-verify',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+    body:JSON.stringify({event_id:eventId}),
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||!data.ok)throw new Error(data.error||'Flowtel could not verify that ticket yet.');
+  return data;
 }
 
 function validateEventImage(file){

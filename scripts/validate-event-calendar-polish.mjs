@@ -31,7 +31,7 @@ assert.match(agendaJs, /flowtel:queendom-events-height/);
 assert.match(agendaCss, /agenda-embed-featured/);
 assert.match(agendaCss, /agenda-event\.is-embed-compact/);
 assert.match(agendaCss, /object-fit:contain/);
-assert.match(agendaHtml, /0\.10\.84\.2/);
+assert.match(agendaHtml, /0\.10\.(?:84\.(?:2|[3-9]|\d{2,})|8[5-9]|\d{3,})/);
 assert.match(embedDoc, /app\.theflowtel\.com\/queendom-events\/\?embed=1/);
 assert.match(embedDoc, /flowtel:queendom-events-height/);
 assert.match(releaseDoc, /No migration is required/);

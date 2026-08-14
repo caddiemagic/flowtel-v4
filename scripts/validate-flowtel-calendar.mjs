@@ -93,7 +93,7 @@ assert(functionBody('flowtel_admin_save_queendom_event').includes('Cancelled eve
 
 // Member/Lounge calendar and owner creation desk.
 for(const token of ['UPCOMING EVENTS IN THE QUEENDOM','MY UPCOMING EVENTS']) assert(files['client/index.html'].includes(token),`Lounge is missing ${token}.`);
-for(const token of ['SAVE MY SEAT','JOIN ZOOM','FLOW FM MEMBERS ONLY','loadWombMagicScheduling']) assert(files['client/app.js'].includes(token),`Lounge calendar is missing ${token}.`);
+for(const token of ['SAVE MY SEAT','JOIN ZOOM','NOT INCLUDED WITH YOUR ACCESS','loadWombMagicScheduling']) assert(files['client/app.js'].includes(token),`Lounge calendar is missing ${token}.`);
 for(const token of ['Event name','Audience','Zoom link','Zoom passcode','Calendar artwork']) assert(files['manager/events/index.html'].includes(token),`Event admin is missing ${token}.`);
 assert(files['manager/events/app.js'].includes('uploadQueendomEventImage'));
 assert(files['manager/events/app.js'].includes('Cancelled events stay in history'));

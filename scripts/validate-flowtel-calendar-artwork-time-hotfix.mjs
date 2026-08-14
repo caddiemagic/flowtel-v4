@@ -24,11 +24,11 @@ assert(/^begin;/m.test(migration)&&/^commit;/m.test(migration),'Migration 069 mu
 const html=fs.readFileSync('manager/events/index.html','utf8');
 for(const minute of ['00','15','30','45']){
   const count=(html.match(new RegExp(`<option value="${minute}">:${minute}</option>`,'g'))||[]).length;
-  assert(count===2,`Expected start/end :${minute} options exactly twice; found ${count}.`);
+  assert(count>=2,`Expected quarter-hour :${minute} options for start/end (and optional live room); found ${count}.`);
 }
 assert(!html.includes('id="eventStartTime" type="time"'),'Start time must not use unrestricted native time input.');
 assert(!html.includes('id="eventEndTime" type="time"'),'End time must not use unrestricted native time input.');
-assert(html.includes('v=0.10.83.3'),'Manager event cache bust must be v0.10.83.3.');
+assert(/v=0\.10\.(?:83\.(?:3|[4-9]|\d{2,})|8[4-9]|\d{3,})/.test(html),'Manager event cache bust must not regress below v0.10.83.3.');
 
 const app=fs.readFileSync('manager/events/app.js','utf8');
 assert(app.includes("parts.period.value==='AM'&&hour===12"),'12 AM conversion missing.');

@@ -12,7 +12,7 @@ const [clientHtml, clientJs, agendaHtml, agendaCss, releaseDoc, changelog, roadm
   read('docs/FLOWTEL_ROADMAP.md')
 ]);
 
-assert.match(clientHtml, /app\.js\?v=0\.10\.84\.3/);
+assert.match(clientHtml, /app\.js\?v=0\.10\.(?:84\.3|8[5-9]|9\d)/);
 assert.match(clientJs, /const today=localTodayISO\(\)/);
 assert.doesNotMatch(clientJs, /loungeTodayIso\(/);
 assert.match(clientJs, /Flowtel Lounge events could not open or render\./);
@@ -23,12 +23,12 @@ assert.match(agendaHtml, /href="\/client\/\?suite=1"/);
 assert.match(agendaHtml, /RETURN TO THE LOUNGE/);
 assert.match(agendaHtml, /href="\/client\/\?lounge=1"/);
 assert.match(agendaHtml, /agenda-flowtel-nav-bottom/);
-assert.match(agendaHtml, /app\.js\?v=0\.10\.84\.3/);
+assert.match(agendaHtml, /app\.js\?v=0\.10\.(?:84\.3|8[5-9]|9\d)/);
 assert.match(agendaCss, /\.is-embed \.agenda-flowtel-nav\{display:none\}/);
 
 assert.match(releaseDoc, /No migration is required/);
 assert.match(releaseDoc, /Next migration number remains \*\*070\*\*/);
 assert.match(changelog, /v0\.10\.84\.3 — Upcoming Events Navigation \+ Lounge Repair/);
-assert.match(roadmap, /Current — v0\.10\.84\.3 Upcoming Events Navigation \+ Lounge Repair/);
+assert.match(roadmap, /v0\.10\.(?:84\.3|8[5-9]|9\d)/);
 
 console.log('Flowtel v0.10.84.3 Upcoming Events navigation + Lounge repair validator passed.');
