@@ -1,3 +1,12 @@
+## v0.10.85.1 — Canonical Flowtel Entry
+
+- Retired the visible Phase 1 **Request Flowtel Access** branch from the normal member journey.
+- Made `/client/` the single canonical Flowtel entrance for remembered sessions, normal sign-in, first-time verified account creation, and password recovery.
+- Added temporary redirects from `/enter` and `/beta-request` to `/client/`, plus static fallback redirects for direct legacy file URLs.
+- Updated primary member-facing Flowtel entry links to point directly to `/client/`; legacy/internal callers are safely caught by the canonical redirect.
+- Preserved v0.10.85 server-side membership verification and all Event Pass / access boundaries.
+- Requires no migration or environment changes; next migration remains 071. Caddie Magic remains v0.6.0.
+
 ## v0.10.85 — Event Access + Beta Exit
 
 - Adds tiered event admission rules for Public, Queendom, and Flow FM: each tier may be Included, Ticket Required, or Not Available.

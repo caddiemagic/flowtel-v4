@@ -506,5 +506,17 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/enter",
+      "destination": "/client/",
+      "permanent": false
+    },
+    {
+      "source": "/beta-request",
+      "destination": "/client/",
+      "permanent": false
+    }
   ]
 }
