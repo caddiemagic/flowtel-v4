@@ -128,7 +128,11 @@
     },
     {
       "source": "/moon-mail",
-      "destination": "/moonbox/index.html"
+      "destination": "/moonbox/"
+    },
+    {
+      "source": "/moon-mail/:path*",
+      "destination": "/moonbox/:path*"
     },
     {
       "source": "/personal-cosmology",
@@ -219,49 +223,103 @@
     {
       "source": "/moonbox",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/moonbox/(.*)",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/moon-mail",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
-      "source": "/moon-mail/(.*)",
+      "source": "/moon-mail/:path*",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/personal-cosmology",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {
       "source": "/personal-cosmology/(.*)",
       "headers": [
-        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
-        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
-        {"key": "Referrer-Policy", "value": "no-referrer"}
+        {
+          "key": "Cache-Control",
+          "value": "no-store, private, max-age=0"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, nofollow, noarchive"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "no-referrer"
+        }
       ]
     },
     {

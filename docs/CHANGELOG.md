@@ -1,3 +1,12 @@
+## v0.10.86.2 — Moon Mail Route Hotfix
+
+- Fixes the deployed **Moon Mail 404** by covering both the exact `/moon-mail` route and `/moon-mail/:path*` alias paths back to the existing `/moonbox/` implementation.
+- Keeps one Moonbox/Moon Mail system; no duplicate message store or second unsent-message page is introduced.
+- Adds `/moon-mail/` to the shared Flowtel protected-route prefixes so the alias inherits the same product-access boundary as `/moonbox/`.
+- Cache-busts the shared access guard import for Moon Mail.
+- Requires a Vercel deployment only; **no Supabase migration is required**. Migrations 071 and 072 remain unchanged and the next migration remains 073.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.86.1 — Personal Cosmology Storage Policy Hotfix
 
 - Fixes the Flow FM Lounge/private Storage error `permission denied for table flowtel_member_cosmology` introduced by migration 071.

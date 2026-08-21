@@ -93,9 +93,11 @@ must('cycle-data/app.js',['/personal-cosmology/?client=']);
 must('flow-fm/upcoming-calls/page.js',['Open Personal Cosmology','/personal-cosmology/?client=']);
 
 const vercel=JSON.parse(read('vercel.json'));
-for(const [source,destination] of [['/moonbox','/moonbox/index.html'],['/moon-mail','/moonbox/index.html'],['/personal-cosmology','/personal-cosmology/index.html']]){
+for(const [source,destination] of [['/moonbox','/moonbox/index.html'],['/personal-cosmology','/personal-cosmology/index.html']]){
   assert.ok((vercel.rewrites||[]).some(row=>row.source===source&&row.destination===destination),`${source} rewrite missing`);
 }
+assert.ok((vercel.rewrites||[]).some(row=>row.source==='/moon-mail'&&row.destination==='/moonbox/'),'/moon-mail rewrite missing');
+assert.ok((vercel.rewrites||[]).some(row=>row.source==='/moon-mail/:path*'&&row.destination==='/moonbox/:path*'),'/moon-mail catch-all rewrite missing');
 for(const source of ['/moonbox','/moon-mail','/personal-cosmology']){
   const header=(vercel.headers||[]).find(row=>row.source===source);
   assert.ok(header,`${source} private headers missing`);

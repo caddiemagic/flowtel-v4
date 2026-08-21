@@ -16,6 +16,7 @@ const FLOWTEL_PROTECTED_PREFIXES = [
   "/flow-fm/",
   "/manager/",
   "/moonbox/",
+  "/moon-mail/",
   "/database/",
   "/concierge-soon/",
 ];

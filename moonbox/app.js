@@ -1,5 +1,5 @@
 import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.75";
-import { supabase } from "../shared/supabase.js";
+import { supabase } from "../shared/supabase.js?v=0.10.86.2";
 
 const MAX_MESSAGE_LENGTH=16000;
 const messageInput=document.getElementById("moonboxMessage");
