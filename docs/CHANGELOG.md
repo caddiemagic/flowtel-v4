@@ -1,3 +1,12 @@
+## v0.10.86.1 — Personal Cosmology Storage Policy Hotfix
+
+- Fixes the Flow FM Lounge/private Storage error `permission denied for table flowtel_member_cosmology` introduced by migration 071.
+- Keeps direct `authenticated`/`anon` table access to `flowtel_member_cosmology` revoked; no broad SELECT grant is added.
+- Replaces the Personal Cosmology `storage.objects` SELECT policy's direct private-table subquery with a narrow `SECURITY DEFINER` authorization helper that exits immediately for unrelated buckets.
+- Restores signed/private reads for existing Flowtel Storage rooms such as the Flow FM Lounge workshop while preserving owner-or-explicitly-authorized-practitioner access to Human Design chart files.
+- Adds migration `072-personal-cosmology-storage-policy-hotfix.sql`; run it once after migration 071. No JavaScript or environment-variable changes are required.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.86 — Moon Mail + Personal Cosmology
 
 - Evolves the existing v0.10.54 Moonbox into **Moon Mail** without creating a second unsent-message system; `/moonbox/` remains valid and `/moon-mail/` opens the same room.

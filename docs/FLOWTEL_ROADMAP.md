@@ -4,13 +4,13 @@ Updated: August 21, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.86 Moon Mail + Personal Cosmology
+## Current — v0.10.86.1 Moon Mail + Personal Cosmology
 
 Flowtel's next narrow extension is built on existing rooms rather than duplicating them. **Moon Mail** evolves the v0.10.54 Moonbox with 16,000-character long-form letters, a private seven-day due state, a Suite/Lounge return doorway, and an append-only author-only outcome reflection. Collective anonymity and witnessing remain unchanged; seven-day outcomes never become collective automatically.
 
 **Personal Cosmology** adds private birth date/time/confidence/birthplace and Human Design chart storage without calculation. It deliberately uses a dedicated table/private Storage bucket rather than public-safe profile fields. Practitioner visibility requires explicit member sharing plus an active consented Mentor relationship or Womb Magic appointment authorization.
 
-Migration 071 is the database boundary for both features. Caddie Magic remains v0.6.0 and Player-first.
+Migration 071 is the database boundary for both features. **Migration 072** is the narrow Personal Cosmology Storage-policy hotfix that restores unrelated private Storage reads without granting direct browser access to the cosmology table. Caddie Magic remains v0.6.0 and Player-first.
 
 ### Priority 0 — finish beta-exit live verification
 
