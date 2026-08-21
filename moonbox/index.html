@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex,nofollow,noarchive" />
-  <title>The Moonbox · Flowtel</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.54" />
+  <title>Moon Mail · Flowtel</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.86" />
 </head>
 <body>
   <main class="moonbox-shell">
@@ -15,9 +15,9 @@
         <img src="../assets/queendom-scarab-sundisk-transparent.png" alt="" />
       </div>
       <p class="eyebrow">A PRIVATE ROOM INSIDE THE FLOWTEL</p>
-      <h1>THE MOONBOX</h1>
-      <p class="hero-subtitle">Unsent letters to lovers.</p>
-      <p class="hero-copy">Write the message you want to send to him. Let the Moon receive the first wave, return the energy to your Queendom, and hold it until you know what truly belongs in his hands.</p>
+      <h1>MOON MAIL</h1>
+      <p class="hero-subtitle">The long message you do not have to send to him.</p>
+      <p class="hero-copy">Write the text exactly as you want to send it. Send it to the Moon instead. Flowtel will hold the original without rewriting it, then invite you back seven days later to notice how you feel and what actually happened.</p>
       <blockquote>You do not have to silence yourself. You deserve to be received before you decide where your words belong.</blockquote>
     </section>
 
@@ -27,7 +27,7 @@
           <p class="eyebrow">MESSAGE TO THE MOON</p>
           <h2 id="composerTitle">What do you want to say to him?</h2>
         </div>
-        <span class="member-greeting" id="memberGreeting">Opening your Moonbox...</span>
+        <span class="member-greeting" id="memberGreeting">Opening your Moon Mail...</span>
       </div>
 
       <label class="archetype-field" for="recipientArchetype">
@@ -49,24 +49,52 @@
 
       <label class="message-field" for="moonboxMessage">
         <span class="sr-only">Your unsent message</span>
-        <textarea id="moonboxMessage" maxlength="4000" placeholder="Write it exactly as you want to send it. Do not make it polite. Do not make it spiritual. Let the first true version arrive here..."></textarea>
+        <textarea id="moonboxMessage" maxlength="16000" placeholder="Write the whole thing. The paragraph you deleted. The text that became a novel. The part you are afraid is too much. Let the first true version arrive here..."></textarea>
       </label>
       <div class="composer-meta">
         <p>His name does not belong here. Your truth does.</p>
-        <span id="characterCount">0 / 4000</span>
+        <span id="characterCount">0 / 16000</span>
       </div>
 
       <aside class="privacy-vow">
         <p class="eyebrow">THE MOONBOX VOW</p>
-        <p>Before sharing with the Collective Moonbox, remove names, phone numbers, email addresses, social handles, links, workplaces, and locations. Private letters remain visible only inside your own Moonbox archive.</p>
+        <p>Before sharing with the Collective Moonbox, remove names, phone numbers, email addresses, social handles, links, workplaces, and locations. Private letters remain visible only inside your own archive.</p>
       </aside>
 
       <div class="send-actions">
         <button id="sendCollectiveButton" type="button" class="moon-button moon-button--primary">SEND TO THE MOON</button>
         <button id="sendPrivateButton" type="button" class="moon-button moon-button--quiet">KEEP BETWEEN ME &amp; THE MOON</button>
       </div>
-      <p class="send-explainer"><strong>Send to the Moon</strong> releases the letter anonymously into the Collective Moonbox. <strong>Keep Between Me &amp; the Moon</strong> saves it only in your private archive.</p>
+      <p class="send-explainer"><strong>Send to the Moon</strong> releases the original letter anonymously into the existing Collective Moonbox. <strong>Keep Between Me &amp; the Moon</strong> keeps it private. Either way, your seven-day return is private by default.</p>
       <p class="message-status" id="messageStatus" role="status" aria-live="polite"></p>
+    </section>
+
+    <section class="return-ritual-card hidden" id="returnRitualCard" aria-labelledby="returnRitualTitle">
+      <header class="return-heading">
+        <div>
+          <p class="eyebrow">THE MOON HAS MAIL FOR YOU</p>
+          <h2 id="returnRitualTitle">Seven days later.</h2>
+        </div>
+        <button type="button" class="ritual-close" id="closeReturnRitual">CLOSE</button>
+      </header>
+      <p class="return-intro">Read what you wrote without judging the woman who wrote it. You are not deciding whether the ritual “worked.” You are simply noticing what is true now.</p>
+      <blockquote class="return-original" id="returnOriginalMessage"></blockquote>
+      <form id="returnRitualForm" class="return-form">
+        <label>
+          <span>How do you feel now, seven days later?</span>
+          <textarea id="returnFeeling" maxlength="6000" required></textarea>
+        </label>
+        <label>
+          <span>What has happened since you sent this message to the Moon instead of him?</span>
+          <textarea id="returnHappened" maxlength="6000" required></textarea>
+        </label>
+        <label>
+          <span>What do you know now that you could not hear when you first wrote it?</span>
+          <textarea id="returnKnow" maxlength="6000" placeholder="Optional"></textarea>
+        </label>
+        <button type="submit" class="moon-button moon-button--primary" id="completeReturnButton">COMPLETE MY SEVEN-DAY RETURN</button>
+        <p class="message-status" id="returnStatus" role="status" aria-live="polite"></p>
+      </form>
     </section>
 
     <section class="moonbox-library">
@@ -75,32 +103,32 @@
           <p class="eyebrow">LET THE MOON WITNESS IT</p>
           <h2>The messages we thought only we were writing.</h2>
         </div>
-        <nav class="view-tabs" aria-label="Moonbox views">
+        <nav class="view-tabs" aria-label="Moon Mail views">
           <button id="collectiveTab" type="button" class="active" aria-selected="true">COLLECTIVE MOONBOX</button>
-          <button id="myMessagesTab" type="button" aria-selected="false">MY MOONBOX</button>
+          <button id="myMessagesTab" type="button" aria-selected="false">MY MOON MAIL</button>
         </nav>
       </div>
 
       <section id="collectiveView" class="message-view" aria-label="Collective Moonbox">
-        <p class="view-intro">Anonymous letters from women choosing to let the Moon receive the message first. There are no comments here—only witnessing.</p>
+        <p class="view-intro">Anonymous letters from women choosing to let the Moon receive the message first. There are no comments here—only witnessing. Seven-day outcomes never appear here.</p>
         <div class="moon-message-grid" id="collectiveMessages"></div>
       </section>
 
-      <section id="myMessagesView" class="message-view hidden" aria-label="My Moonbox">
-        <p class="view-intro">Your private archive remembers both the letters you released into the collective and the ones held only between you and the Moon.</p>
+      <section id="myMessagesView" class="message-view hidden" aria-label="My Moon Mail">
+        <p class="view-intro">Your private archive remembers the original letter exactly as you sent it to the Moon and, when the seventh day arrives, holds your private return reflection beside it.</p>
         <div class="moon-message-grid" id="myMessages"></div>
       </section>
 
       <p class="library-status" id="libraryStatus" role="status" aria-live="polite"></p>
     </section>
 
-    <nav class="moonbox-return" aria-label="Moonbox return navigation">
+    <nav class="moonbox-return" aria-label="Moon Mail return navigation">
       <a href="/client/?suite=1">RETURN TO YOUR SUITE</a>
       <a href="/client/?lounge=1">RETURN TO THE LOUNGE</a>
       <a href="https://www.theidyllcollective.com/queendomhome">RETURN TO THE QUEENDOM</a>
     </nav>
   </main>
 
-  <script type="module" src="./app.js?v=0.10.54"></script>
+  <script type="module" src="./app.js?v=0.10.86"></script>
 </body>
 </html>

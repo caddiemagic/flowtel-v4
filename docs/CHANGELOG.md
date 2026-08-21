@@ -1,3 +1,15 @@
+## v0.10.86 — Moon Mail + Personal Cosmology
+
+- Evolves the existing v0.10.54 Moonbox into **Moon Mail** without creating a second unsent-message system; `/moonbox/` remains valid and `/moon-mail/` opens the same room.
+- Raises the Moon Mail limit from 4,000 to **16,000 characters** while preserving the existing private/anonymous-collective choice, recipient archetypes, Flowtel context snapshots, and anonymous witnessing.
+- Adds an author-only seven-day due state, Suite/Lounge **THE MOON HAS MAIL FOR YOU** doorway, and one append-only private return reflection without overwriting the original message.
+- Keeps seven-day outcomes private by default and out of the existing Collective Moonbox RPC even when the original letter was shared anonymously.
+- Adds private **Personal Cosmology** for birth date, birth time, Exact/Approximate/Unknown time confidence, birthplace, notes, and Human Design chart upload; no astrology/Human Design calculation is performed.
+- Stores Personal Cosmology outside broadly reused profile fields and uses a private chart bucket; practitioner access requires explicit member sharing plus a connected consented Mentor or active consented Womb Magic appointment.
+- Adds Personal Cosmology preparation doorways to Client Snapshot and Upcoming Calls without granting broad practitioner, event-host, Team Map, directory, or public-profile access.
+- Adds `database/migration-071-moon-mail-personal-cosmology.sql`; no new environment variables are required. Caddie Magic remains v0.6.0 and Player-first.
+- Beta-exit production checks from v0.10.85.1 remain live verification items rather than being assumed green from source validation.
+
 ## v0.10.85.1 — Canonical Flowtel Entry
 
 - Retired the visible Phase 1 **Request Flowtel Access** branch from the normal member journey.

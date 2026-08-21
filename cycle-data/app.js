@@ -28,6 +28,7 @@ const entryCount=document.getElementById("entryCount");
 const entryList=document.getElementById("entryList");
 const message=document.getElementById("dashboardMessage");
 const openFlowMapLink=document.getElementById("openFlowMapLink");
+const openPersonalCosmologyLink=document.getElementById("openPersonalCosmologyLink");
 
 const SEASONS=["Inner Winter","Inner Spring","Inner Summer","Inner Autumn"];
 const SEASON_COPY={
@@ -460,6 +461,10 @@ async function init(){
     if(openFlowMapLink){
       openFlowMapLink.href=flowMapHrefFor({targetId,scope});
       openFlowMapLink.classList.toggle("hidden",currentMode==="season");
+    }
+    if(openPersonalCosmologyLink){
+      openPersonalCosmologyLink.href=targetId?`/personal-cosmology/?client=${encodeURIComponent(targetId)}`:"/personal-cosmology/";
+      openPersonalCosmologyLink.classList.toggle("hidden",currentMode==="season"||currentMode==="all");
     }
     restoreDashboardActions();
     renderToggle(currentProfile,clients,targetId,currentMode);

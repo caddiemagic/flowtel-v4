@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.85" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.86" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -126,9 +126,20 @@
           <p class="suite-subline" id="suiteSubline"></p>
           <div class="suite-external-actions">
             <a class="queendom-return-link" id="suiteProfileLink" href="/profile/?return=%2Fclient%2F%3Fsuite%3D1%26profileReturn%3D1">My Profile</a>
+            <a class="queendom-return-link" href="/moon-mail/">Moon Mail</a>
+            <a class="queendom-return-link" href="/personal-cosmology/">Personal Cosmology</a>
             <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
           </div>
         </header>
+
+        <section class="moon-mail-due-alert hidden" id="moonMailAlertSuite" aria-live="polite">
+          <div>
+            <p class="eyebrow">THE MOON HAS MAIL FOR YOU</p>
+            <h3>It has been seven days since you sent this message to the Moon.</h3>
+            <p data-moon-mail-queue-copy>Return when you are ready to notice what changed.</p>
+          </div>
+          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moon-mail/">Return to Your Message</a>
+        </section>
 
         <section class="suite-grid suite-grid--wheel-left">
           <section class="wheel-column">
@@ -306,8 +317,19 @@
         <h2 id="loungeCourtTitle">Your Season Court is ready.</h2>
         <p class="suite-subline">Your work here is done for now. Take what you need, relax, and go on about your day.</p>
         <div class="suite-external-actions lounge-external-actions">
+          <a class="queendom-return-link" href="/moon-mail/">Moon Mail</a>
+          <a class="queendom-return-link" href="/personal-cosmology/">Personal Cosmology</a>
           <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
         </div>
+
+        <section class="moon-mail-due-alert hidden" id="moonMailAlertLounge" aria-live="polite">
+          <div>
+            <p class="eyebrow">THE MOON HAS MAIL FOR YOU</p>
+            <h3>It has been seven days since you sent this message to the Moon.</h3>
+            <p data-moon-mail-queue-copy>Return when you are ready to notice what changed.</p>
+          </div>
+          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moon-mail/">Return to Your Message</a>
+        </section>
 
         <section class="lounge-events-card" id="loungeEventsCard">
           <header class="lounge-events-heading">
@@ -435,6 +457,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.85"></script>
+  <script type="module" src="./app.js?v=0.10.86"></script>
 </body>
 </html>

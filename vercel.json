@@ -127,6 +127,14 @@
       "destination": "/moonbox/index.html"
     },
     {
+      "source": "/moon-mail",
+      "destination": "/moonbox/index.html"
+    },
+    {
+      "source": "/personal-cosmology",
+      "destination": "/personal-cosmology/index.html"
+    },
+    {
       "source": "/queendom-calendar",
       "destination": "/queendom-calendar/index.html"
     },
@@ -208,6 +216,54 @@
     }
   ],
   "headers": [
+    {
+      "source": "/moonbox",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
+    {
+      "source": "/moonbox/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
+    {
+      "source": "/moon-mail",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
+    {
+      "source": "/moon-mail/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
+    {
+      "source": "/personal-cosmology",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
+    {
+      "source": "/personal-cosmology/(.*)",
+      "headers": [
+        {"key": "Cache-Control", "value": "no-store, private, max-age=0"},
+        {"key": "X-Robots-Tag", "value": "noindex, nofollow, noarchive"},
+        {"key": "Referrer-Policy", "value": "no-referrer"}
+      ]
+    },
     {
       "source": "/manager/events",
       "headers": [

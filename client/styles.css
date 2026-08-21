@@ -4166,3 +4166,11 @@ body.personal-room-key-is-open{
 @media(max-width:650px){.event-room-times,.event-room-host-grid{grid-template-columns:1fr}.lounge-event-hosts small{line-height:1.35}.lounge-time-stack span{font-size:.76rem}}
 /* Flowtel v0.10.85 — beta exit doorway */
 .flowtel-login-card,.flowtel-new-account-card{display:grid;gap:10px}.flowtel-login-card.hidden,.flowtel-new-account-card.hidden{display:none}.flowtel-new-account-card{margin-top:8px;padding:20px;border:1px solid rgba(184,130,38,.3);border-radius:20px;background:rgba(255,253,249,.7)}.flowtel-new-account-card h3{margin:0 0 2px;font-family:Georgia,serif;color:var(--brown);font-weight:500}.flowtel-login-card .text-button{min-height:auto;padding:7px;border:0;background:transparent;box-shadow:none;text-decoration:underline;text-underline-offset:3px}.flowtel-login-card .secondary,.flowtel-new-account-card .secondary{margin-top:2px}
+
+
+/* v0.10.86 — private Moon Mail seven-day return doorway */
+.moon-mail-due-alert{display:flex;align-items:center;justify-content:space-between;gap:24px;margin:22px auto;padding:22px 24px;max-width:760px;border:1px solid rgba(198,154,73,.42);border-radius:22px;background:linear-gradient(135deg,rgba(255,251,240,.96),rgba(248,226,222,.76));box-shadow:0 18px 45px rgba(91,62,50,.08)}
+.moon-mail-due-alert h3{margin:2px 0 7px;font-family:Georgia,"Times New Roman",serif;font-size:1.22rem;font-weight:400;line-height:1.35;color:#6b4f43}
+.moon-mail-due-alert p:not(.eyebrow){margin:0;color:#8a6e63;line-height:1.5}
+.moon-mail-due-alert .moon-mail-return-link{flex:0 0 auto;min-width:210px;text-align:center}
+@media(max-width:700px){.moon-mail-due-alert{display:grid;padding:20px}.moon-mail-due-alert .moon-mail-return-link{width:100%;min-width:0}}

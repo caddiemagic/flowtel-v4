@@ -1,20 +1,34 @@
 # Flowtel Roadmap
 
-Updated: August 14, 2026
+Updated: August 21, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.85 Event Access + Beta Exit
+## Current — v0.10.86 Moon Mail + Personal Cosmology
 
-Focus: close the open Queendom-event access and member-authentication work before the next project handoff. Flowtel now separates event visibility, entitlement, registration, payment, preparation, and private-room access; adds Host + Co-host, editable preparation, attendee guides, separate live-room timing, Flowtel Time + member-local time, and a within-the-hour registered-event doorway.
+Flowtel's next narrow extension is built on existing rooms rather than duplicating them. **Moon Mail** evolves the v0.10.54 Moonbox with 16,000-character long-form letters, a private seven-day due state, a Suite/Lounge return doorway, and an append-only author-only outcome reflection. Collective anonymity and witnessing remain unchanged; seven-day outcomes never become collective automatically.
 
-Ticketed events support separate Public / Queendom / Flow FM rules. Squarespace Orders API verification is the current payment authority. A paid order creates an event entitlement; a refund revokes it while preserving history. Public paid attendees can use a limited Event Pass without receiving Queendom/Flow FM product access. A true push webhook remains optional future work because Squarespace webhook subscriptions require OAuth; v0.10.85 uses secure API-key verification when the attendee returns/checks/opens the event.
+**Personal Cosmology** adds private birth date/time/confidence/birthplace and Human Design chart storage without calculation. It deliberately uses a dedicated table/private Storage bucket rather than public-safe profile fields. Practitioner visibility requires explicit member sharing plus an active consented Mentor relationship or Womb Magic appointment authorization.
 
-The member-facing beta password doorway is removed from the normal Flowtel arrival experience. Returning sessions auto-enter; signed-out members use email/password; first-time members use an existing verified Flowtel profile or a PAID mapped Squarespace membership product before account creation; a short-lived server-only signup admission prevents public Auth metadata/URL parameters from granting product access; Forgot Password uses Supabase Auth recovery. Production launch requires custom SMTP/redirect configuration documented in `docs/SUPABASE-AUTH-EMAIL-SETUP.md`.
+Migration 071 is the database boundary for both features. Caddie Magic remains v0.6.0 and Player-first.
 
-### Immediate closeout after live verification
+### Priority 0 — finish beta-exit live verification
 
-After migration 070, SMTP, Squarespace Commerce API permissions, and the v0.10.85 live test checklist are green, stop feature development long enough to produce the requested **complete project handoff**, current release roadmap, migration/environment register, regression watchlist, and exact next-development recommendation.
+Source validation does not replace live verification. Before beta exit is considered green, confirm migration 070, eligible first-time signup + Confirm Signup, completed password recovery, Squarespace Commerce permissions/product IDs, Movie Night paid and Flow FM included access, refund/revocation, Event Pass isolation, remembered-session behavior, legacy redirects, and the visible Squarespace ENTER THE FLOWTEL CTA pointing to `/client/`. Use v0.10.85.x only for launch-critical hotfixes discovered in that verification.
+
+## Next Priority — Front Desk / Concierge Messages
+
+Build a Flowtel-owned support inbox rather than making Squarespace Forms the source of truth.
+
+Desired first contract:
+
+- a pre-login **Message the Front Desk** doorway for login/account/event/technical help;
+- a logged-in **Front Desk / Concierge Messages** room with thread history and replies;
+- Concierge inbox states such as Needs Response / Open / Waiting on Guest / Resolved;
+- staff assignment, unread state, and verified-member association after sign-in;
+- optional Resend notification that a reply is waiting while the canonical thread remains in Flowtel;
+- public-form rate limiting/CAPTCHA;
+- no automatic exposure of private cycle, reflection, client, Moon Mail, or Personal Cosmology data to support staff.
 
 ## Deferred — Flowtel Messaging + Wake Up Text
 

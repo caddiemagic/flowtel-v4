@@ -75,7 +75,7 @@ function callCard(call){
         <div><small>Client timezone</small><strong>${escapeHtml(clientTimezoneLabel(call))}</strong></div>
         <div><small>Access closes</small><strong>${escapeHtml(accessCloseLabel(call.access_until))}</strong></div>
       </div>
-      <div class="call-actions">${meeting}${meetingPending}<a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div>
+      <div class="call-actions">${meeting}${meetingPending}<a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/personal-cosmology/?client=${encodeURIComponent(call.client_id)}">Open Personal Cosmology</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div>
     </div>
   </article>`;
 }

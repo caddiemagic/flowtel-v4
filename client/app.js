@@ -1,3 +1,4 @@
+import { supabase } from "../shared/supabase.js";
 import { getCurrentUser, signInWithEmail, createAccountWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.85";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.75";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, currentUserHasConciergeTeamAccess, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.81.3";
@@ -52,6 +53,7 @@ let loungeWombMagicState=null;
 let eventDoorwayEventId=String(urlParam("saveEvent")||"").trim();
 let eventRoomEventId=String(urlParam("openEvent")||"").trim();
 let loungeEventCountdownTimer=null;
+let moonMailDueLoadPromise=null;
 let eventDoorwayRegistrationHandled=false;
 let eventDoorwayMessage="";
 let currentMentorRelationship=null;
@@ -60,6 +62,41 @@ let unreadConciergeStays=[];
 let unreadConciergeLoadKey="";
 let unreadConciergeLoadToken=0;
 const wombMagicBooking=mountWombMagicBooking();
+
+function renderMoonMailDueAlerts(rows=[]){
+  const due=Array.isArray(rows)?rows:[];
+  const first=due[0]||null;
+  document.querySelectorAll(".moon-mail-due-alert").forEach(alert=>{
+    alert.classList.toggle("hidden",!first);
+    if(!first) return;
+    const link=alert.querySelector("[data-moon-mail-return-link]");
+    if(link) link.href=`/moon-mail/?return=${encodeURIComponent(first.message_id)}`;
+    const copy=alert.querySelector("[data-moon-mail-queue-copy]");
+    if(copy){
+      copy.textContent=due.length>1
+        ? `${due.length} messages are ready for their seven-day return. Begin with the first one when you are ready.`
+        : "Return when you are ready to notice how you feel and what has happened since.";
+    }
+  });
+}
+
+async function prepareMoonMailDueAlerts({force=false}={}){
+  if(!currentProfile?.id){ renderMoonMailDueAlerts([]); return []; }
+  if(moonMailDueLoadPromise&&!force) return moonMailDueLoadPromise;
+  moonMailDueLoadPromise=(async()=>{
+    const {data,error}=await supabase.rpc("flowtel_get_due_moonbox_returns",{p_limit:20});
+    if(error){
+      const migrationPending=error?.code==="PGRST202"||error?.code==="42883"||/flowtel_get_due_moonbox_returns/i.test(error?.message||"");
+      if(!migrationPending) console.warn("Moon Mail return alert could not load.",error);
+      renderMoonMailDueAlerts([]);
+      return [];
+    }
+    const rows=Array.isArray(data)?data:[];
+    renderMoonMailDueAlerts(rows);
+    return rows;
+  })().finally(()=>{moonMailDueLoadPromise=null;});
+  return moonMailDueLoadPromise;
+}
 
 function updatePhaseOneSuiteLinks(){
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
@@ -738,8 +775,8 @@ function showScene(name){
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
-  if(name==="suite"){suiteScene.classList.add("active");setProgress(3);}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareLoungeEvents({force:Boolean(eventDoorwayEventId)}).finally(()=>focusMyUpcomingEvents());window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="suite"){suiteScene.classList.add("active");setProgress(3);void prepareMoonMailDueAlerts();}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareMoonMailDueAlerts();void prepareLoungeEvents({force:Boolean(eventDoorwayEventId)}).finally(()=>focusMyUpcomingEvents());window.scrollTo({top:0,behavior:"smooth"});}
   if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
 }
 

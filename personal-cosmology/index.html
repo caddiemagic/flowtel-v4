@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>Personal Cosmology · Flowtel</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.86" />
+</head>
+<body>
+  <main class="cosmology-shell">
+    <section class="cosmology-card" aria-labelledby="cosmologyTitle">
+      <img class="cosmology-emblem" src="../assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <p class="eyebrow">A PRIVATE ROOM INSIDE YOUR FLOWTEL PASSPORT</p>
+      <h1 id="cosmologyTitle">PERSONAL COSMOLOGY</h1>
+      <p class="intro" id="cosmologyIntro">Keep the source details a trusted Priestess may use to prepare astrology or Human Design work. Flowtel does not calculate either chart here.</p>
+
+      <section class="cosmology-loading" id="cosmologyLoading" role="status">Opening your private Birth + Design room...</section>
+
+      <form class="cosmology-form hidden" id="cosmologyForm">
+        <header class="room-heading">
+          <div>
+            <p class="eyebrow">BIRTH DATA</p>
+            <h2 id="memberName">Your Birth + Design details</h2>
+          </div>
+          <span class="privacy-pill" id="viewModePill">PRIVATE TO YOU</span>
+        </header>
+
+        <div class="field-grid">
+          <label>
+            <span>Birth Date</span>
+            <input id="birthDate" type="date" />
+          </label>
+          <label>
+            <span>Birth Time</span>
+            <input id="birthTime" type="time" />
+            <small>If you do not know it, leave the time blank and choose Unknown below.</small>
+          </label>
+        </div>
+
+        <label>
+          <span>Birth-Time Confidence</span>
+          <select id="birthTimeConfidence">
+            <option value="exact">Exact</option>
+            <option value="approximate">Approximate</option>
+            <option value="unknown">Unknown</option>
+          </select>
+        </label>
+
+        <label>
+          <span>Birthplace</span>
+          <input id="birthplace" type="text" maxlength="240" placeholder="Pensacola, Florida, United States" autocomplete="off" />
+          <small>City, region/state, and country are enough. Do not enter a street address.</small>
+        </label>
+
+        <label>
+          <span>Private Notes</span>
+          <textarea id="cosmologyNotes" maxlength="3000" placeholder="Optional context you want kept with these details..."></textarea>
+        </label>
+
+        <section class="chart-room" aria-labelledby="chartHeading">
+          <div class="chart-heading">
+            <div>
+              <p class="eyebrow">HUMAN DESIGN</p>
+              <h2 id="chartHeading">Your existing chart</h2>
+            </div>
+            <span class="file-rule">PNG · JPG · WEBP · PDF · 15 MB MAX</span>
+          </div>
+          <p class="chart-copy">Upload a chart you already have. This release stores it privately; it does not read, infer, or calculate your Type, Strategy, Authority, or Profile.</p>
+          <div class="chart-current hidden" id="chartCurrent"></div>
+          <label class="chart-upload" id="chartUploadField">
+            <span>Choose Human Design Chart</span>
+            <input id="humanDesignChart" type="file" accept="image/png,image/jpeg,image/webp,application/pdf" />
+          </label>
+          <button type="button" class="secondary-action hidden" id="removeChartButton">Remove Current Chart</button>
+        </section>
+
+        <label class="consent-card" id="sharingConsentCard">
+          <input id="shareWithPractitioner" type="checkbox" />
+          <span>
+            <strong>Share my Birth + Design details with my active Mentor or the Priestess actively holding me.</strong>
+            <small>This only opens while she is your consented active Mentor to the Moon or currently holds an authorized Womb Magic appointment. It does not make these details public or available to unrelated Flow FM members.</small>
+          </span>
+        </label>
+
+        <p class="privacy-note">Personal Cosmology is stored outside the broad profile fields used by Team Map and public Priestess profiles. Your Human Design file remains in a private Storage bucket and opens through a short-lived signed link only after authorization.</p>
+        <p class="status" id="cosmologyStatus" role="status" aria-live="polite"></p>
+
+        <div class="actions" id="memberActions">
+          <button id="saveCosmologyButton" type="submit">SAVE PERSONAL COSMOLOGY</button>
+          <a class="secondary-action" href="/profile/">RETURN TO MY PROFILE</a>
+          <a class="secondary-action" href="/client/?suite=1">RETURN TO MY SUITE</a>
+        </div>
+        <div class="actions hidden" id="practitionerActions">
+          <a class="secondary-action" id="returnToClientSnapshot" href="/cycle-data/">RETURN TO CLIENT SNAPSHOT</a>
+          <a class="secondary-action" href="/flow-fm/upcoming-calls/">RETURN TO UPCOMING CALLS</a>
+        </div>
+      </form>
+
+      <section class="cosmology-denied hidden" id="cosmologyDenied">
+        <h2>This room is private.</h2>
+        <p id="cosmologyDeniedCopy">These Birth + Design details have not been shared with this active practitioner relationship.</p>
+        <a href="/client/">Return to the Flowtel</a>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.10.86"></script>
+</body>
+</html>
