@@ -234,10 +234,10 @@ async function providerCalls(req){
   if(!calls.length)return {ok:true,calls:[]};
   const appointmentIds=[...new Set(calls.map(item=>item.appointment_id).filter(Boolean))];
   if(!appointmentIds.length)return {ok:true,calls:calls.map(call=>({...call,meeting_url:null}))};
-  const stored=array(await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`select=id,acuity_appointment_id,status,external_payload&source_product=eq.flowtel&id=in.(${appointmentIds.map(enc).join(',')})`),{headers:serviceHeaders(context.serviceKey)}));
+  const stored=array(await fetchJson(serviceRestUrl(context,'flowtel_external_appointments',`select=id,acuity_appointment_id,status,external_payload,womb_magic_portal_id,womb_magic_portal_session_number&source_product=eq.flowtel&id=in.(${appointmentIds.map(enc).join(',')})`),{headers:serviceHeaders(context.serviceKey)}));
   const hydrated=await Promise.all(stored.map(item=>refreshMeetingPayload(context,item)));
   const appointmentMap=new Map(hydrated.map(item=>[item.id,item]));
-  return {ok:true,calls:calls.map(call=>({...call,meeting_url:meetingUrlFor(appointmentMap.get(call.appointment_id)||{})||null}))};
+  return {ok:true,calls:calls.map(call=>{const storedCall=appointmentMap.get(call.appointment_id)||{};const portalNumber=storedCall.womb_magic_portal_session_number;return {...call,service_key:storedCall.womb_magic_portal_id?'womb_magic_portal':call.service_key,service_name:storedCall.womb_magic_portal_id?`4-Week Womb Magic Portal · Session ${portalNumber||''}`.trim():call.service_name,womb_magic_portal_id:storedCall.womb_magic_portal_id||null,womb_magic_portal_session_number:portalNumber||null,meeting_url:meetingUrlFor(storedCall)||null};})};
 }
 async function ownerSetup(req){
   const context=await requireFlowtelOwner(req);const [me,calendars,types,profiles,service]=await Promise.all([acuityFetch('/me'),acuityFetch('/calendars'),acuityFetch('/appointment-types'),fetchJson(serviceRestUrl(context,'profiles','select=*'),{headers:serviceHeaders(context.serviceKey)}),getService(context)]);

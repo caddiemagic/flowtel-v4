@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.86" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.87" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -126,7 +126,7 @@
           <p class="suite-subline" id="suiteSubline"></p>
           <div class="suite-external-actions">
             <a class="queendom-return-link" id="suiteProfileLink" href="/profile/?return=%2Fclient%2F%3Fsuite%3D1%26profileReturn%3D1">My Profile</a>
-            <a class="queendom-return-link" href="/moon-mail/">Moon Mail</a>
+            <a class="queendom-return-link" href="/moonbox/">Moon Mail</a>
             <a class="queendom-return-link" href="/personal-cosmology/">Personal Cosmology</a>
             <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
           </div>
@@ -138,7 +138,7 @@
             <h3>It has been seven days since you sent this message to the Moon.</h3>
             <p data-moon-mail-queue-copy>Return when you are ready to notice what changed.</p>
           </div>
-          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moon-mail/">Return to Your Message</a>
+          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moonbox/">Return to Your Message</a>
         </section>
 
         <section class="suite-grid suite-grid--wheel-left">
@@ -272,6 +272,41 @@
           </section>
         </article>
 
+        <article class="practitioner-card womb-magic-suite-card womb-magic-portal-card" id="wombMagicPortalCard">
+          <div class="womb-magic-suite-intro">
+            <div>
+              <p class="eyebrow">4-WEEK WOMB MAGIC PORTAL</p>
+              <h3>Choose one weekly time and enter a four-week container.</h3>
+              <p>Choose one Flow FM Priestess and one standing weekly time. Flowtel schedules all four private 45-minute sessions for you. If either of you needs to move one week, that individual call can be rescheduled without changing the other three. This is separate from your monthly complimentary Womb Magic call.</p>
+            </div>
+          </div>
+          <section class="womb-magic-suite-summary womb-magic-portal-summary" data-wmp-summary aria-live="polite"></section>
+          <button class="secondary womb-magic-suite-action" type="button" data-wmp-toggle aria-expanded="false">Choose My Weekly Portal Time</button>
+          <section class="womb-magic-inline-panel" data-wmp-panel hidden aria-hidden="true">
+            <header class="womb-magic-inline-heading">
+              <div>
+                <p class="eyebrow">WOMB MAGIC PORTAL</p>
+                <h3>Choose your Priestess, then choose your weekly time.</h3>
+                <p>Flowtel will only show starting times that are open at the same weekday and time for all four weeks. Once your Portal begins, all four sessions stay with the same Priestess.</p>
+              </div>
+              <button class="secondary womb-magic-close" type="button" data-wmp-close>Close</button>
+            </header>
+            <p class="womb-magic-inline-message" data-wmp-status role="status"></p>
+            <div class="womb-magic-mentor-grid wmp-provider-grid" data-wmp-providers></div>
+            <div class="womb-magic-calendar-step">
+              <label>Choose a month<input type="month" data-wmp-month></label>
+            </div>
+            <div class="womb-magic-date-grid" data-wmp-dates></div>
+            <section class="womb-magic-consent-card" data-wmp-consent hidden>
+              <h4>Reserve your four weekly sessions</h4>
+              <p data-wmp-consent-copy></p>
+              <label class="womb-magic-phone-field">Phone for appointment reminders<input type="tel" autocomplete="tel" placeholder="Optional unless required by Acuity" data-wmp-phone></label>
+              <label class="womb-magic-consent-check"><input type="checkbox" data-wmp-consent-check><span>I understand this is a four-week practice container with one Priestess. My selected time will be scheduled weekly for all four sessions, and either of us may reschedule an individual week if needed. I consent to her temporary preparation access for the Portal and to each Womb Magic call being recorded and uploaded to the Flow FM Library for training purposes.</span></label>
+              <button type="button" data-wmp-book disabled>Consent + Schedule All 4 Sessions</button>
+            </section>
+          </section>
+        </article>
+
         <section class="mentor-panel hidden" id="mentorPanel" aria-live="polite">
           <button id="closeMentorPanelButton" type="button" class="drawer-close">Close</button>
           <div class="mentor-panel-intro">
@@ -317,7 +352,7 @@
         <h2 id="loungeCourtTitle">Your Season Court is ready.</h2>
         <p class="suite-subline">Your work here is done for now. Take what you need, relax, and go on about your day.</p>
         <div class="suite-external-actions lounge-external-actions">
-          <a class="queendom-return-link" href="/moon-mail/">Moon Mail</a>
+          <a class="queendom-return-link" href="/moonbox/">Moon Mail</a>
           <a class="queendom-return-link" href="/personal-cosmology/">Personal Cosmology</a>
           <a class="queendom-return-link" href="https://www.theidyllcollective.com/queendomhome">Return to the Queendom</a>
         </div>
@@ -328,7 +363,7 @@
             <h3>It has been seven days since you sent this message to the Moon.</h3>
             <p data-moon-mail-queue-copy>Return when you are ready to notice what changed.</p>
           </div>
-          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moon-mail/">Return to Your Message</a>
+          <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moonbox/">Return to Your Message</a>
         </section>
 
         <section class="lounge-events-card" id="loungeEventsCard">
@@ -457,6 +492,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.86"></script>
+  <script type="module" src="./app.js?v=0.10.87"></script>
 </body>
 </html>

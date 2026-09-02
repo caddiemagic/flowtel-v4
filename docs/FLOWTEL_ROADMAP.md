@@ -4,13 +4,13 @@ Updated: August 21, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.86.2 Moon Mail + Personal Cosmology
+## Current — v0.10.87 4-Week Womb Magic Portal
 
-Flowtel's next narrow extension is built on existing rooms rather than duplicating them. **Moon Mail** evolves the v0.10.54 Moonbox with 16,000-character long-form letters, a private seven-day due state, a Suite/Lounge return doorway, and an append-only author-only outcome reflection. Collective anonymity and witnessing remain unchanged; seven-day outcomes never become collective automatically.
+The next narrow Flowtel extension is the **4-Week Womb Magic Portal**. A Queendom member chooses one Flow FM Priestess and one standing weekly time. Flowtel checks the existing Acuity calendar for that same local time across four consecutive weeks and schedules all four Womb Magic calls together. The monthly complimentary Womb Magic call remains separate.
 
-**Personal Cosmology** adds private birth date/time/confidence/birthplace and Human Design chart storage without calculation. It deliberately uses a dedicated table/private Storage bucket rather than public-safe profile fields. Practitioner visibility requires explicit member sharing plus an active consented Mentor relationship or Womb Magic appointment authorization.
+One member may hold one active Portal at a time, and one Flow FM Priestess may hold one active Portal client at a time. Either the client or the assigned Priestess may reschedule one week's appointment without shifting the other three. The Portal keeps the existing recording disclosure and extends consented preparation access across the 28-day container; Personal Cosmology still requires its own explicit sharing switch.
 
-Migration 071 is the database boundary for both features. **Migration 072** is the narrow Personal Cosmology Storage-policy hotfix that restores unrelated private Storage reads without granting direct browser access to the cosmology table. Caddie Magic remains v0.6.0 and Player-first. **v0.10.86.2** is a no-migration Vercel routing hotfix that makes `/moon-mail/` and its nested asset paths resolve to the existing `/moonbox/` room while protecting the alias with the same Flowtel product-access guard. Next migration remains 073.
+Migration 073 is the database boundary for the Portal. It follows migration 071 (Moon Mail + Personal Cosmology) and migration 072 (Personal Cosmology Storage-policy hotfix). The deferred Moon Mail doorway correction is consolidated into v0.10.87 by linking current Flowtel doorways directly to `/moonbox/`. Caddie Magic remains v0.6.0 and Player-first.
 
 ### Priority 0 — finish beta-exit live verification
 

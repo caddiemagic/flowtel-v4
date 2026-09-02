@@ -9,6 +9,7 @@ import { openActiveLoungeVideo } from "../shared/lounge-video.js?v=0.10.65";
 import { hourlyFlowRateSeasonLocation, loadHourlyFlowRatePlan, normalizedHourlyFlowRatePayload, saveHourlyFlowRateFourSeasonLocations } from "../shared/hourly-flow-rate.js?v=0.10.72";
 import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndown-state.js?v=0.10.78.1";
 import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.83";
+import { mountWombMagicPortal } from "../shared/womb-magic-portal.js?v=0.10.87";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
 import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket } from "../shared/queendom-events.js?v=0.10.85";
 import { timezoneDisplayName, timezoneShortName } from "../shared/timezone-labels.js?v=0.10.85";
@@ -62,6 +63,7 @@ let unreadConciergeStays=[];
 let unreadConciergeLoadKey="";
 let unreadConciergeLoadToken=0;
 const wombMagicBooking=mountWombMagicBooking();
+const wombMagicPortal=mountWombMagicPortal();
 
 function renderMoonMailDueAlerts(rows=[]){
   const due=Array.isArray(rows)?rows:[];
@@ -70,7 +72,7 @@ function renderMoonMailDueAlerts(rows=[]){
     alert.classList.toggle("hidden",!first);
     if(!first) return;
     const link=alert.querySelector("[data-moon-mail-return-link]");
-    if(link) link.href=`/moon-mail/?return=${encodeURIComponent(first.message_id)}`;
+    if(link) link.href=`/moonbox/?return=${encodeURIComponent(first.message_id)}`;
     const copy=alert.querySelector("[data-moon-mail-queue-copy]");
     if(copy){
       copy.textContent=due.length>1
@@ -1266,6 +1268,7 @@ function renderSuite(stay){
   renderPractitionerConnection();
   updatePhaseOneSuiteLinks();
   void wombMagicBooking.refresh({silent:true});
+  void wombMagicPortal.refresh({silent:true});
 
   renderWheel(actualDay);
   window.requestAnimationFrame(()=>{

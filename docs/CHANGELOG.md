@@ -1,11 +1,15 @@
-## v0.10.86.2 — Moon Mail Route Hotfix
+## v0.10.87 — 4-Week Womb Magic Portal
 
-- Fixes the deployed **Moon Mail 404** by covering both the exact `/moon-mail` route and `/moon-mail/:path*` alias paths back to the existing `/moonbox/` implementation.
-- Keeps one Moonbox/Moon Mail system; no duplicate message store or second unsent-message page is introduced.
-- Adds `/moon-mail/` to the shared Flowtel protected-route prefixes so the alias inherits the same product-access boundary as `/moonbox/`.
-- Cache-busts the shared access guard import for Moon Mail.
-- Requires a Vercel deployment only; **no Supabase migration is required**. Migrations 071 and 072 remain unchanged and the next migration remains 073.
-- Caddie Magic remains v0.6.0 and Player-first.
+- Adds a separate 4-Week Womb Magic Portal for Queendom members without replacing the existing once-per-month complimentary Womb Magic call.
+- One member chooses one Flow FM Priestess and one standing weekly time; Flowtel confirms that same local time is available for four consecutive weeks and schedules all four 45-minute calls together.
+- Rolls the series back if one of the four Acuity appointments becomes unavailable during booking so a member is not left with a partial Portal.
+- Allows the Queendom member **or the assigned Flow FM Priestess** to reschedule an individual Portal session without moving the other three calls.
+- Enforces one active Portal per client and one active Portal client per Priestess.
+- Reuses the existing Womb Magic Acuity appointment type/calendar mappings; Portal sessions do not consume the monthly `service_period_key`.
+- Extends consented client preparation access continuously across the active Portal while preserving Personal Cosmology's separate member sharing switch.
+- Labels Portal calls in Flow FM Upcoming Calls and includes active Portal clients in practitioner client access between sessions.
+- Corrects the deferred Lounge/Suite Moon Mail doorway to the existing canonical `/moonbox/` route.
+- Adds final migration 073 and a dedicated v0.10.87 validator.
 
 ## v0.10.86.1 — Personal Cosmology Storage Policy Hotfix
 

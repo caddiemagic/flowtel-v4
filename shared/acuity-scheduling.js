@@ -19,3 +19,21 @@ export const loadUpcomingServiceCalls=()=>api('provider-calls');
 export const loadAcuityOwnerSetup=()=>api('owner-setup');
 export const saveAcuityOwnerSetup=(payload)=>api('owner-save',payload);
 export const WOMB_MAGIC_CONSENT_LANGUAGE='By booking this Womb Magic call, you allow the Priestess holding your appointment to view your Flowtel cycle data, check-ins, reflections, Flow Map, and stay history so she can prepare for and hold your call. Her access begins when the call is booked and ends seven days after the appointment. Your Womb Magic call will be recorded and uploaded to the Flow FM Library for training purposes, where it will be shared with care and integrity.';
+
+async function portalApi(action,payload={}){
+  const {data:{session},error}=await supabase.auth.getSession();
+  if(error)throw error;
+  if(!session?.access_token)throw new Error('Sign in through Flowtel before scheduling a Womb Magic Portal.');
+  const response=await fetch('/api/womb-magic-portal',{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},body:JSON.stringify({action,...payload})});
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data?.ok===false)throw new Error(data?.error||'Flowtel could not complete this Womb Magic Portal request.');
+  return data;
+}
+export const loadWombMagicPortal=()=>portalApi('bootstrap');
+export const loadWombMagicPortalDates=(payload)=>portalApi('dates',payload);
+export const loadWombMagicPortalTimes=(payload)=>portalApi('times',payload);
+export const loadWombMagicPortalSessionDates=(payload)=>portalApi('session-dates',payload);
+export const loadWombMagicPortalSessionTimes=(payload)=>portalApi('session-times',payload);
+export const bookWombMagicPortalSession=(payload)=>portalApi('book',payload);
+export const rescheduleWombMagicPortalSession=(payload)=>portalApi('reschedule',payload);
+export const cancelWombMagicPortalSession=(appointmentId)=>portalApi('cancel',{appointment_id:appointmentId});

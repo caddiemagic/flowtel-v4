@@ -30,7 +30,7 @@ assert(files['flow-fm/upcoming-calls/styles.css'].includes('Flowtel v0.10.82 —
 assert(/styles\.css\?v=0\.10\.(?:8[2-9]|\d{3,})(?:\.\d+)?/.test(files['client/index.html']));
 assert(/app\.js\?v=0\.10\.(?:8[2-9]|\d{3,})(?:\.\d+)?/.test(files['client/index.html']));
 assert(files['client/app.js'].includes('womb-magic-booking.js?v=0.10.83'));
-assert(files['flow-fm/upcoming-calls/index.html'].includes('page.js?v=0.10.83'));
+assert(/page\.js\?v=0\.10\.(?:8[3-9]|\d{3,})(?:\.\d+)?/.test(files['flow-fm/upcoming-calls/index.html']));
 assert(files['docs/RELEASE-0.10.82.md'].includes('No database migration is required'));
 assert(files['docs/CHANGELOG.md'].includes('## v0.10.82 — Enter Womb Magic'));
 

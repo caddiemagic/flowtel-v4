@@ -60,13 +60,13 @@ const moonJs=must('moonbox/app.js',[
 assert.ok(moonJs.includes('identifyingDetails'),'collective PII guard must remain in browser UX');
 
 must('client/index.html',[
-  'href="/moon-mail/">Moon Mail</a>',
+  'href="/moonbox/">Moon Mail</a>',
   'href="/personal-cosmology/">Personal Cosmology</a>',
   'id="moonMailAlertSuite"',
   'id="moonMailAlertLounge"',
   'THE MOON HAS MAIL FOR YOU',
 ]);
-must('client/app.js',['flowtel_get_due_moonbox_returns','/moon-mail/?return=']);
+must('client/app.js',['flowtel_get_due_moonbox_returns','/moonbox/?return=']);
 
 const cosmologyHtml=must('personal-cosmology/index.html',[
   'PERSONAL COSMOLOGY',
@@ -93,11 +93,9 @@ must('cycle-data/app.js',['/personal-cosmology/?client=']);
 must('flow-fm/upcoming-calls/page.js',['Open Personal Cosmology','/personal-cosmology/?client=']);
 
 const vercel=JSON.parse(read('vercel.json'));
-for(const [source,destination] of [['/moonbox','/moonbox/index.html'],['/personal-cosmology','/personal-cosmology/index.html']]){
+for(const [source,destination] of [['/moonbox','/moonbox/index.html'],['/moon-mail','/moonbox/index.html'],['/personal-cosmology','/personal-cosmology/index.html']]){
   assert.ok((vercel.rewrites||[]).some(row=>row.source===source&&row.destination===destination),`${source} rewrite missing`);
 }
-assert.ok((vercel.rewrites||[]).some(row=>row.source==='/moon-mail'&&row.destination==='/moonbox/'),'/moon-mail rewrite missing');
-assert.ok((vercel.rewrites||[]).some(row=>row.source==='/moon-mail/:path*'&&row.destination==='/moonbox/:path*'),'/moon-mail catch-all rewrite missing');
 for(const source of ['/moonbox','/moon-mail','/personal-cosmology']){
   const header=(vercel.headers||[]).find(row=>row.source===source);
   assert.ok(header,`${source} private headers missing`);

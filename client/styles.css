@@ -4174,3 +4174,28 @@ body.personal-room-key-is-open{
 .moon-mail-due-alert p:not(.eyebrow){margin:0;color:#8a6e63;line-height:1.5}
 .moon-mail-due-alert .moon-mail-return-link{flex:0 0 auto;min-width:210px;text-align:center}
 @media(max-width:700px){.moon-mail-due-alert{display:grid;padding:20px}.moon-mail-due-alert .moon-mail-return-link{width:100%;min-width:0}}
+
+/* Flowtel v0.10.87 — Four-Week Womb Magic Portal */
+.womb-magic-portal-card{border-color:rgba(196,142,104,.42);background:linear-gradient(180deg,rgba(255,252,249,.98),rgba(255,246,247,.94))}
+.womb-magic-portal-card .womb-magic-suite-intro{margin-bottom:14px}
+.womb-magic-portal-summary{display:block;margin:0 0 14px;padding:16px 18px;border:1px solid rgba(196,142,104,.24);border-radius:18px;background:rgba(255,255,255,.62)}
+.womb-magic-portal-summary h4{margin:.25rem 0 .35rem}
+.womb-magic-portal-summary>p:last-child{margin-bottom:0}
+.wmp-provider-grid{margin:12px 0 18px}
+.wmp-locked-priestess{display:grid;gap:5px;padding:17px 18px;border:1px solid rgba(196,142,104,.32);border-radius:18px;background:rgba(255,255,255,.7)}
+.wmp-locked-priestess span{font-size:.72rem;letter-spacing:.16em;color:#b56f67}
+.wmp-locked-priestess strong{font-family:Georgia,serif;font-size:1.12rem;color:#6f5146}
+.wmp-locked-priestess small{color:#856f66}
+.wmp-session-list{display:grid;gap:9px;margin-top:14px}
+.wmp-session-list article{display:grid;grid-template-columns:auto 1fr auto;gap:8px 12px;align-items:center;padding:11px 12px;border-top:1px solid rgba(196,142,104,.2)}
+.wmp-session-list article>span{font-size:.68rem;letter-spacing:.12em;color:#b56f67}
+.wmp-session-list article>strong{font-size:.9rem;color:#644d45}
+.wmp-session-list article>em{font-style:normal;font-size:.66rem;letter-spacing:.1em;color:#8f7a70}
+.wmp-session-list article>div{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.wmp-session-list a,.wmp-session-list button{display:inline-flex;align-items:center;justify-content:center;min-height:34px;padding:7px 12px;border-radius:999px;border:1px solid rgba(196,142,104,.42);background:#fff;color:#8f5752;text-decoration:none;font:inherit;font-size:.78rem;cursor:pointer}
+@media(max-width:640px){.wmp-session-list article{grid-template-columns:1fr}.wmp-session-list article>div{grid-column:1}.womb-magic-portal-card .womb-magic-inline-heading{gap:12px}}
+
+/* Flowtel v0.10.87 — standing weekly Womb Magic Portal rhythm */
+.wmp-standing-time{margin:10px 0 4px;padding:11px 13px;border-radius:14px;background:rgba(248,231,227,.48);color:#745e55;font-size:.86rem;line-height:1.5}
+.wmp-standing-time strong{color:#6f5146}
+.womb-magic-portal-card .wm-time-button small{display:block;margin-top:4px;letter-spacing:.03em}

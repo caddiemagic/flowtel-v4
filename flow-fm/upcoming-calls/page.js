@@ -1,103 +1,43 @@
 import { renderTopNav,escapeHtml } from '/flow-fm/ui.js?v=0.10.83';
-import { loadUpcomingServiceCalls } from '/shared/acuity-scheduling.js?v=0.10.83';
+import { loadUpcomingServiceCalls,loadWombMagicPortalSessionDates,loadWombMagicPortalSessionTimes,rescheduleWombMagicPortalSession } from '/shared/acuity-scheduling.js?v=0.10.87';
 import { browserTimezone,normalizeTimezone,timezoneDisplayName,timezoneShortName } from '/shared/timezone-labels.js?v=0.10.83';
 
 const nav=document.getElementById('topNav');
 const list=document.getElementById('callsList');
 const message=document.getElementById('callsMessage');
 const gate=document.getElementById('callsGate');
+const reschedulePanel=document.getElementById('portalReschedulePanel');
+const rescheduleClose=document.getElementById('portalRescheduleClose');
+const rescheduleIntro=document.getElementById('portalRescheduleIntro');
+const rescheduleMessage=document.getElementById('portalRescheduleMessage');
+const rescheduleMonth=document.getElementById('portalRescheduleMonth');
+const rescheduleDates=document.getElementById('portalRescheduleDates');
+const rescheduleConfirm=document.getElementById('portalRescheduleConfirm');
+const rescheduleChoice=document.getElementById('portalRescheduleChoice');
+const rescheduleSubmit=document.getElementById('portalRescheduleSubmit');
 const providerTimezone=browserTimezone();
+let callsById=new Map(),rescheduleCall=null,selectedSlot=null,dateRequest=0,timeRequest=0;
 nav.innerHTML=renderTopNav('upcoming-calls');
 
-function activeUpcomingCalls(calls=[]){
-  const now=Date.now();
-  return calls
-    .filter(call=>['pending','scheduled','rescheduled'].includes(String(call?.status||'')) && new Date(call?.ends_at||call?.starts_at).getTime()>now)
-    .sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));
-}
-function startOfWeek(date){
-  const value=new Date(date);
-  value.setHours(0,0,0,0);
-  const day=value.getDay();
-  const mondayOffset=day===0?-6:1-day;
-  value.setDate(value.getDate()+mondayOffset);
-  return value;
-}
-function groupsForCalls(calls){
-  const thisWeekStart=startOfWeek(new Date());
-  const nextWeekStart=new Date(thisWeekStart);nextWeekStart.setDate(nextWeekStart.getDate()+7);
-  const laterStart=new Date(nextWeekStart);laterStart.setDate(laterStart.getDate()+7);
-  return [
-    {key:'this-week',label:'This Week',calls:calls.filter(call=>new Date(call.starts_at)<nextWeekStart)},
-    {key:'next-week',label:'Next Week',calls:calls.filter(call=>new Date(call.starts_at)>=nextWeekStart&&new Date(call.starts_at)<laterStart)},
-    {key:'later',label:'Later',calls:calls.filter(call=>new Date(call.starts_at)>=laterStart)},
-  ].filter(group=>group.calls.length);
-}
-function dateParts(value){
-  const date=new Date(value);
-  if(Number.isNaN(date.getTime()))return {day:'—',month:'',weekday:'',time:'—'};
-  return {
-    day:new Intl.DateTimeFormat('en-US',{day:'numeric',timeZone:providerTimezone}).format(date),
-    month:new Intl.DateTimeFormat('en-US',{month:'short',timeZone:providerTimezone}).format(date),
-    weekday:new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:providerTimezone}).format(date),
-    time:`${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:providerTimezone}).format(date)} ${timezoneShortName(providerTimezone,date)}`.trim(),
-  };
-}
-function accessCloseLabel(value){
-  if(!value)return '—';
-  const date=new Date(value);
-  if(Number.isNaN(date.getTime()))return '—';
-  const dateLine=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',timeZone:providerTimezone}).format(date);
-  const timeLine=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:providerTimezone}).format(date);
-  return `${dateLine} at ${timeLine} ${timezoneShortName(providerTimezone,date)}`.trim();
-}
-function clientTimezoneLabel(call){
-  const zone=normalizeTimezone(call?.client_timezone,{allowBlank:true});
-  return timezoneDisplayName(zone,new Date(call?.starts_at))||'Flowtel Time';
-}
-function callCard(call){
-  const parts=dateParts(call.starts_at);
-  const meeting=call?.meeting_url?`<a class="call-launch" href="${escapeHtml(call.meeting_url)}" target="_blank" rel="noopener noreferrer">Begin Womb Magic</a>`:'';
-  const meetingPending=meeting?'':'<span class="call-meeting-pending">Zoom room preparing</span>';
-  return `<article class="call-card">
-    <div class="call-date-focus" aria-label="${escapeHtml(`${parts.weekday}, ${parts.month} ${parts.day}`)}">
-      <span>${escapeHtml(parts.month)}</span>
-      <strong>${escapeHtml(parts.day)}</strong>
-      <small>${escapeHtml(parts.weekday)}</small>
-    </div>
-    <div class="call-card-body">
-      <header>
-        <div><p class="eyebrow">${escapeHtml(call.service_name||'WOMB MAGIC')}</p><h2>${escapeHtml(call.client_name||'Flowtel Guest')}</h2>${call.provider_name?`<p class="call-provider">Held by ${escapeHtml(call.provider_name)}</p>`:''}</div>
-        <span class="status">${escapeHtml(String(call.status||'scheduled').toUpperCase())}</span>
-      </header>
-      <p class="call-time">${escapeHtml(parts.time)}</p>
-      <div class="call-details">
-        <div><small>Client timezone</small><strong>${escapeHtml(clientTimezoneLabel(call))}</strong></div>
-        <div><small>Access closes</small><strong>${escapeHtml(accessCloseLabel(call.access_until))}</strong></div>
-      </div>
-      <div class="call-actions">${meeting}${meetingPending}<a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/personal-cosmology/?client=${encodeURIComponent(call.client_id)}">Open Personal Cosmology</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div>
-    </div>
-  </article>`;
-}
-function renderCalls(calls){
-  if(!calls.length){
-    list.innerHTML='<article class="call-card empty"><div class="call-card-body"><p class="eyebrow">YOUR CALENDAR IS CLEAR</p><h2>No upcoming calls</h2><p>Calls will appear here after a member books with you.</p></div></article>';
-    return;
-  }
-  list.innerHTML=groupsForCalls(calls).map(group=>`<section class="call-group" data-call-group="${group.key}"><header class="call-group-heading"><div><p class="eyebrow">PRIORITY</p><h2>${escapeHtml(group.label)}</h2></div><span>${group.calls.length} ${group.calls.length===1?'call':'calls'}</span></header><div class="call-group-list">${group.calls.map(callCard).join('')}</div></section>`).join('');
-}
-
-async function init(){
-  try{
-    message.textContent='Opening your upcoming calls…';
-    const result=await loadUpcomingServiceCalls();
-    renderCalls(activeUpcomingCalls(result.calls||[]));
-    message.textContent='';
-  }catch(error){
-    message.textContent='';
-    gate.hidden=false;
-    gate.innerHTML=`<h2>This room is not open</h2><p>${escapeHtml(error?.message||'Upcoming calls could not be opened.')}</p>`;
-    list.innerHTML='';
-  }
-}
+function slotValue(item){return String(item?.time||item?.datetime||item?.value||item||'');}
+function dateValue(item){return String(item?.date||item?.day||item||'').slice(0,10);}
+function monthValue(value){const date=new Date(value);if(Number.isNaN(date.getTime()))return '';const parts=new Intl.DateTimeFormat('en-CA',{timeZone:providerTimezone,year:'numeric',month:'2-digit'}).formatToParts(date);const map=Object.fromEntries(parts.map(part=>[part.type,part.value]));return `${map.year}-${map.month}`;}
+function activeUpcomingCalls(calls=[]){const now=Date.now();return calls.filter(call=>['pending','scheduled','rescheduled'].includes(String(call?.status||''))&&new Date(call?.ends_at||call?.starts_at).getTime()>now).sort((a,b)=>new Date(a.starts_at)-new Date(b.starts_at));}
+function startOfWeek(date){const value=new Date(date);value.setHours(0,0,0,0);const day=value.getDay();const mondayOffset=day===0?-6:1-day;value.setDate(value.getDate()+mondayOffset);return value;}
+function groupsForCalls(calls){const thisWeekStart=startOfWeek(new Date());const nextWeekStart=new Date(thisWeekStart);nextWeekStart.setDate(nextWeekStart.getDate()+7);const laterStart=new Date(nextWeekStart);laterStart.setDate(laterStart.getDate()+7);return [{key:'this-week',label:'This Week',calls:calls.filter(call=>new Date(call.starts_at)<nextWeekStart)},{key:'next-week',label:'Next Week',calls:calls.filter(call=>new Date(call.starts_at)>=nextWeekStart&&new Date(call.starts_at)<laterStart)},{key:'later',label:'Later',calls:calls.filter(call=>new Date(call.starts_at)>=laterStart)}].filter(group=>group.calls.length);}
+function dateParts(value){const date=new Date(value);if(Number.isNaN(date.getTime()))return {day:'—',month:'',weekday:'',time:'—'};return {day:new Intl.DateTimeFormat('en-US',{day:'numeric',timeZone:providerTimezone}).format(date),month:new Intl.DateTimeFormat('en-US',{month:'short',timeZone:providerTimezone}).format(date),weekday:new Intl.DateTimeFormat('en-US',{weekday:'long',timeZone:providerTimezone}).format(date),time:`${new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:providerTimezone}).format(date)} ${timezoneShortName(providerTimezone,date)}`.trim()};}
+function accessCloseLabel(value){if(!value)return '—';const date=new Date(value);if(Number.isNaN(date.getTime()))return '—';const dateLine=new Intl.DateTimeFormat('en-US',{month:'long',day:'numeric',timeZone:providerTimezone}).format(date);const timeLine=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:providerTimezone}).format(date);return `${dateLine} at ${timeLine} ${timezoneShortName(providerTimezone,date)}`.trim();}
+function clientTimezoneLabel(call){const zone=normalizeTimezone(call?.client_timezone,{allowBlank:true});return timezoneDisplayName(zone,new Date(call?.starts_at))||'Flowtel Time';}
+function providerTime(value){const date=new Date(value);if(Number.isNaN(date.getTime()))return String(value||'');return `${new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:providerTimezone}).format(date)} ${timezoneShortName(providerTimezone,date)}`.trim();}
+function callCard(call){const parts=dateParts(call.starts_at);const meeting=call?.meeting_url?`<a class="call-launch" href="${escapeHtml(call.meeting_url)}" target="_blank" rel="noopener noreferrer">Begin Womb Magic</a>`:'';const meetingPending=meeting?'':'<span class="call-meeting-pending">Zoom room preparing</span>';const portalReschedule=call.womb_magic_portal_id?`<button type="button" class="call-reschedule" data-portal-reschedule="${escapeHtml(call.appointment_id)}">Reschedule This Session</button>`:'';return `<article class="call-card"><div class="call-date-focus" aria-label="${escapeHtml(`${parts.weekday}, ${parts.month} ${parts.day}`)}"><span>${escapeHtml(parts.month)}</span><strong>${escapeHtml(parts.day)}</strong><small>${escapeHtml(parts.weekday)}</small></div><div class="call-card-body"><header><div><p class="eyebrow">${escapeHtml(call.service_name||'WOMB MAGIC')}</p><h2>${escapeHtml(call.client_name||'Flowtel Guest')}</h2>${call.provider_name?`<p class="call-provider">Held by ${escapeHtml(call.provider_name)}</p>`:''}</div><span class="status">${escapeHtml(String(call.status||'scheduled').toUpperCase())}</span></header><p class="call-time">${escapeHtml(parts.time)}</p><div class="call-details"><div><small>Client timezone</small><strong>${escapeHtml(clientTimezoneLabel(call))}</strong></div><div><small>Access closes</small><strong>${escapeHtml(accessCloseLabel(call.access_until))}</strong></div></div><div class="call-actions">${meeting}${meetingPending}${portalReschedule}<a href="/cycle-data/?client=${encodeURIComponent(call.client_id)}">Open Client Snapshot</a><a href="/personal-cosmology/?client=${encodeURIComponent(call.client_id)}">Open Personal Cosmology</a><a href="/flow-map/?client=${encodeURIComponent(call.client_id)}">Open Flow Map</a></div></div></article>`;}
+function bindPortalRescheduleButtons(){list.querySelectorAll('[data-portal-reschedule]').forEach(button=>button.addEventListener('click',()=>openPortalReschedule(callsById.get(button.dataset.portalReschedule))));}
+function renderCalls(calls){callsById=new Map(calls.map(call=>[call.appointment_id,call]));if(!calls.length){list.innerHTML='<article class="call-card empty"><div class="call-card-body"><p class="eyebrow">YOUR CALENDAR IS CLEAR</p><h2>No upcoming calls</h2><p>Calls will appear here after a member books with you.</p></div></article>';return;}list.innerHTML=groupsForCalls(calls).map(group=>`<section class="call-group" data-call-group="${group.key}"><header class="call-group-heading"><div><p class="eyebrow">PRIORITY</p><h2>${escapeHtml(group.label)}</h2></div><span>${group.calls.length} ${group.calls.length===1?'call':'calls'}</span></header><div class="call-group-list">${group.calls.map(callCard).join('')}</div></section>`).join('');bindPortalRescheduleButtons();}
+function closePortalReschedule(){rescheduleCall=null;selectedSlot=null;reschedulePanel.hidden=true;reschedulePanel.setAttribute('aria-hidden','true');rescheduleDates.innerHTML='';rescheduleMessage.textContent='';rescheduleConfirm.hidden=true;rescheduleSubmit.disabled=true;}
+async function openPortalReschedule(call){if(!call)return;rescheduleCall=call;selectedSlot=null;reschedulePanel.hidden=false;reschedulePanel.setAttribute('aria-hidden','false');rescheduleIntro.textContent=`Choose a new time for ${call.client_name||'this client'} · Portal Session ${call.womb_magic_portal_session_number||''}. Only this week will move; the other Portal sessions stay scheduled.`;rescheduleMonth.value=monthValue(call.starts_at)||monthValue(new Date());rescheduleConfirm.hidden=true;rescheduleSubmit.disabled=true;await loadPortalDates();reschedulePanel.scrollIntoView({behavior:'smooth',block:'start'});}
+async function loadPortalDates(){if(!rescheduleCall||!rescheduleMonth.value)return;const request=++dateRequest;rescheduleMessage.textContent='Finding available Portal dates…';rescheduleDates.innerHTML='';try{const result=await loadWombMagicPortalSessionDates({appointment_id:rescheduleCall.appointment_id,month:rescheduleMonth.value,timezone:providerTimezone});if(request!==dateRequest)return;const dates=[...new Set((result.dates||[]).map(dateValue).filter(Boolean))];rescheduleDates.innerHTML=dates.length?dates.map(date=>`<article><button type="button" data-portal-date="${escapeHtml(date)}">${escapeHtml(new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(new Date(`${date}T12:00:00Z`)))}</button><div data-portal-times="${escapeHtml(date)}" hidden></div></article>`).join(''):'<p>No other Portal dates are available in this month.</p>';rescheduleDates.querySelectorAll('[data-portal-date]').forEach(button=>button.addEventListener('click',()=>loadPortalTimes(button.dataset.portalDate)));rescheduleMessage.textContent='';}catch(error){rescheduleMessage.textContent=error?.message||'Portal dates could not be opened.';}}
+async function loadPortalTimes(date){if(!rescheduleCall)return;const request=++timeRequest;rescheduleDates.querySelectorAll('[data-portal-times]').forEach(el=>el.hidden=el.dataset.portalTimes!==date);const target=rescheduleDates.querySelector(`[data-portal-times="${CSS.escape(date)}"]`);if(!target)return;target.hidden=false;target.innerHTML='<p>Finding times…</p>';try{const result=await loadWombMagicPortalSessionTimes({appointment_id:rescheduleCall.appointment_id,date,timezone:providerTimezone});if(request!==timeRequest)return;const times=result.times||[];target.innerHTML=times.length?times.map((slot,index)=>`<button type="button" data-portal-slot="${index}">${escapeHtml(providerTime(slotValue(slot)))}</button>`).join(''):'<p>No times remain on this date.</p>';target.__slots=times;target.querySelectorAll('[data-portal-slot]').forEach(button=>button.addEventListener('click',()=>selectPortalSlot(times[Number(button.dataset.portalSlot)],button,target)));}catch(error){target.innerHTML='';rescheduleMessage.textContent=error?.message||'Portal times could not be opened.';}}
+function selectPortalSlot(slot,button,target){selectedSlot=slot;target.querySelectorAll('[data-portal-slot]').forEach(el=>el.classList.toggle('active',el===button));rescheduleChoice.textContent=`Move Portal Session ${rescheduleCall?.womb_magic_portal_session_number||''} to ${providerTime(slotValue(slot))}?`;rescheduleConfirm.hidden=false;rescheduleSubmit.disabled=false;}
+async function submitPortalReschedule(){if(!rescheduleCall||!selectedSlot)return;rescheduleSubmit.disabled=true;rescheduleMessage.textContent='Rescheduling this Portal session…';try{await rescheduleWombMagicPortalSession({appointment_id:rescheduleCall.appointment_id,datetime:slotValue(selectedSlot),timezone:providerTimezone});closePortalReschedule();await init();}catch(error){rescheduleMessage.textContent=error?.message||'This Portal session could not be rescheduled.';rescheduleSubmit.disabled=false;}}
+async function init(){try{message.textContent='Opening your upcoming calls…';const result=await loadUpcomingServiceCalls();renderCalls(activeUpcomingCalls(result.calls||[]));message.textContent='';gate.hidden=true;}catch(error){message.textContent='';gate.hidden=false;gate.innerHTML=`<h2>This room is not open</h2><p>${escapeHtml(error?.message||'Upcoming calls could not be opened.')}</p>`;list.innerHTML='';}}
+rescheduleClose?.addEventListener('click',closePortalReschedule);rescheduleMonth?.addEventListener('change',()=>void loadPortalDates());rescheduleSubmit?.addEventListener('click',()=>void submitPortalReschedule());
 init();
