@@ -1,0 +1,6 @@
+Flowtel v0.10.87.1 deletion required:
+
+DELETE this file from the deployed repository/source:
+api/beta-request.js
+
+Reason: the retired beta-request backend consumes one Vercel Serverless Function slot. Flowtel v0.10.87 has 13 /api functions; Vercel Hobby allows 12. The static /beta-request/ doorway remains and redirects to /client/.

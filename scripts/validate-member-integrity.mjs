@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import process from 'node:process';
@@ -15,7 +16,6 @@ const profileHtml=await read('profile/index.html');
 const profileJs=await read('profile/app.js');
 const betaHtml=await read('beta-request/index.html');
 const betaJs=await read('beta-request/app.js');
-const betaApi=await read('api/beta-request.js');
 const profiles=await read('shared/profiles.js');
 const productAccess=await read('shared/product-access.js');
 const vercel=JSON.parse(await read('vercel.json'));
@@ -59,12 +59,10 @@ assert(profiles.includes('profileNeedsConfirmation'));
 assert(profiles.includes('flowtel_update_my_guest_profile'));
 
 for(const field of ['firstName','lastName','displayName','location','timezone']) assert(betaHtml.includes(`id="${field}"`),`Beta request field missing: ${field}`);
-assert(betaJs.includes('payload.displayName') && betaJs.includes('payload.timezone'));
-assert(betaApi.includes('profile_confirmation_required: false'));
-assert(betaApi.includes('profile_confirmed_at: new Date().toISOString()'));
-assert(betaApi.includes('function isValidTimeZone'));
-assert(betaApi.includes('first_name: profileInput.firstName'));
-assert(!betaApi.includes('Compatibility fallback if migration 054'),'Beta requests must fail visibly rather than silently dropping required profile fields.');
+assert(betaHtml.includes('meta http-equiv="refresh" content="0; url=/client/"'), 'Retired beta doorway must immediately redirect to /client/.');
+assert(betaHtml.includes('window.location.replace("/client/")'), 'Retired beta doorway needs a script redirect fallback.');
+assert(betaJs.includes('payload.displayName') && betaJs.includes('payload.timezone'), 'Legacy static beta assets remain historical compatibility only.');
+assert(!existsSync(path.join(root,'api/beta-request.js')), 'Retired beta-request serverless function must stay removed to protect the Vercel Hobby function budget.');
 
 assert(productAccess.includes('flowtel_access_status === "revoked"'));
 assert((vercel.rewrites||[]).some(row=>row.source==='/profile'&&row.destination==='/profile/index.html'));

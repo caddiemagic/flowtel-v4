@@ -1,0 +1,9 @@
+Flowtel v0.10.87.1 — Vercel Function Budget Hotfix
+
+1. Start from the final v0.10.87 source.
+2. DELETE api/beta-request.js.
+3. Overlay the other files in this ZIP, preserving paths.
+4. No Supabase migration is required. Do not rerun migration 073.
+5. Run: node scripts/validate-vercel-function-budget.js
+   Expected: Vercel Hobby function budget OK: 12/12
+6. Commit/push and let Vercel redeploy.

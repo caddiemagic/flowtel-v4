@@ -1,3 +1,12 @@
+## v0.10.87.1 — Vercel Function Budget Hotfix
+
+- Fixes the failed v0.10.87 production deployment on Vercel Hobby caused by exceeding the 12 Serverless Function limit.
+- Retires the obsolete `api/beta-request.js` function; the public beta-request doorway was already retired in v0.10.85.1 and `/beta-request/` redirects to the canonical `/client/` entrance before the legacy form can run.
+- Keeps the static legacy `/beta-request/` redirect for old bookmarks while removing only its unused serverless backend.
+- Leaves the 4-Week Womb Magic Portal, Acuity/Womb Magic, event access, auth, Guest House, and Caddie Magic server boundaries unchanged.
+- Adds a validator that fails locally if `/api` grows beyond the 12-function Hobby budget or the retired beta-request function is accidentally restored.
+- No Supabase migration required. Migration 073 remains the latest applied migration and the next migration remains 074.
+
 ## v0.10.87 — 4-Week Womb Magic Portal
 
 - Adds a separate 4-Week Womb Magic Portal for Queendom members without replacing the existing once-per-month complimentary Womb Magic call.
