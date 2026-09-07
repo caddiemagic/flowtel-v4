@@ -1,3 +1,12 @@
+## v0.10.87.2 — Squarespace Signup Diagnostic Hotfix
+
+- Keeps the existing first-time Flowtel signup architecture unchanged while making Squarespace authorization failures stage-specific.
+- Reports **Squarespace Contacts authorization failed (401/403)** when the exact-email Contacts lookup is rejected, with guidance to check Contacts Read Only permission.
+- Reports **Squarespace Orders authorization failed (401/403)** when membership-order verification is rejected, with guidance to check Orders Read Only permission.
+- Writes stage-specific server diagnostics to Vercel logs without logging the member email, API key, or order payload.
+- Does not alter membership/product-ID rules, Supabase Auth, signup admissions, or any existing access boundary.
+- No Supabase migration required. Migration 073 remains the latest applied migration and the next migration remains 074.
+
 ## v0.10.87.1 — Vercel Function Budget Hotfix
 
 - Fixes the failed v0.10.87 production deployment on Vercel Hobby caused by exceeding the 12 Serverless Function limit.

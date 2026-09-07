@@ -92,7 +92,23 @@ async function verifySquarespaceMembershipPurchase(contact) {
     throw error;
   }
 
-  const orders = await customerOrders(contact.id, apiKey);
+  let orders;
+  try {
+    orders = await customerOrders(contact.id, apiKey);
+  } catch (cause) {
+    const status = Number(cause?.statusCode || cause?.status || 500);
+    console.error("Flowtel Squarespace Orders verification failed.", {
+      statusCode: status,
+      message: cause?.message || "Unknown Squarespace Orders error.",
+    });
+    const error = new Error(
+      [401, 403].includes(status)
+        ? `Squarespace Orders authorization failed (${status}). Check that the Flowtel Squarespace API key has Orders Read Only permission.`
+        : `Squarespace Orders lookup failed (${status}). Please message the Front Desk.`
+    );
+    error.statusCode = status;
+    throw error;
+  }
   for (const membership of ["council", "flowfm", "queendom"]) {
     if (!ids[membership].length) continue;
     const order = newestMembershipOrder(orders, ids[membership]);
@@ -209,7 +225,7 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
     headers: {
       Authorization: `Bearer ${apiKey}`,
       "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.85",
+      "User-Agent": "Flowtel Squarespace Bridge/0.10.87.2",
     },
     body: JSON.stringify({
       searchString: email,
@@ -227,7 +243,15 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
       return trustedDoorwayContact(email, `Squarespace Contacts returned ${response.status}; trusted doorway accepted for beta.`);
     }
 
-    const error = new Error(data.message || data.error || text || "Squarespace contact lookup failed.");
+    console.error("Flowtel Squarespace Contacts verification failed.", {
+      statusCode: response.status,
+      message: data.message || data.error || text || "Unknown Squarespace Contacts error.",
+    });
+    const error = new Error(
+      [401, 403].includes(response.status)
+        ? `Squarespace Contacts authorization failed (${response.status}). Check that the Flowtel Squarespace API key has Contacts Read Only permission.`
+        : `Squarespace Contacts lookup failed (${response.status}). Please message the Front Desk.`
+    );
     error.statusCode = response.status;
     throw error;
   }

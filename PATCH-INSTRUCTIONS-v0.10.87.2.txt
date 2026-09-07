@@ -1,0 +1,13 @@
+Flowtel v0.10.87.2 — Squarespace Signup Diagnostic Hotfix
+
+NO SUPABASE MIGRATION.
+Migration 073 remains latest; next migration remains 074.
+
+Patch-only deployment:
+1. Overlay the files in this ZIP at the repository root, preserving paths.
+2. Commit/push the changed files.
+3. Let Vercel deploy Production.
+4. Retry Create My Flowtel Account with a real eligible member email.
+5. Send back the exact new error text. It should now identify Contacts vs Orders if Squarespace returns 401/403.
+
+This hotfix adds no serverless function and keeps the existing 12-function Vercel Hobby budget.
