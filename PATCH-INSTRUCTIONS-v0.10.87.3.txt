@@ -1,0 +1,12 @@
+Flowtel v0.10.87.3 — Squarespace Contacts Fallback + Site Probe Hotfix
+
+PATCH-ONLY DEPLOYMENT
+1. Start from the currently deployed v0.10.87.2 source.
+2. Overlay the files in this ZIP, preserving folder paths.
+3. No files need to be deleted.
+4. No Supabase migration is required. Migration 073 remains latest; 074 remains next.
+5. No new Vercel environment variable is required.
+6. Commit/push and wait for the Production deployment to show Ready.
+7. Retry Create My Flowtel Account using the same eligible member email and capture the exact result.
+
+This patch does not add a serverless function and does not weaken membership/order verification.

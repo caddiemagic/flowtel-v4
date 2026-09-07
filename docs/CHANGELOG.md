@@ -1,3 +1,12 @@
+## v0.10.87.3 — Squarespace Contacts Fallback + Site Probe Hotfix
+
+- Keeps the verified first-time Flowtel signup boundary intact while adding a read-only fallback for Squarespace Contacts lookup.
+- When `POST /v1/contacts/query` returns 401/403, Flowtel now tries the documented `GET /v1/contacts` endpoint and scans paginated contacts for the same exact email before failing signup.
+- If both Contacts endpoints reject the key, Flowtel probes `GET /1.0/authorization/website` server-side to distinguish a key/site authorization failure from Contacts-specific permission rejection.
+- Keeps membership authorization strict: an exact Squarespace contact is still required for new members, followed by a PAID mapped Council / Flow FM / Queendom order; the fallback never grants access by itself.
+- Adds server diagnostics without logging the member email, API key, or order payload.
+- No Supabase migration required. Migration 073 remains the latest applied migration and the next migration remains 074. No new serverless function is added.
+
 ## v0.10.87.2 — Squarespace Signup Diagnostic Hotfix
 
 - Keeps the existing first-time Flowtel signup architecture unchanged while making Squarespace authorization failures stage-specific.

@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.85 — Beta Exit member verification + legacy compatibility.
+// Flowtel v0.10.87.3 — Squarespace Contacts fallback + site diagnostic hardening.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -207,6 +207,89 @@ function canUseTrustedDoorway(body = {}) {
   return body.trustedDoorway !== false;
 }
 
+function squarespaceRequestHeaders(apiKey) {
+  return {
+    Authorization: `Bearer ${apiKey}`,
+    "Content-Type": "application/json",
+    "User-Agent": "Flowtel Squarespace Bridge/0.10.87.3",
+  };
+}
+
+function squarespaceNextUrl(value) {
+  const candidate = String(value || "").trim();
+  if (!candidate) return "";
+  if (/^https:\/\//i.test(candidate)) return candidate;
+  return `${SQUARESPACE_API_BASE}${candidate.startsWith("/") ? "" : "/"}${candidate}`;
+}
+
+async function probeSquarespaceWebsite(apiKey) {
+  try {
+    const response = await fetch(`${SQUARESPACE_API_BASE}/1.0/authorization/website`, {
+      method: "GET",
+      headers: squarespaceRequestHeaders(apiKey),
+    });
+    const text = await response.text();
+    const data = safeJsonParse(text) || {};
+    return {
+      ok: response.ok,
+      statusCode: response.status,
+      website: response.ok ? {
+        id: data.id || null,
+        siteId: data.siteId || null,
+        title: data.title || null,
+        url: data.url || null,
+      } : null,
+      message: data.message || data.error || text || null,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      statusCode: Number(error?.statusCode || error?.status || 0) || null,
+      website: null,
+      message: error?.message || "Squarespace website authorization probe failed.",
+    };
+  }
+}
+
+async function listSquarespaceContactByEmail(email, apiKey) {
+  let next = `${SQUARESPACE_API_BASE}/v1/contacts?pageSize=1000`;
+  let pagesScanned = 0;
+
+  while (next && pagesScanned < 20) {
+    const response = await fetch(next, {
+      method: "GET",
+      headers: squarespaceRequestHeaders(apiKey),
+    });
+    const text = await response.text();
+    const data = safeJsonParse(text) || {};
+    pagesScanned += 1;
+
+    if (!response.ok) {
+      return {
+        ok: false,
+        statusCode: response.status,
+        contact: null,
+        pagesScanned,
+        message: data.message || data.error || text || "Unknown Squarespace Contacts list error.",
+      };
+    }
+
+    const contacts = Array.isArray(data.contacts) ? data.contacts : [];
+    const exact = contacts.find((contact) => contactEmail(contact) === email);
+    if (exact) {
+      return { ok: true, statusCode: response.status, contact: exact, pagesScanned, message: null };
+    }
+
+    const nextPageUrl = data?.pagination?.nextPageUrl;
+    const nextPageCursor = data?.pagination?.nextPageCursor;
+    if (nextPageUrl) next = squarespaceNextUrl(nextPageUrl);
+    else if (nextPageCursor) next = `${SQUARESPACE_API_BASE}/v1/contacts?pageSize=1000&cursor=${encodeURIComponent(nextPageCursor)}`;
+    else next = "";
+  }
+
+  return { ok: true, statusCode: 200, contact: null, pagesScanned, message: null };
+}
+
 async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
   const apiKey = process.env.SQUARESPACE_COMMERCE_API_KEY || process.env.SQUARESPACE_API_KEY;
 
@@ -222,11 +305,7 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
 
   const response = await fetch(`${SQUARESPACE_API_BASE}/v1/contacts/query`, {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "User-Agent": "Flowtel Squarespace Bridge/0.10.87.2",
-    },
+    headers: squarespaceRequestHeaders(apiKey),
     body: JSON.stringify({
       searchString: email,
       pageSize: 10,
@@ -243,15 +322,70 @@ async function querySquarespaceContact(email, { trustedDoorway = true } = {}) {
       return trustedDoorwayContact(email, `Squarespace Contacts returned ${response.status}; trusted doorway accepted for beta.`);
     }
 
-    console.error("Flowtel Squarespace Contacts verification failed.", {
+    const queryMessage = data.message || data.error || text || "Unknown Squarespace Contacts query error.";
+    console.error("Flowtel Squarespace Contacts query failed.", {
       statusCode: response.status,
-      message: data.message || data.error || text || "Unknown Squarespace Contacts error.",
+      message: queryMessage,
     });
-    const error = new Error(
-      [401, 403].includes(response.status)
-        ? `Squarespace Contacts authorization failed (${response.status}). Check that the Flowtel Squarespace API key has Contacts Read Only permission.`
-        : `Squarespace Contacts lookup failed (${response.status}). Please message the Front Desk.`
-    );
+
+    if ([401, 403].includes(response.status)) {
+      console.warn("Flowtel Squarespace Contacts query was unauthorized; trying the read-only list fallback.", {
+        statusCode: response.status,
+      });
+      const fallback = await listSquarespaceContactByEmail(email, apiKey);
+
+      if (fallback.ok) {
+        console.info("Flowtel Squarespace Contacts list fallback completed.", {
+          pagesScanned: fallback.pagesScanned,
+          exactContactFound: Boolean(fallback.contact),
+        });
+        if (fallback.contact) return publicContact(fallback.contact, email);
+
+        const notFound = new Error("No Squarespace contact was found for this email address.");
+        notFound.statusCode = 404;
+        throw notFound;
+      }
+
+      console.error("Flowtel Squarespace Contacts list fallback failed.", {
+        statusCode: fallback.statusCode,
+        pagesScanned: fallback.pagesScanned,
+        message: fallback.message || "Unknown Squarespace Contacts list error.",
+      });
+
+      const websiteProbe = await probeSquarespaceWebsite(apiKey);
+      console.error("Flowtel Squarespace API-key website probe completed after Contacts failure.", {
+        recognized: websiteProbe.ok,
+        statusCode: websiteProbe.statusCode,
+        siteId: websiteProbe.website?.siteId || null,
+        websiteId: websiteProbe.website?.id || null,
+        websiteUrl: websiteProbe.website?.url || null,
+        message: websiteProbe.ok ? null : websiteProbe.message,
+      });
+
+      if (websiteProbe.ok) {
+        const error = new Error(
+          `Squarespace recognized the Flowtel API key, but Contacts access is still forbidden (${fallback.statusCode || response.status}). The key has Contacts Read Only selected, so verify it was generated on the same Squarespace site as the membership orders or contact Squarespace support.`
+        );
+        error.statusCode = fallback.statusCode || response.status;
+        throw error;
+      }
+
+      if ([401, 403].includes(Number(websiteProbe.statusCode))) {
+        const error = new Error(
+          `Squarespace rejected the Flowtel API key itself (${websiteProbe.statusCode}). Generate a key from the Squarespace site that owns the memberships with Contacts Read Only + Orders Read Only, update SQUARESPACE_API_KEY in Vercel, and redeploy.`
+        );
+        error.statusCode = websiteProbe.statusCode;
+        throw error;
+      }
+
+      const error = new Error(
+        `Squarespace Contacts authorization failed (${fallback.statusCode || response.status}) on both supported Contacts endpoints. Please message the Front Desk.`
+      );
+      error.statusCode = fallback.statusCode || response.status;
+      throw error;
+    }
+
+    const error = new Error(`Squarespace Contacts lookup failed (${response.status}). Please message the Front Desk.`);
     error.statusCode = response.status;
     throw error;
   }

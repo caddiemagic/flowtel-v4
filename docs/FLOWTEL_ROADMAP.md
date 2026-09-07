@@ -1,12 +1,14 @@
 # Flowtel Roadmap
 
-Updated: August 21, 2026
+Updated: September 7, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.87.2 Squarespace Signup Diagnostic Hotfix
+## Current — v0.10.87.3 Squarespace Contacts Fallback + Site Probe Hotfix
 
-v0.10.87.2 keeps the **4-Week Womb Magic Portal** and v0.10.87.1 Vercel function-budget repair intact while adding stage-specific diagnostics for first-time Squarespace membership verification. Contacts and Orders authorization failures are now distinguished so beta-exit signup can be repaired without weakening the membership boundary. No migration is required; migration 073 remains latest and 074 remains next.
+v0.10.87.3 follows the live v0.10.87.2 diagnostic result that Squarespace is returning 403 specifically from the Contacts query despite an API key generated with Contacts Read Only + Orders Read Only. The signup bridge now retries through the documented read-only Contacts list endpoint and exact-email matching. If both Contacts endpoints are forbidden, a server-only website authorization probe records whether Squarespace recognizes the API key and which site owns it, without exposing the key to the browser. The existing PAID mapped membership-order requirement remains unchanged. No migration is required; migration 073 remains latest and 074 remains next.
+
+v0.10.87.2 added stage-specific first-time signup diagnostics so Contacts and Orders authorization failures could be distinguished without weakening the membership boundary.
 
 v0.10.87.1 keeps the **4-Week Womb Magic Portal** release intact and adds a deployment-only hotfix for the Vercel Hobby function budget. The retired `api/beta-request.js` function was removed because `/beta-request/` has already redirected to `/client/` since v0.10.85.1. Flowtel now deploys with 12 `/api` functions, matching the Hobby-plan limit. A validator protects this ceiling until infrastructure is consolidated or the hosting plan changes.
 
