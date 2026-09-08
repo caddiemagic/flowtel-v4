@@ -1,0 +1,28 @@
+FLOWTEL v0.10.88.1 — COMPLIMENTARY STAY DOORWAY + WOMB MAGIC PREVIEW POLISH
+
+BASE REQUIRED
+- Flowtel v0.10.88 already deployed
+- Supabase migration 074 already applied
+
+DEPLOY
+1. Overlay the patch files onto the v0.10.88 source.
+2. Commit/push to GitHub and wait for Vercel to become Ready.
+3. Do NOT run another Supabase migration.
+4. Do NOT add a Vercel environment variable.
+
+LIVE CHECKS
+- Login shows:
+  Queendom Members | Create New Account
+  Not a Queendom member?
+  Start Your 14-Day Complimentary Stay
+  Or Join the Queendom Here
+- Complimentary Stay Suite shows a compact DAY X OF 14 ribbon.
+- Monthly Womb Magic card is visible to a Complimentary Stay guest but does not open scheduling.
+- Its CTA says Join the Queendom to Schedule Your First Womb Magic Call and opens the Queendom doorway.
+- 4-Week Womb Magic Portal / Mentor to the Moon / member event access remain gated.
+- Paid Queendom members still see the normal Womb Magic scheduling experience.
+- Vercel function budget remains 12/12.
+
+DATABASE
+- Migration 074 remains latest.
+- Migration 075 remains next.

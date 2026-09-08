@@ -4,7 +4,9 @@ Updated: September 7, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.88 14-Day Complimentary Stay
+## Current — v0.10.88.1 Complimentary Stay Doorway + Womb Magic Preview Polish
+
+v0.10.88.1 polishes the Complimentary Stay doorway and Suite presentation without changing its database boundary. The public login now separates Queendom-member account creation, the 14-day stay, and joining the Queendom; the active-stay header uses a compact day ribbon; monthly Womb Magic is visible as a locked Queendom benefit; and returning trial identities silently re-check Squarespace once per page load so a verified purchase can upgrade the same account automatically. No new migration or Vercel function is required.
 
 v0.10.88 adds a one-time **14-Day Complimentary Stay** for women who have not yet joined the Queendom. The stay is a real Flowtel identity with preserved history, but remains membership rank 0: personal Suite/cycle/Flow Map/Moon Mail experiences are available while Womb Magic, Mentor to the Moon, member event registration, and other Queendom benefits remain gated. After 14 days the room closes without deleting the account or history; a later verified Queendom / Flow FM purchase reopens the same identity. Migration 074 is the database boundary, and the release reuses `api/squarespace-bridge.js` so Vercel remains at 12/12 serverless functions.
 

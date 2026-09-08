@@ -4200,16 +4200,31 @@ body.personal-room-key-is-open{
 .wmp-standing-time strong{color:#6f5146}
 .womb-magic-portal-card .wm-time-button small{display:block;margin-top:4px;letter-spacing:.03em}
 
-/* Flowtel v0.10.88 — 14-Day Complimentary Stay */
-.complimentary-stay-doorway-button{margin-top:0!important;color:var(--soft-brown)}
-.complimentary-stay-banner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 22px;align-items:center;max-width:760px;margin:18px auto 4px;padding:17px 19px;border:1px solid rgba(184,130,38,.38);border-radius:20px;background:linear-gradient(135deg,rgba(255,251,240,.96),rgba(248,226,222,.72));box-shadow:0 14px 34px rgba(91,62,50,.07)}
+/* Flowtel v0.10.88.1 — Complimentary Stay doorway + Suite polish */
+.flowtel-account-doorways{display:grid;gap:10px;margin-top:6px;padding-top:8px}
+.member-account-doorway-button{margin-top:0!important}
+.nonmember-account-doorways{display:grid;gap:9px;margin-top:4px;padding-top:13px;border-top:1px solid rgba(109,78,65,.1)}
+.nonmember-account-doorways.hidden{display:none}
+.nonmember-doorway-label{margin:0 0 1px;color:var(--soft-brown);font-family:Georgia,"Times New Roman",serif;font-size:.9rem;line-height:1.35;text-align:center}
+.complimentary-stay-doorway-button{margin:0!important;background:linear-gradient(135deg,var(--blush-2),#fffaf7);border-color:rgba(184,130,38,.34);box-shadow:0 9px 22px rgba(109,78,65,.055)}
+.flowtel-doorway-link-button{display:flex;align-items:center;justify-content:center;width:100%;min-height:45px;margin:0;border:1px solid rgba(109,78,65,.14);border-radius:999px;padding:12px 18px;background:transparent;color:var(--brown);font-family:Arial,sans-serif;font-size:.72rem;font-weight:700;letter-spacing:.1em;line-height:1.25;text-align:center;text-decoration:none;text-transform:uppercase;transition:transform .25s ease,background .25s ease,border-color .25s ease}
+.flowtel-doorway-link-button:hover{transform:translateY(-1px);border-color:rgba(184,130,38,.36);background:rgba(255,250,247,.72)}
+
+.complimentary-stay-banner{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:7px 16px;max-width:760px;margin:8px auto 12px;padding:10px 15px;border:1px solid rgba(184,130,38,.28);border-radius:18px;background:linear-gradient(135deg,rgba(255,251,240,.7),rgba(248,226,222,.42));box-shadow:none;text-align:left}
 .complimentary-stay-banner.hidden{display:none}
-.complimentary-stay-banner .eyebrow{margin:0 0 5px;color:#a96960}
-.complimentary-stay-banner p:not(.eyebrow){margin:0;max-width:540px;color:var(--soft-brown);line-height:1.5}
-.complimentary-stay-actions{display:grid;gap:7px;min-width:205px}
-.complimentary-stay-actions a,.complimentary-stay-actions button{display:flex;align-items:center;justify-content:center;min-height:39px;padding:8px 14px;border:1px solid rgba(184,130,38,.46);border-radius:999px;background:#fffaf7;color:var(--brown);font-family:Arial,sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-align:center;text-decoration:none;text-transform:uppercase;cursor:pointer}
-.complimentary-stay-actions button{background:transparent}
+.complimentary-stay-banner-copy{display:flex;align-items:baseline;gap:10px;min-width:0;flex-wrap:wrap}
+.complimentary-stay-banner .eyebrow{margin:0;color:#a96960;white-space:nowrap}
+.complimentary-stay-banner p:not(.eyebrow){margin:0;color:var(--soft-brown);font-size:.84rem;line-height:1.4}
+.complimentary-stay-unlock-link{width:auto!important;min-height:auto!important;margin:0!important;padding:3px 0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;color:#9a675d!important;font-family:Georgia,"Times New Roman",serif!important;font-size:.78rem!important;font-weight:400!important;letter-spacing:0!important;text-transform:none!important;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.complimentary-stay-unlock-link:hover{transform:none!important;color:var(--brown)!important}
 .complimentary-stay-status{grid-column:1/-1;min-height:0!important;margin:0!important;color:#9a675d!important;font-size:.78rem!important;font-style:italic}
+.complimentary-stay-status:empty{display:none}
+
+.womb-magic-suite-card.is-trial-locked{border-color:rgba(184,130,38,.34);background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(248,231,227,.58))}
+.womb-magic-suite-card.is-trial-locked .womb-magic-suite-intro p:not(.eyebrow){max-width:720px;color:var(--soft-brown)}
+.womb-magic-trial-cta{display:flex!important;align-items:center;justify-content:center;width:100%;min-height:46px;margin:18px 0 0!important;border:1px solid rgba(184,130,38,.42);border-radius:999px;padding:11px 18px;background:linear-gradient(135deg,var(--blush-2),#fffaf7);color:var(--brown);font-family:Arial,sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.09em;line-height:1.35;text-align:center;text-decoration:none;text-transform:uppercase;box-shadow:0 10px 24px rgba(109,78,65,.05)}
+.womb-magic-trial-cta:hover{transform:translateY(-1px);border-color:rgba(184,130,38,.62)}
+
 .complimentary-stay-lounge-card{background:linear-gradient(145deg,rgba(255,250,240,.98),rgba(248,226,222,.76))}
 .complimentary-stay-lounge-card .lounge-events-footer-actions{margin-top:14px}
 .complimentary-stay-expired-scene{width:100%;padding:26px 0}
@@ -4221,4 +4236,14 @@ body.personal-room-key-is-open{
 .complimentary-stay-expired-actions .secondary{background:#fffdf9}
 .complimentary-stay-expired-actions .text-button{min-height:auto;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;box-shadow:none}
 #trialExpiredStatus{min-height:20px;margin:14px 0 0;color:#9a675d}
-@media(max-width:700px){.complimentary-stay-banner{grid-template-columns:1fr;padding:16px}.complimentary-stay-actions{min-width:0}.complimentary-stay-expired-scene{padding:14px 0}.complimentary-stay-expired-card{padding:30px 18px;border-radius:24px}}
+
+@media(max-width:700px){
+  .complimentary-stay-banner{grid-template-columns:1fr;gap:5px;padding:11px 13px;text-align:center}
+  .complimentary-stay-banner-copy{display:grid;gap:3px;justify-items:center}
+  .complimentary-stay-banner .eyebrow{white-space:normal}
+  .complimentary-stay-unlock-link{justify-self:center}
+  .complimentary-stay-expired-scene{padding:14px 0}
+  .complimentary-stay-expired-card{padding:30px 18px;border-radius:24px}
+  .womb-magic-trial-cta{font-size:.63rem;padding-inline:14px}
+}
+.womb-magic-suite-action.hidden,.womb-magic-trial-cta.hidden{display:none!important}

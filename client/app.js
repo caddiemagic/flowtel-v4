@@ -13,7 +13,7 @@ import { mountWombMagicPortal } from "../shared/womb-magic-portal.js?v=0.10.87";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
 import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket } from "../shared/queendom-events.js?v=0.10.85";
 import { timezoneDisplayName, timezoneShortName } from "../shared/timezone-labels.js?v=0.10.85";
-import { getMyProductAccess, isComplimentaryStayAccess, isComplimentaryStayExpired, complimentaryStayDay } from "../shared/product-access.js?v=0.10.88";
+import { getMyProductAccess, isComplimentaryStayAccess, isComplimentaryStayExpired, complimentaryStayDay } from "../shared/product-access.js?v=0.10.88.1";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -49,6 +49,8 @@ let currentProfile=null;
 let currentProductAccess=null;
 let accountCreationMode="member";
 let complimentaryStayExpiryTimer=null;
+let complimentaryStayAutoUpgradeChecked=false;
+let complimentaryStayUpgradeNotice="";
 let loungeWorkshopLoadPromise=null;
 let loungeWorkshopLoadedVideoId=null;
 let loungeSeasonPlan=null;
@@ -116,6 +118,10 @@ function isActiveComplimentaryStay(){
   return Boolean(currentProductAccess && isComplimentaryStayAccess(currentProductAccess) && !isComplimentaryStayExpired(currentProductAccess));
 }
 
+function hasUnconvertedComplimentaryStay(){
+  return Boolean(currentProductAccess?.flowtel_trial_started_at && !currentProductAccess?.flowtel_trial_converted_at);
+}
+
 async function refreshCurrentProductAccess(){
   currentProductAccess=await getMyProductAccess();
   return currentProductAccess;
@@ -142,9 +148,11 @@ function renderComplimentaryStayBanner(){
   const label=document.getElementById("complimentaryStayLabel");
   const copy=document.getElementById("complimentaryStayCopy");
   if(label) label.textContent=`COMPLIMENTARY STAY · DAY ${day} OF 14`;
-  if(copy) copy.textContent=day>=11
-    ? "Your complimentary stay is almost complete. Join the Queendom to keep your room open and continue with everything you have already discovered."
-    : "Your room is yours for fourteen days. Check in, notice your patterns, and let the Flowtel begin to remember you.";
+  if(copy) copy.textContent=day>=14
+    ? "Your final complimentary day. Join the Queendom to keep your room open tomorrow."
+    : day>=11
+      ? "Your stay is almost complete. Join the Queendom to keep your room open."
+      : "Your room is complimentary for fourteen days.";
 }
 
 function showTrialExpiredScene(){
@@ -171,28 +179,58 @@ async function maybeShowExpiredComplimentaryStay(){
   return true;
 }
 
+async function convertComplimentaryStayMembership({statusElement=null,silent=false}={}){
+  const status=statusElement||document.getElementById("trialExpiredStatus")||document.getElementById("complimentaryStayStatus");
+  const user=await getCurrentUser();
+  if(!user?.email) throw new Error("Sign in to this Flowtel account before reopening your room.");
+
+  if(!silent&&status) status.textContent="Checking your Queendom room key…";
+  const bridge=await verifySquarespaceMember(user.email,"signup");
+  currentProfile=await ensureProfile({
+    firstName:bridge.contact?.firstName,
+    lastName:bridge.contact?.lastName,
+    membershipType:bridge.membershipType,
+    squarespaceSource:"squarespace-membership-purchase",
+    squarespaceContactId:bridge.contact?.id,
+    squarespaceContactEmail:user.email,
+  });
+  await refreshCurrentProductAccess();
+
+  if(hasUnconvertedComplimentaryStay() || currentProfileMembershipRank(currentProfile)<1){
+    throw new Error("Your Queendom purchase was found, but the room key has not finished updating yet. Refresh once and try again.");
+  }
+  complimentaryStayUpgradeNotice="Welcome to the Queendom. Your room key has been upgraded.";
+  if(status) status.textContent="Your Queendom room key is ready. Welcome home.";
+  return true;
+}
+
+function isExpectedComplimentaryStayMembershipMiss(error){
+  const message=String(error?.message||"").toLowerCase();
+  return message.includes("no squarespace contact")
+    || message.includes("could not verify an active queendom or flow fm membership purchase")
+    || message.includes("use the email you used at checkout")
+    || message.includes("purchase verification is not configured yet");
+}
+
+async function maybeAutoUpgradeComplimentaryStay(){
+  if(complimentaryStayAutoUpgradeChecked||!hasUnconvertedComplimentaryStay()) return false;
+  complimentaryStayAutoUpgradeChecked=true;
+  try{
+    return await convertComplimentaryStayMembership({silent:true});
+  }catch(error){
+    if(!isExpectedComplimentaryStayMembershipMiss(error)){
+      console.warn("Complimentary stay automatic membership check could not complete.",error);
+    }
+    return false;
+  }
+}
+
 async function handleTrialMembershipRefresh(statusElement=null){
   const status=statusElement||document.getElementById("trialExpiredStatus")||document.getElementById("complimentaryStayStatus");
   const buttons=[document.getElementById("trialReopenButton"),document.getElementById("complimentaryStayUpgradeButton")].filter(Boolean);
   try{
     buttons.forEach(button=>button.disabled=true);
-    if(status) status.textContent="Checking your Queendom room key…";
-    const user=await getCurrentUser();
-    if(!user?.email) throw new Error("Sign in to this Flowtel account before reopening your room.");
-    const bridge=await verifySquarespaceMember(user.email,"signup");
-    currentProfile=await ensureProfile({
-      firstName:bridge.contact?.firstName,
-      lastName:bridge.contact?.lastName,
-      membershipType:bridge.membershipType,
-      squarespaceSource:"squarespace-membership-purchase",
-      squarespaceContactId:bridge.contact?.id,
-      squarespaceContactEmail:user.email,
-    });
-    await refreshCurrentProductAccess();
-    if(isComplimentaryStayExpired(currentProductAccess) || currentProfileMembershipRank(currentProfile)<1){
-      throw new Error("Your Queendom purchase was found, but the room key has not finished updating yet. Refresh once and try again.");
-    }
-    if(status) status.textContent="Your Queendom room key is ready. Welcome home.";
+    await convertComplimentaryStayMembership({statusElement:status});
     await continueAuthenticatedEntrance();
   }catch(error){
     console.error("Complimentary stay membership refresh failed.",error);
@@ -216,9 +254,33 @@ function updatePhaseOneSuiteLinks(){
   const wombMagicPortalCard=document.getElementById("wombMagicPortalCard");
   const teamMapLink=document.getElementById("suiteCurrentRoomTeamMapLink");
   if(practitionerCard) practitionerCard.classList.toggle("hidden",trial);
-  if(wombMagicCard) wombMagicCard.classList.toggle("hidden",trial);
+  if(wombMagicCard){
+    wombMagicCard.classList.remove("hidden");
+    wombMagicCard.classList.toggle("is-trial-locked",trial);
+  }
   if(wombMagicPortalCard) wombMagicPortalCard.classList.toggle("hidden",trial);
   if(teamMapLink) teamMapLink.classList.toggle("hidden",trial);
+
+  const wombMagicEyebrow=document.getElementById("wombMagicSuiteEyebrow");
+  const wombMagicTitle=document.getElementById("wombMagicSuiteTitle");
+  const wombMagicCopy=document.getElementById("wombMagicSuiteCopy");
+  const wombMagicScheduleButton=document.getElementById("wombMagicScheduleButton");
+  const wombMagicTrialCta=document.getElementById("wombMagicTrialCta");
+  const wombMagicSummary=wombMagicCard?.querySelector("[data-wm-summary]");
+  const wombMagicPanel=wombMagicCard?.querySelector("[data-wm-panel]");
+
+  if(wombMagicEyebrow) wombMagicEyebrow.textContent=trial?"QUEENDOM MEMBER BENEFIT":"COMPLIMENTARY MENTOR CALL";
+  if(wombMagicTitle) wombMagicTitle.textContent="Book your Womb Magic call.";
+  if(wombMagicCopy) wombMagicCopy.textContent=trial
+    ? "Queendom members can choose any available Flow FM Priestess for one private 45-minute Womb Magic call each month."
+    : "Choose any available Flow FM Priestess for one private 45-minute call each month.";
+  if(wombMagicScheduleButton) wombMagicScheduleButton.classList.toggle("hidden",trial);
+  if(wombMagicTrialCta) wombMagicTrialCta.classList.toggle("hidden",!trial);
+  if(trial){
+    wombMagicBooking.close();
+    if(wombMagicSummary) wombMagicSummary.hidden=true;
+    if(wombMagicPanel){wombMagicPanel.hidden=true;wombMagicPanel.setAttribute("aria-hidden","true");}
+  }
 
   const loungeEvents=document.getElementById("loungeEventsCard");
   const myEvents=document.getElementById("my-upcoming-events");
@@ -230,7 +292,7 @@ function updatePhaseOneSuiteLinks(){
   if(trialInvitation) trialInvitation.classList.toggle("hidden",!trial);
 
   document.querySelectorAll('a[href="https://www.theidyllcollective.com/queendomhome"]').forEach(link=>{
-    if(link.closest(".complimentary-stay-banner")||link.closest(".complimentary-stay-expired-card")||link.closest(".complimentary-stay-lounge-card")) return;
+    if(link.closest(".complimentary-stay-expired-card")||link.closest(".complimentary-stay-lounge-card")||link.id==="wombMagicTrialCta"||link.classList.contains("join-queendom-doorway-button")) return;
     link.textContent=trial?"Join the Queendom":"Return to the Queendom";
   });
 
@@ -412,8 +474,8 @@ function updateDoorwayCopy(){
       : "Enter with your private room key, create your member account, or begin a 14-day complimentary stay.";
   }
 
-  const trialDoorway=document.getElementById("showComplimentaryStayButton");
-  if(trialDoorway) trialDoorway.classList.toggle("hidden",Boolean(SQUARESPACE_MEMBERSHIP));
+  const nonMemberDoorways=document.getElementById("nonMemberAccountDoorways");
+  if(nonMemberDoorways) nonMemberDoorways.classList.toggle("hidden",Boolean(SQUARESPACE_MEMBERSHIP));
 
   const detectedEmail=extractSquarespaceEmail();
   const loginEmail=document.getElementById("email");
@@ -711,13 +773,15 @@ async function continueAuthenticatedEntrance(){
 
   setAuthenticatedAccountVisible(true);
   await refreshCurrentProductAccess();
+  await maybeAutoUpgradeComplimentaryStay();
   scheduleComplimentaryStayExpiry();
   if(isComplimentaryStayExpired(currentProductAccess)){
     showTrialExpiredScene();
     return;
   }
   clearCachedSuiteStayIfItBelongsToAnotherGuest();
-  setMessage("");
+  setMessage(complimentaryStayUpgradeNotice);
+  complimentaryStayUpgradeNotice="";
   if(!isActiveComplimentaryStay()) await registerPendingEventDoorway();
   await refreshConciergeTeamAccess();
   await prepareDailyStayState();

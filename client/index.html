@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.88" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.88.1" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -33,8 +33,15 @@
 
             <button id="signInButton" type="button">Enter the Flowtel</button>
             <button id="forgotPasswordButton" type="button" class="text-button">Forgot your password?</button>
-            <button id="showNewAccountButton" type="button" class="secondary">First time here? Create your account</button>
-            <button id="showComplimentaryStayButton" type="button" class="text-button complimentary-stay-doorway-button">Stay with us complimentary for 14 days</button>
+
+            <div class="flowtel-account-doorways">
+              <button id="showNewAccountButton" type="button" class="secondary member-account-doorway-button">Queendom Members | Create New Account</button>
+              <div class="nonmember-account-doorways" id="nonMemberAccountDoorways">
+                <p class="nonmember-doorway-label">Not a Queendom member?</p>
+                <button id="showComplimentaryStayButton" type="button" class="complimentary-stay-doorway-button">Start Your 14-Day Complimentary Stay</button>
+                <a class="flowtel-doorway-link-button join-queendom-doorway-button" href="https://www.theidyllcollective.com/queendomhome">Or Join the Queendom Here</a>
+              </div>
+            </div>
           </div>
 
           <div class="flowtel-new-account-card hidden" id="newAccountCard" aria-hidden="true">
@@ -126,14 +133,11 @@
           <h2 id="suiteWelcome">Room is ready for you.</h2>
           <p class="suite-subline" id="suiteSubline"></p>
           <section class="complimentary-stay-banner hidden" id="complimentaryStayBanner" aria-live="polite">
-            <div>
+            <div class="complimentary-stay-banner-copy">
               <p class="eyebrow" id="complimentaryStayLabel">COMPLIMENTARY STAY · DAY 1 OF 14</p>
-              <p id="complimentaryStayCopy">Your room is yours for fourteen days. Notice what the Flowtel begins to show you.</p>
+              <p id="complimentaryStayCopy">Your room is yours for fourteen days.</p>
             </div>
-            <div class="complimentary-stay-actions">
-              <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
-              <button type="button" id="complimentaryStayUpgradeButton">I Joined — Unlock My Membership</button>
-            </div>
+            <button type="button" class="complimentary-stay-unlock-link" id="complimentaryStayUpgradeButton">Already joined? Unlock membership</button>
             <p class="complimentary-stay-status" id="complimentaryStayStatus" role="status"></p>
           </section>
           <div class="suite-external-actions">
@@ -242,12 +246,13 @@
         <article class="practitioner-card womb-magic-suite-card" id="wombMagicSuiteCard">
           <div id="complimentary-mentor-call" class="womb-magic-suite-intro">
             <div>
-              <p class="eyebrow">COMPLIMENTARY MENTOR CALL</p>
-              <h3>Book your Womb Magic call.</h3>
-              <p>Choose any available Flow FM Priestess for one private 45-minute call each month.</p>
+              <p class="eyebrow" id="wombMagicSuiteEyebrow">COMPLIMENTARY MENTOR CALL</p>
+              <h3 id="wombMagicSuiteTitle">Book your Womb Magic call.</h3>
+              <p id="wombMagicSuiteCopy">Choose any available Flow FM Priestess for one private 45-minute call each month.</p>
             </div>
           </div>
-          <button class="secondary womb-magic-suite-action" type="button" data-wm-toggle aria-expanded="false">Schedule Womb Magic</button>
+          <button class="secondary womb-magic-suite-action" id="wombMagicScheduleButton" type="button" data-wm-toggle aria-expanded="false">Schedule Womb Magic</button>
+          <a class="womb-magic-suite-action womb-magic-trial-cta hidden" id="wombMagicTrialCta" href="https://www.theidyllcollective.com/queendomhome">Join the Queendom to Schedule Your First Womb Magic Call</a>
           <section class="womb-magic-suite-summary" data-wm-summary hidden aria-live="polite"></section>
           <section class="womb-magic-inline-panel" data-wm-panel hidden aria-hidden="true">
             <header class="womb-magic-inline-heading">
@@ -530,6 +535,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.88"></script>
+  <script type="module" src="./app.js?v=0.10.88.1"></script>
 </body>
 </html>

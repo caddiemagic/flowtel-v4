@@ -1,3 +1,12 @@
+## v0.10.88.1 — Complimentary Stay Doorway + Womb Magic Preview Polish
+
+- Reorganizes the `/client/` first-time doorway into clear paid-member, complimentary-stay, and Join the Queendom buttons.
+- Replaces the oversized Complimentary Stay Suite panel with a compact `DAY X OF 14` status ribbon and a subtle manual membership-unlock fallback.
+- Keeps monthly Womb Magic visible to Complimentary Stay guests as a locked **Queendom Member Benefit** while preventing the scheduler from opening.
+- Routes the locked Womb Magic CTA to **Join the Queendom to Schedule Your First Womb Magic Call**; the 4-Week Portal, Mentor connection, Team Map, and member-event benefits remain gated.
+- Adds a silent return/refresh membership re-check so a verified Queendom / Flow FM purchase can upgrade the same Complimentary Stay account automatically.
+- No Supabase migration or new Vercel function. Migration 074 remains latest; 075 remains next; Vercel remains 12/12.
+
 ## v0.10.88 — 14-Day Complimentary Stay
 
 - Adds a one-time **14-Day Complimentary Stay** at the canonical `/client/` doorway for women who have not yet joined the Queendom.

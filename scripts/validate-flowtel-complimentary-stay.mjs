@@ -32,7 +32,7 @@ expect(migration.includes("A Queendom membership is required to choose a Mentor 
 expect(migration.includes('flowtel_current_user_has_product_access') && migration.includes('flowtel_trial_ends_at <= now()'), 'Server-side product checks must reject an expired trial even before /client/ is opened.');
 expect(migration.includes('Preserve pre-v0.10.88 canonical Flowtel access') && migration.includes('v_access.flowtel_trial_started_at is null') && migration.includes('coalesce(v_access.flowtel_access,false)'), 'Migration 074 must preserve preexisting legacy Flowtel access rows rather than reclassifying them as trials.');
 
-expect(html.includes('Stay with us complimentary for 14 days'), 'Public Flowtel doorway is missing the complimentary-stay invitation.');
+expect(html.includes('Start Your 14-Day Complimentary Stay') && html.includes('Queendom Members | Create New Account') && html.includes('Or Join the Queendom Here'), 'Public Flowtel doorway is missing the member / complimentary / join hierarchy.');
 expect(html.includes('COMPLIMENTARY STAY · DAY 1 OF 14'), 'Suite is missing the complimentary-stay status banner.');
 expect(html.includes('YOUR COMPLIMENTARY STAY IS COMPLETE'), 'Expired stay scene is missing.');
 expect(html.includes('I Joined — Reopen My Room'), 'Expired stay scene must support same-account membership conversion.');
@@ -41,7 +41,9 @@ expect(client.includes('accountCreationMode="member"'), 'Client must keep paid-m
 expect(client.includes('trial?"trial-signup":"signup"'), 'Client must use the existing bridge with a distinct trial intent.');
 expect(client.includes('if(!trial) metadata.membership_type=bridge.membershipType||"queendom"'), 'Trial Auth metadata must never claim Queendom membership.');
 expect(client.includes('membershipType:bridge.membershipType') && client.includes('handleTrialMembershipRefresh'), 'Client must reopen the same account after verified membership purchase.');
-expect(client.includes('wombMagicCard.classList.toggle("hidden",trial)') && client.includes('wombMagicPortalCard.classList.toggle("hidden",trial)'), 'Trial must hide both Womb Magic booking benefits.');
+expect(client.includes('maybeAutoUpgradeComplimentaryStay') && client.includes('convertComplimentaryStayMembership'), 'Returning complimentary guests must be able to auto-convert after a verified Queendom purchase.');
+expect(html.includes('Join the Queendom to Schedule Your First Womb Magic Call'), 'Trial Womb Magic preview must route to the Queendom rather than scheduling directly.');
+expect(client.includes('wombMagicCard.classList.remove("hidden")') && client.includes('wombMagicCard.classList.toggle("is-trial-locked",trial)') && client.includes('wombMagicPortalCard.classList.toggle("hidden",trial)'), 'Trial must preview monthly Womb Magic as a locked Queendom benefit while keeping the 4-Week Portal unavailable.');
 expect(client.includes('practitionerCard.classList.toggle("hidden",trial)'), 'Trial must hide Mentor to the Moon membership benefit.');
 expect(client.includes('if(!isActiveComplimentaryStay()) await registerPendingEventDoorway()'), 'Trial must not enter the member event registration doorway.');
 expect(client.includes('if(!isActiveComplimentaryStay())void prepareLoungeEvents'), 'Trial Lounge must not call the member event calendar RPC.');
@@ -57,4 +59,4 @@ if(failures.length){
   for(const failure of failures) console.error(`- ${failure}`);
   process.exit(1);
 }
-console.log('Flowtel v0.10.88 Complimentary Stay validation OK.');
+console.log('Flowtel v0.10.88.1 Complimentary Stay validation OK.');
