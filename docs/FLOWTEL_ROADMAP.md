@@ -4,7 +4,11 @@ Updated: September 8, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.89 Multi-Session Event Series + Acuity Group Enrollment
+v0.10.89.1 is a narrow client-entry hotfix over v0.10.89. It removes the Queendom Events module from the `/client/` authentication bundle's hard static import chain so remembered-session boot, Sign In, account creation, password recovery, and Complimentary Stay initialization cannot be blocked by event-module loading. It also repairs the v0.10.89 iCalendar escaping helper. No database or server boundary changes; migration 075 remains latest, 076 next, and Vercel remains 12/12.
+
+### Feature foundation retained from v0.10.89
+
+## Current — v0.10.89.1 Login Doorway Isolation Hotfix
 
 v0.10.89 extends the existing Queendom Calendar with **Multi-Session Series**. One Flowtel parent event now holds a repeatable occurrence itinerary while preserving one canonical member registration. Flowtel owns eligibility, Event Room access, and the protected member-facing Zoom doorway; Acuity owns the existing group-class series, class capacity, enrollment, and configured confirmation/reminder emails. Migration 075 adds the private occurrence/enrollment sync layer. No new Vercel function is added; the project remains at 12/12.
 

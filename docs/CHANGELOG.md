@@ -1,3 +1,11 @@
+## v0.10.89.1 — Login Doorway Isolation Hotfix
+
+- Repairs the `/client/` entry regression observed after v0.10.89 where remembered sessions did not auto-enter and the Sign In button appeared inert.
+- Removes the Queendom Events module from the login bundle's hard static import chain; event code now lazy-loads only after an event capability is actually needed.
+- Advances the client cache key to `v0.10.89.1` so browsers do not remain pinned to the broken v0.10.89 bundle.
+- Repairs the multi-session `.ics` escaping helper introduced in v0.10.89.
+- No database, Acuity, Squarespace, Womb Magic, access-rank, Caddie Magic, environment-variable, or Vercel-function change. Migration 075 remains latest and 076 remains next; function budget remains 12/12.
+
 ## v0.10.89 — Multi-Session Event Series + Acuity Group Enrollment
 
 - Adds **Multi-Session Series** to the existing Queendom Calendar while preserving one canonical parent event and one Flowtel registration for the entire vortex.

@@ -11,9 +11,27 @@ import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndo
 import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.83";
 import { mountWombMagicPortal } from "../shared/womb-magic-portal.js?v=0.10.87";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
-import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket, ensureQueendomEventSeriesEnrollment } from "../shared/queendom-events.js?v=0.10.89";
 import { timezoneDisplayName, timezoneShortName } from "../shared/timezone-labels.js?v=0.10.85";
 import { getMyProductAccess, isComplimentaryStayAccess, isComplimentaryStayExpired, complimentaryStayDay } from "../shared/product-access.js?v=0.10.88.1";
+
+let queendomEventsModulePromise=null;
+async function loadQueendomEventsModule(){
+  if(!queendomEventsModulePromise){
+    queendomEventsModulePromise=import("../shared/queendom-events.js?v=0.10.89.1").catch(error=>{queendomEventsModulePromise=null;throw error;});
+  }
+  return queendomEventsModulePromise;
+}
+async function listQueendomEvents(options){const module=await loadQueendomEventsModule();return module.listQueendomEvents(options);}
+async function setQueendomEventRegistration(eventId,registered=true){const module=await loadQueendomEventsModule();return module.setQueendomEventRegistration(eventId,registered);}
+async function getQueendomEventJoinDetails(eventId){const module=await loadQueendomEventsModule();return module.getQueendomEventJoinDetails(eventId);}
+async function verifyQueendomEventTicket(eventId){const module=await loadQueendomEventsModule();return module.verifyQueendomEventTicket(eventId);}
+async function ensureQueendomEventSeriesEnrollment(eventId){
+  const module=await loadQueendomEventsModule();
+  if(typeof module.ensureQueendomEventSeriesEnrollment!=="function"){
+    throw new Error("The Event Series doorway is still loading. Refresh the Flowtel and try again.");
+  }
+  return module.ensureQueendomEventSeriesEnrollment(eventId);
+}
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -2695,7 +2713,7 @@ function communityGoogleCalendarUrl(event){
   url.searchParams.set('action','TEMPLATE');url.searchParams.set('text',`${event.title||'Flowtel Event'}${sessionSuffix}`);url.searchParams.set('dates',`${start}/${end}`);url.searchParams.set('ctz',event.event_timezone||'America/Los_Angeles');
   url.searchParams.set('details',`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`);url.searchParams.set('location','The Flowtel');return url.toString();
 }
-function icsEscape(value){return String(value??'').replace(/\/g,'\\').replace(/\r?\n/g,'\n').replace(/,/g,'\,').replace(/;/g,'\;');}
+function icsEscape(value){return String(value??'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
 function downloadCommunityCalendar(event){
   const moments=loungeCalendarMoments(event),zone=event.event_timezone||'America/Los_Angeles',stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'),description=`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`;
   const vevents=moments.map((moment,index)=>{const calendarEvent=loungeCalendarEventShape(event,moment),start=calendarLocalStamp(calendarEvent.event_date,calendarEvent.start_time),endParts=calendarEndParts(calendarEvent),end=calendarLocalStamp(endParts.date,endParts.time);if(!start||!end)return'';const number=moment?.occurrence_number||index+1,series=event.event_format==='series',summary=series?`${event.title||'Flowtel Event'} · Session ${number} of ${event.series_count||moments.length}`:(event.title||'Flowtel Event'),uid=`queendom-event-${event.event_id}-${series?number:'single'}@flowtel`;return ['BEGIN:VEVENT',`UID:${icsEscape(uid)}`,`DTSTAMP:${stamp}`,`DTSTART;TZID=${icsEscape(zone)}:${start}`,`DTEND;TZID=${icsEscape(zone)}:${end}`,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(description)}`,'LOCATION:The Flowtel',`URL:${calendarFlowtelUrl()}`,'END:VEVENT'].join('\r\n');}).filter(Boolean);

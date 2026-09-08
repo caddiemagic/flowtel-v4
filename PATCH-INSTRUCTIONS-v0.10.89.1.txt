@@ -1,0 +1,77 @@
+FLOWTEL PATCH INSTRUCTIONS — v0.10.89.1 LOGIN DOORWAY ISOLATION HOTFIX
+
+EXPECTED SOURCE VERSION
+Flowtel v0.10.89 — Multi-Session Event Series + Acuity Group Enrollment
+GitHub main HEAD observed before this hotfix: 549f189e702b956263e1357c8eb0a4bf1b3e77ea
+Latest database migration: 075 — Queendom Multi-Session Event Series
+
+TARGET RELEASE
+Flowtel v0.10.89.1 — Login Doorway Isolation Hotfix
+Caddie Magic remains v0.6.0.
+
+FILES ADDED
+PATCH-INSTRUCTIONS-v0.10.89.1.txt
+docs/LIVE-TEST-0.10.89.1.md
+docs/RELEASE-0.10.89.1.md
+scripts/validate-flowtel-010891-login-hotfix.mjs
+
+FILES MODIFIED
+client/app.js
+client/index.html
+docs/CHANGELOG.md
+docs/FLOWTEL_ROADMAP.md
+
+FILES TO DELETE
+None.
+
+SUPABASE MIGRATION
+No new migration required.
+Migration 075 remains latest.
+Migration 076 remains next.
+If migration 075 is already live, DO NOT rerun it for this hotfix.
+If migration 075 has not yet been applied, it is still required for v0.10.89 multi-session event-series functionality, but it is not required to restore the login doorway itself.
+
+VERCEL ENVIRONMENT VARIABLES
+No environment variables are added or changed by v0.10.89.1.
+Keep all existing Supabase, Squarespace, Acuity, Resend, Flowtel origin, and other current production environment variables unchanged.
+
+VERCEL SERVERLESS FUNCTIONS
+No serverless function added.
+No serverless function removed.
+Current function count: 12/12.
+
+EXACT DEPLOYMENT ORDER
+1. Start from the current v0.10.89 source at GitHub main HEAD 549f189e702b956263e1357c8eb0a4bf1b3e77ea (or an exact matching source snapshot).
+2. Overlay flowtel-v0.10.89.1-patch-files.zip at the repository root, preserving project-relative paths.
+3. Do not run a new Supabase migration for this hotfix.
+4. Commit and push the changed files to GitHub main using the normal release workflow.
+5. Wait for Vercel to report Ready for the new commit.
+6. Open /client/ in a browser that previously loaded v0.10.89 and hard refresh once.
+7. Run the first-live-test checklist below before testing the Womb Magic Committee series.
+
+FIRST LIVE TESTS AFTER VERCEL SAYS READY
+1. Open /client/ in a browser/profile that already has a remembered valid Flowtel session.
+   EXPECT: it auto-enters the existing Flowtel account again.
+2. Sign out and return to /client/.
+3. Enter an intentionally wrong password and click Sign In.
+   EXPECT: the button responds and normal visible login feedback appears.
+4. Enter a valid existing member email/password and click Sign In.
+   EXPECT: the existing account opens; no new identity/profile is created.
+5. Refresh /client/.
+   EXPECT: remembered valid session auto-enters.
+6. Repeat one clean login in an incognito/private window.
+7. Open My Upcoming Events.
+   EXPECT: normal single-day events still render.
+8. Open/register the Womb Magic Committee test series.
+   EXPECT: event-series lazy loading succeeds after authentication and the v0.10.89 series behavior remains intact.
+9. Refresh the series once.
+   EXPECT: no duplicate Acuity enrollment.
+10. Download Apple/Outlook calendar for the series.
+    EXPECT: the .ics file includes the intended sessions and imports correctly.
+
+HOTFIX PURPOSE
+v0.10.89 introduced Queendom Event Series functionality into client/app.js. v0.10.89.1 isolates authentication initialization from that event module by lazy-loading Queendom Events only when event features are used. It also repairs the v0.10.89 iCalendar escaping helper and advances the /client/ cache key so browsers load the repaired bundle.
+
+STATUS
+SOURCE VALIDATED only until the owner confirms the live login checks above.
+Do not label LIVE PRODUCTION VERIFIED until those checks pass in production.
