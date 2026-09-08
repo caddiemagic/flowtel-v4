@@ -4,9 +4,11 @@ Updated: September 7, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.87.3 Squarespace Contacts Fallback + Site Probe Hotfix
+## Current — v0.10.87.4 Squarespace Pricing Plan Purchase-Shape Diagnostic Hotfix
 
-v0.10.87.3 follows the live v0.10.87.2 diagnostic result that Squarespace is returning 403 specifically from the Contacts query despite an API key generated with Contacts Read Only + Orders Read Only. The signup bridge now retries through the documented read-only Contacts list endpoint and exact-email matching. If both Contacts endpoints are forbidden, a server-only website authorization probe records whether Squarespace recognizes the API key and which site owns it, without exposing the key to the browser. The existing PAID mapped membership-order requirement remains unchanged. No migration is required; migration 073 remains latest and 074 remains next.
+v0.10.87.4 follows live v0.10.87.3 testing, which successfully moved first-time signup past Squarespace Contacts authorization and exposed the next mismatch: Flow FM is sold as a Squarespace Pricing Plan while the beta-exit verifier currently expects membership entitlements to appear as mapped Commerce Order `productId` values. Before changing the membership boundary, Flowtel now performs the read-only Orders lookup and records only sanitized order/line-item structure so the actual Pricing Plan representation can be identified. No membership is granted from product names or diagnostic output. No migration is required; migration 073 remains latest and 074 remains next.
+
+v0.10.87.3 added the read-only Contacts list fallback and website authorization probe after the Contacts query returned 403 despite a correctly scoped API key.
 
 v0.10.87.2 added stage-specific first-time signup diagnostics so Contacts and Orders authorization failures could be distinguished without weakening the membership boundary.
 

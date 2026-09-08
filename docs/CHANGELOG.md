@@ -1,3 +1,13 @@
+## v0.10.87.4 — Squarespace Pricing Plan Purchase-Shape Diagnostic Hotfix
+
+- Keeps first-time membership authorization closed while diagnosing how a Squarespace Pricing Plan purchase is represented after Contacts + Orders authorization succeeds.
+- Moves the missing-product-ID diagnostic until after the read-only Orders lookup so Flowtel can inspect the actual purchase shape instead of failing before Squarespace is queried.
+- Logs only sanitized order/line-item structure: field names, payment/fulfillment state, product/item name, product/variant IDs, SKU, pricing-plan-like ID, and item type when present.
+- Never logs member email, API keys, addresses, phone numbers, payment details, prices, customizations, or raw order payloads.
+- Returns a safe owner-facing diagnostic when no membership product IDs are configured: zero Commerce orders, no membership-like line item, or a non-authorizing identifier fingerprint for a Flow FM / Queendom / Council line item.
+- Does not grant membership based on names or diagnostics and does not change Supabase Auth, signup admissions, or product-access rules.
+- No Supabase migration required. Migration 073 remains latest; 074 remains next. No new serverless function is added.
+
 ## v0.10.87.3 — Squarespace Contacts Fallback + Site Probe Hotfix
 
 - Keeps the verified first-time Flowtel signup boundary intact while adding a read-only fallback for Squarespace Contacts lookup.

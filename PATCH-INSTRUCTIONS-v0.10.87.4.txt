@@ -1,0 +1,13 @@
+Flowtel v0.10.87.4 — Squarespace Pricing Plan Purchase-Shape Diagnostic Hotfix
+
+PATCH-ONLY DEPLOYMENT
+1. Start from the currently deployed v0.10.87.3 source.
+2. Overlay the files in this ZIP, preserving folder paths.
+3. No files need to be deleted.
+4. No Supabase migration is required. Migration 073 remains latest; 074 remains next.
+5. No new Vercel environment variable is required.
+6. Commit/push and wait for the Production deployment to show Ready.
+7. Retry Create My Flowtel Account using the same Flow FM member email.
+8. Send the exact new Squarespace purchase diagnostic message to the Front Desk.
+
+This diagnostic does not grant membership from a product name or pricing-plan label. It only inspects sanitized Squarespace Orders structure so the correct entitlement source can be identified.

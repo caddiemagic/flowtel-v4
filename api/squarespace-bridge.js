@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.87.3 — Squarespace Contacts fallback + site diagnostic hardening.
+// Flowtel v0.10.87.4 — Squarespace membership purchase-shape diagnostic hardening.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -71,14 +71,76 @@ function newestMembershipOrder(orders = [], productIds = []) {
     .sort((a, b) => new Date(b?.modifiedOn || b?.createdOn || 0).getTime() - new Date(a?.modifiedOn || a?.createdOn || 0).getTime())[0] || null;
 }
 
+function compactDiagnosticValue(value, max = 140) {
+  if (value === undefined || value === null) return null;
+  const text = String(value).replace(/\s+/g, " ").trim();
+  return text ? text.slice(0, max) : null;
+}
+
+function lineItemDiagnostic(line = {}) {
+  const name = compactDiagnosticValue(
+    line.productName || line.name || line.title || line.itemName
+  );
+  const type = compactDiagnosticValue(
+    line.productType || line.itemType || line.lineItemType || line.type
+  );
+  return {
+    keys: Object.keys(line || {}).sort().slice(0, 60),
+    name,
+    type,
+    productId: compactDiagnosticValue(line.productId || line.productID),
+    variantId: compactDiagnosticValue(line.variantId || line.variantID),
+    sku: compactDiagnosticValue(line.sku),
+    pricingPlanId: compactDiagnosticValue(
+      line.pricingPlanId || line.planId || line.subscriptionPlanId || line.membershipPlanId
+    ),
+  };
+}
+
+function purchaseShapeDiagnostic(orders = []) {
+  const sorted = [...(Array.isArray(orders) ? orders : [])]
+    .sort((a, b) => new Date(b?.modifiedOn || b?.createdOn || 0).getTime() - new Date(a?.modifiedOn || a?.createdOn || 0).getTime())
+    .slice(0, 8);
+  const recentOrders = sorted.map((order) => ({
+    keys: Object.keys(order || {}).sort().slice(0, 80),
+    paymentState: compactDiagnosticValue(order?.paymentState),
+    fulfillmentStatus: compactDiagnosticValue(order?.fulfillmentStatus),
+    lineItems: (Array.isArray(order?.lineItems) ? order.lineItems : []).slice(0, 20).map(lineItemDiagnostic),
+  }));
+  const lineItems = recentOrders.flatMap((order) => order.lineItems);
+  const membershipLike = lineItems.filter((line) => /\b(flow\s*fm|queendom|council)\b/i.test(String(line.name || "")));
+  return {
+    ordersReturned: Array.isArray(orders) ? orders.length : 0,
+    recentOrders,
+    lineItemsObserved: lineItems.length,
+    membershipLike: membershipLike.slice(0, 8),
+  };
+}
+
+function purchaseDiagnosticUserMessage(diagnostic = {}) {
+  const count = Number(diagnostic.ordersReturned || 0);
+  const items = Array.isArray(diagnostic.membershipLike) ? diagnostic.membershipLike : [];
+  if (!count) {
+    return "Squarespace purchase diagnostic captured: the Orders API returned 0 Commerce orders for this member. No Flowtel access was granted. This suggests the Flow FM Pricing Plan purchase may not be represented as a normal Commerce order. Send this exact message to the Front Desk.";
+  }
+  if (!items.length) {
+    return `Squarespace purchase diagnostic captured: the Orders API returned ${count} Commerce order${count === 1 ? "" : "s"}, but no line item named Flow FM, Queendom, or Council appeared in the recent order structure. No Flowtel access was granted. Send this exact message to the Front Desk.`;
+  }
+  const item = items[0];
+  const fingerprint = [
+    item.name ? `name=${item.name}` : null,
+    item.productId ? `productId=${item.productId}` : "productId=none",
+    item.variantId ? `variantId=${item.variantId}` : "variantId=none",
+    item.sku ? `sku=${item.sku}` : "sku=none",
+    item.pricingPlanId ? `pricingPlanId=${item.pricingPlanId}` : "pricingPlanId=none",
+    item.type ? `type=${item.type}` : "type=none",
+  ].filter(Boolean).join("; ");
+  return `Squarespace purchase diagnostic captured: ${fingerprint}. No Flowtel access was granted from this diagnostic. Send this exact message to the Front Desk.`;
+}
+
 async function verifySquarespaceMembershipPurchase(contact) {
   const ids = configuredMembershipProductIds();
   const configured = Object.values(ids).some((rows) => rows.length);
-  if (!configured) {
-    const error = new Error("New-member purchase verification is not configured yet. Add the Squarespace Queendom/Flow FM membership product IDs in Vercel before opening first-time account creation.");
-    error.statusCode = 503;
-    throw error;
-  }
 
   const apiKey = commerceApiKey();
   if (!apiKey) {
@@ -109,6 +171,15 @@ async function verifySquarespaceMembershipPurchase(contact) {
     error.statusCode = status;
     throw error;
   }
+  const diagnostic = purchaseShapeDiagnostic(orders);
+  console.info("Flowtel Squarespace membership purchase-shape diagnostic.", diagnostic);
+
+  if (!configured) {
+    const error = new Error(purchaseDiagnosticUserMessage(diagnostic));
+    error.statusCode = 503;
+    throw error;
+  }
+
   for (const membership of ["council", "flowfm", "queendom"]) {
     if (!ids[membership].length) continue;
     const order = newestMembershipOrder(orders, ids[membership]);
@@ -211,7 +282,7 @@ function squarespaceRequestHeaders(apiKey) {
   return {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
-    "User-Agent": "Flowtel Squarespace Bridge/0.10.87.3",
+    "User-Agent": "Flowtel Squarespace Bridge/0.10.87.4",
   };
 }
 
