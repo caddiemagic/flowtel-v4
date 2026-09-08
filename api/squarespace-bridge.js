@@ -1,5 +1,5 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.87.4 — Squarespace membership purchase-shape diagnostic hardening.
+// Flowtel v0.10.88 — verified membership + one-time 14-Day Complimentary Stay doorway.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
@@ -282,7 +282,7 @@ function squarespaceRequestHeaders(apiKey) {
   return {
     Authorization: `Bearer ${apiKey}`,
     "Content-Type": "application/json",
-    "User-Agent": "Flowtel Squarespace Bridge/0.10.87.4",
+    "User-Agent": "Flowtel Squarespace Bridge/0.10.88",
   };
 }
 
@@ -568,6 +568,76 @@ async function findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email }) {
   return users.find((user) => normalizeEmail(user?.email) === email) || null;
 }
 
+async function findSupabaseProductAccessByUserId({ supabaseUrl, serviceKey, userId }) {
+  if (!userId) return null;
+  const data = await readSupabaseJson(
+    `${supabaseUrl}/rest/v1/flowtel_product_access?select=user_id,flowtel_access,flowtel_access_status,access_role,access_source,flowtel_trial_started_at,flowtel_trial_ends_at,flowtel_trial_converted_at&user_id=eq.${encodeURIComponent(userId)}&limit=1`,
+    {
+      method: "GET",
+      headers: supabaseAdminHeaders(serviceKey),
+    }
+  );
+  return Array.isArray(data) ? data[0] || null : null;
+}
+
+async function findTrialAdmission({ supabaseUrl, serviceKey, email }) {
+  const data = await readSupabaseJson(
+    `${supabaseUrl}/rest/v1/flowtel_trial_admissions?select=email,admission_expires_at,claimed_by,claimed_at,created_at,updated_at&email=eq.${encodeURIComponent(email)}&limit=1`,
+    {
+      method: "GET",
+      headers: supabaseAdminHeaders(serviceKey),
+    }
+  );
+  return Array.isArray(data) ? data[0] || null : null;
+}
+
+async function prepareTrialAdmission({ supabaseUrl, serviceKey, email }) {
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) throw new Error("Flowtel could not prepare a complimentary stay for this email.");
+
+  const existing = await findTrialAdmission({ supabaseUrl, serviceKey, email: normalizedEmail });
+  if (existing?.claimed_at) {
+    const error = new Error("This email has already used its 14-day complimentary stay. Join the Queendom to reopen your room.");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  const admissionExpiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const updatedAt = new Date().toISOString();
+
+  if (existing) {
+    await readSupabaseJson(
+      `${supabaseUrl}/rest/v1/flowtel_trial_admissions?email=eq.${encodeURIComponent(normalizedEmail)}`,
+      {
+        method: "PATCH",
+        headers: {
+          ...supabaseAdminHeaders(serviceKey),
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          admission_expires_at: admissionExpiresAt,
+          updated_at: updatedAt,
+        }),
+      }
+    );
+  } else {
+    await readSupabaseJson(`${supabaseUrl}/rest/v1/flowtel_trial_admissions`, {
+      method: "POST",
+      headers: {
+        ...supabaseAdminHeaders(serviceKey),
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        admission_expires_at: admissionExpiresAt,
+        updated_at: updatedAt,
+      }),
+    });
+  }
+
+  return { email: normalizedEmail, admissionExpiresAt };
+}
+
 async function refreshSupabaseBetaUserMetadata({ supabaseUrl, serviceKey, userId, contact, membershipType, existingMetadata = {} }) {
   if (!userId) return null;
   const payload = {
@@ -758,13 +828,68 @@ module.exports = async function handler(req, res) {
       return;
     }
 
+    const isTrialSignup = intent === "trial-signup" || intent === "complimentary-stay";
     const verifyOnly = intent === "verify" || intent === "verify-only" || intent === "signup";
-    const trustedDoorway = verifyOnly ? false : canUseTrustedDoorway(body);
+    const trustedDoorway = verifyOnly || isTrialSignup ? false : canUseTrustedDoorway(body);
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
     const existingProfile = serviceKey && supabaseUrl
       ? await findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email })
       : null;
+
+    if (isTrialSignup) {
+      if (!serviceKey || !supabaseUrl) {
+        const configError = new Error("Supabase server verification is not configured on Vercel.");
+        configError.statusCode = 503;
+        throw configError;
+      }
+
+      const existingRank = Math.max(
+        Number(existingProfile?.membership_rank || 0),
+        membershipRank(existingProfile?.membership_type),
+        ["practitioner", "admin", "owner"].includes(String(existingProfile?.role || "").toLowerCase()) ? 2 : 0,
+        existingProfile?.flowfm_started_at || existingProfile?.is_initiated ? 2 : 0,
+      );
+
+      if (existingRank >= 1) {
+        res.status(409).json({
+          ok: false,
+          error: "You already have a Queendom or Flow FM room key. Sign in to return to the Flowtel instead of starting a complimentary stay.",
+        });
+        return;
+      }
+
+      const existingAuthUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email });
+      const existingAccess = existingProfile?.id
+        ? await findSupabaseProductAccessByUserId({ supabaseUrl, serviceKey, userId: existingProfile.id })
+        : null;
+      if (existingAccess?.flowtel_access && !existingAccess?.flowtel_trial_started_at) {
+        res.status(409).json({
+          ok: false,
+          error: "This email already has a Flowtel room key. Sign in to return to your existing room instead of starting a complimentary stay.",
+        });
+        return;
+      }
+
+      await prepareTrialAdmission({ supabaseUrl, serviceKey, email });
+
+      res.status(200).json({
+        ok: true,
+        complimentaryStay: true,
+        trialDays: 14,
+        membershipType: null,
+        membershipLabel: "Complimentary Stay",
+        contact: null,
+        verified: true,
+        bridgeMode: "complimentary-stay-admission",
+        existingAccount: Boolean(existingAuthUser),
+        accountStatus: existingAuthUser ? "existing-auth-user" : "new",
+        note: existingAuthUser
+          ? "This email already has a Flowtel identity. Sign in with it to begin the complimentary stay."
+          : "Your one-time 14-day complimentary stay is ready to begin after you confirm your email.",
+      });
+      return;
+    }
 
     // Beta exit: account creation is now performed by Supabase Auth in the browser
     // with the member's own password and email-confirmation flow. The bridge only

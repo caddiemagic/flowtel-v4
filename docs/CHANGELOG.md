@@ -1,3 +1,15 @@
+## v0.10.88 — 14-Day Complimentary Stay
+
+- Adds a one-time **14-Day Complimentary Stay** at the canonical `/client/` doorway for women who have not yet joined the Queendom.
+- Keeps the complimentary stay as Flowtel guest access, not Queendom membership: profile membership rank remains 0 while the personal Suite, cycle tracking, Medicine Wheel, reflections, Flow Map, Moon Mail, Personal Cosmology, and basic Lounge remain available.
+- Hides and server-gates Queendom-only benefits during the stay, including Womb Magic, the 4-Week Womb Magic Portal, Mentor to the Moon connection, member event registration, and Team Map access.
+- Adds a quiet Suite `COMPLIMENTARY STAY · DAY X OF 14` status and gentle Day 11–14 Queendom invitation.
+- Adds an elegant closed-room state after Day 14 instead of deleting or disabling the Supabase Auth identity; all Flowtel history remains preserved.
+- Reuses the existing Squarespace paid-membership verifier so an active or expired stay can convert the **same account** into verified Queendom / Flow FM access after purchase.
+- Adds server-only, one-time trial admissions and expiry-aware product access in migration 074; claimed trial start timestamps are never reset.
+- Reuses `api/squarespace-bridge.js` rather than adding another Vercel function, keeping the Hobby deployment at **12/12 serverless functions**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.87.4 — Squarespace Pricing Plan Purchase-Shape Diagnostic Hotfix
 
 - Keeps first-time membership authorization closed while diagnosing how a Squarespace Pricing Plan purchase is represented after Contacts + Orders authorization succeeds.

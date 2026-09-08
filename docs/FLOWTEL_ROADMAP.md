@@ -4,9 +4,11 @@ Updated: September 7, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.87.4 Squarespace Pricing Plan Purchase-Shape Diagnostic Hotfix
+## Current — v0.10.88 14-Day Complimentary Stay
 
-v0.10.87.4 follows live v0.10.87.3 testing, which successfully moved first-time signup past Squarespace Contacts authorization and exposed the next mismatch: Flow FM is sold as a Squarespace Pricing Plan while the beta-exit verifier currently expects membership entitlements to appear as mapped Commerce Order `productId` values. Before changing the membership boundary, Flowtel now performs the read-only Orders lookup and records only sanitized order/line-item structure so the actual Pricing Plan representation can be identified. No membership is granted from product names or diagnostic output. No migration is required; migration 073 remains latest and 074 remains next.
+v0.10.88 adds a one-time **14-Day Complimentary Stay** for women who have not yet joined the Queendom. The stay is a real Flowtel identity with preserved history, but remains membership rank 0: personal Suite/cycle/Flow Map/Moon Mail experiences are available while Womb Magic, Mentor to the Moon, member event registration, and other Queendom benefits remain gated. After 14 days the room closes without deleting the account or history; a later verified Queendom / Flow FM purchase reopens the same identity. Migration 074 is the database boundary, and the release reuses `api/squarespace-bridge.js` so Vercel remains at 12/12 serverless functions.
+
+v0.10.87.4 confirmed through live diagnostics that Squarespace Pricing Plan purchases surface as `PAYWALL_PRODUCT` Commerce line items with stable `productId` values. Flow FM is `47815dfc-d06e-45bb-8581-332cdff0fbff`; The Queendom | Feminine Mystery School Portal is `9ebc509d-6678-43d0-9162-df7f4cb505e4`. These IDs belong in the existing Vercel membership-product variables; normal paid-member signup still requires live end-to-end verification after configuration.
 
 v0.10.87.3 added the read-only Contacts list fallback and website authorization probe after the Contacts query returned 403 despite a correctly scoped API key.
 
@@ -14,15 +16,15 @@ v0.10.87.2 added stage-specific first-time signup diagnostics so Contacts and Or
 
 v0.10.87.1 keeps the **4-Week Womb Magic Portal** release intact and adds a deployment-only hotfix for the Vercel Hobby function budget. The retired `api/beta-request.js` function was removed because `/beta-request/` has already redirected to `/client/` since v0.10.85.1. Flowtel now deploys with 12 `/api` functions, matching the Hobby-plan limit. A validator protects this ceiling until infrastructure is consolidated or the hosting plan changes.
 
-The next narrow Flowtel extension is the **4-Week Womb Magic Portal**. A Queendom member chooses one Flow FM Priestess and one standing weekly time. Flowtel checks the existing Acuity calendar for that same local time across four consecutive weeks and schedules all four Womb Magic calls together. The monthly complimentary Womb Magic call remains separate.
+The most recent major member-service extension before Complimentary Stay was the **4-Week Womb Magic Portal**. A Queendom member chooses one Flow FM Priestess and one standing weekly time. Flowtel checks the existing Acuity calendar for that same local time across four consecutive weeks and schedules all four Womb Magic calls together. The monthly complimentary Womb Magic call remains separate.
 
 One member may hold one active Portal at a time, and one Flow FM Priestess may hold one active Portal client at a time. Either the client or the assigned Priestess may reschedule one week's appointment without shifting the other three. The Portal keeps the existing recording disclosure and extends consented preparation access across the 28-day container; Personal Cosmology still requires its own explicit sharing switch.
 
-Migration 073 is the database boundary for the Portal. It follows migration 071 (Moon Mail + Personal Cosmology) and migration 072 (Personal Cosmology Storage-policy hotfix). The deferred Moon Mail doorway correction is consolidated into v0.10.87 by linking current Flowtel doorways directly to `/moonbox/`. Caddie Magic remains v0.6.0 and Player-first.
+Migration 073 remains the database boundary for the Portal. Migration 074 adds Complimentary Stay without changing the Portal scheduling contract. The deferred Moon Mail doorway correction remains consolidated into the canonical `/moonbox/` route. Caddie Magic remains v0.6.0 and Player-first.
 
-### Priority 0 — finish beta-exit live verification
+### Priority 0 — finish paid signup + Complimentary Stay live verification
 
-Source validation does not replace live verification. Before beta exit is considered green, confirm migration 070, eligible first-time signup + Confirm Signup, completed password recovery, Squarespace Commerce permissions/product IDs, Movie Night paid and Flow FM included access, refund/revocation, Event Pass isolation, remembered-session behavior, legacy redirects, and the visible Squarespace ENTER THE FLOWTEL CTA pointing to `/client/`. Use v0.10.85.x only for launch-critical hotfixes discovered in that verification.
+Source validation does not replace live verification. Confirm the newly configured Queendom / Flow FM `PAYWALL_PRODUCT` IDs through one real first-time paid-member signup, then apply migration 074 and verify one new Complimentary Stay end-to-end: email confirmation, rank-0 personal Flowtel access, member-benefit isolation, Day-15 closed-room behavior, and same-account conversion after a verified Queendom purchase. Continue to preserve the remaining beta-exit checks around password recovery, Event Pass isolation, remembered sessions, refunds/revocation, legacy redirects, and the canonical `/client/` doorway.
 
 ## Next Priority — Front Desk / Concierge Messages
 

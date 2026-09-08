@@ -1,6 +1,6 @@
-import { getCurrentProfile, updateMyGuestProfile, updateMyFlowFmStartDate } from "../shared/profiles.js?v=0.10.75";
+import { getCurrentProfile, updateMyGuestProfile, updateMyFlowFmStartDate } from "../shared/profiles.js?v=0.10.88";
 import { flowtelTodayISO } from "../shared/flowtel-date.js?v=0.10.75";
-import { isProductAccessError } from "../shared/product-access.js?v=0.10.73";
+import { isProductAccessError } from "../shared/product-access.js?v=0.10.88";
 
 const form = document.getElementById("profileForm");
 const loading = document.getElementById("profileLoading");

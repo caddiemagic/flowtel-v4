@@ -1,0 +1,16 @@
+Flowtel v0.10.88 — 14-Day Complimentary Stay
+
+DEPLOYMENT ORDER
+1. Run database/migration-074-flowtel-complimentary-stay.sql once in Supabase.
+2. Overlay the patch files on the current v0.10.87.4 source.
+3. Commit/push and wait for Vercel to report Ready.
+4. Confirm the Vercel function budget remains 12/12.
+5. Test /client/ with a new non-member email using “Stay with us complimentary for 14 days.”
+6. Separately retest one paid Queendom / Flow FM first-time signup.
+
+No new Vercel environment variable is required for the trial.
+Keep the already identified Squarespace membership product IDs configured:
+- SQUARESPACE_FLOWFM_PRODUCT_IDS=47815dfc-d06e-45bb-8581-332cdff0fbff
+- SQUARESPACE_QUEENDOM_PRODUCT_IDS=9ebc509d-6678-43d0-9162-df7f4cb505e4
+
+Migration 074 becomes latest after it is applied. Migration 075 is next.

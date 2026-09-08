@@ -1,4 +1,4 @@
-import { getCurrentProfile } from "../shared/profiles.js?v=0.10.75";
+import { getCurrentProfile } from "../shared/profiles.js?v=0.10.88";
 import { supabase } from "../shared/supabase.js";
 
 const BUCKET="flowtel-personal-cosmology";

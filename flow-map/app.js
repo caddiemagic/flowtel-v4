@@ -1,4 +1,4 @@
-import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.4.1";
+import { displayNameForProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.88";
 import { listMyAccessibleClients } from "../shared/flowtel.js?v=0.10.81";
 import { supabase } from "../shared/supabase.js";
 

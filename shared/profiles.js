@@ -3,7 +3,7 @@
 import { supabase } from "./supabase.js";
 import { getCurrentUser } from "./auth.js";
 import { resolveMembership, roleFromResolvedMembership, rankForMembership, normalizeMembership } from "./membership.js";
-import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.73";
+import { claimFlowtelAccess, requireProductAccess, isProductAccessError } from "./product-access.js?v=0.10.88";
 
 
 export function displayNameForProfile(profile = {}, fallback = "Guest") {

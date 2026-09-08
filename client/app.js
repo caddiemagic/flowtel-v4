@@ -1,6 +1,6 @@
 import { supabase } from "../shared/supabase.js";
 import { getCurrentUser, signInWithEmail, createAccountWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.85";
-import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.75";
+import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.88";
 import { createStay, getCycleDayConfirmationContext, getTodayStayForClient, autoCloseOpenStayIfNeeded, saveReflection, closeStayPersonally, clockInPractitioner, getPreviousVisits, getUnreadConciergeNoteStays, markConciergeNotesRead, getDayContent, getMoonMagic, getFlowFmInitiationStatus, listMentors, getMyPractitionerRelationship, chooseMentor, cancelMentorRequest, currentUserHasConciergeTeamAccess, MENTOR_DATA_CONSENT_LANGUAGE } from "../shared/flowtel.js?v=0.10.81.3";
 import { membershipFromUrl, labelForMembership, normalizeMembership } from "../shared/membership.js";
 import { isPractitionerLevel } from "../shared/beta-access.js";
@@ -13,6 +13,7 @@ import { mountWombMagicPortal } from "../shared/womb-magic-portal.js?v=0.10.87";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
 import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket } from "../shared/queendom-events.js?v=0.10.85";
 import { timezoneDisplayName, timezoneShortName } from "../shared/timezone-labels.js?v=0.10.85";
+import { getMyProductAccess, isComplimentaryStayAccess, isComplimentaryStayExpired, complimentaryStayDay } from "../shared/product-access.js?v=0.10.88";
 
 const lobbyScene=document.getElementById("lobbyScene");
 const keyScene=document.getElementById("keyScene");
@@ -20,6 +21,7 @@ const preparingScene=document.getElementById("preparingScene");
 const suiteScene=document.getElementById("suiteScene");
 const loungeScene=document.getElementById("loungeScene");
 const checkoutCompleteScene=document.getElementById("checkoutCompleteScene");
+const trialExpiredScene=document.getElementById("trialExpiredScene");
 
 const authPanel=document.getElementById("authPanel");
 const checkinForm=document.getElementById("checkinForm");
@@ -44,6 +46,9 @@ let passwordRecoveryMode=urlParam("passwordRecovery")==="1";
 let passwordRecoveryHandled=false;
 
 let currentProfile=null;
+let currentProductAccess=null;
+let accountCreationMode="member";
+let complimentaryStayExpiryTimer=null;
 let loungeWorkshopLoadPromise=null;
 let loungeWorkshopLoadedVideoId=null;
 let loungeSeasonPlan=null;
@@ -100,14 +105,137 @@ async function prepareMoonMailDueAlerts({force=false}={}){
   return moonMailDueLoadPromise;
 }
 
+function currentProfileMembershipRank(profile=currentProfile){
+  const membership=normalizeMembership(profile?.membership_type);
+  const membershipRank=membership==="council"?3:membership==="flowfm"?2:membership==="queendom"?1:0;
+  const role=String(profile?.role||"").toLowerCase();
+  return Math.max(Number(profile?.membership_rank||0),membershipRank,["practitioner","admin","owner"].includes(role)?2:0);
+}
+
+function isActiveComplimentaryStay(){
+  return Boolean(currentProductAccess && isComplimentaryStayAccess(currentProductAccess) && !isComplimentaryStayExpired(currentProductAccess));
+}
+
+async function refreshCurrentProductAccess(){
+  currentProductAccess=await getMyProductAccess();
+  return currentProductAccess;
+}
+
+function scheduleComplimentaryStayExpiry(){
+  window.clearTimeout(complimentaryStayExpiryTimer);
+  complimentaryStayExpiryTimer=null;
+  if(!isActiveComplimentaryStay()) return;
+  const end=Date.parse(String(currentProductAccess?.flowtel_trial_ends_at||""));
+  if(!Number.isFinite(end)) return;
+  const delay=Math.max(0,end-Date.now()+750);
+  complimentaryStayExpiryTimer=window.setTimeout(()=>{void maybeShowExpiredComplimentaryStay();},Math.min(delay,2147483000));
+}
+
+function renderComplimentaryStayBanner(){
+  const banner=document.getElementById("complimentaryStayBanner");
+  if(!banner) return;
+  const active=isActiveComplimentaryStay();
+  banner.classList.toggle("hidden",!active);
+  scheduleComplimentaryStayExpiry();
+  if(!active) return;
+  const day=complimentaryStayDay(currentProductAccess)||1;
+  const label=document.getElementById("complimentaryStayLabel");
+  const copy=document.getElementById("complimentaryStayCopy");
+  if(label) label.textContent=`COMPLIMENTARY STAY · DAY ${day} OF 14`;
+  if(copy) copy.textContent=day>=11
+    ? "Your complimentary stay is almost complete. Join the Queendom to keep your room open and continue with everything you have already discovered."
+    : "Your room is yours for fourteen days. Check in, notice your patterns, and let the Flowtel begin to remember you.";
+}
+
+function showTrialExpiredScene(){
+  setFlowtelLoading(false);
+  setAuthenticatedAccountVisible(true);
+  clearCachedSuiteStay();
+  currentStay=null;
+  pendingArrivalStay=null;
+  const status=document.getElementById("trialExpiredStatus");
+  if(status) status.textContent="";
+  showScene("trialExpired");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+
+async function maybeShowExpiredComplimentaryStay(){
+  try{
+    await refreshCurrentProductAccess();
+  }catch(error){
+    console.warn("Complimentary stay status could not be refreshed.",error);
+    return false;
+  }
+  if(!isComplimentaryStayExpired(currentProductAccess)) return false;
+  showTrialExpiredScene();
+  return true;
+}
+
+async function handleTrialMembershipRefresh(statusElement=null){
+  const status=statusElement||document.getElementById("trialExpiredStatus")||document.getElementById("complimentaryStayStatus");
+  const buttons=[document.getElementById("trialReopenButton"),document.getElementById("complimentaryStayUpgradeButton")].filter(Boolean);
+  try{
+    buttons.forEach(button=>button.disabled=true);
+    if(status) status.textContent="Checking your Queendom room key…";
+    const user=await getCurrentUser();
+    if(!user?.email) throw new Error("Sign in to this Flowtel account before reopening your room.");
+    const bridge=await verifySquarespaceMember(user.email,"signup");
+    currentProfile=await ensureProfile({
+      firstName:bridge.contact?.firstName,
+      lastName:bridge.contact?.lastName,
+      membershipType:bridge.membershipType,
+      squarespaceSource:"squarespace-membership-purchase",
+      squarespaceContactId:bridge.contact?.id,
+      squarespaceContactEmail:user.email,
+    });
+    await refreshCurrentProductAccess();
+    if(isComplimentaryStayExpired(currentProductAccess) || currentProfileMembershipRank(currentProfile)<1){
+      throw new Error("Your Queendom purchase was found, but the room key has not finished updating yet. Refresh once and try again.");
+    }
+    if(status) status.textContent="Your Queendom room key is ready. Welcome home.";
+    await continueAuthenticatedEntrance();
+  }catch(error){
+    console.error("Complimentary stay membership refresh failed.",error);
+    if(status) status.textContent=error?.message||"Flowtel could not verify your Queendom room key yet.";
+  }finally{
+    buttons.forEach(button=>button.disabled=false);
+  }
+}
+
 function updatePhaseOneSuiteLinks(){
+  const trial=isActiveComplimentaryStay();
   const profileLoungeCard=document.querySelector(".profile-lounge-card");
-  if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", !isPractitionerLevel(currentProfile));
+  if(profileLoungeCard) profileLoungeCard.classList.toggle("hidden", trial || !isPractitionerLevel(currentProfile));
   const workshopCard=document.getElementById("flowFmWorkshopLoungeCard");
-  const workshopAllowed=effectiveFlowFmRank(currentProfile || {})>=2;
+  const workshopAllowed=!trial && effectiveFlowFmRank(currentProfile || {})>=2;
   if(workshopCard) workshopCard.classList.toggle("hidden", !workshopAllowed);
   if(workshopAllowed){ void prepareLoungeWorkshopVideo(); void prepareLoungeSeasonPlanner(); }
-  if(currentProfile) void prepareLoungeEvents();
+
+  const practitionerCard=document.getElementById("practitionerCard");
+  const wombMagicCard=document.getElementById("wombMagicSuiteCard");
+  const wombMagicPortalCard=document.getElementById("wombMagicPortalCard");
+  const teamMapLink=document.getElementById("suiteCurrentRoomTeamMapLink");
+  if(practitionerCard) practitionerCard.classList.toggle("hidden",trial);
+  if(wombMagicCard) wombMagicCard.classList.toggle("hidden",trial);
+  if(wombMagicPortalCard) wombMagicPortalCard.classList.toggle("hidden",trial);
+  if(teamMapLink) teamMapLink.classList.toggle("hidden",trial);
+
+  const loungeEvents=document.getElementById("loungeEventsCard");
+  const myEvents=document.getElementById("my-upcoming-events");
+  const eventsStatus=document.getElementById("loungeEventsStatus");
+  const trialInvitation=document.getElementById("complimentaryStayLoungeInvitation");
+  if(loungeEvents) loungeEvents.classList.toggle("hidden",trial);
+  if(myEvents) myEvents.classList.toggle("hidden",trial||myEvents.getAttribute("aria-hidden")==="true");
+  if(eventsStatus) eventsStatus.classList.toggle("hidden",trial);
+  if(trialInvitation) trialInvitation.classList.toggle("hidden",!trial);
+
+  document.querySelectorAll('a[href="https://www.theidyllcollective.com/queendomhome"]').forEach(link=>{
+    if(link.closest(".complimentary-stay-banner")||link.closest(".complimentary-stay-expired-card")||link.closest(".complimentary-stay-lounge-card")) return;
+    link.textContent=trial?"Join the Queendom":"Return to the Queendom";
+  });
+
+  if(!trial && currentProfile) void prepareLoungeEvents();
+  renderComplimentaryStayBanner();
   renderSuiteClockInButton();
 }
 
@@ -281,8 +409,11 @@ function updateDoorwayCopy(){
   if(note){
     note.textContent = SQUARESPACE_MEMBERSHIP
       ? `You entered through the ${labelForMembership(SQUARESPACE_MEMBERSHIP)} doorway.`
-      : "Enter through your protected Idyll Collective member doorway.";
+      : "Enter with your private room key, create your member account, or begin a 14-day complimentary stay.";
   }
+
+  const trialDoorway=document.getElementById("showComplimentaryStayButton");
+  if(trialDoorway) trialDoorway.classList.toggle("hidden",Boolean(SQUARESPACE_MEMBERSHIP));
 
   const detectedEmail=extractSquarespaceEmail();
   const loginEmail=document.getElementById("email");
@@ -315,7 +446,25 @@ function isInvalidCredentialsError(error){
   return message.includes("invalid login") || message.includes("invalid credentials");
 }
 
-function showNewAccountForm(){
+function setNewAccountMode(mode="member"){
+  accountCreationMode=mode==="trial"?"trial":"member";
+  const trial=accountCreationMode==="trial";
+  const eyebrow=document.getElementById("newAccountEyebrow");
+  const title=document.getElementById("newAccountTitle");
+  const copy=document.getElementById("newAccountCopy");
+  const button=document.getElementById("createAccountButton");
+  const status=document.getElementById("newAccountStatus");
+  if(eyebrow) eyebrow.textContent=trial?"YOUR COMPLIMENTARY STAY":"YOUR FIRST STAY";
+  if(title) title.textContent=trial?"Begin your 14-Day Complimentary Stay":"Create your Flowtel account";
+  if(copy) copy.textContent=trial
+    ? "Create a private Flowtel account. Your first 14 days are complimentary; joining the Queendom keeps your room open after your stay."
+    : "Use the email connected to your Queendom membership and choose your own private password.";
+  if(button) button.textContent=trial?"Begin My 14-Day Stay":"Create My Flowtel Account";
+  if(status) status.textContent="";
+}
+
+function showNewAccountForm(mode="member"){
+  setNewAccountMode(mode);
   const login=document.getElementById("flowtelLoginCard"),create=document.getElementById("newAccountCard");
   const loginEmail=document.getElementById("email")?.value || extractSquarespaceEmail();
   if(login) login.classList.add("hidden");
@@ -334,43 +483,64 @@ function showLoginForm(){
 }
 
 async function handleCreateAccount(){
+  const trial=accountCreationMode==="trial";
   const email=(document.getElementById("newAccountEmail")?.value||"").trim().toLowerCase();
   const password=document.getElementById("newAccountPassword")?.value||"";
   const confirm=document.getElementById("newAccountPasswordConfirm")?.value||"";
   const status=document.getElementById("newAccountStatus");
-  if(!email||!email.includes("@")){if(status)status.textContent="Add the email connected to your Queendom membership.";return;}
+  if(!email||!email.includes("@")){if(status)status.textContent=trial?"Add the email you want to use for your Flowtel stay.":"Add the email connected to your Queendom membership.";return;}
   if(password.length<10){if(status)status.textContent="Choose a password with at least 10 characters.";return;}
   if(password!==confirm){if(status)status.textContent="Those passwords do not match yet.";return;}
   try{
-    setFlowtelLoading(true,"The Flowtel is preparing your first room key...");if(status)status.textContent="Verifying your Queendom doorway…";
-    const bridge=await verifySquarespaceMember(email,"signup");
+    setFlowtelLoading(true,trial?"The Flowtel is preparing your complimentary stay...":"The Flowtel is preparing your first room key...");
+    if(status)status.textContent=trial?"Preparing your complimentary stay…":"Verifying your Queendom doorway…";
+    const bridge=await verifySquarespaceMember(email,trial?"trial-signup":"signup");
+
+    if(trial&&bridge.existingAccount){
+      setFlowtelLoading(false);
+      showLoginForm();
+      const loginEmail=document.getElementById("email");if(loginEmail)loginEmail.value=email;
+      setMessage("This email already has a Flowtel identity. Sign in with your existing password to begin your 14-day complimentary stay. If you need it, choose Forgot your password?");
+      return;
+    }
+
     const redirect=new URL("/client/",window.location.origin);
     redirect.searchParams.set("accountConfirmed","1");
     if(eventDoorwayEventId){redirect.searchParams.set("saveEvent",eventDoorwayEventId);redirect.searchParams.set("lounge","1");}
     if(eventRoomEventId){redirect.searchParams.set("openEvent",eventRoomEventId);redirect.searchParams.set("lounge","1");}
-    const data=await createAccountWithEmail(email,password,{
-      redirectTo:redirect.toString(),
-      metadata:{
-        first_name:bridge.contact?.firstName||null,last_name:bridge.contact?.lastName||null,
-        display_name:[bridge.contact?.firstName,bridge.contact?.lastName].filter(Boolean).join(" ")||null,
-        squarespace_contact_id:bridge.contact?.id||null,
-        membership_type:bridge.membershipType||"queendom",
-        source:"flowtel_member_signup",
-        flowtel_password_chosen:true,
-      },
-    });
+    const metadata={
+      first_name:bridge.contact?.firstName||null,
+      last_name:bridge.contact?.lastName||null,
+      display_name:[bridge.contact?.firstName,bridge.contact?.lastName].filter(Boolean).join(" ")||null,
+      squarespace_contact_id:bridge.contact?.id||null,
+      source:trial?"flowtel_complimentary_stay":"flowtel_member_signup",
+      flowtel_password_chosen:true,
+    };
+    if(!trial) metadata.membership_type=bridge.membershipType||"queendom";
+
+    const data=await createAccountWithEmail(email,password,{redirectTo:redirect.toString(),metadata});
     try{localStorage.setItem("flowtel:memberEmail",email);}catch(_){ }
     document.getElementById("newAccountPassword").value="";document.getElementById("newAccountPasswordConfirm").value="";
     if(data?.session?.user){
-      currentProfile=await ensureProfile({firstName:bridge.contact?.firstName,lastName:bridge.contact?.lastName,membershipType:bridge.membershipType,squarespaceSource:"squarespace-contacts",squarespaceContactId:bridge.contact?.id,squarespaceContactEmail:email});
+      currentProfile=await ensureProfile({
+        firstName:bridge.contact?.firstName,
+        lastName:bridge.contact?.lastName,
+        ...(trial?{}:{membershipType:bridge.membershipType}),
+        squarespaceSource:trial?"complimentary-stay":"squarespace-contacts",
+        squarespaceContactId:bridge.contact?.id,
+        squarespaceContactEmail:email,
+      });
       if(profileNeedsPersonalRoomKey(currentProfile)) currentProfile=await markPersonalRoomKeyCreated();
       setFlowtelLoading(false);await continueAuthenticatedEntrance();return;
     }
-    setFlowtelLoading(false);showLoginForm();setMessage("Check your email to confirm your Flowtel account. After you confirm, Flowtel will bring you home.");
+    setFlowtelLoading(false);showLoginForm();
+    setMessage(trial
+      ? "Check your email to confirm your Flowtel account. Your 14-day complimentary stay begins when you first enter your room."
+      : "Check your email to confirm your Flowtel account. After you confirm, Flowtel will bring you home.");
   }catch(error){setFlowtelLoading(false);console.error("Flowtel account creation failed.",error);if(status)status.textContent=error?.message||"Your account could not be created just now.";}
 }
 
-async function openMemberBridge(){ showNewAccountForm(); }
+async function openMemberBridge(){ showNewAccountForm("member"); }
 
 // Release 0.10.15 login recovery:
 // Keep Phase 1 gating local to the guest app so a missing/new rollout module
@@ -540,9 +710,15 @@ async function continueAuthenticatedEntrance(){
   if(!currentProfile?.id) return;
 
   setAuthenticatedAccountVisible(true);
+  await refreshCurrentProductAccess();
+  scheduleComplimentaryStayExpiry();
+  if(isComplimentaryStayExpired(currentProductAccess)){
+    showTrialExpiredScene();
+    return;
+  }
   clearCachedSuiteStayIfItBelongsToAnotherGuest();
   setMessage("");
-  await registerPendingEventDoorway();
+  if(!isActiveComplimentaryStay()) await registerPendingEventDoorway();
   await refreshConciergeTeamAccess();
   await prepareDailyStayState();
 
@@ -669,9 +845,15 @@ async function beginPasswordRecovery(user=null){
       return;
     }
 
-    currentProfile=await ensureProfile({
-      squarespaceSource:"password-recovery",
-    });
+    try{
+      currentProfile=await ensureProfile({
+        squarespaceSource:"password-recovery",
+      });
+    }catch(accessError){
+      await refreshCurrentProductAccess();
+      if(!isComplimentaryStayExpired(currentProductAccess)) throw accessError;
+      currentProfile={id:recoveredUser.id,email:recoveredUser.email,password_setup_completed_at:true};
+    }
     setAuthenticatedAccountVisible(true);
     showPersonalRoomKeyPanel("recovery");
   }catch(error){
@@ -773,13 +955,14 @@ function showScene(name){
   const flowMapLink=document.getElementById("suiteCurrentRoomFlowMapLink");
   if(flowMapLink) flowMapLink.href="/flow-map/";
   updateFlowtelTimestamp();
-  [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene,checkoutCompleteScene].filter(Boolean).forEach(scene=>scene.classList.remove("active"));
+  [lobbyScene,keyScene,preparingScene,suiteScene,loungeScene,checkoutCompleteScene,trialExpiredScene].filter(Boolean).forEach(scene=>scene.classList.remove("active"));
   if(name==="lobby"){lobbyScene.classList.add("active");setProgress(1);}
   if(name==="key"){keyScene.classList.add("active");setProgress(2);}
   if(name==="preparing"){preparingScene.classList.add("active");setProgress(2);}
   if(name==="suite"){suiteScene.classList.add("active");setProgress(3);void prepareMoonMailDueAlerts();}
-  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareMoonMailDueAlerts();void prepareLoungeEvents({force:Boolean(eventDoorwayEventId)}).finally(()=>focusMyUpcomingEvents());window.scrollTo({top:0,behavior:"smooth"});}
+  if(name==="lounge"){loungeScene.classList.add("active");setProgress(3);renderLoungeVisits();renderLoungeCheckoutState();ensureLoungeClockInButton();void prepareMoonMailDueAlerts();if(!isActiveComplimentaryStay())void prepareLoungeEvents({force:Boolean(eventDoorwayEventId)}).finally(()=>focusMyUpcomingEvents());window.scrollTo({top:0,behavior:"smooth"});}
   if(name==="checkoutComplete"&&checkoutCompleteScene){checkoutCompleteScene.classList.add("active");setProgress(3);}
+  if(name==="trialExpired"&&trialExpiredScene){trialExpiredScene.classList.add("active");setProgress(1);}
 }
 
 function canClockIn(profile){
@@ -1265,10 +1448,14 @@ function renderSuite(stay){
 
   renderConciergeCare(stay);
   void loadUnreadConciergeNotes(stay);
-  renderPractitionerConnection();
   updatePhaseOneSuiteLinks();
-  void wombMagicBooking.refresh({silent:true});
-  void wombMagicPortal.refresh({silent:true});
+  if(!isActiveComplimentaryStay()){
+    void renderPractitionerConnection();
+    void wombMagicBooking.refresh({silent:true});
+    void wombMagicPortal.refresh({silent:true});
+  }else{
+    currentMentorRelationship=null;
+  }
 
   renderWheel(actualDay);
   window.requestAnimationFrame(()=>{
@@ -1939,6 +2126,7 @@ async function openRememberedRoomKey(){
     setFlowtelLoading(false);
     console.warn("Remembered Flowtel access could not open automatically.",error);
     clearCachedSuiteStay();
+    if(await maybeShowExpiredComplimentaryStay()) return true;
     return false;
   }
 }
@@ -1971,6 +2159,7 @@ async function handleSignIn(){
     await continueAuthenticatedEntrance();
   }catch(error){
     setFlowtelLoading(false);
+    if(!isInvalidCredentialsError(error) && await maybeShowExpiredComplimentaryStay()) return;
     if(isInvalidCredentialsError(error)){
       setMessage("Flowtel could not match that email and password. Try again or choose Forgot your password?");
     }else{
@@ -2291,9 +2480,13 @@ function ensureLoungeClockInButton(){
 }
 
 
-document.getElementById("showNewAccountButton")?.addEventListener("click",showNewAccountForm);
+document.getElementById("showNewAccountButton")?.addEventListener("click",()=>showNewAccountForm("member"));
+document.getElementById("showComplimentaryStayButton")?.addEventListener("click",()=>showNewAccountForm("trial"));
 document.getElementById("backToLoginButton")?.addEventListener("click",showLoginForm);
 document.getElementById("createAccountButton")?.addEventListener("click",handleCreateAccount);
+document.getElementById("complimentaryStayUpgradeButton")?.addEventListener("click",()=>handleTrialMembershipRefresh(document.getElementById("complimentaryStayStatus")));
+document.getElementById("trialReopenButton")?.addEventListener("click",()=>handleTrialMembershipRefresh(document.getElementById("trialExpiredStatus")));
+document.getElementById("trialExpiredSwitchAccountButton")?.addEventListener("click",handleSwitchAccount);
 document.getElementById("signInButton").addEventListener("click",handleSignIn);
 const forgotPasswordButton=document.getElementById("forgotPasswordButton");
 if(forgotPasswordButton) forgotPasswordButton.addEventListener("click",handleForgotPassword);

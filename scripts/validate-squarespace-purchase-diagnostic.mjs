@@ -5,7 +5,7 @@ import vm from 'node:vm';
 const file = new URL('../api/squarespace-bridge.js', import.meta.url);
 const source = fs.readFileSync(file, 'utf8');
 
-assert(source.includes('Flowtel v0.10.87.4 — Squarespace membership purchase-shape diagnostic hardening.'), 'v0.10.87.4 bridge marker is missing.');
+assert(source.includes('Flowtel v0.10.88 — verified membership + one-time 14-Day Complimentary Stay doorway.'), 'Current bridge release marker is missing.');
 assert(source.includes('Flowtel Squarespace membership purchase-shape diagnostic.'), 'Purchase-shape server diagnostic log is missing.');
 assert(source.includes('No Flowtel access was granted'), 'Diagnostic must explicitly remain non-authorizing.');
 
@@ -63,4 +63,4 @@ assert(message.includes('No Flowtel access was granted'), 'User diagnostic must 
 const zeroMessage = context.purchaseDiagnosticUserMessage({ ordersReturned: 0, membershipLike: [] });
 assert(zeroMessage.includes('0 Commerce orders'), 'Zero-order diagnostic is missing.');
 
-console.log('Flowtel v0.10.87.4 Squarespace purchase-shape diagnostic validator passed.');
+console.log('Squarespace purchase-shape diagnostic validator passed under Flowtel v0.10.88.');

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.87" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.88" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -34,12 +34,13 @@
             <button id="signInButton" type="button">Enter the Flowtel</button>
             <button id="forgotPasswordButton" type="button" class="text-button">Forgot your password?</button>
             <button id="showNewAccountButton" type="button" class="secondary">First time here? Create your account</button>
+            <button id="showComplimentaryStayButton" type="button" class="text-button complimentary-stay-doorway-button">Stay with us complimentary for 14 days</button>
           </div>
 
           <div class="flowtel-new-account-card hidden" id="newAccountCard" aria-hidden="true">
-            <p class="eyebrow">YOUR FIRST STAY</p>
-            <h3>Create your Flowtel account</h3>
-            <p class="microcopy">Use the email connected to your Queendom membership and choose your own private password.</p>
+            <p class="eyebrow" id="newAccountEyebrow">YOUR FIRST STAY</p>
+            <h3 id="newAccountTitle">Create your Flowtel account</h3>
+            <p class="microcopy" id="newAccountCopy">Use the email connected to your Queendom membership and choose your own private password.</p>
 
             <label for="newAccountEmail">Email</label>
             <input id="newAccountEmail" type="email" autocomplete="email" />
@@ -124,6 +125,17 @@
           <p class="eyebrow">YOUR SUITE</p>
           <h2 id="suiteWelcome">Room is ready for you.</h2>
           <p class="suite-subline" id="suiteSubline"></p>
+          <section class="complimentary-stay-banner hidden" id="complimentaryStayBanner" aria-live="polite">
+            <div>
+              <p class="eyebrow" id="complimentaryStayLabel">COMPLIMENTARY STAY · DAY 1 OF 14</p>
+              <p id="complimentaryStayCopy">Your room is yours for fourteen days. Notice what the Flowtel begins to show you.</p>
+            </div>
+            <div class="complimentary-stay-actions">
+              <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
+              <button type="button" id="complimentaryStayUpgradeButton">I Joined — Unlock My Membership</button>
+            </div>
+            <p class="complimentary-stay-status" id="complimentaryStayStatus" role="status"></p>
+          </section>
           <div class="suite-external-actions">
             <a class="queendom-return-link" id="suiteProfileLink" href="/profile/?return=%2Fclient%2F%3Fsuite%3D1%26profileReturn%3D1">My Profile</a>
             <a class="queendom-return-link" href="/moonbox/">Moon Mail</a>
@@ -366,6 +378,17 @@
           <a class="suite-button-link moon-mail-return-link" data-moon-mail-return-link href="/moonbox/">Return to Your Message</a>
         </section>
 
+        <section class="lounge-events-card complimentary-stay-lounge-card hidden" id="complimentaryStayLoungeInvitation">
+          <header class="lounge-events-heading">
+            <p class="eyebrow">THE QUEENDOM</p>
+            <h3>Your stay is inside the Flowtel. The Queendom opens the gatherings.</h3>
+            <p>Join the Queendom to unlock member events, Womb Magic, and your Mentor to the Moon while keeping this same room and all of your history.</p>
+          </header>
+          <div class="lounge-events-footer-actions">
+            <a class="lounge-calendar-link" href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
+          </div>
+        </section>
+
         <section class="lounge-events-card" id="loungeEventsCard">
           <header class="lounge-events-heading">
             <p class="eyebrow">UPCOMING EVENTS IN THE QUEENDOM</p>
@@ -448,6 +471,21 @@
         <p class="suite-subline">Same time tomorrow?</p>
         <button id="checkoutReturnButton" type="button" class="secondary">Return Home</button>
       </section>
+
+      <section class="scene complimentary-stay-expired-scene" id="trialExpiredScene">
+        <div class="complimentary-stay-expired-card">
+          <p class="eyebrow">YOUR COMPLIMENTARY STAY IS COMPLETE</p>
+          <h2>Your room is still here.</h2>
+          <p>Your reflections, Flow Map, cycle history, and everything you discovered during your stay are still waiting for you.</p>
+          <p>Join the Queendom to reopen your room and continue exactly where you left off.</p>
+          <div class="complimentary-stay-expired-actions">
+            <a href="https://www.theidyllcollective.com/queendomhome">Join the Queendom</a>
+            <button id="trialReopenButton" type="button" class="secondary">I Joined — Reopen My Room</button>
+            <button id="trialExpiredSwitchAccountButton" type="button" class="text-button">Switch Account</button>
+          </div>
+          <p id="trialExpiredStatus" class="microcopy" role="status" aria-live="polite"></p>
+        </div>
+      </section>
     </section>
   </main>
 
@@ -492,6 +530,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.87"></script>
+  <script type="module" src="./app.js?v=0.10.88"></script>
 </body>
 </html>

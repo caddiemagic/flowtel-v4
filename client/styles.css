@@ -4199,3 +4199,26 @@ body.personal-room-key-is-open{
 .wmp-standing-time{margin:10px 0 4px;padding:11px 13px;border-radius:14px;background:rgba(248,231,227,.48);color:#745e55;font-size:.86rem;line-height:1.5}
 .wmp-standing-time strong{color:#6f5146}
 .womb-magic-portal-card .wm-time-button small{display:block;margin-top:4px;letter-spacing:.03em}
+
+/* Flowtel v0.10.88 — 14-Day Complimentary Stay */
+.complimentary-stay-doorway-button{margin-top:0!important;color:var(--soft-brown)}
+.complimentary-stay-banner{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 22px;align-items:center;max-width:760px;margin:18px auto 4px;padding:17px 19px;border:1px solid rgba(184,130,38,.38);border-radius:20px;background:linear-gradient(135deg,rgba(255,251,240,.96),rgba(248,226,222,.72));box-shadow:0 14px 34px rgba(91,62,50,.07)}
+.complimentary-stay-banner.hidden{display:none}
+.complimentary-stay-banner .eyebrow{margin:0 0 5px;color:#a96960}
+.complimentary-stay-banner p:not(.eyebrow){margin:0;max-width:540px;color:var(--soft-brown);line-height:1.5}
+.complimentary-stay-actions{display:grid;gap:7px;min-width:205px}
+.complimentary-stay-actions a,.complimentary-stay-actions button{display:flex;align-items:center;justify-content:center;min-height:39px;padding:8px 14px;border:1px solid rgba(184,130,38,.46);border-radius:999px;background:#fffaf7;color:var(--brown);font-family:Arial,sans-serif;font-size:.62rem;font-weight:700;letter-spacing:.08em;text-align:center;text-decoration:none;text-transform:uppercase;cursor:pointer}
+.complimentary-stay-actions button{background:transparent}
+.complimentary-stay-status{grid-column:1/-1;min-height:0!important;margin:0!important;color:#9a675d!important;font-size:.78rem!important;font-style:italic}
+.complimentary-stay-lounge-card{background:linear-gradient(145deg,rgba(255,250,240,.98),rgba(248,226,222,.76))}
+.complimentary-stay-lounge-card .lounge-events-footer-actions{margin-top:14px}
+.complimentary-stay-expired-scene{width:100%;padding:26px 0}
+.complimentary-stay-expired-card{width:min(720px,100%);margin:0 auto;padding:clamp(28px,6vw,54px);border:1px solid rgba(184,130,38,.38);border-radius:30px;background:linear-gradient(145deg,rgba(255,252,247,.99),rgba(249,231,226,.82));box-shadow:0 24px 70px rgba(89,60,49,.11);text-align:center}
+.complimentary-stay-expired-card h2{margin:8px 0 16px;font-family:Georgia,"Times New Roman",serif;font-size:clamp(2rem,5vw,3.2rem);font-weight:400;color:var(--brown)}
+.complimentary-stay-expired-card>p:not(.eyebrow):not(.microcopy){max-width:590px;margin:9px auto;color:var(--soft-brown);font-size:1rem;line-height:1.65}
+.complimentary-stay-expired-actions{display:grid;gap:10px;width:min(390px,100%);margin:26px auto 0}
+.complimentary-stay-expired-actions a,.complimentary-stay-expired-actions button{display:flex;align-items:center;justify-content:center;min-height:46px;border:1px solid rgba(184,130,38,.48);border-radius:999px;padding:10px 18px;background:linear-gradient(135deg,var(--blush-2),#fffaf7);color:var(--brown);font-family:Arial,sans-serif;font-size:.68rem;font-weight:700;letter-spacing:.09em;text-decoration:none;text-transform:uppercase;cursor:pointer}
+.complimentary-stay-expired-actions .secondary{background:#fffdf9}
+.complimentary-stay-expired-actions .text-button{min-height:auto;border:0;background:transparent;text-decoration:underline;text-underline-offset:3px;box-shadow:none}
+#trialExpiredStatus{min-height:20px;margin:14px 0 0;color:#9a675d}
+@media(max-width:700px){.complimentary-stay-banner{grid-template-columns:1fr;padding:16px}.complimentary-stay-actions{min-width:0}.complimentary-stay-expired-scene{padding:14px 0}.complimentary-stay-expired-card{padding:30px 18px;border-radius:24px}}
