@@ -1,34 +1,30 @@
 # Flowtel Roadmap
 
-Updated: September 7, 2026
+Updated: September 8, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.88.1 Complimentary Stay Doorway + Womb Magic Preview Polish
+## Current — v0.10.89 Multi-Session Event Series + Acuity Group Enrollment
 
-v0.10.88.1 polishes the Complimentary Stay doorway and Suite presentation without changing its database boundary. The public login now separates Queendom-member account creation, the 14-day stay, and joining the Queendom; the active-stay header uses a compact day ribbon; monthly Womb Magic is visible as a locked Queendom benefit; and returning trial identities silently re-check Squarespace once per page load so a verified purchase can upgrade the same account automatically. No new migration or Vercel function is required.
+v0.10.89 extends the existing Queendom Calendar with **Multi-Session Series**. One Flowtel parent event now holds a repeatable occurrence itinerary while preserving one canonical member registration. Flowtel owns eligibility, Event Room access, and the protected member-facing Zoom doorway; Acuity owns the existing group-class series, class capacity, enrollment, and configured confirmation/reminder emails. Migration 075 adds the private occurrence/enrollment sync layer. No new Vercel function is added; the project remains at 12/12.
 
-v0.10.88 adds a one-time **14-Day Complimentary Stay** for women who have not yet joined the Queendom. The stay is a real Flowtel identity with preserved history, but remains membership rank 0: personal Suite/cycle/Flow Map/Moon Mail experiences are available while Womb Magic, Mentor to the Moon, member event registration, and other Queendom benefits remain gated. After 14 days the room closes without deleting the account or history; a later verified Queendom / Flow FM purchase reopens the same identity. Migration 074 is the database boundary, and the release reuses `api/squarespace-bridge.js` so Vercel remains at 12/12 serverless functions.
+The first intended use is **Womb Magic Committee**, a four-week Queendom group vortex. This group-event series is intentionally separate from the private **4-Week Womb Magic Portal**, which remains one Queendom member → one Flow FM Priestess → four private Womb Magic appointments.
 
-v0.10.87.4 confirmed through live diagnostics that Squarespace Pricing Plan purchases surface as `PAYWALL_PRODUCT` Commerce line items with stable `productId` values. Flow FM is `47815dfc-d06e-45bb-8581-332cdff0fbff`; The Queendom | Feminine Mystery School Portal is `9ebc509d-6678-43d0-9162-df7f4cb505e4`. These IDs belong in the existing Vercel membership-product variables; normal paid-member signup still requires live end-to-end verification after configuration.
+A series is created in Acuity first, including its dates, Zoom/location integration, capacity, and reminder emails. Owner Event Administration then maps the existing Acuity appointment type of `series` + calendar to the Flowtel event. A member joins the Flowtel vortex once; the existing `/api/acuity.js` boundary verifies the mapping, searches Acuity before creating anything, validates the class offering, and enrolls the member without suppressing Acuity email. My Upcoming Events keeps one vortex card visible through the final gathering and advances the protected session doorway automatically.
 
-v0.10.87.3 added the read-only Contacts list fallback and website authorization probe after the Contacts query returned 403 despite a correctly scoped API key.
+v0.10.88.1 remains the current Complimentary Stay access foundation beneath this release. The public login separates Queendom-member account creation, the 14-day stay, and joining the Queendom; monthly Womb Magic is visible to active trial guests only as a locked Queendom benefit; and an eligible verified purchase upgrades the same Auth identity. v0.10.88 / migration 074 remains the trial database boundary.
 
-v0.10.87.2 added stage-specific first-time signup diagnostics so Contacts and Orders authorization failures could be distinguished without weakening the membership boundary.
+v0.10.87.4 confirmed through live diagnostics that Squarespace Pricing Plan purchases surface as `PAYWALL_PRODUCT` Commerce line items with stable `productId` values. Flow FM is `47815dfc-d06e-45bb-8581-332cdff0fbff`; The Queendom | Feminine Mystery School Portal is `9ebc509d-6678-43d0-9162-df7f4cb505e4`. These IDs remain the server-side paid-membership mapping boundary.
 
-v0.10.87.1 keeps the **4-Week Womb Magic Portal** release intact and adds a deployment-only hotfix for the Vercel Hobby function budget. The retired `api/beta-request.js` function was removed because `/beta-request/` has already redirected to `/client/` since v0.10.85.1. Flowtel now deploys with 12 `/api` functions, matching the Hobby-plan limit. A validator protects this ceiling until infrastructure is consolidated or the hosting plan changes.
+Caddie Magic remains **v0.6.0** and Player-first. Migration **075** is latest after this release; **076** is next.
 
-The most recent major member-service extension before Complimentary Stay was the **4-Week Womb Magic Portal**. A Queendom member chooses one Flow FM Priestess and one standing weekly time. Flowtel checks the existing Acuity calendar for that same local time across four consecutive weeks and schedules all four Womb Magic calls together. The monthly complimentary Womb Magic call remains separate.
+### Priority 0 — live verification
 
-One member may hold one active Portal at a time, and one Flow FM Priestess may hold one active Portal client at a time. Either the client or the assigned Priestess may reschedule one week's appointment without shifting the other three. The Portal keeps the existing recording disclosure and extends consented preparation access across the 28-day container; Personal Cosmology still requires its own explicit sharing switch.
+Source validation does not replace live production verification. Keep the existing v0.10.88.1 access checks open: first-time paid Queendom / Flow FM signup, Complimentary Stay desktop/mobile UI, Day-15 closure, same-account trial → paid conversion, password recovery actual save, remembered session, Event Pass isolation, refund/revocation, and the full private 4-Week Womb Magic Portal regression.
 
-Migration 073 remains the database boundary for the Portal. Migration 074 adds Complimentary Stay without changing the Portal scheduling contract. The deferred Moon Mail doorway correction remains consolidated into the canonical `/moonbox/` route. Caddie Magic remains v0.6.0 and Player-first.
+Also verify v0.10.89 with one real Womb Magic Committee member: the mapped Acuity series exists at the exact first-session time, one Flowtel registration creates/synchronizes the full Acuity series enrollment, Acuity confirmation/reminder emails arrive, every session receives the correct protected Zoom doorway, refresh is idempotent, the event remains in My Upcoming Events through Session 4, and existing single events / monthly Womb Magic / Caddie Magic remain unchanged.
 
-### Priority 0 — finish paid signup + Complimentary Stay live verification
-
-Source validation does not replace live verification. Confirm the newly configured Queendom / Flow FM `PAYWALL_PRODUCT` IDs through one real first-time paid-member signup, then apply migration 074 and verify one new Complimentary Stay end-to-end: email confirmation, rank-0 personal Flowtel access, member-benefit isolation, Day-15 closed-room behavior, and same-account conversion after a verified Queendom purchase. Continue to preserve the remaining beta-exit checks around password recovery, Event Pass isolation, remembered sessions, refunds/revocation, legacy redirects, and the canonical `/client/` doorway.
-
-## Next Priority — Front Desk / Concierge Messages
+## Next Priority — v0.10.90 Front Desk / Concierge Messages
 
 Build a Flowtel-owned support inbox rather than making Squarespace Forms the source of truth.
 

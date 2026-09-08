@@ -1,4 +1,4 @@
-// Flowtel v0.10.85 — Queendom events, Event Pass access, registered rooms, and public agenda/calendar embeds.
+// Flowtel v0.10.89 — Queendom events, multi-session series, Event Pass access, registered rooms, and public agenda/calendar embeds.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';
@@ -10,7 +10,7 @@ async function rpc(name,args={}){
   if(error){
     const detail=String(error.message||'');
     if(/schema cache/i.test(detail)&&/queendom.*event|flowtel_(?:list|public|admin|set|get)_queendom/i.test(`${name} ${detail}`)){
-      throw new Error('The Flowtel Calendar database setup is not complete yet. Confirm migrations 067 through 070 are installed, then refresh this room.');
+      throw new Error('The Flowtel Calendar database setup is not complete yet. Confirm migrations 067 through 075 are installed, then refresh this room.');
     }
     throw error;
   }
@@ -35,10 +35,15 @@ export async function listPublicQueendomEvents({monthStart=null,monthCount=3}={}
 
 export async function setQueendomEventRegistration(eventId,registered=true){
   if(!eventId)throw new Error('Choose an event first.');
-  return rpc('flowtel_set_queendom_event_registration',{
+  const result=await rpc('flowtel_set_queendom_event_registration',{
     p_event_id:eventId,
     p_registered:Boolean(registered),
   });
+  if(Boolean(registered)&&result?.event_format==='series'){
+    try{result.series_enrollment=await ensureQueendomEventSeriesEnrollment(eventId);}
+    catch(error){result.series_enrollment={ok:false,status:'pending',error:error?.message||'Your Flowtel seat is saved, but Acuity enrollment still needs to sync.'};}
+  }
+  return result;
 }
 
 export async function getQueendomEventJoinDetails(eventId){
@@ -92,6 +97,39 @@ export async function saveQueendomEventAdmin(payload={}){
     p_squarespace_product_id:String(payload.squarespace_product_id||'').trim()||null,
   });
 }
+
+export async function configureQueendomEventSeriesAdmin(payload={}){
+  if(!payload.event_id)throw new Error('Save the event before configuring its series.');
+  return rpc('flowtel_admin_configure_queendom_event_series',{
+    p_event_id:payload.event_id,
+    p_event_format:String(payload.event_format||'single').trim().toLowerCase(),
+    p_series_count:Number(payload.series_count)||1,
+    p_series_interval_days:Number(payload.series_interval_days)||7,
+    p_acuity_appointment_type_id:String(payload.acuity_appointment_type_id||'').trim()||null,
+    p_acuity_calendar_id:String(payload.acuity_calendar_id||'').trim()||null,
+  });
+}
+
+async function acuityEventSeriesApi(action,payload={}){
+  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  if(sessionError)throw sessionError;
+  const token=sessionData?.session?.access_token;
+  if(!token)throw new Error('Enter the Flowtel before joining this event series.');
+  const response=await fetch('/api/acuity',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},
+    body:JSON.stringify({action,...payload}),
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data?.ok===false)throw new Error(data?.error||'Flowtel could not complete this event-series request.');
+  return data;
+}
+
+export const loadQueendomEventSeriesAcuitySetupAdmin=()=>acuityEventSeriesApi('event-series-owner-setup');
+export const ensureQueendomEventSeriesEnrollment=(eventId)=>{
+  if(!eventId)throw new Error('Choose an event series first.');
+  return acuityEventSeriesApi('event-series-enroll',{event_id:eventId});
+};
 
 export async function cancelQueendomEventAdmin(eventId){
   if(!eventId)throw new Error('Choose an event first.');

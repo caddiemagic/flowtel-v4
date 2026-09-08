@@ -4247,3 +4247,19 @@ body.personal-room-key-is-open{
   .womb-magic-trial-cta{font-size:.63rem;padding-inline:14px}
 }
 .womb-magic-suite-action.hidden,.womb-magic-trial-cta.hidden{display:none!important}
+
+/* Flowtel v0.10.89 — multi-session Queendom event series */
+.lounge-series-chip{display:inline-flex;align-items:center;margin-left:7px;padding:3px 7px;border:1px solid rgba(184,130,38,.32);border-radius:999px;background:rgba(255,250,247,.72);color:#9a675d;font-family:Arial,sans-serif;font-size:.58rem;font-weight:700;letter-spacing:.08em;vertical-align:middle}
+.lounge-series-next{display:block;margin-top:5px;color:#b86e60!important;font-family:Arial,sans-serif;font-size:.65rem!important;font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+.lounge-event-row.is-series{border-color:rgba(184,130,38,.42);background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(249,235,231,.72))}
+.event-room-series{background:linear-gradient(145deg,rgba(255,253,249,.98),rgba(249,235,231,.58))}
+.event-room-series-intro{margin:0 0 12px!important}
+.event-room-series ol{display:grid;gap:8px;margin:14px 0 4px;padding:0;list-style:none}
+.event-room-series li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:5px 12px;align-items:center;padding:11px 12px;border:1px solid rgba(178,139,113,.22);border-radius:14px;background:rgba(255,255,255,.68)}
+.event-room-series li.is-next{border-color:rgba(184,130,38,.5);background:#fffaf7;box-shadow:0 7px 18px rgba(109,78,65,.05)}
+.event-room-series li>span{font-family:Arial,sans-serif;font-size:.61rem;font-weight:700;letter-spacing:.1em;color:#b86e60}
+.event-room-series li>strong{font-size:.86rem;color:var(--brown)}
+.event-room-series li>small{grid-column:2;color:var(--soft-brown);font-size:.75rem}
+.event-room-series li>em{grid-column:3;grid-row:1/3;font-family:Arial,sans-serif;font-size:.56rem;font-weight:700;font-style:normal;letter-spacing:.09em;color:#9a675d}
+.event-room-series-sync{margin:12px 0 0!important;text-align:center;color:var(--soft-brown);font-style:italic}
+@media(max-width:650px){.event-room-series li{grid-template-columns:1fr}.event-room-series li>small,.event-room-series li>em{grid-column:1;grid-row:auto}.lounge-series-chip{margin-left:4px}}

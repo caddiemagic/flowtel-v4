@@ -11,7 +11,7 @@ import { hasActiveTurndownRequest, hasCompletedTurndown } from "../shared/turndo
 import { mountWombMagicBooking } from "../shared/womb-magic-booking.js?v=0.10.83";
 import { mountWombMagicPortal } from "../shared/womb-magic-portal.js?v=0.10.87";
 import { loadWombMagicScheduling } from "../shared/acuity-scheduling.js?v=0.10.83";
-import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket } from "../shared/queendom-events.js?v=0.10.85";
+import { listQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, verifyQueendomEventTicket, ensureQueendomEventSeriesEnrollment } from "../shared/queendom-events.js?v=0.10.89";
 import { timezoneDisplayName, timezoneShortName } from "../shared/timezone-labels.js?v=0.10.85";
 import { getMyProductAccess, isComplimentaryStayAccess, isComplimentaryStayExpired, complimentaryStayDay } from "../shared/product-access.js?v=0.10.88.1";
 
@@ -720,8 +720,14 @@ async function registerPendingEventDoorway(){
   if(!eventDoorwayEventId || eventDoorwayRegistrationHandled || !currentProfile?.id) return;
   eventDoorwayRegistrationHandled=true;
   try{
-    await setQueendomEventRegistration(eventDoorwayEventId,true);
-    eventDoorwayMessage="Your seat is saved. Your event is waiting in My Upcoming Events.";
+    const result=await setQueendomEventRegistration(eventDoorwayEventId,true);
+    if(result?.event_format==='series'){
+      eventDoorwayMessage=result?.series_enrollment?.status==='active'
+        ? "You’re registered for the full series. Your sessions are waiting in My Upcoming Events."
+        : "Your Flowtel series registration is saved. Your Acuity session doorways are syncing in My Upcoming Events.";
+    }else{
+      eventDoorwayMessage="Your seat is saved. Your event is waiting in My Upcoming Events.";
+    }
   }catch(error){
     const detail=String(error?.message||"");
     eventDoorwayMessage=/inside Flow FM/i.test(detail)
@@ -2634,14 +2640,20 @@ function loungeEscape(value){return String(value??'').replace(/[&<>"']/g,char=>(
 function loungeEventClock(value){const m=/^(\d{2}):(\d{2})/.exec(String(value||''));if(!m)return'';const d=new Date(Date.UTC(2026,0,1,Number(m[1]),Number(m[2])));return new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',timeZone:'UTC'}).format(d);}
 function loungeEventDate(value){const d=/^\d{4}-\d{2}-\d{2}$/.test(String(value||''))?new Date(`${value}T12:00:00Z`):null;return d?new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(d):String(value||'');}
 function loungeEventType(value){return({workshop:'WORKSHOP',ceremony:'CEREMONY',call:'CALL',other:'EVENT'})[value]||'EVENT';}
+function loungeSeriesOccurrences(event){return event?.event_format==='series'&&Array.isArray(event?.occurrences)?event.occurrences.filter(item=>item?.status!=='cancelled'):[];}
+function loungeNextOccurrence(event){const occurrences=loungeSeriesOccurrences(event);if(!occurrences.length)return null;const threshold=Date.now()-60*60*1000;return occurrences.find(item=>new Date(item.ends_at||item.live_room_starts_at||item.starts_at).getTime()>=threshold)||occurrences[occurrences.length-1];}
+function loungeSeriesLabel(event){const count=Number(event?.series_count||loungeSeriesOccurrences(event).length||0);return event?.event_format==='series'?(count===4&&Number(event?.series_interval_days||7)===7?'4-WEEK VORTEX':`${count}-SESSION SERIES`):'';}
+function loungeSeriesDateRange(event){const occurrences=loungeSeriesOccurrences(event),last=occurrences[occurrences.length-1];return last?`${loungeEventDate(event.event_date)} – ${loungeEventDate(last.event_date)}`:loungeEventDate(event.event_date);}
+function loungeEventIsFuture(event){if(event?.status==='cancelled')return false;const occurrences=loungeSeriesOccurrences(event);if(occurrences.length){const last=occurrences[occurrences.length-1];return new Date(last.ends_at||last.live_room_starts_at||last.starts_at).getTime()>=Date.now()-60*60*1000;}const today=localTodayISO();return String(event?.event_date||'')>=today;}
+function loungeDisplayMoment(event){return loungeNextOccurrence(event)||event;}
 function loungeTimestamp(value,zone,{withDate=false}={}){
   const d=new Date(value);if(Number.isNaN(d.getTime()))return'';
   return new Intl.DateTimeFormat('en-US',{...(withDate?{weekday:'short',month:'short',day:'numeric'}:{}),hour:'numeric',minute:'2-digit',timeZone:zone||'America/Los_Angeles',timeZoneName:'short'}).format(d);
 }
-function loungeFlowtelTime(event){return loungeTimestamp(event?.starts_at,'America/Los_Angeles');}
-function loungeYourTime(event){const zone=String(currentProfile?.timezone||'').trim();if(!zone||zone==='America/Los_Angeles')return'';return loungeTimestamp(event?.starts_at,zone);}
-function loungeLiveFlowtelTime(event){return loungeTimestamp(event?.live_room_starts_at||event?.starts_at,'America/Los_Angeles');}
-function loungeLiveYourTime(event){const zone=String(currentProfile?.timezone||'').trim();if(!zone||zone==='America/Los_Angeles')return'';return loungeTimestamp(event?.live_room_starts_at||event?.starts_at,zone);}
+function loungeFlowtelTime(event){const moment=loungeDisplayMoment(event);return loungeTimestamp(moment?.starts_at,'America/Los_Angeles');}
+function loungeYourTime(event){const moment=loungeDisplayMoment(event),zone=String(currentProfile?.timezone||'').trim();if(!zone||zone==='America/Los_Angeles')return'';return loungeTimestamp(moment?.starts_at,zone);}
+function loungeLiveFlowtelTime(event){const moment=loungeDisplayMoment(event);return loungeTimestamp(moment?.live_room_starts_at||moment?.starts_at,'America/Los_Angeles');}
+function loungeLiveYourTime(event){const moment=loungeDisplayMoment(event),zone=String(currentProfile?.timezone||'').trim();if(!zone||zone==='America/Los_Angeles')return'';return loungeTimestamp(moment?.live_room_starts_at||moment?.starts_at,zone);}
 function loungeTimeStack(event,{live=false}={}){
   const flowtel=live?loungeLiveFlowtelTime(event):loungeFlowtelTime(event),mine=live?loungeLiveYourTime(event):loungeYourTime(event);
   return `<div class="lounge-time-stack"><span><strong>FLOWTEL TIME</strong> · ${loungeEscape(flowtel||loungeEventClock(event?.start_time))}</span>${mine?`<span><strong>YOUR TIME</strong> · ${loungeEscape(mine)}</span>`:''}</div>`;
@@ -2673,34 +2685,39 @@ function calendarEndParts(event){
   const value=new Date(Date.UTC(year,month-1,day,Number(match[1]),Number(match[2])+60));
   return {date:value.toISOString().slice(0,10),time:value.toISOString().slice(11,16)};
 }
+function loungeCalendarMoments(event){const occurrences=loungeSeriesOccurrences(event);return occurrences.length?occurrences:[event];}
+function loungeCalendarEventShape(event,moment){return {...event,...moment,event_date:moment?.event_date||event.event_date,start_time:moment?.start_time||event.start_time,end_time:moment?.end_time||event.end_time};}
 function communityGoogleCalendarUrl(event){
-  const start=calendarLocalStamp(event.event_date,event.start_time),endParts=calendarEndParts(event),end=calendarLocalStamp(endParts.date,endParts.time);
+  const moment=loungeNextOccurrence(event)||event,calendarEvent=loungeCalendarEventShape(event,moment);
+  const start=calendarLocalStamp(calendarEvent.event_date,calendarEvent.start_time),endParts=calendarEndParts(calendarEvent),end=calendarLocalStamp(endParts.date,endParts.time);
   const url=new URL('https://calendar.google.com/calendar/render');
-  url.searchParams.set('action','TEMPLATE');url.searchParams.set('text',event.title||'Flowtel Event');url.searchParams.set('dates',`${start}/${end}`);url.searchParams.set('ctz',event.event_timezone||'America/Los_Angeles');
+  const sessionSuffix=event.event_format==='series'&&moment?.occurrence_number?` · Session ${moment.occurrence_number} of ${event.series_count||loungeSeriesOccurrences(event).length}`:'';
+  url.searchParams.set('action','TEMPLATE');url.searchParams.set('text',`${event.title||'Flowtel Event'}${sessionSuffix}`);url.searchParams.set('dates',`${start}/${end}`);url.searchParams.set('ctz',event.event_timezone||'America/Los_Angeles');
   url.searchParams.set('details',`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`);url.searchParams.set('location','The Flowtel');return url.toString();
 }
-function icsEscape(value){return String(value??'').replace(/\\/g,'\\\\').replace(/\r?\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');}
+function icsEscape(value){return String(value??'').replace(/\/g,'\\').replace(/\r?\n/g,'\n').replace(/,/g,'\,').replace(/;/g,'\;');}
 function downloadCommunityCalendar(event){
-  const start=calendarLocalStamp(event.event_date,event.start_time),endParts=calendarEndParts(event),end=calendarLocalStamp(endParts.date,endParts.time),zone=event.event_timezone||'America/Los_Angeles';if(!start||!end)return;
-  const uid=`queendom-event-${event.event_id}@flowtel`,stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'),description=`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`;
-  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Flowtel//Queendom Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','BEGIN:VEVENT',`UID:${icsEscape(uid)}`,`DTSTAMP:${stamp}`,`DTSTART;TZID=${icsEscape(zone)}:${start}`,`DTEND;TZID=${icsEscape(zone)}:${end}`,`SUMMARY:${icsEscape(event.title||'Flowtel Event')}`,`DESCRIPTION:${icsEscape(description)}`,'LOCATION:The Flowtel',`URL:${calendarFlowtelUrl()}`,'END:VEVENT','END:VCALENDAR',''].join('\r\n');
+  const moments=loungeCalendarMoments(event),zone=event.event_timezone||'America/Los_Angeles',stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z'),description=`Join from My Upcoming Events in the Flowtel: ${calendarFlowtelUrl()}`;
+  const vevents=moments.map((moment,index)=>{const calendarEvent=loungeCalendarEventShape(event,moment),start=calendarLocalStamp(calendarEvent.event_date,calendarEvent.start_time),endParts=calendarEndParts(calendarEvent),end=calendarLocalStamp(endParts.date,endParts.time);if(!start||!end)return'';const number=moment?.occurrence_number||index+1,series=event.event_format==='series',summary=series?`${event.title||'Flowtel Event'} · Session ${number} of ${event.series_count||moments.length}`:(event.title||'Flowtel Event'),uid=`queendom-event-${event.event_id}-${series?number:'single'}@flowtel`;return ['BEGIN:VEVENT',`UID:${icsEscape(uid)}`,`DTSTAMP:${stamp}`,`DTSTART;TZID=${icsEscape(zone)}:${start}`,`DTEND;TZID=${icsEscape(zone)}:${end}`,`SUMMARY:${icsEscape(summary)}`,`DESCRIPTION:${icsEscape(description)}`,'LOCATION:The Flowtel',`URL:${calendarFlowtelUrl()}`,'END:VEVENT'].join('\r\n');}).filter(Boolean);
+  if(!vevents.length)return;
+  const body=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Flowtel//Queendom Events//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH',...vevents,'END:VCALENDAR',''].join('\r\n');
   const blob=new Blob([body],{type:'text/calendar;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download=`${String(event.title||'flowtel-event').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||'flowtel-event'}.ics`;document.body.appendChild(link);link.click();link.remove();window.setTimeout(()=>URL.revokeObjectURL(url),1500);
 }
-function loungeCalendarMarkup(event){if(!event?.is_registered)return'';return `<div class="lounge-add-calendar"><button type="button" class="lounge-calendar-button" data-lounge-calendar-toggle="${loungeEscape(event.event_id)}">ADD TO CALENDAR</button><div class="lounge-calendar-options" data-lounge-calendar-options="${loungeEscape(event.event_id)}" hidden><a href="${loungeEscape(communityGoogleCalendarUrl(event))}" target="_blank" rel="noopener noreferrer">GOOGLE</a><button type="button" data-lounge-calendar-ics="${loungeEscape(event.event_id)}">APPLE / OUTLOOK</button></div></div>`;}
+function loungeCalendarMarkup(event){if(!event?.is_registered)return'';const googleLabel=event.event_format==='series'?'GOOGLE · NEXT SESSION':'GOOGLE';return `<div class="lounge-add-calendar"><button type="button" class="lounge-calendar-button" data-lounge-calendar-toggle="${loungeEscape(event.event_id)}">ADD TO CALENDAR</button><div class="lounge-calendar-options" data-lounge-calendar-options="${loungeEscape(event.event_id)}" hidden><a href="${loungeEscape(communityGoogleCalendarUrl(event))}" target="_blank" rel="noopener noreferrer">${googleLabel}</a><button type="button" data-lounge-calendar-ics="${loungeEscape(event.event_id)}">${event.event_format==='series'?'APPLE / OUTLOOK · ALL SESSIONS':'APPLE / OUTLOOK'}</button></div></div>`;}
 function loungeTicketActions(event){
   const access=loungeEventAccess(event),price=loungeMoney(access.price,access.currency||event.access_currency),ticket=access.ticket_url||event.ticket_url;
   if(access.mode==='unavailable')return '<span class="lounge-event-locked">NOT INCLUDED WITH YOUR ACCESS</span>';
   if(access.requires_ticket){return `${ticket?`<a class="lounge-seat-button" href="${loungeEscape(ticket)}" target="_blank" rel="noopener noreferrer" data-lounge-ticket-buy="${loungeEscape(event.event_id)}">BUY TICKET${price?` · ${loungeEscape(price)}`:''}</a>`:''}<button type="button" class="lounge-ticket-check" data-lounge-ticket-check="${loungeEscape(event.event_id)}">CHECK MY TICKET</button>`;}
-  return `<button type="button" class="lounge-seat-button" data-lounge-seat="${loungeEscape(event.event_id)}">SAVE MY SEAT</button>`;
+  return `<button type="button" class="lounge-seat-button" data-lounge-seat="${loungeEscape(event.event_id)}">${event.event_format==='series'?`JOIN THE ${loungeEscape(loungeSeriesLabel(event))}`:'SAVE MY SEAT'}</button>`;
 }
 function loungeCommunityEventMarkup(event,{mode='discover'}={}){
-  const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>',cancelled=event.status==='cancelled';
+  const image=event.image_url?`<img src="${loungeEscape(event.image_url)}" alt="">`:'<span class="lounge-event-placeholder">✦</span>',cancelled=event.status==='cancelled',series=event.event_format==='series',moment=loungeDisplayMoment(event);
   let actions='';
   if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';
-  else if(mode==='discover')actions=event.is_registered?'<span class="lounge-event-locked lounge-seat-saved">✓ SEAT SAVED</span>':loungeTicketActions(event);
-  else actions=event.is_registered?`<button type="button" class="lounge-join-button" data-lounge-open-event="${loungeEscape(event.event_id)}">OPEN EVENT</button>${loungeCalendarMarkup(event)}`:loungeTicketActions(event);
-  const liveDiff=event.live_room_starts_at&&event.starts_at&&String(event.live_room_starts_at)!==String(event.starts_at);
-  return `<article class="lounge-event-row ${mode==='manage'?'is-compact':''} ${cancelled?'is-cancelled':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(loungeEventDate(event.event_date))}</p>${loungeTimeStack(event)}${liveDiff?`<p class="lounge-live-room-time"><strong>LIVE GATHERING</strong> · ${loungeEscape(loungeLiveFlowtelTime(event))}${loungeLiveYourTime(event)?` · ${loungeEscape(loungeLiveYourTime(event))} your time`:''}</p>`:''}${loungeHostMarkup(event)}</div><div class="lounge-event-actions">${actions}</div></article>`;
+  else if(mode==='discover')actions=event.is_registered?`<span class="lounge-event-locked lounge-seat-saved">${series?'✓ VORTEX JOINED':'✓ SEAT SAVED'}</span>`:loungeTicketActions(event);
+  else actions=event.is_registered?`<button type="button" class="lounge-join-button" data-lounge-open-event="${loungeEscape(event.event_id)}">${series?'OPEN SERIES':'OPEN EVENT'}</button>${loungeCalendarMarkup(event)}`:loungeTicketActions(event);
+  const liveDiff=moment?.live_room_starts_at&&moment?.starts_at&&String(moment.live_room_starts_at)!==String(moment.starts_at),seriesChip=series?`<span class="lounge-series-chip">${loungeEscape(loungeSeriesLabel(event))}</span>`:'',dateCopy=series?loungeSeriesDateRange(event):loungeEventDate(event.event_date),nextCopy=series&&moment?.occurrence_number?`<span class="lounge-series-next">NEXT · SESSION ${loungeEscape(moment.occurrence_number)} OF ${loungeEscape(event.series_count||loungeSeriesOccurrences(event).length)}</span>`:'';
+  return `<article class="lounge-event-row ${mode==='manage'?'is-compact':''} ${cancelled?'is-cancelled':''} ${series?'is-series':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'} ${seriesChip}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(dateCopy)}</p>${nextCopy}${loungeTimeStack(event)}${liveDiff?`<p class="lounge-live-room-time"><strong>LIVE GATHERING</strong> · ${loungeEscape(loungeLiveFlowtelTime(event))}${loungeLiveYourTime(event)?` · ${loungeEscape(loungeLiveYourTime(event))} your time`:''}</p>`:''}${loungeHostMarkup(event)}</div><div class="lounge-event-actions">${actions}</div></article>`;
 }
 function loungeActiveWombMagicCall(){const all=[loungeWombMagicState?.consuming_appointment,...(loungeWombMagicState?.appointments||[])].filter(Boolean),now=Date.now();return all.find(item=>['pending','scheduled','rescheduled'].includes(String(item.status||''))&&new Date(item.ends_at||item.starts_at).getTime()>now)||null;}
 function loungeWombMagicMarkup(call){if(!call)return'';const d=new Date(call.starts_at),zone=currentProfile?.timezone||'America/Los_Angeles';const date=Number.isNaN(d.getTime())?String(call.starts_at||''):new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit',timeZone:zone}).format(d);return`<article class="lounge-event-row is-compact is-womb-magic"><div class="lounge-event-art"><span class="lounge-event-placeholder">🌹</span></div><div class="lounge-event-copy"><p class="eyebrow">WOMB MAGIC · PERSONAL CALL</p><h4>Womb Magic with ${loungeEscape(call.practitioner_name||'a Flow FM Priestess')}</h4><p>${loungeEscape(date)}</p></div><div class="lounge-event-actions">${call.meeting_url?`<a class="lounge-join-button" href="${loungeEscape(call.meeting_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>`:'<span class="lounge-event-locked">ZOOM ROOM PREPARING</span>'}</div></article>`;}
@@ -2715,6 +2732,14 @@ function eventRoomHostMarkup(details){
   const co=details.co_host_name?`<p><strong>Co-host</strong><br>${loungeProfileLink(details.co_host_member_id,details.co_host_name)}</p>`:'';
   return host||co?`<div class="event-room-host-grid">${host}${co}</div>`:'';
 }
+function loungeProtectedSeriesOccurrences(details){return details?.event_format==='series'&&Array.isArray(details?.occurrences)?details.occurrences.filter(item=>item?.status!=='cancelled'):[];}
+function loungeCurrentProtectedOccurrence(details){const rows=loungeProtectedSeriesOccurrences(details);if(!rows.length)return null;const threshold=Date.now()-60*60*1000;return rows.find(item=>new Date(item.ends_at||item.live_room_starts_at||item.starts_at).getTime()>=threshold)||rows[rows.length-1];}
+function loungeSeriesRoomMarkup(details){
+  const rows=loungeProtectedSeriesOccurrences(details),current=loungeCurrentProtectedOccurrence(details),count=Number(details.series_count||rows.length||0),zone=String(currentProfile?.timezone||'').trim();
+  const list=rows.map(row=>{const isCurrent=String(row.occurrence_number)===String(current?.occurrence_number),flow=loungeTimestamp(row.starts_at,'America/Los_Angeles',{withDate:true}),mine=zone&&zone!=='America/Los_Angeles'?loungeTimestamp(row.starts_at,zone,{withDate:true}):'';return `<li class="${isCurrent?'is-next':''}"><span>SESSION ${loungeEscape(row.occurrence_number)} OF ${loungeEscape(count)}</span><strong>${loungeEscape(flow)}</strong>${mine?`<small>${loungeEscape(mine)} · your time</small>`:''}${isCurrent?'<em>NEXT GATHERING</em>':''}</li>`;}).join('');
+  const doorway=current?.meeting_url?`<a class="event-room-primary" href="${loungeEscape(current.meeting_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM · SESSION ${loungeEscape(current.occurrence_number)}</a>${current.zoom_passcode?`<p class="event-room-passcode">Passcode: ${loungeEscape(current.zoom_passcode)}</p>`:''}`:`<p class="event-room-series-sync">${details.series_enrollment_status==='pending'?'Your Acuity enrollment is saved. Flowtel is still receiving the Zoom doorway for your next gathering.':'Your next Zoom doorway will appear here when Acuity provides it.'}</p>`;
+  return `<section class="event-room-section event-room-series"><p class="eyebrow">${loungeEscape(loungeSeriesLabel(details)||`${count}-SESSION SERIES`)}</p><p class="event-room-series-intro">You are registered for the entire vortex. Acuity handles the configured session reminders; return here to enter each gathering.</p><ol>${list}</ol><div class="event-room-actions">${doorway}</div></section>`;
+}
 async function openRegisteredEventRoom(eventId){
   const overlay=document.getElementById('eventRoomOverlay'),content=document.getElementById('eventRoomContent'),status=document.getElementById('eventRoomStatus');if(!overlay||!content)return;
   overlay.classList.remove('hidden');overlay.setAttribute('aria-hidden','false');document.body.classList.add('event-room-is-open');content.innerHTML='<p>Opening your event room…</p>';if(status)status.textContent='';
@@ -2724,11 +2749,14 @@ async function openRegisteredEventRoom(eventId){
       const ticket=await verifyQueendomEventTicket(eventId);
       if(!ticket?.paid) throw new Error(ticket?.message || 'Your paid ticket could not be confirmed.');
     }
-    const details=await getQueendomEventJoinDetails(eventId);
+    if(event?.event_format==='series'&&event?.is_registered){if(status)status.textContent='Opening your vortex and syncing its session doorways…';await ensureQueendomEventSeriesEnrollment(eventId).catch(error=>console.warn('Event series Acuity sync is still pending.',error));}
+    const details=await getQueendomEventJoinDetails(eventId),isSeries=details.event_format==='series',current=isSeries?loungeCurrentProtectedOccurrence(details):null,displayDetails=isSeries&&current?{...details,...current}:details;
     const guide=details.attendee_guide_url?`<a class="event-room-primary" href="${loungeEscape(details.attendee_guide_url)}" target="_blank" rel="noopener noreferrer">DOWNLOAD HOW TO PREPARE GUIDE</a>`:'';
-    const zoom=(details.location_type==='zoom'||details.location_type==='hybrid')&&details.zoom_url?`<a class="event-room-primary" href="${loungeEscape(details.zoom_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>${details.zoom_passcode?`<p class="event-room-passcode">Passcode: ${loungeEscape(details.zoom_passcode)}</p>`:''}`:'';
+    const zoom=!isSeries&&(details.location_type==='zoom'||details.location_type==='hybrid')&&details.zoom_url?`<a class="event-room-primary" href="${loungeEscape(details.zoom_url)}" target="_blank" rel="noopener noreferrer">JOIN ZOOM</a>${details.zoom_passcode?`<p class="event-room-passcode">Passcode: ${loungeEscape(details.zoom_passcode)}</p>`:''}`:'';
     const location=(details.location_type==='in_person'||details.location_type==='hybrid')&&details.private_location?`<section class="event-room-section"><p class="eyebrow">YOUR LOCATION</p><p>${loungeEscape(details.private_location).replace(/\n/g,'<br>')}</p></section>`:'';
-    content.innerHTML=`<p class="eyebrow">${loungeEscape(loungeEventType(details.event_type))} · REGISTERED EVENT ROOM</p><h2 id="eventRoomTitle">${loungeEscape(details.title)}</h2><p>${loungeEscape(loungeEventDate(details.event_date))}</p>${eventRoomTimeMarkup(details)}${eventRoomHostMarkup(details)}<section class="event-room-section"><p class="eyebrow">RECORDING</p><p><strong>Will this be recorded?</strong> ${details.will_be_recorded?'Yes':'No'}</p></section><section class="event-room-section"><p class="eyebrow">HOW TO PREPARE</p><p>${loungeEscape(details.how_to_prepare||'Find a private space. Light a candle + incense. Make tea. Grab a journal + pen. Arrive a few minutes early and let yourself settle in.').replace(/\n/g,'<br>')}</p>${guide}</section>${location}<div class="event-room-actions">${zoom}</div>`;
+    const dateCopy=isSeries?loungeSeriesDateRange(details):loungeEventDate(details.event_date),eyebrow=isSeries?`${loungeEventType(details.event_type)} · ${loungeSeriesLabel(details)||'REGISTERED SERIES'}`:`${loungeEventType(details.event_type)} · REGISTERED EVENT ROOM`;
+    content.innerHTML=`<p class="eyebrow">${loungeEscape(eyebrow)}</p><h2 id="eventRoomTitle">${loungeEscape(details.title)}</h2><p>${loungeEscape(dateCopy)}</p>${eventRoomTimeMarkup(displayDetails)}${eventRoomHostMarkup(details)}<section class="event-room-section"><p class="eyebrow">RECORDING</p><p><strong>Will this be recorded?</strong> ${details.will_be_recorded?'Yes':'No'}</p></section>${isSeries?loungeSeriesRoomMarkup(details):''}<section class="event-room-section"><p class="eyebrow">HOW TO PREPARE</p><p>${loungeEscape(details.how_to_prepare||'Find a private space. Light a candle + incense. Make tea. Grab a journal + pen. Arrive a few minutes early and let yourself settle in.').replace(/\n/g,'<br>')}</p>${guide}</section>${location}${!isSeries?`<div class="event-room-actions">${zoom}</div>`:''}`;
+    if(status)status.textContent='';
     const url=new URL(window.location.href);url.searchParams.delete('openEvent');url.searchParams.set('lounge','1');url.hash='my-upcoming-events';window.history.replaceState({},'',`${url.pathname}${url.search}${url.hash}`);eventRoomEventId='';
   }catch(error){console.error('Registered event room could not open.',error);content.innerHTML='<p class="eyebrow">EVENT ROOM</p><h2 id="eventRoomTitle">Your room is not open yet.</h2>';if(status)status.textContent=error?.message||'This event room could not open just now.';}
 }
@@ -2736,11 +2764,8 @@ function closeEventRoom(){const overlay=document.getElementById('eventRoomOverla
 function liveEventCandidate(){
   const now=Date.now(),windowStart=now-5*60*1000,windowEnd=now+60*60*1000,candidates=[];
   loungeEvents.filter(e=>e.is_registered&&e.status==='published').forEach(event=>{
-    const startAt=new Date(event.starts_at).getTime(),liveAt=new Date(event.live_room_starts_at||event.starts_at).getTime();
-    const separate=Number.isFinite(startAt)&&Number.isFinite(liveAt)&&Math.abs(liveAt-startAt)>=60*1000;
-    if(separate&&startAt>=windowStart&&startAt<=windowEnd)candidates.push({event,at:startAt,phase:'event'});
-    const roomAt=Number.isFinite(liveAt)?liveAt:startAt;
-    if(Number.isFinite(roomAt)&&roomAt>=windowStart&&roomAt<=windowEnd)candidates.push({event,at:roomAt,phase:separate?'live':'event-live'});
+    const moments=event.event_format==='series'?loungeSeriesOccurrences(event):[event];
+    moments.forEach(moment=>{const startAt=new Date(moment.starts_at).getTime(),liveAt=new Date(moment.live_room_starts_at||moment.starts_at).getTime(),separate=Number.isFinite(startAt)&&Number.isFinite(liveAt)&&Math.abs(liveAt-startAt)>=60*1000;if(separate&&startAt>=windowStart&&startAt<=windowEnd)candidates.push({event,moment,at:startAt,phase:'event'});const roomAt=Number.isFinite(liveAt)?liveAt:startAt;if(Number.isFinite(roomAt)&&roomAt>=windowStart&&roomAt<=windowEnd)candidates.push({event,moment,at:roomAt,phase:separate?'live':'event-live'});});
   });
   return candidates.sort((a,b)=>a.at-b.at)[0]||null;
 }
@@ -2762,7 +2787,7 @@ function renderLoungeLiveAlert(){
 }
 function bindLoungeEventActions(root){
   root?.querySelectorAll('[data-lounge-ticket-buy]').forEach(link=>link.addEventListener('click',()=>{try{localStorage.setItem('flowtel:pendingEventTicket',String(link.dataset.loungeTicketBuy||''));}catch(_){ }}));
-  root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{await setQueendomEventRegistration(event.event_id,true);event.is_registered=true;renderLoungeEvents();}catch(error){button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));
+  root?.querySelectorAll('[data-lounge-seat]').forEach(button=>button.addEventListener('click',async()=>{const event=loungeEvents.find(item=>item.event_id===button.dataset.loungeSeat);if(!event)return;button.disabled=true;try{const result=await setQueendomEventRegistration(event.event_id,true);event.is_registered=true;if(event.event_format==='series'){event.series_enrollment_status=result?.series_enrollment?.status||'pending';const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=result?.series_enrollment?.status==='active'?'You’re registered for the entire vortex. Acuity will send the configured session reminders.':'Your Flowtel registration is saved. Your Acuity session doorways are syncing.';}renderLoungeEvents();}catch(error){button.disabled=false;const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your seat could not be saved.';}}));
   root?.querySelectorAll('[data-lounge-ticket-check]').forEach(button=>button.addEventListener('click',async()=>{const id=button.dataset.loungeTicketCheck;button.disabled=true;const old=button.textContent;button.textContent='CHECKING…';try{const result=await verifyQueendomEventTicket(id);eventDoorwayMessage=result?.paid?'Your ticket is confirmed. Your seat is saved.':'We could not find a paid ticket for this event under your Flowtel email yet.';await prepareLoungeEvents({force:true});const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=eventDoorwayMessage;}catch(error){const status=document.getElementById('loungeEventsStatus');if(status)status.textContent=error?.message||'Your ticket could not be checked just now.';}finally{button.disabled=false;button.textContent=old;}}));
   root?.querySelectorAll('[data-lounge-open-event]').forEach(button=>button.addEventListener('click',()=>openRegisteredEventRoom(button.dataset.loungeOpenEvent)));
   root?.querySelectorAll('[data-lounge-calendar-toggle]').forEach(button=>button.addEventListener('click',()=>{const options=root.querySelector(`[data-lounge-calendar-options="${CSS.escape(button.dataset.loungeCalendarToggle)}"]`);if(!options)return;const opening=options.hidden;options.hidden=!opening;button.setAttribute('aria-expanded',opening?'true':'false');}));
@@ -2770,7 +2795,7 @@ function bindLoungeEventActions(root){
 }
 function renderLoungeEvents(){
   const upcoming=document.getElementById('loungeUpcomingEvents'),mine=document.getElementById('loungeMyCalendar'),status=document.getElementById('loungeEventsStatus');if(!upcoming||!mine)return;
-  const today=localTodayISO(),future=loungeEvents.filter(event=>event.event_date>=today&&event.status!=='cancelled').slice(0,3),saved=loungeEvents.filter(event=>event.is_registered&&event.event_date>=today);
+  const future=loungeEvents.filter(loungeEventIsFuture).slice(0,3),saved=loungeEvents.filter(event=>event.is_registered&&loungeEventIsFuture(event));
   upcoming.innerHTML=future.length?future.map(event=>loungeCommunityEventMarkup(event,{mode:'discover'})).join(''):'<p class="lounge-events-empty">The next Queendom gathering has not been placed yet.</p>';
   const womb=loungeWombMagicMarkup(loungeActiveWombMagicCall());mine.innerHTML=(womb+saved.map(event=>loungeCommunityEventMarkup(event,{mode:'manage'})).join(''))||'<p class="lounge-events-empty">Save your seat for an event and it will appear here.</p>';
   bindLoungeEventActions(upcoming);bindLoungeEventActions(mine);renderLoungeLiveAlert();if(status&&!eventDoorwayMessage)status.textContent='';

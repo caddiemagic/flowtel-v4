@@ -1,0 +1,116 @@
+FLOWTEL PATCH INSTRUCTIONS — v0.10.89
+Multi-Session Event Series + Acuity Group Enrollment
+
+EXPECTED SOURCE
+- Source version: Flowtel v0.10.88.1 — Complimentary Stay Doorway + Womb Magic Preview Polish
+- Expected GitHub main HEAD: ecd951e858b2152a43998910c8cd83debd8203f9
+- Caddie Magic baseline: v0.6.0 — Player Session Scheduling
+- Latest live migration before this patch: 074 — Flowtel Complimentary Stay
+- Vercel Hobby function budget before patch: 12/12
+
+TARGET RELEASE
+- Flowtel v0.10.89 — Multi-Session Event Series + Acuity Group Enrollment
+- Latest migration after successful deployment: 075
+- Next migration after this release: 076
+
+FILES ADDED
+- PATCH-INSTRUCTIONS-v0.10.89.txt
+- database/migration-075-queendom-multi-session-event-series.sql
+- docs/LIVE-TEST-0.10.89.md
+- docs/RELEASE-0.10.89.md
+- scripts/validate-flowtel-01089-event-series.mjs
+
+FILES MODIFIED
+- api/acuity-webhook.js
+- api/acuity.js
+- client/app.js
+- client/index.html
+- client/styles.css
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+- manager/events/app.js
+- manager/events/index.html
+- manager/events/styles.css
+- queendom-calendar/app.js
+- queendom-calendar/index.html
+- queendom-events/app.js
+- queendom-events/index.html
+- queendom-events/styles.css
+- shared/queendom-events.js
+
+FILES TO DELETE
+- NONE.
+
+ZIP OVERLAY NOTE
+- Overlaying the patch ZIP does not delete files.
+- This release intentionally deletes no project files.
+
+SUPABASE MIGRATION
+- REQUIRED.
+- Exact migration: database/migration-075-queendom-multi-session-event-series.sql
+- RUN MIGRATION 075 BEFORE DEPLOYING THE WEBSITE FILES.
+- Do not rename, edit, or rerun older historical migrations.
+- After migration 075 is successfully applied, migration 075 is latest and 076 is next.
+
+VERCEL ENVIRONMENT VARIABLES
+- No new Vercel environment variables are required by this release.
+- No existing environment variable value needs to change for the code release itself.
+- Existing Acuity server configuration must remain available and unchanged, including ACUITY_USER_ID and ACUITY_API_KEY.
+- Existing Supabase, Squarespace, Resend, and Flowtel environment variables remain unchanged.
+- Do not expose any server secret to browser code.
+
+VERCEL SERVERLESS FUNCTION BUDGET
+- No serverless function added.
+- No serverless function removed.
+- Existing api/acuity.js is extended.
+- Existing api/acuity-webhook.js is extended.
+- Function count after this patch: 12/12.
+- node scripts/validate-vercel-function-budget.js must report 12/12 before deployment.
+
+ACUITY SETUP REQUIRED FOR EACH FLOWTEL SERIES
+- Create the group class series in Acuity first.
+- Configure all intended session dates/times in Acuity.
+- Configure the correct Acuity calendar/provider.
+- Configure Zoom/location behavior in Acuity.
+- Configure Acuity confirmation/reminder emails before publishing the Flowtel event.
+- Flowtel maps to an existing Acuity appointment type whose type is series; this release does not create the Acuity series definition itself.
+
+EXACT DEPLOYMENT ORDER
+1. Confirm the repository is still based on Flowtel v0.10.88.1 / Git HEAD ecd951e858b2152a43998910c8cd83debd8203f9.
+2. In Acuity, create/configure the intended group series, all session dates, capacity, Zoom/location behavior, and reminder emails.
+3. Back up Supabase if that is part of the normal owner deployment procedure.
+4. Run database/migration-075-queendom-multi-session-event-series.sql in Supabase ONCE.
+5. Confirm migration 075 completed successfully before changing the website source.
+6. Overlay flowtel-v0.10.89-patch-files.zip onto the current repository root, preserving paths.
+7. Review git diff and confirm there are no unexpected changes.
+8. Commit/push the v0.10.89 source to the deployment branch.
+9. Wait until Vercel reports the production deployment Ready.
+10. Open Owner -> Queendom Events.
+11. Create/edit Womb Magic Committee as Multi-Session Series and map the existing Acuity series + calendar.
+12. Confirm Flowtel's generated session preview exactly matches the Acuity dates/times before publishing.
+13. Publish the event.
+14. Perform the first-live-test checklist below and docs/LIVE-TEST-0.10.89.md.
+
+FIRST LIVE TESTS AFTER VERCEL SAYS READY
+1. Confirm an existing single-day Queendom event still renders and registers normally.
+2. Confirm Womb Magic Committee renders as one multi-session vortex, not four separate registrations.
+3. Confirm all four session dates/times are correct in Event Administration and member-facing views.
+4. Use one real eligible Queendom test member and click the series join action once.
+5. Confirm exactly one Flowtel registration is created for the parent event.
+6. Confirm Acuity shows the member enrolled in the expected full series / expected class occurrences.
+7. Refresh/reopen Flowtel and confirm the action does not create a duplicate Acuity enrollment.
+8. Confirm My Upcoming Events shows one vortex card through the complete date range and identifies the next session correctly.
+9. Open the protected Event Room and confirm all four sessions are listed.
+10. Confirm JOIN ZOOM resolves to the correct protected Acuity/Zoom doorway for the next session.
+11. Confirm the Acuity confirmation email arrives.
+12. Confirm the configured Acuity reminder email arrives for an upcoming session; Flowtel source validation cannot prove delivery.
+13. Confirm Apple/Outlook calendar export contains all session occurrences and Google targets the next session.
+14. Confirm the within-one-hour event alert recognizes a later occurrence, not only Session 1.
+15. Confirm a Complimentary Stay rank-0 identity cannot receive Queendom series entitlement merely by having Flowtel access.
+16. Regression-check monthly Womb Magic booking/JOIN ZOOM and the private 4-Week Womb Magic Portal.
+17. Regression-check Caddie Magic v0.6.0 remains Player-first and has no Flowtel access leakage.
+18. For cancellation testing, use a dedicated test series where possible: cancel in Acuity first, allow webhook synchronization, then cancel the Flowtel parent event.
+
+SOURCE VALIDATION / LIVE VERIFICATION
+- The release package is SOURCE VALIDATED when the local/static checks pass.
+- It is NOT LIVE PRODUCTION VERIFIED until the owner deploys it and confirms the live checklist.

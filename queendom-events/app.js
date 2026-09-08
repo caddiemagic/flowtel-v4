@@ -1,12 +1,13 @@
 import {
+  ensureQueendomEventSeriesEnrollment,
   getQueendomEventJoinDetails,
   listPublicQueendomEvents,
   listQueendomEvents,
   setQueendomEventRegistration,
   verifyQueendomEventTicket,
-} from '/shared/queendom-events.js?v=0.10.85';
-import { getCurrentProfile } from '/shared/profiles.js?v=0.10.85';
-import { getMyProductAccess } from '/shared/product-access.js?v=0.10.85';
+} from '/shared/queendom-events.js?v=0.10.89';
+import { getCurrentProfile } from '/shared/profiles.js?v=0.10.89';
+import { getMyProductAccess } from '/shared/product-access.js?v=0.10.89';
 import {
   createAccountWithEmail,
   getCurrentUser,
@@ -14,7 +15,7 @@ import {
   sendPasswordResetEmail,
   signInWithEmail,
   updateCurrentPassword,
-} from '/shared/auth.js?v=0.10.85';
+} from '/shared/auth.js?v=0.10.89';
 
 const FLOWTEL_ZONE='America/Los_Angeles';
 const shell=document.getElementById('agendaShell');
@@ -58,7 +59,10 @@ function shortMonthLabel(key){const[y,m]=key.split('-').map(Number);return new I
 function detailedDate(value){return new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',timeZone:'UTC'}).format(eventDate(value));}
 function dayNumber(value){return String(Number(String(value||'').slice(-2))||'');}
 function monthAbbr(value){return new Intl.DateTimeFormat('en-US',{month:'short',timeZone:'UTC'}).format(eventDate(value)).toUpperCase();}
-function futureEvent(event){const end=event.ends_at||event.live_room_starts_at||event.starts_at;if(end){const stamp=new Date(end).getTime();if(Number.isFinite(stamp))return stamp>=Date.now()-3600000;}return String(event.event_date||'')>=new Date().toISOString().slice(0,10);}
+function seriesOccurrences(event){return event?.event_format==='series'&&Array.isArray(event.occurrences)?event.occurrences.filter(item=>item?.status!=='cancelled'):[];}
+function futureEvent(event){const occurrences=seriesOccurrences(event);const last=occurrences[occurrences.length-1];const end=last?.ends_at||last?.live_room_starts_at||last?.starts_at||event.ends_at||event.live_room_starts_at||event.starts_at;if(end){const stamp=new Date(end).getTime();if(Number.isFinite(stamp))return stamp>=Date.now()-3600000;}return String(last?.event_date||event.event_date||'')>=new Date().toISOString().slice(0,10);}
+function nextOccurrence(event){const occurrences=seriesOccurrences(event);if(!occurrences.length)return null;const now=Date.now()-60*60000;return occurrences.find(item=>new Date(item.ends_at||item.live_room_starts_at||item.starts_at).getTime()>=now)||occurrences[occurrences.length-1];}
+function seriesLabel(event){const count=Number(event?.series_count||seriesOccurrences(event).length||0);return event?.event_format==='series'?(count===4&&Number(event?.series_interval_days||7)===7?'4-WEEK VORTEX':`${count}-SESSION SERIES`):'';}
 function viewerZone(){return profile?.timezone||viewerUser?.user_metadata?.timezone||'';}
 function timeInZone(timestamp,zone,{includeDate=false}={}){const date=new Date(timestamp);if(Number.isNaN(date.getTime())||!zone)return'';try{return new Intl.DateTimeFormat('en-US',{...(includeDate?{weekday:'short',month:'short',day:'numeric'}:{}),hour:'numeric',minute:'2-digit',timeZone:zone,timeZoneName:'short'}).format(date);}catch{return'';}}
 function timeStack(event){const start=event.starts_at,memberZone=viewerZone()&&viewerZone()!==FLOWTEL_ZONE?viewerZone():null;const flow=`<span><b>FLOWTEL TIME</b> — ${esc(timeInZone(start,FLOWTEL_ZONE))}</span>`;const mine=memberZone?`<span><b>YOUR TIME</b> — ${esc(timeInZone(start,memberZone))}</span>`:'';let live='';if(event.live_room_starts_at&&new Date(event.live_room_starts_at).getTime()!==new Date(start).getTime()){live=`<p class="agenda-live-time"><b>LIVE GATHERING</b> — ${esc(timeInZone(event.live_room_starts_at,FLOWTEL_ZONE))}${memberZone?` · ${esc(timeInZone(event.live_room_starts_at,memberZone))} your time`:''}</p>`;}return `<div class="agenda-time-stack">${flow}${mine}</div>${live}`;}
@@ -75,10 +79,10 @@ function flowtelRegistrationUrl(event){const target=new URL('/client/',window.lo
 function actionMarkup(event){
   if(event.status==='cancelled')return'<span class="agenda-cancelled">CANCELLED</span>';
   const access=isAuthenticated()?memberAccess(event):publicAccess(event);
-  if(isAuthenticated()&&event.is_registered)return `<button type="button" class="agenda-seat is-saved" data-open-event="${esc(event.event_id)}">✓ SEAT SAVED · OPEN EVENT</button>`;
+  if(isAuthenticated()&&event.is_registered)return `<button type="button" class="agenda-seat is-saved" data-open-event="${esc(event.event_id)}">${event.event_format==='series'?`✓ VORTEX JOINED · OPEN SERIES`:`✓ SEAT SAVED · OPEN EVENT`}</button>`;
   if(access?.entitled||access?.mode==='included'){
-    if(isAuthenticated())return `<button type="button" class="agenda-seat" data-save-event="${esc(event.event_id)}">SAVE MY SEAT</button>`;
-    return `<a class="agenda-seat" href="${esc(flowtelRegistrationUrl(event))}" target="_top">SAVE MY SEAT</a>`;
+    if(isAuthenticated())return `<button type="button" class="agenda-seat" data-save-event="${esc(event.event_id)}">${event.event_format==='series'?`JOIN THE ${esc(seriesLabel(event))}`:'SAVE MY SEAT'}</button>`;
+    return `<a class="agenda-seat" href="${esc(flowtelRegistrationUrl(event))}" target="_top">${event.event_format==='series'?`JOIN THE ${esc(seriesLabel(event))}`:'SAVE MY SEAT'}</a>`;
   }
   if(access?.mode==='ticket'&&access?.ticket_url){
     const price=money(access.price,access.currency||event.access_currency);
@@ -87,7 +91,14 @@ function actionMarkup(event){
   }
   return'<span class="agenda-unavailable">NOT INCLUDED WITH THIS ACCESS</span>';
 }
-function card(event,{featured=false,compact=false}={}){const image=event.image_url?`<img src="${esc(event.image_url)}" alt="">`:'<span class="agenda-art-placeholder" aria-hidden="true">✦</span>';const flowfm=event.audience==='flowfm',cancelled=event.status==='cancelled',description=event.description?`<p class="agenda-description">${esc(event.description)}</p>`:'';return `<article class="agenda-event ${flowfm?'is-flowfm':'is-queendom'} ${cancelled?'is-cancelled':''} ${featured?'is-featured':''} ${compact?'is-embed-compact':''}"><div class="agenda-date" aria-label="${esc(detailedDate(event.event_date))}"><span>${esc(monthAbbr(event.event_date))}</span><strong>${esc(dayNumber(event.event_date))}</strong></div><div class="agenda-art">${image}</div><div class="agenda-copy"><div class="agenda-chips"><span>${esc(eventType(event.event_type))}</span><span class="${flowfm?'flowfm-chip':''}">${esc(audienceLabel(event.audience))}</span></div><h2>${esc(event.title)}</h2><p class="agenda-when"><strong>${esc(detailedDate(event.event_date))}</strong></p>${timeStack(event)}${hostMarkup(event)}${description}</div><div class="agenda-actions">${actionMarkup(event)}</div></article>`;}
+function card(event,{featured=false,compact=false}={}){
+  const image=event.image_url?`<img src="${esc(event.image_url)}" alt="">`:'<span class="agenda-art-placeholder" aria-hidden="true">✦</span>';
+  const flowfm=event.audience==='flowfm',cancelled=event.status==='cancelled',description=event.description?`<p class="agenda-description">${esc(event.description)}</p>`:'';
+  const occurrences=seriesOccurrences(event),last=occurrences[occurrences.length-1],series=event.event_format==='series';
+  const when=series&&last?`${detailedDate(event.event_date)} – ${detailedDate(last.event_date)}`:detailedDate(event.event_date);
+  const chip=series?`<span class="agenda-series-chip">${esc(seriesLabel(event))}</span>`:'';
+  return `<article class="agenda-event ${flowfm?'is-flowfm':'is-queendom'} ${cancelled?'is-cancelled':''} ${featured?'is-featured':''} ${compact?'is-embed-compact':''}"><div class="agenda-date" aria-label="${esc(when)}"><span>${esc(monthAbbr(event.event_date))}</span><strong>${esc(dayNumber(event.event_date))}</strong></div><div class="agenda-art">${image}</div><div class="agenda-copy"><div class="agenda-chips"><span>${esc(eventType(event.event_type))}</span><span class="${flowfm?'flowfm-chip':''}">${esc(audienceLabel(event.audience))}</span>${chip}</div><h2>${esc(event.title)}</h2><p class="agenda-when"><strong>${esc(when)}</strong></p>${timeStack(event)}${hostMarkup(event)}${description}</div><div class="agenda-actions">${actionMarkup(event)}</div></article>`;
+}
 function visibleEvents(){return events.filter(event=>futureEvent(event)&&event.status!=='draft'&&(audience==='all'||event.audience===audience));}
 function renderMonths(rows){const keys=[...new Set(rows.map(monthKey).filter(Boolean))];monthNav.innerHTML=keys.map(key=>`<a href="#month-${esc(key)}">${esc(shortMonthLabel(key))}</a>`).join('');monthNav.hidden=keys.length<2;}
 function renderEmbed(rows){monthNav.hidden=true;filters.closest('.agenda-tools')?.setAttribute('hidden','');if(!rows.length){list.innerHTML='';status.textContent='The next gathering has not been placed yet.';requestAnimationFrame(notifyEmbedHeight);return;}status.textContent='';const featured=rows[0],upcoming=rows.slice(1,4);list.innerHTML=`<section class="agenda-embed-feed"><header class="agenda-embed-heading"><p class="eyebrow">UPCOMING EVENTS IN THE QUEENDOM</p><h2>There is always something happening here.</h2></header><div class="agenda-embed-featured">${card(featured,{featured:true})}</div>${upcoming.length?`<div class="agenda-embed-coming"><p class="eyebrow">COMING UP</p>${upcoming.map(event=>card(event,{compact:true})).join('')}</div>`:''}<a class="agenda-view-all" href="/queendom-events/" target="_top">VIEW ALL UPCOMING EVENTS</a></section>`;requestAnimationFrame(watchEmbedHeight);}
@@ -109,8 +120,8 @@ async function refreshEvents(){
 function updateNavigation(){document.querySelectorAll('.agenda-flowtel-nav').forEach(nav=>{nav.hidden=isEventPass();});}
 
 async function saveSeat(eventId){
-  status.textContent='Saving your seat…';
-  try{await setQueendomEventRegistration(eventId,true);await refreshEvents();render();status.textContent='Your seat is saved.';}catch(error){status.textContent=error?.message||'Your seat could not be saved.';}
+  const selected=eventById(eventId);status.textContent=selected?.event_format==='series'?'Joining the full vortex…':'Saving your seat…';
+  try{const result=await setQueendomEventRegistration(eventId,true);await refreshEvents();render();if(result?.series_enrollment?.status==='active')status.textContent=`You’re registered for the full ${selected?.series_count||''}-session vortex. Acuity will send the configured session reminders.`;else if(result?.series_enrollment?.error)status.textContent=`Your Flowtel seat is saved. ${result.series_enrollment.error}`;else status.textContent=selected?.event_format==='series'?'Your Flowtel series registration is saved and the session doorways are syncing.':'Your seat is saved.';}catch(error){status.textContent=error?.message||'Your seat could not be saved.';}
 }
 async function checkTicket(eventId,{openAfter=true}={}){
   status.textContent='Checking your ticket…';
@@ -121,14 +132,28 @@ async function checkTicket(eventId,{openAfter=true}={}){
 }
 function attendeeHostLine(detail){const host=detail.host_name?esc(detail.host_name):'';const co=detail.co_host_name?esc(detail.co_host_name):'';return host||co?`<p class="agenda-event-room-host">Hosted by ${host}${host&&co?' + ':''}${co}</p>`:'';}
 function eventRoomTimes(detail){const memberZone=viewerZone()&&viewerZone()!==FLOWTEL_ZONE?viewerZone():null;const start=detail.starts_at,live=detail.live_room_starts_at||start;const liveDiff=new Date(live).getTime()!==new Date(start).getTime();return `<div class="agenda-event-room-times"><div><span>FLOWTEL TIME</span><strong>${esc(timeInZone(start,FLOWTEL_ZONE,{includeDate:true}))}</strong>${memberZone?`<small>YOUR TIME — ${esc(timeInZone(start,memberZone,{includeDate:true}))}</small>`:''}</div>${liveDiff?`<div><span>LIVE ROOM OPENS</span><strong>${esc(timeInZone(live,FLOWTEL_ZONE,{includeDate:true}))}</strong>${memberZone?`<small>YOUR TIME — ${esc(timeInZone(live,memberZone,{includeDate:true}))}</small>`:''}</div>`:''}</div>`;}
+function protectedSeriesOccurrences(detail){return detail?.event_format==='series'&&Array.isArray(detail.occurrences)?detail.occurrences.filter(item=>item?.status!=='cancelled'):[];}
+function currentSeriesOccurrence(detail){const rows=protectedSeriesOccurrences(detail);if(!rows.length)return null;const now=Date.now()-60*60000;return rows.find(item=>new Date(item.ends_at||item.live_room_starts_at||item.starts_at).getTime()>=now)||rows[rows.length-1];}
+function seriesRoomMarkup(detail){
+  const rows=protectedSeriesOccurrences(detail),current=currentSeriesOccurrence(detail);if(!rows.length)return'';
+  const memberZone=viewerZone()&&viewerZone()!==FLOWTEL_ZONE?viewerZone():null;
+  const itinerary=rows.map(item=>{const selected=item.occurrence_id===current?.occurrence_id;return `<li class="${selected?'is-next-session':''}"><span>SESSION ${esc(item.occurrence_number)} OF ${esc(detail.series_count||rows.length)}</span><strong>${esc(timeInZone(item.starts_at,FLOWTEL_ZONE,{includeDate:true}))}</strong>${memberZone?`<small>YOUR TIME — ${esc(timeInZone(item.starts_at,memberZone,{includeDate:true}))}</small>`:''}${selected?'<em>NEXT GATHERING</em>':''}</li>`;}).join('');
+  const doorway=current?.meeting_url?`<a class="agenda-primary-action" href="${esc(current.meeting_url)}" target="_blank" rel="noopener">JOIN ZOOM · SESSION ${esc(current.occurrence_number)}</a>${current.zoom_passcode?`<p class="agenda-passcode"><b>Passcode:</b> ${esc(current.zoom_passcode)}</p>`:''}`:`<p class="agenda-series-sync">${detail.series_enrollment_status==='pending'?'Your Acuity enrollment is saved. Flowtel is still receiving the Zoom doorway for this session.':'Your next session doorway will appear here when Acuity provides it.'}</p>`;
+  return `<section class="agenda-event-room-section agenda-series-room"><p class="eyebrow">${esc(seriesLabel(detail))}</p><h3>Your four-session container</h3><ol>${itinerary}</ol><div class="agenda-event-room-actions">${doorway}</div></section>`;
+}
 async function openEventRoom(eventId){
   if(!isAuthenticated()){openAccessModal(eventId);return;}
   eventRoom.hidden=false;eventRoom.setAttribute('aria-hidden','false');document.body.classList.add('agenda-modal-open');eventRoomStatus.textContent='Opening your event room…';eventRoomContent.innerHTML='';
   try{
     const event=eventById(eventId);
     if(event?.access?.mode==='ticket'){const ticket=await verifyQueendomEventTicket(eventId);if(!ticket?.paid)throw new Error(ticket?.message||'Your paid ticket could not be confirmed.');}
-    const detail=await getQueendomEventJoinDetails(eventId);const zoom=detail.zoom_url?`<a class="agenda-primary-action" href="${esc(detail.zoom_url)}" target="_blank" rel="noopener">JOIN ZOOM</a>${detail.zoom_passcode?`<p class="agenda-passcode"><b>Passcode:</b> ${esc(detail.zoom_passcode)}</p>`:''}`:'';const location=detail.private_location?`<section class="agenda-event-room-section"><p class="eyebrow">WHERE TO GO</p><p>${esc(detail.private_location).replace(/\n/g,'<br>')}</p></section>`:'';const guide=detail.attendee_guide_url?`<a class="agenda-secondary-action" href="${esc(detail.attendee_guide_url)}" target="_blank" rel="noopener">DOWNLOAD YOUR HOW TO PREPARE GUIDE</a>`:'';
-    eventRoomContent.innerHTML=`<p class="eyebrow">YOUR REGISTERED EVENT</p><h2 id="agendaEventRoomTitle">${esc(detail.title)}</h2><p class="agenda-event-room-date">${esc(detailedDate(detail.event_date))}</p>${eventRoomTimes(detail)}${attendeeHostLine(detail)}<p class="agenda-recording"><b>Will this be recorded?</b> ${detail.will_be_recorded?'Yes':'No'}</p>${detail.description?`<p class="agenda-event-room-description">${esc(detail.description)}</p>`:''}<section class="agenda-event-room-section"><p class="eyebrow">HOW TO PREPARE</p><p>${esc(detail.how_to_prepare||'Find a private space. Light a candle + incense. Make tea. Grab a journal + pen.').replace(/\n/g,'<br>')}</p>${guide}</section>${location}<div class="agenda-event-room-actions">${zoom}</div>`;
+    if(event?.event_format==='series'&&event?.is_registered){eventRoomStatus.textContent='Opening your vortex and syncing its session doorways…';await ensureQueendomEventSeriesEnrollment(eventId).catch(error=>console.warn('Event series Acuity sync is still pending.',error));}
+    const detail=await getQueendomEventJoinDetails(eventId);const isSeries=detail.event_format==='series';const current=isSeries?currentSeriesOccurrence(detail):null;
+    const zoom=!isSeries&&detail.zoom_url?`<a class="agenda-primary-action" href="${esc(detail.zoom_url)}" target="_blank" rel="noopener">JOIN ZOOM</a>${detail.zoom_passcode?`<p class="agenda-passcode"><b>Passcode:</b> ${esc(detail.zoom_passcode)}</p>`:''}`:'';
+    const location=detail.private_location?`<section class="agenda-event-room-section"><p class="eyebrow">WHERE TO GO</p><p>${esc(detail.private_location).replace(/\n/g,'<br>')}</p></section>`:'';const guide=detail.attendee_guide_url?`<a class="agenda-secondary-action" href="${esc(detail.attendee_guide_url)}" target="_blank" rel="noopener">DOWNLOAD YOUR HOW TO PREPARE GUIDE</a>`:'';
+    const timeDetail=isSeries&&current?{...detail,starts_at:current.starts_at,live_room_starts_at:current.live_room_starts_at||current.starts_at}:detail;
+    const dateCopy=isSeries?`${seriesLabel(detail)} · ${detail.series_count||protectedSeriesOccurrences(detail).length} GATHERINGS`:detailedDate(detail.event_date);
+    eventRoomContent.innerHTML=`<p class="eyebrow">YOUR REGISTERED EVENT</p><h2 id="agendaEventRoomTitle">${esc(detail.title)}</h2><p class="agenda-event-room-date">${esc(dateCopy)}</p>${eventRoomTimes(timeDetail)}${attendeeHostLine(detail)}<p class="agenda-recording"><b>Will this be recorded?</b> ${detail.will_be_recorded?'Yes':'No'}</p>${detail.description?`<p class="agenda-event-room-description">${esc(detail.description)}</p>`:''}${isSeries?seriesRoomMarkup(detail):''}<section class="agenda-event-room-section"><p class="eyebrow">HOW TO PREPARE</p><p>${esc(detail.how_to_prepare||'Find a private space. Light a candle + incense. Make tea. Grab a journal + pen.').replace(/\n/g,'<br>')}</p>${guide}</section>${location}${!isSeries?`<div class="agenda-event-room-actions">${zoom}</div>`:''}`;
     eventRoomStatus.textContent='';
   }catch(error){eventRoomStatus.textContent=error?.message||'This event room could not open just now.';}
 }
@@ -181,11 +206,8 @@ function renderLiveAlert(){
   if(embed||!isAuthenticated()||!liveAlert)return;
   const now=Date.now(),windowStart=now-5*60000,windowEnd=now+60*60000,candidates=[];
   events.filter(e=>e.is_registered&&e.status==='published').forEach(e=>{
-    const startAt=new Date(e.starts_at).getTime(),liveAt=new Date(e.live_room_starts_at||e.starts_at).getTime();
-    const separate=Number.isFinite(startAt)&&Number.isFinite(liveAt)&&Math.abs(liveAt-startAt)>=60000;
-    if(separate&&startAt>=windowStart&&startAt<=windowEnd)candidates.push({e,at:startAt,phase:'event'});
-    const roomAt=Number.isFinite(liveAt)?liveAt:startAt;
-    if(Number.isFinite(roomAt)&&roomAt>=windowStart&&roomAt<=windowEnd)candidates.push({e,at:roomAt,phase:separate?'live':'event-live'});
+    const moments=e.event_format==='series'?seriesOccurrences(e):[e];
+    moments.forEach(occurrence=>{const startAt=new Date(occurrence.starts_at).getTime(),liveAt=new Date(occurrence.live_room_starts_at||occurrence.starts_at).getTime();const separate=Number.isFinite(startAt)&&Number.isFinite(liveAt)&&Math.abs(liveAt-startAt)>=60000;if(separate&&startAt>=windowStart&&startAt<=windowEnd)candidates.push({e,occurrence,at:startAt,phase:'event'});const roomAt=Number.isFinite(liveAt)?liveAt:startAt;if(Number.isFinite(roomAt)&&roomAt>=windowStart&&roomAt<=windowEnd)candidates.push({e,occurrence,at:roomAt,phase:separate?'live':'event-live'});});
   });
   const next=candidates.sort((a,b)=>a.at-b.at)[0];
   if(!next){liveAlert.hidden=true;return;}

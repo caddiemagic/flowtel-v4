@@ -1,6 +1,7 @@
 const {
   acuityFetch,
   appointmentTimes,
+  extractZoomMeetingUrl,
   readRequestBody,
   serviceHeaders,
   verifyAcuitySignature,
@@ -29,6 +30,65 @@ function actionStatus(action,appointment){
   return 'scheduled';
 }
 function acuityDate(appointment){return appointment?.datetime||appointment?.time||'';}
+
+function normalizeEmail(value){return String(value||'').trim().toLowerCase();}
+function appointmentDateTime(appointment={}){return String(appointment.datetime||appointment.time||'').trim();}
+function occurrenceStatus(action,appointment={}){
+  if(action==='canceled'||appointment?.canceled===true)return 'cancelled';
+  if(action==='rescheduled')return 'rescheduled';
+  return 'scheduled';
+}
+async function syncSeriesParentStatus(context,eventId,memberId,seriesCount,anchorId=''){
+  const rows=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`select=acuity_appointment_id,status&event_id=eq.${enc(eventId)}&member_id=eq.${enc(memberId)}`),{headers:serviceHeaders(context.serviceKey)}));
+  const complete=rows.length>=Number(seriesCount||0);
+  const allCancelled=complete&&rows.every(row=>row.status==='cancelled');
+  const status=allCancelled?'cancelled':complete?'active':'pending';
+  const existing=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_series_enrollments',`select=enrolled_at&event_id=eq.${enc(eventId)}&member_id=eq.${enc(memberId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+  const payload={event_id:eventId,member_id:memberId,status,acuity_series_anchor_id:anchorId||rows.find(row=>row.acuity_appointment_id)?.acuity_appointment_id||null,last_synced_at:nowIso(),updated_at:nowIso()};
+  if(status==='active'&&!existing[0]?.enrolled_at)payload.enrolled_at=nowIso();
+  await fetchJson(serviceUrl(context,'flowtel_queendom_event_series_enrollments','on_conflict=event_id,member_id'),{method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=merge-duplicates'),body:JSON.stringify(payload)});
+  return status;
+}
+async function updateMappedSeriesOccurrence(context,local,action,appointment={}){
+  const status=occurrenceStatus(action,appointment);
+  await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({
+    status,meeting_url:extractZoomMeetingUrl(appointment)||local.meeting_url||null,external_payload:Object.keys(appointment||{}).length?appointment:local.external_payload,last_synced_at:nowIso(),updated_at:nowIso(),
+  })});
+  const events=array(await fetchJson(serviceUrl(context,'flowtel_queendom_events',`select=id,series_count&id=eq.${enc(local.event_id)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+  const parentStatus=await syncSeriesParentStatus(context,local.event_id,local.member_id,events[0]?.series_count||1,local.acuity_appointment_id);
+  return {status,parentStatus,eventId:local.event_id,memberId:local.member_id};
+}
+async function associateSeriesOccurrence(context,{acuityId,action,calendarId,appointmentTypeId,appointment}){
+  const email=normalizeEmail(appointment?.email);
+  const datetime=appointmentDateTime(appointment);
+  const typeId=String(appointment?.appointmentTypeID||appointmentTypeId||'');
+  const calId=String(appointment?.calendarID||calendarId||'');
+  if(!email||!datetime||!typeId||!calId)return null;
+  const events=array(await fetchJson(serviceUrl(context,'flowtel_queendom_events',`select=id,series_count&event_format=eq.series&acuity_appointment_type_id=eq.${enc(typeId)}&acuity_calendar_id=eq.${enc(calId)}`),{headers:serviceHeaders(context.serviceKey)}));
+  for(const event of events){
+    const occurrences=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrences',`select=id,event_id,occurrence_number,starts_at&event_id=eq.${enc(event.id)}&order=occurrence_number.asc`),{headers:serviceHeaders(context.serviceKey)}));
+    let occurrence=null,best=Infinity;
+    for(const candidate of occurrences){
+      const delta=Math.abs(new Date(candidate.starts_at).getTime()-new Date(datetime).getTime());
+      if(Number.isFinite(delta)&&delta<best){best=delta;occurrence=candidate;}
+    }
+    if(!occurrence||best>10*60000)continue;
+    const registrations=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_registrations',`select=member_id&event_id=eq.${enc(event.id)}&cancelled_at=is.null`),{headers:serviceHeaders(context.serviceKey)}));
+    if(!registrations.length)continue;
+    const ids=registrations.map(row=>row.member_id).filter(Boolean);
+    const profiles=array(await fetchJson(serviceUrl(context,'profiles',`select=id,email&id=in.(${ids.map(enc).join(',')})`),{headers:serviceHeaders(context.serviceKey)}));
+    const profile=profiles.find(row=>normalizeEmail(row.email)===email);
+    if(!profile)continue;
+    const status=occurrenceStatus(action,appointment);
+    await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments','on_conflict=event_id,occurrence_id,member_id'),{method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=merge-duplicates'),body:JSON.stringify({
+      event_id:event.id,occurrence_id:occurrence.id,member_id:profile.id,acuity_appointment_id:acuityId,status,meeting_url:extractZoomMeetingUrl(appointment)||null,external_payload:appointment,last_synced_at:nowIso(),updated_at:nowIso(),
+    })});
+    const parentStatus=await syncSeriesParentStatus(context,event.id,profile.id,event.series_count,acuityId);
+    return {status,parentStatus,eventId:event.id,memberId:profile.id};
+  }
+  return null;
+}
+
 async function logEvent(context,payload){
   await fetchJson(serviceUrl(context,'flowtel_acuity_sync_events'),{method:'POST',headers:serviceHeaders(context.serviceKey),body:JSON.stringify(payload)}).catch(error=>console.error('Acuity event log failed',error));
 }
@@ -47,14 +107,28 @@ async function handler(req,res){
     const calendarId=String(form.get('calendarID')||'');
     const appointmentTypeId=String(form.get('appointmentTypeID')||'');
     if(!acuityId)return res.status(400).json({ok:false,error:'Missing appointment id.'});
+    let appointment={};
+    try{appointment=await acuityFetch(`/appointments/${enc(acuityId)}`);}catch(error){if(action!=='canceled')throw error;}
+
+    const seriesMatches=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`select=*&acuity_appointment_id=eq.${enc(acuityId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+    if(seriesMatches.length){
+      const result=await updateMappedSeriesOccurrence(context,seriesMatches[0],action,appointment);
+      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||appointment.calendarID||null,appointment_type_id:appointmentTypeId||appointment.appointmentTypeID||null,processing_status:'processed',detail:{surface:'queendom_event_series',event_id:result.eventId,status:result.status,parent_status:result.parentStatus},processed_at:nowIso()});
+      return res.status(200).json({ok:true,event_series:true});
+    }
+
+    const associated=await associateSeriesOccurrence(context,{acuityId,action,calendarId,appointmentTypeId,appointment});
+    if(associated){
+      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||appointment.calendarID||null,appointment_type_id:appointmentTypeId||appointment.appointmentTypeID||null,processing_status:'processed',detail:{surface:'queendom_event_series',event_id:associated.eventId,status:associated.status,parent_status:associated.parentStatus},processed_at:nowIso()});
+      return res.status(200).json({ok:true,event_series:true});
+    }
+
     const matches=array(await fetchJson(serviceUrl(context,'flowtel_external_appointments',`select=*&acuity_appointment_id=eq.${enc(acuityId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
     if(!matches.length){
-      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||null,appointment_type_id:appointmentTypeId||null,processing_status:'ignored',detail:{reason:'No Flowtel appointment matched.'},processed_at:nowIso()});
+      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||null,appointment_type_id:appointmentTypeId||null,processing_status:'ignored',detail:{reason:'No Flowtel appointment or event-series session matched.'},processed_at:nowIso()});
       return res.status(200).json({ok:true,ignored:true});
     }
     const local=matches[0];
-    let appointment={};
-    try{appointment=await acuityFetch(`/appointments/${enc(acuityId)}`);}catch(error){if(action!=='canceled')throw error;}
     const status=actionStatus(action,appointment);
     const patch={status,last_synced_at:nowIso(),updated_at:nowIso(),external_payload:appointment&&Object.keys(appointment).length?appointment:local.external_payload};
     if(status==='cancelled')patch.canceled_at=nowIso();

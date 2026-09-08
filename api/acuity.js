@@ -17,7 +17,7 @@ const {
   setPublicCors,
   validTimezone,
 }=require('../server/acuity-server.js');
-const {fetchJson}=require('../server/guest-house-server.js');
+const {fetchJson,userHeaders}=require('../server/guest-house-server.js');
 
 function enc(value){return encodeURIComponent(String(value));}
 function csv(values){return values.map(value=>`"${String(value).replaceAll('"','\\"')}"`).join(',');}
@@ -66,6 +66,132 @@ function publicAppointment(appointment={}){
     meeting_url:meetingUrlFor(appointment)||null,
   };
 }
+
+function normalizeEmail(value){return String(value||'').trim().toLowerCase();}
+function appointmentDateTime(appointment={}){return String(appointment.datetime||appointment.time||'').trim();}
+function appointmentId(appointment={}){return String(appointment.id||appointment.appointmentID||'').trim();}
+function withinMinutes(a,b,minutes=10){
+  const left=new Date(a).getTime(),right=new Date(b).getTime();
+  return Number.isFinite(left)&&Number.isFinite(right)&&Math.abs(left-right)<=minutes*60000;
+}
+async function userRpc(context,name,payload={}){
+  return fetchJson(serviceRestUrl(context,`rpc/${name}`),{method:'POST',headers:userHeaders(context.serviceKey,context.token),body:JSON.stringify(payload)});
+}
+async function eventSeriesBookingContext(context,eventId){
+  const value=await userRpc(context,'flowtel_get_queendom_event_series_booking_context',{p_event_id:eventId});
+  if(!value||typeof value!=='object'||value.event_format!=='series'){const error=new Error('That multi-session event is not available.');error.statusCode=404;throw error;}
+  return value;
+}
+async function eventSeriesEnrollmentRow(context,eventId){
+  return row(await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_series_enrollments',`select=*&event_id=eq.${enc(eventId)}&member_id=eq.${enc(context.user.id)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+}
+async function writeEventSeriesEnrollment(context,eventId,payload={}){
+  return row(await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_series_enrollments','on_conflict=event_id,member_id'),{
+    method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=merge-duplicates,return=representation'),
+    body:JSON.stringify({event_id:eventId,member_id:context.user.id,...payload,updated_at:nowIso()}),
+  }));
+}
+async function acuityAppointmentsForSeries(context,booking){
+  const occurrences=array(booking.occurrences);
+  if(!occurrences.length)return [];
+  return array(await acuityFetch('/appointments',{query:{
+    email:normalizeEmail(context.user.email),appointmentTypeID:booking.acuity_appointment_type_id,calendarID:booking.acuity_calendar_id,
+    minDate:String(occurrences[0].event_date||'').slice(0,10),maxDate:String(occurrences[occurrences.length-1].event_date||'').slice(0,10),
+    direction:'ASC',max:100,excludeForms:true,
+  }}));
+}
+async function syncEventSeriesOccurrences(context,booking,appointments){
+  const occurrences=array(booking.occurrences);
+  const used=new Set();
+  let mapped=0;
+  for(const occurrence of occurrences){
+    let best=null,bestIndex=-1,bestDelta=Infinity;
+    appointments.forEach((appointment,index)=>{
+      if(used.has(index)||appointment?.canceled===true)return;
+      const when=appointmentDateTime(appointment);
+      const delta=Math.abs(new Date(when).getTime()-new Date(occurrence.starts_at).getTime());
+      if(Number.isFinite(delta)&&delta<bestDelta){best=appointment;bestIndex=index;bestDelta=delta;}
+    });
+    if(!best||bestDelta>10*60000)continue;
+    used.add(bestIndex);
+    const acuityId=appointmentId(best);if(!acuityId)continue;
+    const status=statusFromAcuity(best);
+    await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_occurrence_enrollments','on_conflict=event_id,occurrence_id,member_id'),{
+      method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=merge-duplicates'),body:JSON.stringify({
+        event_id:booking.event_id,occurrence_id:occurrence.occurrence_id,member_id:context.user.id,acuity_appointment_id:acuityId,status,
+        meeting_url:extractZoomMeetingUrl(best)||null,external_payload:best,last_synced_at:nowIso(),updated_at:nowIso(),
+      }),
+    });
+    mapped+=1;
+  }
+  return mapped;
+}
+async function eventSeriesOwnerSetup(req){
+  await requireFlowtelOwner(req);
+  const [me,calendars,types]=await Promise.all([acuityFetch('/me'),acuityFetch('/calendars'),acuityFetch('/appointment-types')]);
+  return {ok:true,connection:{name:me?.name||me?.firstName||'Acuity connected',user_id:me?.id||null},calendars:array(calendars),series:array(types).filter(type=>String(type?.type||'').toLowerCase()==='series'&&type?.active!==false)};
+}
+async function eventSeriesEnroll(req,body){
+  const context=await requireFlowtelMember(req);
+  const eventId=String(body.event_id||'').trim();
+  if(!eventId){const error=new Error('Choose an event series first.');error.statusCode=400;throw error;}
+  const booking=await eventSeriesBookingContext(context,eventId);
+  const occurrences=array(booking.occurrences);
+  if(occurrences.length<2){const error=new Error('This series does not have its session itinerary yet. Ask the Front Desk to finish event setup.');error.statusCode=503;throw error;}
+
+  const [types,calendars]=await Promise.all([acuityFetch('/appointment-types'),acuityFetch('/calendars')]);
+  const type=array(types).find(item=>String(item.id)===String(booking.acuity_appointment_type_id));
+  if(!type||String(type.type||'').toLowerCase()!=='series'){const error=new Error('The mapped Acuity appointment type is not a group series. Update the event mapping in Flowtel.');error.statusCode=503;throw error;}
+  const calendar=array(calendars).find(item=>String(item.id)===String(booking.acuity_calendar_id));
+  if(!calendar){const error=new Error('The mapped Acuity calendar is no longer available. Update the event mapping in Flowtel.');error.statusCode=503;throw error;}
+  if(Array.isArray(type.calendarIDs)&&type.calendarIDs.length&&!type.calendarIDs.map(String).includes(String(booking.acuity_calendar_id))){const error=new Error('That Acuity series is not offered on the selected calendar. Update the event mapping in Flowtel.');error.statusCode=503;throw error;}
+
+  let enrollment=await eventSeriesEnrollmentRow(context,eventId);
+  let appointments=await acuityAppointmentsForSeries(context,booking);
+  let mapped=await syncEventSeriesOccurrences(context,booking,appointments);
+  if(mapped===occurrences.length){
+    enrollment=await writeEventSeriesEnrollment(context,eventId,{status:'active',acuity_series_anchor_id:enrollment?.acuity_series_anchor_id||appointmentId(appointments[0])||null,error_text:null,enrolled_at:enrollment?.enrolled_at||nowIso(),last_synced_at:nowIso()});
+    return {ok:true,status:'active',event_id:eventId,session_count:occurrences.length,mapped_sessions:mapped,series_enrollment:enrollment};
+  }
+
+  // A previous request may have booked Acuity successfully but lost its local
+  // response. Always search Acuity first; only POST when there is no evidence of
+  // this member's series enrollment, preventing a duplicate class-series booking.
+  if(!enrollment?.acuity_series_anchor_id && mapped===0){
+    const first=occurrences[0],timezone=validTimezone(context.profile.timezone);
+    const classOfferings=array(await acuityFetch('/availability/classes',{query:{
+      month:String(first.event_date||'').slice(0,7),appointmentTypeID:booking.acuity_appointment_type_id,calendarID:booking.acuity_calendar_id,timezone:booking.event_timezone||timezone,includePrivate:true,
+    }}));
+    const offering=classOfferings.find(item=>String(item.appointmentTypeID)===String(booking.acuity_appointment_type_id)&&String(item.calendarID)===String(booking.acuity_calendar_id)&&item.isSeries===true&&withinMinutes(item.time||item.datetime,first.starts_at,10));
+    if(!offering){const error=new Error('Flowtel could not find the mapped Acuity series at the first session time. Confirm the Acuity series dates/time and the Flowtel event mapping before members join.');error.statusCode=409;throw error;}
+    if(Number(offering.slotsAvailable)===0){const error=new Error('This Acuity series is currently full.');error.statusCode=409;throw error;}
+    await writeEventSeriesEnrollment(context,eventId,{status:'pending',error_text:null,last_synced_at:nowIso()});
+    const names=firstLastForBooking(context.profile,context.user);
+    let created;
+    try{
+      created=await acuityFetch('/appointments',{method:'POST',body:{
+        datetime:offering.time||first.starts_at,appointmentTypeID:Number(booking.acuity_appointment_type_id),calendarID:Number(booking.acuity_calendar_id),
+        firstName:names.firstName,lastName:names.lastName,email:context.user.email,phone:String(context.profile.phone||'').trim()||undefined,timezone,
+      }});
+    }catch(error){
+      await writeEventSeriesEnrollment(context,eventId,{status:'failed',error_text:String(error?.message||'Acuity could not enroll this series.').slice(0,1000),last_synced_at:nowIso()}).catch(()=>{});
+      throw error;
+    }
+    const anchor=Array.isArray(created)?created.map(appointmentId).find(Boolean):appointmentId(created);
+    enrollment=await writeEventSeriesEnrollment(context,eventId,{status:'pending',acuity_series_anchor_id:anchor||null,error_text:null,last_synced_at:nowIso()});
+  }
+
+  appointments=await acuityAppointmentsForSeries(context,booking);
+  mapped=await syncEventSeriesOccurrences(context,booking,appointments);
+  const active=mapped===occurrences.length;
+  enrollment=await writeEventSeriesEnrollment(context,eventId,{
+    status:active?'active':'pending',acuity_series_anchor_id:enrollment?.acuity_series_anchor_id||appointmentId(appointments[0])||null,
+    error_text:active?null:'Acuity enrollment exists; Flowtel is still syncing the individual session doorways.',
+    enrolled_at:active?(enrollment?.enrolled_at||nowIso()):(enrollment?.enrolled_at||null),last_synced_at:nowIso(),
+  });
+  return {ok:true,status:active?'active':'pending',event_id:eventId,session_count:occurrences.length,mapped_sessions:mapped,series_enrollment:enrollment};
+}
+
 async function getService(context){
   const rows=await fetchJson(serviceRestUrl(context,'flowtel_provider_service_types',`select=*&product_key=eq.flowtel&service_key=eq.womb_magic&limit=1`),{headers:serviceHeaders(context.serviceKey)});
   const service=row(rows);
@@ -277,6 +403,8 @@ module.exports=async function handler(req,res){
       case 'provider-calls':result=await providerCalls(req);break;
       case 'owner-setup':result=await ownerSetup(req);break;
       case 'owner-save':result=await ownerSave(req,body);break;
+      case 'event-series-owner-setup':result=await eventSeriesOwnerSetup(req);break;
+      case 'event-series-enroll':result=await eventSeriesEnroll(req,body);break;
       default:return res.status(400).json({ok:false,error:'Unknown Acuity action.'});
     }
     return res.status(200).json(result);

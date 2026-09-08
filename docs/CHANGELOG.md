@@ -1,3 +1,16 @@
+## v0.10.89 — Multi-Session Event Series + Acuity Group Enrollment
+
+- Adds **Multi-Session Series** to the existing Queendom Calendar while preserving one canonical parent event and one Flowtel registration for the entire vortex.
+- Adds migration 075 with private child occurrence + Acuity series-enrollment/sync records; public feeds receive only non-sensitive session itinerary data.
+- Lets Owner Event Administration configure 2–12 repeated sessions, preview the generated dates, and map an existing Acuity appointment type of `series` + calendar.
+- Reuses the existing `api/acuity.js` function to validate the Acuity class offering, search before booking for idempotency, enroll the member into the existing series, and preserve normal Acuity confirmation/reminder emails.
+- Extends the existing Acuity webhook so scheduled/rescheduled/cancelled group-series appointments keep the member's protected session Zoom doorway synchronized.
+- Upgrades My Upcoming Events/Event Room to show the whole vortex, automatically advance to the next gathering, and launch the correct protected `JOIN ZOOM · SESSION X` doorway.
+- Adds all-session Apple/Outlook ICS export; Google Calendar targets the next session.
+- Prevents member unsave / Flowtel Owner cancellation from getting out of sync with active Acuity seats and reminders; Acuity cancellation must be handled first.
+- Keeps the private 4-Week Womb Magic Portal separate and unchanged.
+- No new Vercel serverless function: Flowtel remains **12/12**. Migration 075 is latest; 076 is next.
+
 ## v0.10.88.1 — Complimentary Stay Doorway + Womb Magic Preview Polish
 
 - Reorganizes the `/client/` first-time doorway into clear paid-member, complimentary-stay, and Join the Queendom buttons.
