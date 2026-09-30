@@ -1,0 +1,102 @@
+FLOWTEL v0.10.91.1 — EVENT CLAIM CONVERSION FLOW
+=================================================
+
+EXPECTED SOURCE
+---------------
+Flowtel v0.10.91 — Automatic Queendom Provisioning + Member Reconciliation
+GitHub base commit: b0cf2ac06d962f7139bc552125c525341e3c4189
+
+TARGET
+------
+Flowtel v0.10.91.1 — Event Claim Conversion Flow
+
+DATABASE
+--------
+NO MIGRATION for v0.10.91.1.
+Do NOT rerun migration 078.
+Latest migration remains: 078
+Next migration remains: 079
+
+ENVIRONMENT VARIABLES
+---------------------
+NO CHANGES.
+Keep the existing Supabase, Squarespace, Acuity, and FLOWTEL_PUBLIC_ORIGIN configuration.
+
+VERCEL FUNCTIONS
+----------------
+NO FUNCTIONS ADDED.
+NO FUNCTIONS REMOVED.
+Current budget remains: 12 / 12.
+
+ADDED FILES
+-----------
+PATCH-INSTRUCTIONS-v0.10.91.1.txt
+docs/LIVE-TEST-0.10.91.1.md
+docs/RELEASE-0.10.91.1.md
+scripts/test-flowtel-010911-event-claim-conversion.mjs
+scripts/validate-flowtel-010911-event-claim-conversion.mjs
+
+MODIFIED FILES
+--------------
+api/squarespace-bridge.js
+client/app.js
+client/index.html
+docs/CHANGELOG.md
+docs/FLOWTEL_ROADMAP.md
+docs/SUPABASE-AUTH-EMAIL-SETUP.md
+queendom-calendar/app.js
+queendom-calendar/index.html
+queendom-calendar/styles.css
+scripts/test-flowtel-01091-auto-membership-provisioning.mjs
+scripts/validate-flowtel-01090-cyclical-calendar-event-operations.mjs
+scripts/validate-flowtel-010903-registered-event-room.mjs
+scripts/validate-flowtel-01091-auto-membership-provisioning.mjs
+scripts/validate-flowtel-complimentary-stay.mjs
+scripts/validate-my-upcoming-events.mjs
+
+DELETED FILES
+-------------
+NONE.
+
+WHAT CHANGED
+------------
+1. The next-three-gatherings preview on The Queendom Calendar now includes a compact CLAIM MY SEAT action on each card.
+2. Signed-in eligible members register through the existing authenticated Flowtel -> Acuity event-enrollment path. Recurring events preserve the exact occurrence selected.
+3. A successfully claimed preview seat becomes: ✓ SEAT CLAIMED · OPEN EVENT.
+4. Signed-out visitors see a small two-doorway modal:
+   - ALREADY IN THE QUEENDOM? ENTER FLOWTEL
+   - NOT YET A MEMBER? JOIN THE QUEENDOM
+5. Signed-in nonmember / Complimentary Stay identities route to the canonical Queendom signup rather than receiving member event admission.
+6. Exact recurring occurrence context is preserved through /client/ login and the v0.10.91 automatic provisioning invitation redirect.
+7. The automatic invitation redirect accepts only UUID-shaped event/occurrence ids and always targets the fixed Flowtel /client/ route.
+8. Existing event entitlement, ticket, Acuity capacity, idempotency, Womb Magic, and Caddie Magic boundaries are unchanged.
+
+DEPLOYMENT ORDER
+----------------
+1. Confirm production is currently on v0.10.91.
+2. NO SQL step is required.
+3. Extract flowtel-v0.10.91.1-patch-files.zip at the repository root, preserving paths.
+4. Review the changed files above.
+5. Commit and push to GitHub main.
+6. Wait for Vercel Production to report READY.
+7. Hard-refresh:
+   - https://app.theflowtel.com/queendom-calendar/
+   - https://app.theflowtel.com/client/
+8. Run the first live tests below.
+
+FIRST LIVE TESTS
+----------------
+1. Signed out: open /queendom-calendar/ and confirm all three compact preview cards show CLAIM MY SEAT.
+2. Click the event-copy area and confirm it still opens details without claiming.
+3. Click CLAIM MY SEAT signed out and confirm the Enter Flowtel / Join Queendom doorway opens.
+4. Confirm NOT YET A MEMBER? JOIN THE QUEENDOM opens the canonical Queendom signup page.
+5. Existing Queendom member: choose a specific recurring gathering, enter/sign in to Flowtel, and confirm that exact occurrence is registered in Flowtel and Acuity.
+6. Return to the calendar and confirm the action becomes ✓ SEAT CLAIMED · OPEN EVENT.
+7. Complimentary Stay / signed-in nonmember: confirm CLAIM MY SEAT routes to Join the Queendom and does not grant the seat.
+8. New paid member with no Flowtel identity: begin from a specific recurring preview, activate Flowtel, open the Supabase invitation, and confirm the selected occurrence survives the invitation return and is claimed.
+9. Series/Vortex: confirm preview registration remains whole-series.
+10. Regression-check Event Room, UNCLAIM MY SEAT, Event Flow Map, monthly Womb Magic, 4-Week Womb Magic Portal, and Caddie Magic.
+
+VALIDATION STATUS
+-----------------
+SOURCE VALIDATED only until the live checks above are confirmed in production.

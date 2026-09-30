@@ -26,8 +26,8 @@ expect(!agenda.includes('NEXT GATHERING CLAIMED'),'Old NEXT GATHERING CLAIMED co
 expect(agendaCss.includes('.agenda-room-unclaim'),'Registered Event Room unclaim action must be styled.');
 
 expect(calendarHtml.includes('id="calendarPreview"'),'The Queendom Calendar must include a compact upcoming preview region.');
-expect(calendarHtml.includes('/queendom-calendar/app.js?v=0.10.90.3'),'Calendar app cache key must be v0.10.90.3.');
-expect(calendarHtml.includes('/queendom-calendar/styles.css?v=0.10.90.3'),'Calendar CSS cache key must be v0.10.90.3.');
+expect(/\/queendom-calendar\/app\.js\?v=0\.10\.(?:90\.3|91(?:\.\d+)?)/.test(calendarHtml),'Calendar app cache key must remain on the current event-experience bundle.');
+expect(/\/queendom-calendar\/styles\.css\?v=0\.10\.(?:90\.3|91(?:\.\d+)?)/.test(calendarHtml),'Calendar CSS cache key must remain on the current event-experience bundle.');
 expect(calendar.includes('function previewMoments(rows)'),'Calendar must derive upcoming preview moments.');
 expect(calendar.includes('.slice(0,3)'),'Calendar preview must be limited to the next three gatherings.');
 expect(calendar.includes('data-preview-event-id'),'Calendar preview items must open exact event/occurrence details.');

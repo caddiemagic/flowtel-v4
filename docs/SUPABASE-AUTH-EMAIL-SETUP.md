@@ -108,3 +108,7 @@ Keep `https://app.theflowtel.com/client/` in the Supabase Auth Redirect URLs all
 Customize **Authentication → Email Templates → Invite user** with Flowtel / Queendom language if desired. The member will choose her long-term private Flowtel password inside Flowtel after accepting the invitation.
 
 Invitation delivery is subject to the project's Supabase Auth email-rate limits. Owner Membership Reconciliation therefore provisions at most 20 selected members per action.
+
+## Event-return context after v0.10.91.1
+
+Automatic paid-member invitations may return to `/client/` with `saveEvent`, `occurrence`, `eventReturn`, and `lounge` query parameters so a member can finish claiming the exact gathering she selected before authentication. The redirect origin/path remains the same `/client/` URL already allowed for v0.10.91; no additional Supabase Redirect URL entry is required.

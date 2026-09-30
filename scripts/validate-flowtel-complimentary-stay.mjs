@@ -38,7 +38,7 @@ expect(html.includes('YOUR COMPLIMENTARY STAY IS COMPLETE'), 'Expired stay scene
 expect(html.includes('I Joined — Reopen My Room'), 'Expired stay scene must support same-account membership conversion.');
 
 expect(client.includes('accountCreationMode="member"'), 'Client must keep paid-member signup separate from trial signup.');
-expect(client.includes('verifySquarespaceMember(email,"trial-signup")') && client.includes('verifySquarespaceMember(email,"provision")'), 'Client must keep trial admission and paid-member provisioning as distinct bridge intents.');
+expect(client.includes('verifySquarespaceMember(email,"trial-signup")') && client.includes('verifySquarespaceMember(email,"provision"'), 'Client must keep trial admission and paid-member provisioning as distinct bridge intents.');
 expect(client.includes('source:"flowtel_complimentary_stay"') && !client.includes('source:trial?"flowtel_complimentary_stay":"flowtel_member_signup"'), 'Trial Auth metadata must remain a dedicated Complimentary Stay path and never masquerade as paid-member signup.');
 expect(client.includes('membershipType:bridge.membershipType') && client.includes('handleTrialMembershipRefresh'), 'Client must reopen the same account after verified membership purchase.');
 expect(client.includes('maybeAutoUpgradeComplimentaryStay') && client.includes('convertComplimentaryStayMembership'), 'Returning complimentary guests must be able to auto-convert after a verified Queendom purchase.');

@@ -798,13 +798,27 @@ function collapseMembershipOrders(orders = []) {
   return [...byEmail.values()].sort((a, b) => a.email.localeCompare(b.email));
 }
 
-function flowtelInviteRedirect() {
-  const origin = String(process.env.FLOWTEL_PUBLIC_ORIGIN || "https://app.theflowtel.com").replace(/\/$/, "");
-  return `${origin}/client/?membershipProvisioned=1`;
+function safeFlowtelUuid(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(text) ? text : "";
 }
 
-async function inviteSupabaseFlowtelUser({ supabaseUrl, serviceKey, email, contact, membershipType }) {
-  const redirectTo = flowtelInviteRedirect();
+function flowtelInviteRedirect({ eventId = null, occurrenceId = null } = {}) {
+  const origin = String(process.env.FLOWTEL_PUBLIC_ORIGIN || "https://app.theflowtel.com").replace(/\/$/, "");
+  const target = new URL(`${origin}/client/`);
+  const safeEventId = safeFlowtelUuid(eventId);
+  const safeOccurrenceId = safeFlowtelUuid(occurrenceId);
+  if (safeEventId) {
+    target.searchParams.set("saveEvent", safeEventId);
+    target.searchParams.set("eventReturn", "calendar");
+    target.searchParams.set("lounge", "1");
+    if (safeOccurrenceId) target.searchParams.set("occurrence", safeOccurrenceId);
+  }
+  return target.toString();
+}
+
+async function inviteSupabaseFlowtelUser({ supabaseUrl, serviceKey, email, contact, membershipType, eventId = null, occurrenceId = null }) {
+  const redirectTo = flowtelInviteRedirect({ eventId, occurrenceId });
   const endpoint = `${supabaseUrl}/auth/v1/invite?redirect_to=${encodeURIComponent(redirectTo)}`;
   const data = await readSupabaseJson(endpoint, {
     method: "POST",
@@ -840,7 +854,7 @@ async function applyVerifiedMembershipToAuthUser({ supabaseUrl, serviceKey, user
   });
 }
 
-async function provisionVerifiedMembership({ email, source = "squarespace-auto-provision" }) {
+async function provisionVerifiedMembership({ email, source = "squarespace-auto-provision", eventId = null, occurrenceId = null }) {
   const normalizedEmail = normalizeEmail(email);
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
@@ -863,6 +877,8 @@ async function provisionVerifiedMembership({ email, source = "squarespace-auto-p
         email: normalizedEmail,
         contact,
         membershipType: purchase.membershipType,
+        eventId,
+        occurrenceId,
       });
       invited = true;
     } catch (error) {
@@ -1109,7 +1125,12 @@ module.exports = async function handler(req, res) {
     }
 
     if (intent === "provision" || intent === "activate-membership") {
-      const result = await provisionVerifiedMembership({ email, source: "member-membership-activation" });
+      const result = await provisionVerifiedMembership({
+        email,
+        source: "member-membership-activation",
+        eventId: body.event_id || null,
+        occurrenceId: body.occurrence_id || null,
+      });
       res.status(200).json({
         ok: true,
         verified: true,

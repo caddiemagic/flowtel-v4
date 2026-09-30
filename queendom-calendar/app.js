@@ -15,6 +15,9 @@ const previous=document.getElementById('previousMonth');
 const next=document.getElementById('nextMonth');
 const dialog=document.getElementById('eventDialog');
 const dialogContent=document.getElementById('eventDialogContent');
+const claimDoorway=document.getElementById('calendarClaimDoorway');
+const enterFlowtelLink=document.getElementById('calendarEnterFlowtel');
+const QUEENDOM_JOIN_URL='https://www.theidyllcollective.com/queendomhome';
 const embed=new URLSearchParams(location.search).get('embed')==='1';
 let memberMode=false;
 let profile=null;
@@ -53,11 +56,59 @@ function previewMoments(rows){
   }).sort((a,b)=>new Date(activeOccurrence(a)?.starts_at||a.starts_at).getTime()-new Date(activeOccurrence(b)?.starts_at||b.starts_at).getTime()).slice(0,3);
 }
 function previewDate(event){const value=activeOccurrence(event)?.event_date||event.event_date;return new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(monthDate(value));}
+function previewFlowtelUrl(event){
+  const url=new URL('/client/',window.location.origin);
+  url.searchParams.set('saveEvent',event.event_id);
+  const occurrence=activeOccurrence(event);
+  if(event.event_format==='recurring'&&occurrence?.occurrence_id)url.searchParams.set('occurrence',occurrence.occurrence_id);
+  url.searchParams.set('eventReturn','calendar');
+  return url.toString();
+}
+function previewActionMarkup(event){
+  const occurrence=activeOccurrence(event),registered=occurrenceRegistered(event),occurrenceAttr=occurrence?.occurrence_id?` data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:'';
+  if(memberMode&&registered)return `<button type="button" class="calendar-preview-claim is-claimed" data-preview-open-registered="${esc(event.event_id)}"${occurrenceAttr}>✓ SEAT CLAIMED · OPEN EVENT</button>`;
+  if(memberMode)return `<button type="button" class="calendar-preview-claim" data-preview-claim-event="${esc(event.event_id)}"${occurrenceAttr}>CLAIM MY SEAT</button>`;
+  if(profile)return `<a class="calendar-preview-claim" href="${QUEENDOM_JOIN_URL}" target="_top">CLAIM MY SEAT</a>`;
+  return `<button type="button" class="calendar-preview-claim" data-preview-claim-doorway="${esc(event.event_id)}"${occurrenceAttr}>CLAIM MY SEAT</button>`;
+}
+function previewEventFromIds(eventId,occurrenceId=''){
+  const base=previewEvents.find(item=>String(item.event_id)===String(eventId));
+  if(!base)return null;
+  if(!occurrenceId||!['series','recurring'].includes(base.event_format)||!Array.isArray(base.occurrences))return base;
+  const occurrence=base.occurrences.find(item=>String(item.occurrence_id)===String(occurrenceId));
+  return occurrence?{...base,_calendar_occurrence:occurrence}:base;
+}
+function openClaimDoorway(eventId,occurrenceId=''){
+  const event=previewEventFromIds(eventId,occurrenceId);
+  if(!event||!claimDoorway||!enterFlowtelLink)return;
+  enterFlowtelLink.href=previewFlowtelUrl(event);
+  if(typeof claimDoorway.showModal==='function')claimDoorway.showModal();else claimDoorway.setAttribute('open','');
+}
+async function claimPreviewSeat(eventId,occurrenceId='',button=null){
+  const event=previewEventFromIds(eventId,occurrenceId);
+  if(!event)return;
+  if(button){button.disabled=true;button.textContent='CLAIMING…';}
+  try{
+    await setQueendomEventRegistration(event.event_id,true,event.event_format==='recurring'?activeOccurrence(event)?.occurrence_id||null:null);
+    await load();
+    message.textContent='Your seat is confirmed in Flowtel and Acuity will send the configured reminders.';
+  }catch(error){
+    message.textContent=error?.message||'Your seat could not be claimed.';
+    if(button){button.disabled=false;button.textContent='CLAIM MY SEAT';}
+  }
+}
 function renderPreview(){
   if(!previewList)return;
   const rows=previewMoments(previewEvents);
-  previewList.innerHTML=rows.length?rows.map(event=>{const occurrence=activeOccurrence(event),series=event.event_format==='series',recurring=event.event_format==='recurring',kind=series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience));return `<button type="button" class="calendar-preview-item" data-preview-event-id="${esc(event.event_id)}" ${occurrence?`data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:''}><span>${esc(previewDate(event))} · ${esc(eventTime(event))}</span><strong>${esc(event.title)}</strong><small>${kind}</small></button>`;}).join(''):'<p class="calendar-preview-empty">The next gathering has not been placed yet.</p>';
+  previewList.innerHTML=rows.length?rows.map(event=>{
+    const occurrence=activeOccurrence(event),series=event.event_format==='series',recurring=event.event_format==='recurring',kind=series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience));
+    const occurrenceAttr=occurrence?.occurrence_id?` data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:'';
+    return `<article class="calendar-preview-item"><button type="button" class="calendar-preview-open" data-preview-event-id="${esc(event.event_id)}"${occurrenceAttr}><span>${esc(previewDate(event))} · ${esc(eventTime(event))}</span><strong>${esc(event.title)}</strong><small>${kind}</small></button><div class="calendar-preview-action">${previewActionMarkup(event)}</div></article>`;
+  }).join(''):'<p class="calendar-preview-empty">The next gathering has not been placed yet.</p>';
   previewList.querySelectorAll('[data-preview-event-id]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.previewEventId,button.dataset.previewOccurrenceId||'')));
+  previewList.querySelectorAll('[data-preview-claim-event]').forEach(button=>button.addEventListener('click',()=>claimPreviewSeat(button.dataset.previewClaimEvent,button.dataset.previewOccurrenceId||'',button)));
+  previewList.querySelectorAll('[data-preview-open-registered]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.previewOpenRegistered,button.dataset.previewOccurrenceId||'')));
+  previewList.querySelectorAll('[data-preview-claim-doorway]').forEach(button=>button.addEventListener('click',()=>openClaimDoorway(button.dataset.previewClaimDoorway,button.dataset.previewOccurrenceId||'')));
 }
 function render(){
   renderPreview();
@@ -140,6 +191,8 @@ async function load(){
 }
 previous.addEventListener('click',()=>{cursor=shiftMonth(cursor,-1);load();});next.addEventListener('click',()=>{cursor=shiftMonth(cursor,1);load();});
 dialog.querySelector('[data-close-event]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+claimDoorway?.querySelector('[data-close-claim-doorway]')?.addEventListener('click',()=>claimDoorway.close());
+claimDoorway?.addEventListener('click',event=>{if(event.target===claimDoorway)claimDoorway.close();});
 async function init(){
   if(embed){document.body.classList.add('is-embed');nav.hidden=true;hero.hidden=true;if(preview)preview.hidden=true;}
   if(!embed){try{profile=await getCurrentProfile();memberMode=Boolean(profile);}catch{memberMode=false;}}

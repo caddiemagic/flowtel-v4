@@ -1,3 +1,14 @@
+## v0.10.91.1 — Event Claim Conversion Flow
+
+- Turns the compact next-three-gatherings preview on The Queendom Calendar into an actionable registration surface with a small **CLAIM MY SEAT** button on every preview card.
+- Signed-in eligible Queendom / Flow FM members claim the exact gathering immediately through the existing Flowtel → Acuity registration path; claimed preview seats become **✓ SEAT CLAIMED · OPEN EVENT**.
+- Signed-in Complimentary Stay / nonmember identities route to the canonical Queendom signup rather than attempting a member registration.
+- Signed-out visitors see a small two-doorway choice: **ALREADY IN THE QUEENDOM? ENTER FLOWTEL** or **NOT YET A MEMBER? JOIN THE QUEENDOM**.
+- Preserves exact recurring-occurrence context through Flowtel login and v0.10.91 automatic membership activation/invitation so a returning member claims the Monday she selected, not a different recurrence.
+- Keeps all existing server-side event entitlement and Acuity capacity checks authoritative; no client-side membership bypass is introduced.
+- No migration, environment-variable, or Vercel-function change. Migration **078** remains latest; **079** remains next; function budget remains **12/12**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.91 — Automatic Queendom Provisioning + Member Reconciliation
 
 - Replaces paid-member browser signup with **Queendom Members | Activate My Flowtel**: one email-only activation after Squarespace checkout.

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="The Queendom Calendar — ceremonies, workshops, and Flow FM gatherings." />
   <title>The Queendom Calendar | Flowtel</title>
-  <link rel="stylesheet" href="/queendom-calendar/styles.css?v=0.10.90.3" />
+  <link rel="stylesheet" href="/queendom-calendar/styles.css?v=0.10.91.1" />
 </head>
 <body>
   <main class="queendom-calendar-shell" id="calendarShell">
@@ -47,6 +47,19 @@
     <div id="eventDialogContent"></div>
   </dialog>
 
-  <script type="module" src="/queendom-calendar/app.js?v=0.10.90.3"></script>
+  <dialog class="claim-doorway" id="calendarClaimDoorway">
+    <button class="event-dialog-close claim-doorway-close" type="button" data-close-claim-doorway aria-label="Close seat claim doorway">×</button>
+    <section class="claim-doorway-copy" aria-labelledby="calendarClaimDoorwayTitle">
+      <p class="eyebrow">CLAIM YOUR SEAT</p>
+      <h2 id="calendarClaimDoorwayTitle">Are you already in the Queendom?</h2>
+      <p>Enter the Flowtel to claim this gathering, or join the Queendom to unlock member registration.</p>
+      <div class="claim-doorway-actions">
+        <a id="calendarEnterFlowtel" href="/client/">ALREADY IN THE QUEENDOM? ENTER FLOWTEL</a>
+        <a href="https://www.theidyllcollective.com/queendomhome">NOT YET A MEMBER? JOIN THE QUEENDOM</a>
+      </div>
+    </section>
+  </dialog>
+
+  <script type="module" src="/queendom-calendar/app.js?v=0.10.91.1"></script>
 </body>
 </html>

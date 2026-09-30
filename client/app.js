@@ -77,6 +77,7 @@ let loungeEventsLoadPromise=null;
 let loungeEvents=[];
 let loungeWombMagicState=null;
 let eventDoorwayEventId=String(urlParam("saveEvent")||"").trim();
+let eventDoorwayOccurrenceId=String(urlParam("occurrence")||"").trim();
 let eventRoomEventId=String(urlParam("openEvent")||"").trim();
 let loungeEventCountdownTimer=null;
 let moonMailDueLoadPromise=null;
@@ -506,7 +507,7 @@ function memberBridgeEmail(){
   return (newEmail || loginEmail || extractSquarespaceEmail() || "").trim().toLowerCase();
 }
 
-async function verifySquarespaceMember(email,intent="verify"){
+async function verifySquarespaceMember(email,intent="verify",context={}){
   const response=await fetch("/api/squarespace-bridge",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -514,6 +515,8 @@ async function verifySquarespaceMember(email,intent="verify"){
       email,
       intent,
       trustedDoorway:false,
+      event_id:String(context?.eventId||"").trim()||null,
+      occurrence_id:String(context?.occurrenceId||"").trim()||null,
     }),
   });
   const data=await response.json().catch(()=>({}));
@@ -576,7 +579,7 @@ async function handleCreateAccount(){
     try{
       setFlowtelLoading(true,"The Flowtel is verifying your Queendom room key...");
       if(status)status.textContent="Verifying your paid Queendom membership…";
-      const bridge=await verifySquarespaceMember(email,"provision");
+      const bridge=await verifySquarespaceMember(email,"provision",{eventId:eventDoorwayEventId,occurrenceId:eventDoorwayOccurrenceId});
       try{localStorage.setItem("flowtel:memberEmail",email);}catch(_){ }
       setFlowtelLoading(false);
       showLoginForm();
@@ -607,7 +610,7 @@ async function handleCreateAccount(){
 
     const redirect=new URL("/client/",window.location.origin);
     redirect.searchParams.set("accountConfirmed","1");
-    if(eventDoorwayEventId){redirect.searchParams.set("saveEvent",eventDoorwayEventId);redirect.searchParams.set("lounge","1");}
+    if(eventDoorwayEventId){redirect.searchParams.set("saveEvent",eventDoorwayEventId);if(eventDoorwayOccurrenceId)redirect.searchParams.set("occurrence",eventDoorwayOccurrenceId);redirect.searchParams.set("lounge","1");}
     if(eventRoomEventId){redirect.searchParams.set("openEvent",eventRoomEventId);redirect.searchParams.set("lounge","1");}
     const metadata={
       first_name:bridge.contact?.firstName||null,
@@ -754,7 +757,7 @@ async function registerPendingEventDoorway(){
   if(!eventDoorwayEventId || eventDoorwayRegistrationHandled || !currentProfile?.id) return;
   eventDoorwayRegistrationHandled=true;
   try{
-    const result=await setQueendomEventRegistration(eventDoorwayEventId,true);
+    const result=await setQueendomEventRegistration(eventDoorwayEventId,true,eventDoorwayOccurrenceId||null);
     if(result?.event_format==='series'){
       eventDoorwayMessage=result?.series_enrollment?.status==='active'
         ? "You’re registered for the full series. Your sessions are waiting in My Upcoming Events."
@@ -774,11 +777,13 @@ function cleanEventDoorwayUrl(){
   if(!eventDoorwayEventId) return;
   const url=new URL(window.location.href);
   url.searchParams.delete("saveEvent");
+  url.searchParams.delete("occurrence");
   url.searchParams.delete("eventReturn");
   url.searchParams.set("lounge","1");
   url.hash="my-upcoming-events";
   window.history.replaceState({},"",`${url.pathname}${url.search}${url.hash}`);
   eventDoorwayEventId="";
+  eventDoorwayOccurrenceId="";
 }
 
 function setLoungeEventsView(_view,{scroll=true}={}){

@@ -16,9 +16,9 @@ const expect=(ok,msg)=>{if(!ok)failures.push(msg);};
 
 expect(clientHtml.includes('Queendom Members | Activate My Flowtel'),'Member doorway must activate Flowtel rather than ask for a second account signup.');
 expect(clientHtml.includes('id="newAccountPasswordFields" class="new-account-password-fields hidden"'),'Paid-member activation must not require password fields in the activation form.');
-expect(clientHtml.includes('./app.js?v=0.10.91'),'Client JS cache key must be v0.10.91.');
-expect(clientHtml.includes('./styles.css?v=0.10.91'),'Client CSS cache key must be v0.10.91.');
-expect(client.includes('verifySquarespaceMember(email,"provision")'),'Paid member activation must call the server provisioning boundary.');
+expect(/\.\/app\.js\?v=0\.10\.91(?:\.\d+)?/.test(clientHtml),'Client JS cache key must remain on the v0.10.91.x line.');
+expect(/\.\/styles\.css\?v=0\.10\.91(?:\.\d+)?/.test(clientHtml),'Client CSS cache key must remain on the v0.10.91.x line.');
+expect(client.includes('verifySquarespaceMember(email,"provision"'),'Paid member activation must call the server provisioning boundary.');
 expect(client.includes('you do not need to create another account here'),'New member activation must explain that no second manual account is required.');
 expect(client.includes('if(!trial){'),'Paid activation and complimentary-stay signup must remain separate paths.');
 

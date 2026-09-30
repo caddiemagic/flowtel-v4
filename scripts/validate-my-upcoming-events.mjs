@@ -38,7 +38,7 @@ assert(agendaCss.includes('.agenda-month-events')&&agendaCss.includes('.agenda-e
 assert(clientHtml.includes('MY UPCOMING EVENTS'),'Lounge must use My Upcoming Events language.');
 assert(clientHtml.includes('id="my-upcoming-events"'),'My Upcoming Events anchor missing.');
 assert(clientApp.includes('await registerPendingEventDoorway();'),'Authenticated entrance must resume pending event registration.');
-assert(clientApp.includes('await setQueendomEventRegistration(eventDoorwayEventId,true);'),'Doorway must use the existing protected registration RPC.');
+assert(clientApp.includes('await setQueendomEventRegistration(eventDoorwayEventId,true'),'Doorway must use the existing protected registration RPC.');
 assert(clientApp.includes('showCheckIn();')&&clientApp.includes('Check in for today and Flowtel will take you straight to My Upcoming Events.'),'Event doorway must preserve normal daily check-in when required.');
 assert(clientApp.includes('ADD TO CALENDAR')&&clientApp.includes('calendar.google.com/calendar/render')&&clientApp.includes("type:'text/calendar;charset=utf-8'"),'Personal-calendar handoff missing.');
 assert(clientApp.includes('Join from My Upcoming Events in the Flowtel')&&!clientApp.includes('zoom_url`'),'Calendar handoff should point back to Flowtel, not serialize Zoom credentials.');

@@ -77,7 +77,7 @@ expect(agendaCss.includes('.event-flow-chambers') && agendaCss.includes('grid-te
 
 expect(/import\("\.\.\/shared\/queendom-events\.js\?v=0\.10\.90(?:\.\d+)?"\)/.test(client), 'Login isolation must remain folded into current v0.10.90.x via dynamic event-module import.');
 expect(!/import\s*\{[^}]*QueendomEvent[^}]*\}\s*from\s*["']\.\.\/shared\/queendom-events\.js/.test(client), 'Client auth bundle must not statically depend on Queendom Events.');
-expect(/\.\/app\.js\?v=0\.10\.90(?:\.\d+)?/.test(clientHtml), 'Client app cache key must remain on the current v0.10.90.x line.');
+expect(/\.\/app\.js\?v=0\.10\.(?:90(?:\.\d+)?|91(?:\.\d+)?)/.test(clientHtml), 'Client app cache key must remain on the current Flowtel event-capable bundle.');
 
 const apiCount=fs.readdirSync(path.join(root,'api')).filter(name=>name.endsWith('.js')).length;
 expect(apiCount===12, `Vercel API function count is ${apiCount}; expected 12/12.`);

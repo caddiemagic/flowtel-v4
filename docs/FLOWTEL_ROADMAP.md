@@ -4,7 +4,11 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.91 Automatic Queendom Provisioning + Member Reconciliation
+## Current — v0.10.91.1 Event Claim Conversion Flow
+
+v0.10.91.1 turns the compact next-three-gatherings preview into a conversion surface. Eligible signed-in members can claim the exact preview occurrence immediately; signed-out visitors choose between entering Flowtel and joining the Queendom; signed-in nonmembers route to the canonical Queendom signup. Exact recurring-occurrence context now survives the v0.10.91 login/automatic-provisioning invitation flow so a selected Monday remains the selected Monday after authentication. No migration is required; migration **078** remains latest and **079** remains next. Vercel remains 12/12.
+
+### Previous — v0.10.91 Automatic Queendom Provisioning + Member Reconciliation
 
 v0.10.91 removes the second manual Flowtel signup for paid Queendom / Flow FM members. Squarespace remains the current Pricing Plan/billing authority; after exact-email Contact + PAID mapped-order verification, Flowtel reuses the existing Auth UUID or sends a Supabase invite for a missing identity, then applies membership server-side without lowering rank or replacing history. Owner Administration gains a paid-member reconciliation room for legacy members. Migration **078** is this release boundary; **079** is next. Vercel remains 12/12.
 

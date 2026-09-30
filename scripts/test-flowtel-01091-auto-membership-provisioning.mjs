@@ -17,7 +17,7 @@ assert.match(handlerProvision,/provisionVerifiedMembership/,'Public member activ
 assert.doesNotMatch(handlerProvision,/trustedDoorway:true/,'Public provisioning must never use trusted/unverified doorway mode.');
 
 const paidPath=(client.match(/if\(!trial\)\{[\s\S]*?\n    return;\n  \}/)||[''])[0];
-assert.match(paidPath,/verifySquarespaceMember\(email,"provision"\)/,'Paid member UI must provision instead of browser signUp.');
+assert.match(paidPath,/verifySquarespaceMember\(email,"provision"/,'Paid member UI must provision instead of browser signUp.');
 assert.doesNotMatch(paidPath,/createAccountWithEmail/,'Paid member activation must not create a second browser signup account.');
 assert.match(paidPath,/bridge\.inviteSent/,'Paid member UI must distinguish newly invited and already-existing identities.');
 
