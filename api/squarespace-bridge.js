@@ -806,6 +806,7 @@ function safeFlowtelUuid(value) {
 function flowtelInviteRedirect({ eventId = null, occurrenceId = null } = {}) {
   const origin = String(process.env.FLOWTEL_PUBLIC_ORIGIN || "https://app.theflowtel.com").replace(/\/$/, "");
   const target = new URL(`${origin}/client/`);
+  target.searchParams.set("membershipProvisioned", "1");
   const safeEventId = safeFlowtelUuid(eventId);
   const safeOccurrenceId = safeFlowtelUuid(occurrenceId);
   if (safeEventId) {
