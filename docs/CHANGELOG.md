@@ -1,3 +1,11 @@
+## v0.10.90.1 — Event Editor Validation Hotfix
+
+- Fixes Owner Event Administration showing/validating the Series-only session-count controls while Event Format is Single or Recurring.
+- Explicitly hides `[data-series-field][hidden]` controls and disables their inputs outside Series / Vortex so browser `min=2` validation cannot block Single/Recurring saves.
+- Keeps Series / Vortex minimum-session validation unchanged.
+- Advances Event Admin JS/CSS cache keys to `v0.10.90.1`.
+- No migration, env-var, Acuity contract, access-boundary, Womb Magic, Caddie Magic, or Vercel-function change. Migration 076 remains latest; 077 remains next; function budget remains 12/12.
+
 ## v0.10.90 — Cyclical Calendar + Event Operations
 
 - Folds the unshipped v0.10.89.1 login-doorway isolation repair into one consolidated deployment.

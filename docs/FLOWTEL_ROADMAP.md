@@ -4,13 +4,17 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.90 Cyclical Calendar + Event Operations
+## Current — v0.10.90.1 Event Editor Validation Hotfix
+
+v0.10.90.1 is a narrow browser-validation hotfix on top of v0.10.90. It prevents Series-only session controls from appearing or participating in validation for Single and Recurring events. No database or Acuity contract changed; migration 076 remains latest and 077 remains next.
+
+### Foundation — v0.10.90 Cyclical Calendar + Event Operations
 
 v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-operations release. The Queendom Calendar is publicly discoverable while admission remains entitlement-gated. Flowtel now distinguishes Single Event, independent Recurring Event occurrences, and whole-container Series / Vortex enrollment. Owner Event Administration imports/refreshes the mapped Acuity group schedule; Acuity remains the appointment/reminder engine while Flowtel owns discovery, access resolution, registration confirmation, protected entry, and event context.
 
 The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
 
-### Priority 0 — v0.10.90 live verification
+### Priority 0 — v0.10.90.1 live verification
 
 Verify a real Queendom-only weekly recurring class from public discovery through Acuity appointment creation, reminder email, Flowtel check-in, protected Zoom entry, and Event Flow Map. Also regress one single event, one existing Series / Vortex, paid Event Pass isolation/refund behavior, monthly Womb Magic, the private 4-Week Womb Magic Portal, remembered-session login, and mobile calendar/event-room behavior. Source validation does not replace production verification.
 

@@ -1,0 +1,72 @@
+FLOWTEL v0.10.90.1 — EVENT EDITOR VALIDATION HOTFIX
+=====================================================
+
+SOURCE VERSION EXPECTED
+- Flowtel v0.10.90 — Cyclical Calendar + Event Operations
+- This patch must be overlaid onto the completed v0.10.90 source.
+
+TARGET RELEASE
+- Flowtel v0.10.90.1 — Event Editor Validation Hotfix
+- Caddie Magic remains v0.6.0.
+
+PURPOSE
+- Fix the browser error `Value must be greater than or equal to 2.` when Owner Event Administration is editing a Single or Recurring event.
+- The Series-only controls were marked hidden, but Event Admin CSS forced all form labels to display:grid, overriding their hidden rendering.
+- v0.10.90.1 explicitly hides those controls and disables their inputs whenever Event Format is not Series / Vortex.
+
+FILES ADDED
+- docs/LIVE-TEST-0.10.90.1.md
+- docs/RELEASE-0.10.90.1.md
+- scripts/validate-flowtel-010901-event-editor-hotfix.mjs
+- PATCH-INSTRUCTIONS-v0.10.90.1.txt
+
+FILES MODIFIED
+- manager/events/app.js
+- manager/events/index.html
+- manager/events/styles.css
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+
+FILES TO DELETE
+- NONE
+
+IMPORTANT ZIP NOTE
+- ZIP overlays do not delete files. This release has no deletions.
+
+SUPABASE MIGRATION
+- No migration required.
+- Migration 076 remains latest.
+- Migration 077 remains next.
+- Do NOT rerun migration 076 for this hotfix.
+
+VERCEL ENVIRONMENT VARIABLES
+- No variables added.
+- No variables changed.
+- Keep all existing Supabase, Acuity, Squarespace, Resend, and Flowtel environment variables unchanged.
+
+VERCEL SERVERLESS FUNCTIONS
+- Added: NONE
+- Removed: NONE
+- Function count remains 12/12.
+
+DEPLOYMENT ORDER
+1. Confirm current source is v0.10.90.
+2. Do NOT run any Supabase migration.
+3. Overlay flowtel-v0.10.90.1-patch-files.zip at the repository root, preserving paths.
+4. Commit/push the resulting v0.10.90.1 source using the normal GitHub workflow.
+5. Wait for Vercel to report Ready.
+6. Hard-refresh Owner → Queendom Events so the v0.10.90.1 JS/CSS cache keys load.
+7. Perform the first-live tests below.
+
+FIRST LIVE TESTS AFTER VERCEL READY
+1. Open Owner → Queendom Events.
+2. Select Single Event.
+3. Confirm Series sessions and Days between series sessions are NOT visible.
+4. Import one Acuity class occurrence and save/publish. Confirm there is no minimum-2 browser error.
+5. Select Recurring Event. Confirm the Series-only controls remain absent, then import/refresh and save.
+6. Select Series / Vortex. Confirm the Series controls appear and still require 2 or more sessions.
+7. Spot-check public calendar, one member seat claim/Acuity booking, Event Flow Map, and remembered-session login.
+
+VALIDATION STATUS
+- SOURCE VALIDATED when the accompanying validation report passes.
+- NOT LIVE PRODUCTION VERIFIED until the owner performs the production checks above.

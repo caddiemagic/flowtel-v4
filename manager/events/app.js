@@ -107,6 +107,7 @@ function syncSeriesFields(){
   const series=fields.format.value==='series';
   document.querySelectorAll('[data-series-field]').forEach(element=>{element.hidden=!series;});
   fields.seriesCount.required=series;fields.seriesInterval.required=series;
+  fields.seriesCount.disabled=!series;fields.seriesInterval.disabled=!series;
   const linked=fields.acuitySync.value==='true';
   fields.acuitySeries.required=linked;fields.acuityCalendar.required=linked;
   fields.loadSchedule.disabled=!linked||!acuityConnected;
