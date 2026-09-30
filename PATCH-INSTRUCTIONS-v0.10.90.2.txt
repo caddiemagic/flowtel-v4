@@ -1,0 +1,132 @@
+FLOWTEL PATCH INSTRUCTIONS — v0.10.90.2 EVENT LIFECYCLE HOTFIX
+================================================================
+
+SOURCE VERSION EXPECTED
+-----------------------
+Flowtel v0.10.90.1 — Event Editor Validation Hotfix
+GitHub main base HEAD: ef8d26c53940c87c47e670253a930aafdbd3da26
+Caddie Magic: v0.6.0
+Latest database migration before this patch: 076 — Cyclical Calendar + Event Operations
+
+TARGET RELEASE
+--------------
+Flowtel v0.10.90.2 — Event Lifecycle Hotfix
+Database migration after deploy: 077 — Event Lifecycle Hotfix
+Next migration after this release: 078
+
+PURPOSE
+-------
+1. Hide cancelled events from public/member calendars and My Upcoming Events.
+2. Add member-facing UNCLAIM MY SEAT that cancels linked Acuity appointment(s) before releasing the Flowtel registration.
+3. Add Owner/Admin DELETE EVENT PERMANENTLY for Draft/Cancelled events, with active-Acuity safety checks.
+
+FILES ADDED
+-----------
+ADD: database/migration-077-event-lifecycle-hotfix.sql
+ADD: docs/LIVE-TEST-0.10.90.2.md
+ADD: docs/RELEASE-0.10.90.2.md
+ADD: scripts/test-flowtel-010902-event-lifecycle.mjs
+ADD: scripts/validate-flowtel-010902-event-lifecycle.mjs
+ADD: PATCH-INSTRUCTIONS-v0.10.90.2.txt
+
+FILES MODIFIED
+--------------
+MODIFY: api/acuity.js
+MODIFY: client/app.js
+MODIFY: client/index.html
+MODIFY: client/styles.css
+MODIFY: docs/CHANGELOG.md
+MODIFY: docs/FLOWTEL_ROADMAP.md
+MODIFY: manager/events/app.js
+MODIFY: manager/events/index.html
+MODIFY: manager/events/styles.css
+MODIFY: queendom-events/app.js
+MODIFY: queendom-events/index.html
+MODIFY: queendom-events/styles.css
+MODIFY: scripts/validate-flowtel-01090-cyclical-calendar-event-operations.mjs
+MODIFY: scripts/validate-flowtel-010901-event-editor-hotfix.mjs
+MODIFY: scripts/validate-flowtel-calendar.mjs
+MODIFY: shared/queendom-events.js
+
+FILES TO DELETE
+---------------
+None.
+
+IMPORTANT: ZIP overlays do not delete files automatically. This release has no DELETE instructions.
+
+SUPABASE MIGRATION
+------------------
+YES — migration 077 is required.
+
+Exact file:
+database/migration-077-event-lifecycle-hotfix.sql
+
+RUN MIGRATION 077 BEFORE DEPLOYING THE WEBSITE FILES.
+
+Do not rename, edit, or rerun historical migrations 001–076.
+After migration 077 is live, migration 078 is next.
+
+VERCEL ENVIRONMENT VARIABLES
+----------------------------
+No Vercel environment variables are added or changed.
+
+Keep all existing Supabase, Acuity, Squarespace, Resend, and Flowtel environment variables unchanged.
+
+SERVERLESS FUNCTIONS
+--------------------
+Added: none
+Removed: none
+Current Vercel serverless function count: 12/12
+
+The event-unclaim action reuses api/acuity.js. Do not add a 13th function.
+
+EXACT DEPLOYMENT ORDER
+----------------------
+1. Confirm production is currently v0.10.90.1 / GitHub HEAD ef8d26c53940c87c47e670253a930aafdbd3da26.
+2. Run database/migration-077-event-lifecycle-hotfix.sql in Supabase SQL Editor.
+3. Confirm migration 077 completes successfully.
+4. Overlay flowtel-v0.10.90.2-patch-files.zip at the repository root, preserving all folders/paths.
+5. Commit and push the changed/new files to GitHub main.
+6. Wait for Vercel to report Ready.
+7. Hard-refresh Flowtel/Event Admin in the browser.
+8. Perform the first-live tests below.
+
+FIRST LIVE TESTS AFTER VERCEL SAYS READY
+----------------------------------------
+1. CANCELLED EVENT VISIBILITY
+   - Cancel one test event in Owner Event Administration.
+   - Confirm it disappears from the public calendar.
+   - Confirm it disappears from a signed-in member calendar and My Upcoming Events.
+   - Confirm it remains visible in Owner Event Administration until permanently deleted.
+
+2. UNCLAIM — ACUITY-LINKED RECURRING EVENT
+   - Claim one real Moon Magic Meditation occurrence as a Queendom member.
+   - Confirm exactly one matching Acuity appointment exists.
+   - Confirm UNCLAIM MY SEAT appears.
+   - Click UNCLAIM MY SEAT and confirm the warning.
+   - Confirm the actual Acuity appointment is cancelled.
+   - Confirm that occurrence is no longer claimed in Flowtel.
+   - If another week is also claimed, confirm that other week remains claimed.
+
+3. SINGLE / SERIES UNCLAIM
+   - Confirm a linked Single Event releases its Acuity appointment before the Flowtel seat.
+   - Confirm a Series / Vortex release cancels all active linked series-session appointments before closing the parent Flowtel registration.
+
+4. PERMANENT ADMIN DELETE
+   - Confirm Draft and Cancelled events show DELETE EVENT PERMANENTLY.
+   - Confirm Published events require Cancel first.
+   - Confirm permanent delete asks for an irreversible confirmation.
+   - Confirm a cancelled event with no active Acuity seats deletes and stays gone after refresh.
+   - Confirm deletion is blocked while active/pending Acuity appointments remain attached.
+
+5. REGRESSION
+   - CLAIM MY SEAT still creates the Acuity appointment and leaves Acuity confirmation/reminder emails enabled.
+   - Event Flow Map / JOIN ZOOM still work.
+   - Monthly Womb Magic and the private 4-Week Womb Magic Portal still work.
+   - Remembered-session login still works.
+   - Caddie Magic remains Player-first.
+
+RELEASE STATUS
+--------------
+The delivered package is SOURCE VALIDATED.
+Do not call v0.10.90.2 LIVE PRODUCTION VERIFIED until the owner completes the live tests above.

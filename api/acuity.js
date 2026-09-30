@@ -209,6 +209,43 @@ async function eventEnroll(req,body){
   return {ok:true,status:'confirmed',event_id:eventId,occurrence_id:occurrence.occurrence_id,registration,acuity_linked:true,acuity_appointment_id:appointmentId(existing)};
 }
 
+
+async function cancelAcuityEventAppointment(acuityId){
+  const id=String(acuityId||'').trim();if(!id)return;
+  try{
+    const current=await acuityFetch(`/appointments/${enc(id)}`);
+    if(current?.canceled===true)return;
+  }catch(error){
+    if(Number(error?.statusCode)===404)return;
+    throw error;
+  }
+  try{await acuityFetch(`/appointments/${enc(id)}/cancel`,{method:'PUT'});}
+  catch(error){if(Number(error?.statusCode)!==404)throw error;}
+}
+async function eventUnclaim(req,body){
+  const context=await eventUserContext(req);
+  const eventId=String(body.event_id||'').trim(),occurrenceId=String(body.occurrence_id||'').trim()||null;
+  if(!eventId){const error=new Error('Choose an event first.');error.statusCode=400;throw error;}
+  const event=row(await fetchJson(serviceRestUrl(context,'flowtel_queendom_events',`select=id,event_format,acuity_sync_enabled&id=eq.${enc(eventId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+  if(!event){const error=new Error('That event is not available.');error.statusCode=404;throw error;}
+  if(event.event_format==='recurring'&&!occurrenceId){const error=new Error('Choose the recurring gathering you want to leave.');error.statusCode=400;throw error;}
+  let filter=`select=*&event_id=eq.${enc(eventId)}&member_id=eq.${enc(context.user.id)}&status=in.(pending,scheduled,rescheduled)`;
+  if(occurrenceId)filter+=`&occurrence_id=eq.${enc(occurrenceId)}`;
+  const enrollments=array(await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_occurrence_enrollments',filter),{headers:serviceHeaders(context.serviceKey)}));
+  for(const enrollment of enrollments){if(enrollment.acuity_appointment_id)await cancelAcuityEventAppointment(enrollment.acuity_appointment_id);}
+  const stamp=nowIso();
+  if(enrollments.length){
+    let patchFilter=`event_id=eq.${enc(eventId)}&member_id=eq.${enc(context.user.id)}&status=in.(pending,scheduled,rescheduled)`;
+    if(occurrenceId)patchFilter+=`&occurrence_id=eq.${enc(occurrenceId)}`;
+    await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_occurrence_enrollments',patchFilter),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({status:'cancelled',meeting_url:null,last_synced_at:stamp,updated_at:stamp})});
+  }
+  if(event.event_format==='series'){
+    await fetchJson(serviceRestUrl(context,'flowtel_queendom_event_series_enrollments',`event_id=eq.${enc(eventId)}&member_id=eq.${enc(context.user.id)}&status=in.(pending,active)`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({status:'cancelled',error_text:null,last_synced_at:stamp,updated_at:stamp})}).catch(()=>{});
+  }
+  const registration=await userRpc(context,'flowtel_cancel_queendom_event_registration',{p_event_id:eventId,p_occurrence_id:occurrenceId});
+  return {ok:true,status:'cancelled',event_id:eventId,occurrence_id:occurrenceId,cancelled_appointments:enrollments.filter(item=>item.acuity_appointment_id).length,registration};
+}
+
 async function eventSeriesBookingContext(context,eventId){
   const value=await userRpc(context,'flowtel_get_queendom_event_series_booking_context',{p_event_id:eventId});
   if(!value||typeof value!=='object'||value.event_format!=='series'){const error=new Error('That multi-session event is not available.');error.statusCode=404;throw error;}
@@ -545,6 +582,7 @@ module.exports=async function handler(req,res){
       case 'event-operations-owner-setup':result=await eventOperationsOwnerSetup(req);break;
       case 'event-schedule-preview':result=await eventSchedulePreview(req,body);break;
       case 'event-enroll':result=await eventEnroll(req,body);break;
+      case 'event-unclaim':result=await eventUnclaim(req,body);break;
       default:return res.status(400).json({ok:false,error:'Unknown Acuity action.'});
     }
     return res.status(200).json(result);

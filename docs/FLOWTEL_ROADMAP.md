@@ -4,9 +4,13 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.90.1 Event Editor Validation Hotfix
+## Current — v0.10.90.2 Event Lifecycle Hotfix
 
-v0.10.90.1 is a narrow browser-validation hotfix on top of v0.10.90. It prevents Series-only session controls from appearing or participating in validation for Single and Recurring events. No database or Acuity contract changed; migration 076 remains latest and 077 remains next.
+v0.10.90.2 closes the first live event-lifecycle gaps on top of v0.10.90.1. Cancelled events are removed from public/member calendar feeds; members can **UNCLAIM MY SEAT** with Acuity cancellation first; and Owner/Admin can permanently delete Draft/Cancelled events after active Acuity seats are cleared. Migration **077** is this release boundary and **078** is next. Vercel remains 12/12.
+
+### Previous hotfix — v0.10.90.1
+
+v0.10.90.1 prevents Series-only session controls from appearing or participating in validation for Single and Recurring events. Its browser-validation repair remains included in v0.10.90.2.
 
 ### Foundation — v0.10.90 Cyclical Calendar + Event Operations
 
@@ -14,13 +18,13 @@ v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-
 
 The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
 
-### Priority 0 — v0.10.90.1 live verification
+### Priority 0 — v0.10.90.2 live verification
 
 Verify a real Queendom-only weekly recurring class from public discovery through Acuity appointment creation, reminder email, Flowtel check-in, protected Zoom entry, and Event Flow Map. Also regress one single event, one existing Series / Vortex, paid Event Pass isolation/refund behavior, monthly Womb Magic, the private 4-Week Womb Magic Portal, remembered-session login, and mobile calendar/event-room behavior. Source validation does not replace production verification.
 
 ### Next Priority — v0.10.91 Cycle Restart Correction
 
-Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Use migration **077** only if database work is required.
+Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **078** is next if the cycle-correction release needs database work.
 
 ### After that — Front Desk / Concierge Messages
 
@@ -42,7 +46,7 @@ v0.10.88.1 remains the current Complimentary Stay access foundation beneath this
 
 v0.10.87.4 confirmed through live diagnostics that Squarespace Pricing Plan purchases surface as `PAYWALL_PRODUCT` Commerce line items with stable `productId` values. Flow FM is `47815dfc-d06e-45bb-8581-332cdff0fbff`; The Queendom | Feminine Mystery School Portal is `9ebc509d-6678-43d0-9162-df7f4cb505e4`. These IDs remain the server-side paid-membership mapping boundary.
 
-Caddie Magic remains **v0.6.0** and Player-first. Migration **076** is the v0.10.90 boundary; **077** is next after it is applied live.
+Caddie Magic remains **v0.6.0** and Player-first. Migration **077** is the v0.10.90.2 boundary; **078** is next after it is applied live.
 
 ### Carry-forward access verification
 

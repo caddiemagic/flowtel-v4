@@ -1,4 +1,4 @@
-// Flowtel v0.10.90 — Cyclical Calendar + Event Operations.
+// Flowtel v0.10.90.2 — Event Lifecycle Hotfix.
 import { supabase } from './supabase.js';
 
 export const QUEENDOM_EVENT_IMAGE_BUCKET='flowtel-queendom-event-images';
@@ -10,7 +10,7 @@ async function rpc(name,args={}){
   if(error){
     const detail=String(error.message||'');
     if(/schema cache/i.test(detail)&&/queendom.*event|flowtel_(?:list|public|admin|set|get)_queendom/i.test(`${name} ${detail}`)){
-      throw new Error('The Flowtel Calendar database setup is not complete yet. Confirm migrations 067 through 075 are installed, then refresh this room.');
+      throw new Error('The Flowtel Calendar database setup is not complete yet. Confirm migrations 067 through 077 are installed, then refresh this room.');
     }
     throw error;
   }
@@ -36,7 +36,7 @@ export async function listPublicQueendomEvents({monthStart=null,monthCount=3}={}
 export async function setQueendomEventRegistration(eventId,registered=true,occurrenceId=null){
   if(!eventId)throw new Error('Choose an event first.');
   if(!registered){
-    return rpc('flowtel_set_queendom_event_registration',{p_event_id:eventId,p_registered:false});
+    return acuityEventApi('event-unclaim',{event_id:eventId,occurrence_id:occurrenceId||null});
   }
   return acuityEventApi('event-enroll',{event_id:eventId,occurrence_id:occurrenceId||null});
 }
@@ -156,6 +156,17 @@ export async function getQueendomEventFlowMap(eventId,occurrenceId=null){
 export async function cancelQueendomEventAdmin(eventId){
   if(!eventId)throw new Error('Choose an event first.');
   return rpc('flowtel_admin_cancel_queendom_event',{p_event_id:eventId});
+}
+
+export async function deleteQueendomEventAdmin(eventId,imagePath=null){
+  if(!eventId)throw new Error('Choose an event first.');
+  const result=await rpc('flowtel_admin_delete_queendom_event',{p_event_id:eventId});
+  const path=String(imagePath||'').trim();
+  if(path){
+    const {error}=await supabase.storage.from(QUEENDOM_EVENT_IMAGE_BUCKET).remove([path]);
+    if(error)console.warn('Flowtel event deleted, but its artwork could not be removed from Storage.',error);
+  }
+  return result;
 }
 
 export async function verifyQueendomEventTicket(eventId){

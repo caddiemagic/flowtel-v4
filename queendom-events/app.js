@@ -6,7 +6,7 @@ import {
   listQueendomEvents,
   setQueendomEventRegistration,
   verifyQueendomEventTicket,
-} from '/shared/queendom-events.js?v=0.10.90';
+} from '/shared/queendom-events.js?v=0.10.90.2';
 import { getCurrentProfile } from '/shared/profiles.js?v=0.10.90';
 import { getMyProductAccess } from '/shared/product-access.js?v=0.10.90';
 import {
@@ -86,7 +86,7 @@ function actionMarkup(event){
   const access=isAuthenticated()?memberAccess(event):publicAccess(event),occurrence=nextRecurringOccurrence(event),occurrenceId=occurrence?.occurrence_id||'';
   const registered=event.event_format==='recurring'?Boolean(occurrence?.is_registered):Boolean(event.is_registered);
   if(isAuthenticated()&&canHostEvent(event)&&!registered)return `<button type="button" class="agenda-seat is-host-view" data-open-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>OPEN HOST FLOW MAP</button>`;
-  if(isAuthenticated()&&registered)return `<button type="button" class="agenda-seat is-saved" data-open-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>${event.event_format==='series'?'✓ VORTEX JOINED · OPEN SERIES':event.event_format==='recurring'?'✓ NEXT GATHERING CLAIMED · OPEN EVENT':'✓ SEAT CLAIMED · OPEN EVENT'}</button>`;
+  if(isAuthenticated()&&registered)return `<div class="agenda-seat-actions"><button type="button" class="agenda-seat is-saved" data-open-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>${event.event_format==='series'?'✓ VORTEX JOINED · OPEN SERIES':event.event_format==='recurring'?'✓ NEXT GATHERING CLAIMED · OPEN EVENT':'✓ SEAT CLAIMED · OPEN EVENT'}</button><button type="button" class="agenda-unclaim" data-unclaim-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>UNCLAIM MY SEAT</button></div>`;
   if(access?.entitled||access?.mode==='included'){
     if(isAuthenticated())return `<button type="button" class="agenda-seat" data-save-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>${event.event_format==='series'?`JOIN THE ${esc(seriesLabel(event))}`:'CLAIM MY SEAT'}</button>`;
     if((event.public_access||'unavailable')==='included')return `<button type="button" class="agenda-seat" data-access-event="${esc(event.event_id)}" ${occurrenceId?`data-occurrence-id="${esc(occurrenceId)}"`:''}>CLAIM MY SEAT</button>`;
@@ -133,6 +133,16 @@ async function saveSeat(eventId,occurrenceId=''){
     await setQueendomEventRegistration(eventId,true,occurrenceId||null);await refreshEvents();render();status.textContent=selected?.event_format==='series'?'Your full vortex is confirmed. Acuity will send the configured reminders.':'Your seat is confirmed. Acuity will send the configured confirmation/reminder emails.';
     return true;
   }catch(error){status.textContent=error?.message||'Your seat could not be claimed.';throw error;}
+}
+async function unclaimSeat(eventId,occurrenceId=''){
+  const selected=eventById(eventId);if(!selected)return false;
+  const prompt=selected.event_format==='series'?'Leave this entire vortex? Flowtel will cancel your linked Acuity sessions and release your Flowtel registration.':'Release this seat? Flowtel will cancel the linked Acuity appointment and remove this gathering from My Upcoming Events.';
+  if(!window.confirm(prompt))return false;
+  status.textContent=selected.event_format==='series'?'Leaving the vortex in Flowtel + Acuity…':'Releasing your seat in Flowtel + Acuity…';
+  try{
+    await setQueendomEventRegistration(eventId,false,occurrenceId||null);await refreshEvents();render();status.textContent=selected.event_format==='series'?'Your vortex registration has been released.':'Your seat has been released.';
+    return true;
+  }catch(error){status.textContent=error?.message||'Your seat could not be released.';throw error;}
 }
 async function checkTicket(eventId,{openAfter=true,occurrenceId=''}={}){
   status.textContent='Checking your ticket…';
@@ -231,6 +241,7 @@ async function handleRecovery(event){event.preventDefault();const password=docum
 function bindActions(){
   list.querySelectorAll('[data-ticket-buy]').forEach(link=>link.addEventListener('click',()=>{try{localStorage.setItem('flowtel:pendingEventTicket',String(link.dataset.ticketBuy||''));}catch(_){ }}));
   list.querySelectorAll('[data-save-event]').forEach(button=>button.addEventListener('click',()=>saveSeat(button.dataset.saveEvent,button.dataset.occurrenceId||'')));
+  list.querySelectorAll('[data-unclaim-event]').forEach(button=>button.addEventListener('click',async()=>{button.disabled=true;try{await unclaimSeat(button.dataset.unclaimEvent,button.dataset.occurrenceId||'');}catch(_){button.disabled=false;}}));
   list.querySelectorAll('[data-open-event]').forEach(button=>button.addEventListener('click',()=>openEventRoom(button.dataset.openEvent,button.dataset.occurrenceId||'')));
   list.querySelectorAll('[data-check-ticket]').forEach(button=>button.addEventListener('click',async()=>{button.disabled=true;const original=button.textContent;button.textContent='Checking…';try{await checkTicket(button.dataset.checkTicket,{openAfter:true,occurrenceId:button.dataset.occurrenceId||''});}catch(error){status.textContent=error?.message||'Ticket could not be checked.';}finally{button.disabled=false;button.textContent=original;}}));
   list.querySelectorAll('[data-access-event]').forEach(button=>button.addEventListener('click',()=>openAccessModal(button.dataset.accessEvent,{occurrenceId:button.dataset.occurrenceId||''})));

@@ -96,7 +96,7 @@ for(const token of ['UPCOMING EVENTS IN THE QUEENDOM','MY UPCOMING EVENTS']) ass
 for(const token of ['SAVE MY SEAT','JOIN ZOOM','NOT INCLUDED WITH YOUR ACCESS','loadWombMagicScheduling']) assert(files['client/app.js'].includes(token),`Lounge calendar is missing ${token}.`);
 for(const token of ['Event name','Audience','Zoom link','Zoom passcode','Calendar artwork']) assert(files['manager/events/index.html'].includes(token),`Event admin is missing ${token}.`);
 assert(files['manager/events/app.js'].includes('uploadQueendomEventImage'));
-assert(files['manager/events/app.js'].includes('Cancelled events stay in history'));
+assert(files['manager/events/app.js'].includes('Cancelled events are hidden from public/member calendars') || files['manager/events/app.js'].includes('Cancelled events stay in history'));
 for(const token of ['calendar-grid','calendar-event-image','is-embed']) assert(files['queendom-calendar/styles.css'].includes(token),`Queendom Calendar styling is missing ${token}.`);
 assert(files['queendom-calendar/app.js'].includes("new URLSearchParams(location.search).get('embed')==='1'"));
 assert(files['queendom-calendar/app.js'].includes('listPublicQueendomEvents'));

@@ -1,3 +1,13 @@
+## v0.10.90.2 — Event Lifecycle Hotfix
+
+- Removes cancelled events from public/member calendar feeds and My Upcoming Events while retaining them in Owner Event Administration until explicitly deleted.
+- Adds member-facing **UNCLAIM MY SEAT** in the calendar and My Upcoming Events.
+- Cancels linked Acuity appointment(s) first, then releases the Flowtel registration so reminders/capacity cannot drift.
+- Keeps recurring occurrences independent: unclaiming one week does not release another claimed week.
+- Adds Owner/Admin **DELETE EVENT PERMANENTLY** for Draft/Cancelled events with active-Acuity safety checks and best-effort event-artwork cleanup.
+- Uses migration **077**; migration 078 is next. No new Vercel function; budget remains **12/12**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.90.1 — Event Editor Validation Hotfix
 
 - Fixes Owner Event Administration showing/validating the Series-only session-count controls while Event Format is Single or Recurring.

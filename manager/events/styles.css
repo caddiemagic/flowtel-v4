@@ -26,3 +26,7 @@
 .event-import-bar div{display:grid;gap:5px}.event-import-bar span,.event-moon-context span{font-size:.68rem;letter-spacing:.17em;font-weight:700;color:#9b6f75}.event-import-bar code{font-family:inherit;font-size:.88rem;color:#5f514d;word-break:break-all}.event-import-bar small{color:#81726d;line-height:1.45}
 .event-operations-actions{display:flex;justify-content:flex-start;margin:4px 0 14px}.event-operations-actions button{border:0;border-radius:999px;padding:11px 18px;background:#6e554e;color:#fff;font:inherit;letter-spacing:.05em;cursor:pointer}.event-operations-actions button:disabled{opacity:.5;cursor:default}
 .event-moon-context{display:grid;gap:4px;margin-top:14px;padding:14px 16px;border-radius:16px;background:#fffaf5;border:1px solid rgba(187,147,121,.2)}.event-moon-context strong{font-family:Georgia,'Times New Roman',serif;color:#70565b}.event-moon-context small{color:#8a7770}
+
+/* Flowtel v0.10.90.2 — destructive event lifecycle controls */
+.delete-button{border:1px solid #a74f43!important;background:#fff7f5!important;color:#8d3f35!important;border-radius:999px;padding:12px 18px;font:700 11px/1 Montserrat,sans-serif;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.delete-button:hover{background:#fbe8e4!important}.delete-button:disabled{opacity:.5;cursor:default}

@@ -5,8 +5,8 @@ const css=fs.readFileSync(new URL('../manager/events/styles.css',import.meta.url
 const js=fs.readFileSync(new URL('../manager/events/app.js',import.meta.url),'utf8');
 
 const checks=[
-  ['Event Admin CSS cache key is v0.10.90.1', html.includes('/manager/events/styles.css?v=0.10.90.1')],
-  ['Event Admin JS cache key is v0.10.90.1', html.includes('/manager/events/app.js?v=0.10.90.1')],
+  ['Event Admin CSS cache key is v0.10.90.1 or newer hotfix', /\/manager\/events\/styles\.css\?v=0\.10\.90(?:\.\d+)?/.test(html)],
+  ['Event Admin JS cache key is v0.10.90.1 or newer hotfix', /\/manager\/events\/app\.js\?v=0\.10\.90(?:\.\d+)?/.test(html)],
   ['Series count retains min=2 for real series', /id="eventSeriesCount"[^>]*min="2"/.test(html)],
   ['Series-only hidden CSS guard exists', /\[data-series-field\]\[hidden\]\{display:none!important\}/.test(css)],
   ['Non-series series-count input is disabled', js.includes('fields.seriesCount.disabled=!series')],
