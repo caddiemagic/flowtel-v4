@@ -141,3 +141,17 @@ export function getMoonMagic(date = new Date()) {
     nextNewMoonDate: pair.next || addDaysISO(pair.last, Math.round(SYNODIC_MONTH_DAYS)),
   };
 }
+
+// Calendar markers are intentionally limited to the four Flowtel Moon thresholds
+// so the event calendar remains spacious rather than labeling every lunar day.
+export function getMoonPhaseMarker(date = new Date()) {
+  const magic = getMoonMagic(date);
+  const markers = {
+    1: { key: 'new', label: 'NEW MOON', emoji: '🌑' },
+    8: { key: 'half-full', label: 'HALF FULL MOON', emoji: '🌓' },
+    15: { key: 'full', label: 'FULL MOON', emoji: '🌕' },
+    22: { key: 'half-new', label: 'HALF NEW MOON', emoji: '🌗' },
+  };
+  const marker = markers[magic.moonDay];
+  return marker ? { ...marker, moonDay: magic.moonDay, innerSeason: magic.innerSeason } : null;
+}

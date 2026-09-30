@@ -107,7 +107,7 @@ const vercel=JSON.parse(files['vercel.json']);
 const rewrites=new Set((vercel.rewrites||[]).map(item=>item.source));
 for(const route of ['/manager/events','/queendom-calendar']) assert(rewrites.has(route),`Missing Vercel rewrite: ${route}`);
 assert(files['manager/index.html'].includes('/manager/events/'));
-assert(/app\.js\?v=0\.10\.(?:83(?:\.\d+)?|8[4-9]|\d{3,})/.test(files['client/index.html']));
+assert(/app\.js\?v=0\.10\.(?:83(?:\.\d+)?|8[4-9]|9\d|\d{3,})/.test(files['client/index.html']));
 assert(files['flow-fm/availability/index.html'].includes('page.js?v=0.10.83'));
 assert(files['flow-fm/upcoming-calls/index.html'].includes('page.js?v=0.10.83'));
 assert(files['docs/CHANGELOG.md'].includes('## v0.10.83 — The Flowtel Calendar'));

@@ -1,4 +1,17 @@
-## v0.10.89.1 — Login Doorway Isolation Hotfix
+## v0.10.90 — Cyclical Calendar + Event Operations
+
+- Folds the unshipped v0.10.89.1 login-doorway isolation repair into one consolidated deployment.
+- Adds first-class **Single / Recurring / Series** event shapes; recurring dates are independently claimable while a Series / Vortex remains one multi-session commitment.
+- Keeps the Flowtel event calendar publicly discoverable while resolving Public / Queendom / Flow FM Included-Paid-Unavailable admission at `CLAIM MY SEAT`.
+- Adds Acuity class/series import-refresh in Owner Event Administration so dates/times do not have to be re-entered in Flowtel.
+- Makes linked single/recurring registration Acuity-first: entitlement → live class/capacity check → idempotent appointment lookup/create → appointment mapping → Flowtel seat confirmation.
+- Keeps Acuity confirmation/reminder emails enabled and exposes a reusable `/queendom-events/?enter=1` **ENTER THE FLOWTEL** reminder doorway.
+- Adds same-Flowtel-Day check-in before protected Zoom entry, append-oriented event attendance snapshots, claimed-seat tracking, and the host/co-host/Owner **Event Flow Map** in the four requested Inner Season chambers.
+- Adds automatic New / Half Full / Full / Half New Moon markers to the public/member calendar plus lunar context in the Owner event editor.
+- Uses migration **076**; migration 075 remains historical. No Vercel function added; budget remains **12/12**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
+## v0.10.89.1 — Unshipped Login Doorway Isolation Hotfix (folded into v0.10.90)
 
 - Repairs the `/client/` entry regression observed after v0.10.89 where remembered sessions did not auto-enter and the Sign In button appeared inert.
 - Removes the Queendom Events module from the login bundle's hard static import chain; event code now lazy-loads only after an event capability is actually needed.

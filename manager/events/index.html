@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="Flowtel owner event administration for the Queendom Calendar." />
   <title>Queendom Events | Flowtel</title>
-  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.89" />
+  <link rel="stylesheet" href="/manager/events/styles.css?v=0.10.90" />
 </head>
 <body>
   <main class="events-admin-shell">
@@ -95,16 +95,23 @@
           </div>
 
           <section class="event-series-editor" id="eventSeriesEditor">
-            <header><div><p class="eyebrow">EVENT SHAPE</p><h3>One gathering or a multi-session vortex?</h3><p>A series remains one Flowtel event and one member registration, with a protected session doorway for every gathering.</p></div></header>
-            <div class="event-form-grid">
-              <label><span>Event format</span><select id="eventFormat"><option value="single">Single Event</option><option value="series">Multi-Session Series</option></select></label>
-              <label data-series-field hidden><span>Number of sessions</span><input id="eventSeriesCount" type="number" min="2" max="12" step="1" value="4" /></label>
-              <label data-series-field hidden><span>Days between sessions</span><input id="eventSeriesInterval" type="number" min="1" max="90" step="1" value="7" /></label>
-              <label data-series-field hidden class="wide"><span>Acuity group series</span><select id="eventAcuitySeries"><option value="">Choose the Acuity series</option></select><small>Create the class series and its reminder emails in Acuity first, then map it here.</small></label>
-              <label data-series-field hidden class="wide"><span>Acuity calendar</span><select id="eventAcuityCalendar"><option value="">Choose the Acuity calendar</option></select></label>
+            <header><div><p class="eyebrow">EVENT OPERATIONS</p><h3>Let Acuity hold the schedule. Let Flowtel hold the experience.</h3><p>Create the class or series in Acuity once, then import its schedule here. Single events happen once; recurring events repeat but each date is claimed independently; a Series / Vortex is one commitment across every session.</p></div></header>
+            <div class="event-import-bar">
+              <div><span>ACUITY EMAIL DOORWAY</span><code id="eventAcuityDoorway">/queendom-events/?enter=1</code><small>Use this same Flowtel link in Acuity confirmation/reminder emails instead of emailing the private Zoom link.</small></div>
+              <button type="button" class="quiet-button" id="copyAcuityDoorway">Copy doorway</button>
             </div>
+            <div class="event-form-grid">
+              <label><span>Event format</span><select id="eventFormat"><option value="single">Single Event</option><option value="recurring">Recurring Event — each date stands alone</option><option value="series">Series / Vortex — one registration for all sessions</option></select></label>
+              <label><span>Acuity connection</span><select id="eventAcuitySync"><option value="true">Linked to Acuity</option><option value="false">Manual / legacy event</option></select></label>
+              <label class="wide"><span>Acuity class or series</span><select id="eventAcuitySeries"><option value="">Choose an Acuity class or series</option></select><small>For weekly meditation, choose the Acuity group class. Flowtel will import every upcoming occurrence it can see.</small></label>
+              <label class="wide"><span>Acuity calendar</span><select id="eventAcuityCalendar"><option value="">Choose the Acuity calendar</option></select></label>
+              <label data-series-field hidden><span>Series sessions</span><input id="eventSeriesCount" type="number" min="2" max="104" step="1" value="4" /></label>
+              <label data-series-field hidden><span>Days between series sessions</span><input id="eventSeriesInterval" type="number" min="1" max="90" step="1" value="7" /></label>
+            </div>
+            <div class="event-operations-actions"><button type="button" id="eventLoadAcuitySchedule">IMPORT / REFRESH ACUITY SCHEDULE</button></div>
             <div class="event-series-preview" id="eventSeriesPreview" hidden></div>
-            <p class="event-series-setup-message" id="eventSeriesSetupMessage" data-series-field hidden></p>
+            <p class="event-series-setup-message" id="eventSeriesSetupMessage"></p>
+            <div class="event-moon-context" id="eventMoonContext"></div>
           </section>
 
           <section class="event-access-editor">
@@ -147,6 +154,6 @@
       </section>
     </section>
   </main>
-  <script type="module" src="/manager/events/app.js?v=0.10.89"></script>
+  <script type="module" src="/manager/events/app.js?v=0.10.90"></script>
 </body>
 </html>

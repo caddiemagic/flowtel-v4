@@ -49,14 +49,17 @@ async function syncSeriesParentStatus(context,eventId,memberId,seriesCount,ancho
   await fetchJson(serviceUrl(context,'flowtel_queendom_event_series_enrollments','on_conflict=event_id,member_id'),{method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=merge-duplicates'),body:JSON.stringify(payload)});
   return status;
 }
-async function updateMappedSeriesOccurrence(context,local,action,appointment={}){
+async function updateMappedEventOccurrence(context,local,action,appointment={}){
   const status=occurrenceStatus(action,appointment);
   await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`id=eq.${enc(local.id)}`),{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({
     status,meeting_url:extractZoomMeetingUrl(appointment)||local.meeting_url||null,external_payload:Object.keys(appointment||{}).length?appointment:local.external_payload,last_synced_at:nowIso(),updated_at:nowIso(),
   })});
-  const events=array(await fetchJson(serviceUrl(context,'flowtel_queendom_events',`select=id,series_count&id=eq.${enc(local.event_id)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
-  const parentStatus=await syncSeriesParentStatus(context,local.event_id,local.member_id,events[0]?.series_count||1,local.acuity_appointment_id);
-  return {status,parentStatus,eventId:local.event_id,memberId:local.member_id};
+  const events=array(await fetchJson(serviceUrl(context,'flowtel_queendom_events',`select=id,event_format,series_count&id=eq.${enc(local.event_id)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+  const event=events[0]||{};
+  const parentStatus=event.event_format==='series'
+    ? await syncSeriesParentStatus(context,local.event_id,local.member_id,event.series_count||1,local.acuity_appointment_id)
+    : null;
+  return {status,parentStatus,eventFormat:event.event_format||'single',eventId:local.event_id,memberId:local.member_id};
 }
 async function associateSeriesOccurrence(context,{acuityId,action,calendarId,appointmentTypeId,appointment}){
   const email=normalizeEmail(appointment?.email);
@@ -110,11 +113,11 @@ async function handler(req,res){
     let appointment={};
     try{appointment=await acuityFetch(`/appointments/${enc(acuityId)}`);}catch(error){if(action!=='canceled')throw error;}
 
-    const seriesMatches=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`select=*&acuity_appointment_id=eq.${enc(acuityId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
-    if(seriesMatches.length){
-      const result=await updateMappedSeriesOccurrence(context,seriesMatches[0],action,appointment);
-      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||appointment.calendarID||null,appointment_type_id:appointmentTypeId||appointment.appointmentTypeID||null,processing_status:'processed',detail:{surface:'queendom_event_series',event_id:result.eventId,status:result.status,parent_status:result.parentStatus},processed_at:nowIso()});
-      return res.status(200).json({ok:true,event_series:true});
+    const eventMatches=array(await fetchJson(serviceUrl(context,'flowtel_queendom_event_occurrence_enrollments',`select=*&acuity_appointment_id=eq.${enc(acuityId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
+    if(eventMatches.length){
+      const result=await updateMappedEventOccurrence(context,eventMatches[0],action,appointment);
+      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||appointment.calendarID||null,appointment_type_id:appointmentTypeId||appointment.appointmentTypeID||null,processing_status:'processed',detail:{surface:'queendom_event',event_id:result.eventId,event_format:result.eventFormat,status:result.status,parent_status:result.parentStatus},processed_at:nowIso()});
+      return res.status(200).json({ok:true,event_occurrence:true,event_format:result.eventFormat});
     }
 
     const associated=await associateSeriesOccurrence(context,{acuityId,action,calendarId,appointmentTypeId,appointment});
@@ -125,7 +128,7 @@ async function handler(req,res){
 
     const matches=array(await fetchJson(serviceUrl(context,'flowtel_external_appointments',`select=*&acuity_appointment_id=eq.${enc(acuityId)}&limit=1`),{headers:serviceHeaders(context.serviceKey)}));
     if(!matches.length){
-      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||null,appointment_type_id:appointmentTypeId||null,processing_status:'ignored',detail:{reason:'No Flowtel appointment or event-series session matched.'},processed_at:nowIso()});
+      await logEvent(context,{acuity_appointment_id:acuityId,action,calendar_id:calendarId||null,appointment_type_id:appointmentTypeId||null,processing_status:'ignored',detail:{reason:'No Flowtel appointment or linked event occurrence matched.'},processed_at:nowIso()});
       return res.status(200).json({ok:true,ignored:true});
     }
     const local=matches[0];

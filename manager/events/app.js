@@ -1,14 +1,16 @@
-import { getCurrentProfile } from '/shared/profiles.js?v=0.10.89';
+import { getCurrentProfile } from '/shared/profiles.js?v=0.10.90';
 import {
   loadQueendomEventsAdmin,
   loadQueendomEventHostsAdmin,
   saveQueendomEventAdmin,
-  configureQueendomEventSeriesAdmin,
-  loadQueendomEventSeriesAcuitySetupAdmin,
+  configureQueendomEventOperationsAdmin,
+  loadQueendomEventOperationsAcuitySetupAdmin,
+  loadQueendomEventAcuityScheduleAdmin,
   cancelQueendomEventAdmin,
   uploadQueendomEventImage,
-} from '/shared/queendom-events.js?v=0.10.89';
-import { timezoneDisplayName } from '/shared/timezone-labels.js?v=0.10.89';
+} from '/shared/queendom-events.js?v=0.10.90';
+import { timezoneDisplayName } from '/shared/timezone-labels.js?v=0.10.90';
+import { getMoonMagic, getMoonPhaseMarker } from '/shared/moon.js?v=0.10.90';
 
 const gate=document.getElementById('eventsAdminGate');
 const workspace=document.getElementById('eventsAdminWorkspace');
@@ -24,6 +26,7 @@ let rows=[];
 let hosts=[];
 let imageObjectUrl='';
 let acuitySeries=[];
+let importedOccurrences=[];
 let acuityCalendars=[];
 let acuityConnected=false;
 
@@ -33,7 +36,7 @@ const fields={
   endHour:document.getElementById('eventEndHour'),endMinute:document.getElementById('eventEndMinute'),endPeriod:document.getElementById('eventEndPeriod'),
   live:document.getElementById('eventLiveTime'),liveHour:document.getElementById('eventLiveHour'),liveMinute:document.getElementById('eventLiveMinute'),livePeriod:document.getElementById('eventLivePeriod'),
   publicAccess:document.getElementById('eventPublicAccess'),queendomAccess:document.getElementById('eventQueendomAccess'),flowfmAccess:document.getElementById('eventFlowfmAccess'),publicPrice:document.getElementById('eventPublicPrice'),queendomPrice:document.getElementById('eventQueendomPrice'),flowfmPrice:document.getElementById('eventFlowfmPrice'),currency:document.getElementById('eventCurrency'),ticketUrl:document.getElementById('eventTicketUrl'),productId:document.getElementById('eventProductId'),
-  format:document.getElementById('eventFormat'),seriesCount:document.getElementById('eventSeriesCount'),seriesInterval:document.getElementById('eventSeriesInterval'),acuitySeries:document.getElementById('eventAcuitySeries'),acuityCalendar:document.getElementById('eventAcuityCalendar'),seriesPreview:document.getElementById('eventSeriesPreview'),seriesMessage:document.getElementById('eventSeriesSetupMessage'),
+  format:document.getElementById('eventFormat'),seriesCount:document.getElementById('eventSeriesCount'),seriesInterval:document.getElementById('eventSeriesInterval'),acuitySeries:document.getElementById('eventAcuitySeries'),acuityCalendar:document.getElementById('eventAcuityCalendar'),acuitySync:document.getElementById('eventAcuitySync'),loadSchedule:document.getElementById('eventLoadAcuitySchedule'),seriesPreview:document.getElementById('eventSeriesPreview'),seriesMessage:document.getElementById('eventSeriesSetupMessage'),moonContext:document.getElementById('eventMoonContext'),acuityDoorway:document.getElementById('eventAcuityDoorway'),
 };
 function esc(value){return String(value??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#039;','"':'&quot;'}[c]));}
 function renderHourOptions(select,{optional=false}={}){
@@ -79,16 +82,10 @@ function formatSeriesDate(value){
 }
 function seriesDates(){
   if(fields.format.value!=='series'||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(fields.date.value))return [];
-  const count=Math.max(2,Math.min(Number(fields.seriesCount.value)||4,12));
+  const count=Math.max(2,Math.min(Number(fields.seriesCount.value)||4,104));
   const interval=Math.max(1,Math.min(Number(fields.seriesInterval.value)||7,90));
   const base=new Date(`${fields.date.value}T12:00:00Z`);
   return Array.from({length:count},(_,index)=>{const date=new Date(base.getTime()+index*interval*86400000);return date.toISOString().slice(0,10);});
-}
-function renderSeriesPreview(){
-  const dates=seriesDates();
-  if(!dates.length){fields.seriesPreview.hidden=true;fields.seriesPreview.innerHTML='';return;}
-  fields.seriesPreview.hidden=false;
-  fields.seriesPreview.innerHTML=`<strong>${dates.length}-SESSION ITINERARY</strong><ol>${dates.map((date,index)=>`<li>Session ${index+1} · ${esc(formatSeriesDate(date))}</li>`).join('')}</ol>`;
 }
 function selectedSeries(){return acuitySeries.find(item=>String(item.id)===String(fields.acuitySeries.value));}
 function renderCalendarOptions(selected=''){
@@ -101,51 +98,102 @@ function renderCalendarOptions(selected=''){
 }
 function renderAcuitySeriesOptions(selectedSeriesId='',selectedCalendarId=''){
   const options=acuitySeries.map(item=>`<option value="${esc(item.id)}">${esc(item.name||`Series ${item.id}`)}${item.classSize?` · ${esc(item.classSize)} seats`:''}</option>`).join('');
-  fields.acuitySeries.innerHTML='<option value="">Choose the Acuity series</option>'+options;
-  if(selectedSeriesId&&!Array.from(fields.acuitySeries.options).some(option=>option.value===String(selectedSeriesId))){fields.acuitySeries.insertAdjacentHTML('beforeend',`<option value="${esc(selectedSeriesId)}">Mapped Acuity series #${esc(selectedSeriesId)}</option>`);}
+  fields.acuitySeries.innerHTML='<option value="">Choose an Acuity class or series</option>'+options;
+  if(selectedSeriesId&&!Array.from(fields.acuitySeries.options).some(option=>option.value===String(selectedSeriesId))){fields.acuitySeries.insertAdjacentHTML('beforeend',`<option value="${esc(selectedSeriesId)}">Mapped Acuity type #${esc(selectedSeriesId)}</option>`);}
   fields.acuitySeries.value=selectedSeriesId||'';
   renderCalendarOptions(selectedCalendarId);
 }
 function syncSeriesFields(){
-  const active=fields.format.value==='series';
-  document.querySelectorAll('[data-series-field]').forEach(element=>{element.hidden=!active;});
-  fields.seriesCount.required=active;fields.seriesInterval.required=active;fields.acuitySeries.required=active;fields.acuityCalendar.required=active;
-  if(active){
-    fields.seriesMessage.textContent=acuityConnected?'Acuity is connected. Flowtel will register an eligible member into this full group series when she joins the vortex.':'Connect Acuity before publishing this series. Single events remain available.';
-  }
-  renderSeriesPreview();
+  const series=fields.format.value==='series';
+  document.querySelectorAll('[data-series-field]').forEach(element=>{element.hidden=!series;});
+  fields.seriesCount.required=series;fields.seriesInterval.required=series;
+  const linked=fields.acuitySync.value==='true';
+  fields.acuitySeries.required=linked;fields.acuityCalendar.required=linked;
+  fields.loadSchedule.disabled=!linked||!acuityConnected;
+  fields.seriesMessage.textContent=linked
+    ? (acuityConnected?'Acuity is connected. Import or refresh the schedule before publishing so member registration, reminders, and Zoom doorways remain linked.':'Flowtel could not verify Acuity yet. Reconnect it before publishing a linked event.')
+    : 'Manual mode preserves legacy Flowtel events. For the simplest admin flow, keep new group events linked to Acuity.';
+  renderSchedulePreview();renderMoonContext();
+}
+function offeringToOccurrence(item,index){
+  const stamp=new Date(item.time);const zone=fields.timezone.value||'America/Los_Angeles';
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(stamp).reduce((a,p)=>{if(p.type!=='literal')a[p.type]=p.value;return a;},{});
+  const duration=Number(item.duration||selectedSeries()?.duration||0)||0;const endStamp=new Date(stamp.getTime()+duration*60000);
+  const endParts=new Intl.DateTimeFormat('en-CA',{timeZone:zone,hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(endStamp).reduce((a,p)=>{if(p.type!=='literal')a[p.type]=p.value;return a;},{});
+  return {event_date:`${parts.year}-${parts.month}-${parts.day}`,start_time:`${parts.hour}:${parts.minute}`,end_time:duration?`${endParts.hour}:${endParts.minute}`:null,live_room_time:`${parts.hour}:${parts.minute}`,slots:item.slots,slots_available:item.slotsAvailable,is_series:Boolean(item.isSeries),source_time:item.time,occurrence_number:index+1};
+}
+function renderSchedulePreview(){
+  let dates=importedOccurrences;
+  if(!dates.length&&fields.format.value==='series')dates=seriesDates().map((date,index)=>({event_date:date,start_time:fields.start.value||'',occurrence_number:index+1}));
+  if(!dates.length){fields.seriesPreview.hidden=true;fields.seriesPreview.innerHTML='';return;}
+  fields.seriesPreview.hidden=false;
+  const label=fields.format.value==='recurring'?'RECURRING GATHERINGS':fields.format.value==='series'?'SERIES ITINERARY':'ACUITY OCCURRENCE';
+  fields.seriesPreview.innerHTML=`<strong>${esc(label)} · ${dates.length}</strong><ol>${dates.slice(0,16).map((item,index)=>`<li>${fields.format.value==='series'?`Session ${index+1} · `:''}${esc(formatSeriesDate(item.event_date))}${item.start_time?` · ${esc(formatClock(item.start_time))}`:''}${item.slots_available!=null?` · ${esc(item.slots_available)} seats open`:''}</li>`).join('')}</ol>${dates.length>16?`<small>+ ${dates.length-16} more upcoming gatherings imported.</small>`:''}`;
+}
+function renderMoonContext(){
+  if(!fields.moonContext)return;const date=fields.date.value;if(!date){fields.moonContext.innerHTML='';return;}
+  const magic=getMoonMagic(date),marker=getMoonPhaseMarker(date);
+  fields.moonContext.innerHTML=`<span>LUNAR CONTEXT</span><strong>${esc(marker?`${marker.emoji} ${marker.label}`:`${magic.emoji} ${magic.phase.replace(' Phase','').toUpperCase()}`)} · MOON DAY ${esc(magic.moonDay)}</strong><small>${esc(magic.innerSeason)} in the Flowtel Moon calendar.</small>`;
 }
 async function loadAcuitySeriesSetup(){
   try{
-    const data=await loadQueendomEventSeriesAcuitySetupAdmin();
-    acuitySeries=Array.isArray(data.series)?data.series:[];acuityCalendars=Array.isArray(data.calendars)?data.calendars:[];acuityConnected=true;
+    const data=await loadQueendomEventOperationsAcuitySetupAdmin();
+    acuitySeries=Array.isArray(data.appointment_types)?data.appointment_types:[];acuityCalendars=Array.isArray(data.calendars)?data.calendars:[];acuityConnected=true;
     renderAcuitySeriesOptions(fields.acuitySeries.value,fields.acuityCalendar.value);
-    fields.seriesMessage.textContent=acuitySeries.length?'Acuity is connected. Choose the group series that matches this Flowtel vortex.':'Acuity is connected, but no appointment type of type “series” was found. Create the group series in Acuity first.';
+    if(fields.acuityDoorway)fields.acuityDoorway.textContent=new URL(data.flowtel_email_doorway||'/queendom-events/?enter=1',window.location.origin).toString();
   }catch(error){
     acuityConnected=false;acuitySeries=[];acuityCalendars=[];renderAcuitySeriesOptions(fields.acuitySeries.value,fields.acuityCalendar.value);
-    fields.seriesMessage.textContent=error?.message||'Flowtel could not load Acuity series setup. Single events still work normally.';
+    fields.seriesMessage.textContent=error?.message||'Flowtel could not load Acuity event setup. Existing manual events remain available.';
   }
   syncSeriesFields();
+}
+async function importAcuitySchedule(){
+  if(fields.acuitySync.value!=='true')return;
+  const type=selectedSeries();if(!type||!fields.acuityCalendar.value)throw new Error('Choose the Acuity class/series and calendar first.');
+  fields.loadSchedule.disabled=true;fields.loadSchedule.textContent='IMPORTING…';fields.seriesMessage.textContent='Reading the upcoming Acuity schedule…';
+  try{
+    const data=await loadQueendomEventAcuityScheduleAdmin(fields.acuitySeries.value,fields.acuityCalendar.value,fields.timezone.value);
+    const offerings=Array.isArray(data.offerings)?data.offerings:[];
+    if(!offerings.length)throw new Error('Acuity did not return any upcoming class offerings for this class/calendar. Create the class dates in Acuity first.');
+    const isSeries=String(data.type?.type||type.type||'').toLowerCase()==='series';
+    if(isSeries){
+      fields.format.value='series';
+      // Acuity exposes the series enrollment anchor but not a supported creator
+      // for its internal session definition; retain the established count/cadence
+      // fields for the protected Flowtel itinerary.
+      importedOccurrences=[];
+      fields.date.value=offeringToOccurrence(offerings[0],0).event_date;setTime('start',offeringToOccurrence(offerings[0],0).start_time);
+      if(offeringToOccurrence(offerings[0],0).end_time)setTime('end',offeringToOccurrence(offerings[0],0).end_time);
+      fields.seriesMessage.textContent='Acuity series mapped. Confirm the session count/cadence below; Acuity remains the enrollment + reminder source of truth.';
+    }else{
+      importedOccurrences=offerings.slice(0,104).map(offeringToOccurrence);
+      fields.format.value=importedOccurrences.length>1?'recurring':'single';
+      const first=importedOccurrences[0];fields.date.value=first.event_date;setTime('start',first.start_time);setTime('end',first.end_time||'');setTime('live',first.live_room_time||first.start_time);
+      fields.seriesMessage.textContent=importedOccurrences.length>1?`${importedOccurrences.length} upcoming independent gatherings imported from Acuity.`:'One Acuity gathering imported.';
+    }
+    if(!fields.title.value.trim())fields.title.value=data.type?.name||type.name||'';
+    syncSeriesFields();renderSchedulePreview();renderMoonContext();
+  }finally{fields.loadSchedule.disabled=false;fields.loadSchedule.textContent='IMPORT / REFRESH ACUITY SCHEDULE';}
 }
 function setPreview(url=''){
   if(imageObjectUrl){URL.revokeObjectURL(imageObjectUrl);imageObjectUrl='';}
   imagePreview.innerHTML=url?`<img src="${esc(url)}" alt="Event artwork preview">`:'<span>EVENT IMAGE</span>';
 }
 function resetForm(){
-  form.reset();renderHostOptions('','');fields.id.value='';fields.imagePath.value='';fields.imageUrl.value='';fields.timezone.value='America/Los_Angeles';fields.type.value='ceremony';fields.audience.value='queendom';fields.status.value='draft';fields.howToPrepare.value='Find a private space. Light a candle + incense. Make tea. Grab a journal + pen. Arrive a few minutes early and let yourself settle in.';fields.locationType.value='zoom';fields.recorded.value='false';fields.publicAccess.value='unavailable';fields.queendomAccess.value='included';fields.flowfmAccess.value='included';fields.currency.value='USD';fields.format.value='single';fields.seriesCount.value='4';fields.seriesInterval.value='7';renderAcuitySeriesOptions('','');fields.status.disabled=false;saveButton.disabled=false;cancelButton.hidden=true;message.textContent='';document.getElementById('eventEditorTitle').textContent='Create an event';setPreview('');
+  form.reset();renderHostOptions('','');fields.id.value='';fields.imagePath.value='';fields.imageUrl.value='';fields.timezone.value='America/Los_Angeles';fields.type.value='ceremony';fields.audience.value='queendom';fields.status.value='draft';fields.howToPrepare.value='Find a private space. Light a candle + incense. Make tea. Grab a journal + pen. Arrive a few minutes early and let yourself settle in.';fields.locationType.value='zoom';fields.recorded.value='false';fields.publicAccess.value='unavailable';fields.queendomAccess.value='included';fields.flowfmAccess.value='included';fields.currency.value='USD';fields.format.value='single';fields.acuitySync.value='true';fields.seriesCount.value='4';fields.seriesInterval.value='7';importedOccurrences=[];renderAcuitySeriesOptions('','');fields.status.disabled=false;saveButton.disabled=false;cancelButton.hidden=true;message.textContent='';document.getElementById('eventEditorTitle').textContent='Create an event';setPreview('');
   setTime('start','');setTime('end','');setTime('live','');syncSeriesFields();
   const tomorrow=new Date(Date.now()+86400000);fields.date.value=tomorrow.toISOString().slice(0,10);
 }
 function editEvent(row){
   const cancelled=row.status==='cancelled';
-  fields.id.value=row.event_id||'';fields.title.value=row.title||'';fields.type.value=row.event_type||'workshop';fields.audience.value=row.audience||'queendom';fields.date.value=row.event_date||'';setTime('start',String(row.start_time||'').slice(0,5));setTime('end',String(row.end_time||'').slice(0,5));setTime('live',String(row.live_room_time||row.start_time||'').slice(0,5));fields.timezone.value=row.event_timezone||'America/Los_Angeles';renderHostOptions(row.host_member_id||'',row.co_host_member_id||'');fields.description.value=row.description||'';fields.howToPrepare.value=row.how_to_prepare||'';fields.guideUrl.value=row.attendee_guide_url||'';fields.recorded.value=String(Boolean(row.will_be_recorded));fields.locationType.value=row.location_type||'zoom';fields.privateLocation.value=row.private_location||'';fields.zoom.value=row.zoom_url||'';fields.passcode.value=row.zoom_passcode||'';fields.publicAccess.value=row.public_access||'unavailable';fields.queendomAccess.value=row.queendom_access||'included';fields.flowfmAccess.value=row.flowfm_access||'included';fields.publicPrice.value=row.public_price??'';fields.queendomPrice.value=row.queendom_price??'';fields.flowfmPrice.value=row.flowfm_price??'';fields.currency.value=row.access_currency||'USD';fields.ticketUrl.value=row.ticket_url||'';fields.productId.value=row.squarespace_product_id||'';fields.format.value=row.event_format||'single';fields.seriesCount.value=String(row.series_count||4);fields.seriesInterval.value=String(row.series_interval_days||7);renderAcuitySeriesOptions(row.acuity_appointment_type_id||'',row.acuity_calendar_id||'');syncSeriesFields();fields.status.value=row.status==='cancelled'?'cancelled':(row.status==='published'?'published':'draft');fields.imagePath.value=row.image_path||'';fields.imageUrl.value=row.image_url||'';fields.imageFile.value='';cancelButton.hidden=row.status!=='published';saveButton.disabled=cancelled;fields.status.disabled=cancelled;message.textContent=cancelled?'Cancelled events stay in history and are read-only. Create a new event if this gathering returns.':'';document.getElementById('eventEditorTitle').textContent=cancelled?'Cancelled event':'Edit event';setPreview(row.image_url||'');window.scrollTo({top:0,behavior:'smooth'});
+  fields.id.value=row.event_id||'';fields.title.value=row.title||'';fields.type.value=row.event_type||'workshop';fields.audience.value=row.audience||'queendom';fields.date.value=row.event_date||'';setTime('start',String(row.start_time||'').slice(0,5));setTime('end',String(row.end_time||'').slice(0,5));setTime('live',String(row.live_room_time||row.start_time||'').slice(0,5));fields.timezone.value=row.event_timezone||'America/Los_Angeles';renderHostOptions(row.host_member_id||'',row.co_host_member_id||'');fields.description.value=row.description||'';fields.howToPrepare.value=row.how_to_prepare||'';fields.guideUrl.value=row.attendee_guide_url||'';fields.recorded.value=String(Boolean(row.will_be_recorded));fields.locationType.value=row.location_type||'zoom';fields.privateLocation.value=row.private_location||'';fields.zoom.value=row.zoom_url||'';fields.passcode.value=row.zoom_passcode||'';fields.publicAccess.value=row.public_access||'unavailable';fields.queendomAccess.value=row.queendom_access||'included';fields.flowfmAccess.value=row.flowfm_access||'included';fields.publicPrice.value=row.public_price??'';fields.queendomPrice.value=row.queendom_price??'';fields.flowfmPrice.value=row.flowfm_price??'';fields.currency.value=row.access_currency||'USD';fields.ticketUrl.value=row.ticket_url||'';fields.productId.value=row.squarespace_product_id||'';fields.format.value=row.event_format||'single';fields.acuitySync.value=String(Boolean(row.acuity_sync_enabled));fields.seriesCount.value=String(row.series_count||4);fields.seriesInterval.value=String(row.series_interval_days||7);importedOccurrences=Array.isArray(row.occurrences)?row.occurrences.map(item=>({event_date:item.event_date,start_time:item.start_time,end_time:item.end_time,live_room_time:item.start_time,slots:item.slots,slots_available:item.slots_available,is_series:row.event_format==='series'})):[];renderAcuitySeriesOptions(row.acuity_appointment_type_id||'',row.acuity_calendar_id||'');syncSeriesFields();fields.status.value=row.status==='cancelled'?'cancelled':(row.status==='published'?'published':'draft');fields.imagePath.value=row.image_path||'';fields.imageUrl.value=row.image_url||'';fields.imageFile.value='';cancelButton.hidden=row.status!=='published';saveButton.disabled=cancelled;fields.status.disabled=cancelled;message.textContent=cancelled?'Cancelled events stay in history and are read-only. Create a new event if this gathering returns.':'';document.getElementById('eventEditorTitle').textContent=cancelled?'Cancelled event':'Edit event';setPreview(row.image_url||'');window.scrollTo({top:0,behavior:'smooth'});
 }
 function rowMarkup(row){
   const image=row.image_url?`<img src="${esc(row.image_url)}" alt="">`:'<div class="event-admin-placeholder">✦</div>';
   const cancelled=row.status==='cancelled';
   const host=row.host_name?`<p class="event-admin-host">Hosted by ${row.host_member_id?`<a href="${esc(hostProfileHref(row.host_member_id))}">${esc(row.host_name)}</a>`:esc(row.host_name)}${row.co_host_name?` + ${row.co_host_member_id?`<a href="${esc(hostProfileHref(row.co_host_member_id))}">${esc(row.co_host_name)}</a>`:esc(row.co_host_name)}`:''}</p>`:'';
-  const series=row.event_format==='series';const seriesChip=series?`<span class="series-chip">${esc(String(row.series_count||0))} SESSION SERIES · ${esc(String(row.series_enrollment_count||0))} ACUITY ENROLLED</span>`:'';
-  return `<article class="event-admin-row ${cancelled?'is-cancelled':''}" data-event-id="${esc(row.event_id)}"><div class="event-admin-art">${image}</div><div class="event-admin-copy"><p class="eyebrow">${esc(typeLabel(row.event_type))} · ${esc(audienceLabel(row.audience))}</p><h3>${esc(row.title)}</h3><p>${esc(series&&Array.isArray(row.occurrences)&&row.occurrences.length?`${eventDateLabel(row)} · ${row.series_count} sessions`:eventDateLabel(row))}</p>${host}<div class="event-admin-chips"><span>${esc(String(row.registration_count||0))} saved ${Number(row.registration_count||0)===1?'seat':'seats'}</span>${seriesChip}<span>${series?(row.acuity_appointment_type_id?'Acuity mapped':'Acuity waiting'):(row.zoom_url?'Zoom placed':'Zoom waiting')}</span><span>${esc(String(row.status||'draft').toUpperCase())}</span></div></div><div class="event-admin-actions"><button type="button" data-edit-event>Edit</button>${row.status==='published'?'<button type="button" class="quiet-button" data-cancel-event>Cancel</button>':''}</div></article>`;
+  const series=row.event_format==='series',recurring=row.event_format==='recurring';const seriesChip=series?`<span class="series-chip">${esc(String(row.series_count||0))} SESSION SERIES · ${esc(String(row.series_enrollment_count||0))} ACUITY ENROLLED</span>`:recurring?`<span class="series-chip">RECURRING · ${esc(String((row.occurrences||[]).length))} UPCOMING</span>`:'';
+  return `<article class="event-admin-row ${cancelled?'is-cancelled':''}" data-event-id="${esc(row.event_id)}"><div class="event-admin-art">${image}</div><div class="event-admin-copy"><p class="eyebrow">${esc(typeLabel(row.event_type))} · ${esc(audienceLabel(row.audience))}</p><h3>${esc(row.title)}</h3><p>${esc((series||recurring)&&Array.isArray(row.occurrences)&&row.occurrences.length?`${eventDateLabel(row)} · ${(row.occurrences||[]).length} ${series?'sessions':'occurrences'}`:eventDateLabel(row))}</p>${host}<div class="event-admin-chips"><span>${esc(String(row.registration_count||0))} saved ${Number(row.registration_count||0)===1?'seat':'seats'}</span>${seriesChip}<span>${row.acuity_sync_enabled?'Acuity linked':(row.zoom_url?'Manual Zoom':'Acuity not linked')}</span><span>${esc(String(row.status||'draft').toUpperCase())}</span></div></div><div class="event-admin-actions"><button type="button" data-edit-event>Edit</button>${row.status==='published'?'<button type="button" class="quiet-button" data-cancel-event>Cancel</button>':''}</div></article>`;
 }
 function render(){
   count.textContent=`${rows.length} ${rows.length===1?'EVENT':'EVENTS'}`;
@@ -154,56 +202,44 @@ function render(){
   list.querySelectorAll('[data-cancel-event]').forEach(button=>button.addEventListener('click',async()=>{const id=button.closest('[data-event-id]').dataset.eventId;if(!confirm('Cancel this event? Members who saved it will continue to see it marked Cancelled in My Calendar.'))return;button.disabled=true;try{await cancelQueendomEventAdmin(id);await refresh();if(fields.id.value===id)resetForm();}catch(error){button.disabled=false;alert(error?.message||'This event could not be cancelled.');}}));
 }
 async function refresh(){rows=await loadQueendomEventsAdmin();const today=new Date().toISOString().slice(0,10);rows.sort((a,b)=>{const af=String(a.event_date||'')>=today,bf=String(b.event_date||'')>=today;if(af!==bf)return af?-1:1;const ad=String(a.event_date||''),bd=String(b.event_date||'');if(ad!==bd)return af?ad.localeCompare(bd):bd.localeCompare(ad);return String(a.start_time||'').localeCompare(String(b.start_time||''));});render();}
-function payload(){syncTime('start');syncTime('end');syncTime('live');return{event_id:fields.id.value||null,title:fields.title.value,event_type:fields.type.value,description:fields.description.value,event_date:fields.date.value,start_time:fields.start.value,end_time:fields.end.value||null,live_room_time:fields.live.value||null,timezone:fields.timezone.value,host_name:null,host_member_id:fields.host.value||null,co_host_member_id:fields.coHost.value||null,audience:fields.audience.value,how_to_prepare:fields.howToPrepare.value,attendee_guide_url:fields.guideUrl.value,will_be_recorded:fields.recorded.value==='true',location_type:fields.locationType.value,private_location:fields.privateLocation.value,zoom_url:fields.zoom.value,zoom_passcode:fields.passcode.value,public_access:fields.publicAccess.value,queendom_access:fields.queendomAccess.value,flowfm_access:fields.flowfmAccess.value,public_price:fields.publicPrice.value,queendom_price:fields.queendomPrice.value,flowfm_price:fields.flowfmPrice.value,access_currency:fields.currency.value,ticket_url:fields.ticketUrl.value,squarespace_product_id:fields.productId.value,image_path:fields.imagePath.value,image_url:fields.imageUrl.value,status:fields.status.value,event_format:fields.format.value,series_count:Number(fields.seriesCount.value)||1,series_interval_days:Number(fields.seriesInterval.value)||7,acuity_appointment_type_id:fields.acuitySeries.value||null,acuity_calendar_id:fields.acuityCalendar.value||null};}
+function payload(){syncTime('start');syncTime('end');syncTime('live');return{event_id:fields.id.value||null,title:fields.title.value,event_type:fields.type.value,description:fields.description.value,event_date:fields.date.value,start_time:fields.start.value,end_time:fields.end.value||null,live_room_time:fields.live.value||null,timezone:fields.timezone.value,host_name:null,host_member_id:fields.host.value||null,co_host_member_id:fields.coHost.value||null,audience:fields.audience.value,how_to_prepare:fields.howToPrepare.value,attendee_guide_url:fields.guideUrl.value,will_be_recorded:fields.recorded.value==='true',location_type:fields.locationType.value,private_location:fields.privateLocation.value,zoom_url:fields.zoom.value,zoom_passcode:fields.passcode.value,public_access:fields.publicAccess.value,queendom_access:fields.queendomAccess.value,flowfm_access:fields.flowfmAccess.value,public_price:fields.publicPrice.value,queendom_price:fields.queendomPrice.value,flowfm_price:fields.flowfmPrice.value,access_currency:fields.currency.value,ticket_url:fields.ticketUrl.value,squarespace_product_id:fields.productId.value,image_path:fields.imagePath.value,image_url:fields.imageUrl.value,status:fields.status.value,event_format:fields.format.value,series_count:Number(fields.seriesCount.value)||1,series_interval_days:Number(fields.seriesInterval.value)||7,acuity_appointment_type_id:fields.acuitySeries.value||null,acuity_calendar_id:fields.acuityCalendar.value||null,acuity_sync_enabled:fields.acuitySync.value==='true',acuity_schedule_label:selectedSeries()?.name||null,occurrences:importedOccurrences};}
 
 async function save(event){
   event.preventDefault();message.textContent='';saveButton.disabled=true;saveButton.textContent='SAVING…';
   try{
-    let values=payload();
-    if(!values.start_time)throw new Error('Choose a start time.');
-    const isSeries=values.event_format==='series';
-    if(isSeries&&(values.series_count<2||values.series_count>12))throw new Error('Choose between 2 and 12 sessions.');
-    if(isSeries&&(values.series_interval_days<1||values.series_interval_days>90))throw new Error('Choose between 1 and 90 days between sessions.');
-    if(isSeries&&values.status==='published'&&(!values.acuity_appointment_type_id||!values.acuity_calendar_id))throw new Error('Choose the Acuity group series and calendar before publishing.');
-    if(isSeries&&!acuityConnected&&values.status==='published')throw new Error('Flowtel could not verify Acuity. Reconnect Acuity before publishing this series.');
-    const selected=selectedSeries();
-    if(isSeries&&selected&&String(selected.type||'').toLowerCase()!=='series')throw new Error('Choose an Acuity appointment type configured as a series.');
+    let values=payload();if(!values.start_time)throw new Error('Choose a start time.');
+    const linked=values.acuity_sync_enabled,series=values.event_format==='series';
+    if(linked&&(!values.acuity_appointment_type_id||!values.acuity_calendar_id))throw new Error('Choose the Acuity class/series and calendar before publishing a linked event.');
+    if(linked&&!acuityConnected)throw new Error('Flowtel could not verify Acuity. Reconnect Acuity before publishing.');
+    if(values.event_format==='recurring'&&!values.occurrences.length)throw new Error('Import the recurring Acuity schedule before publishing.');
+    if(series){
+      if(values.series_count<2||values.series_count>104)throw new Error('Choose between 2 and 104 sessions.');
+      const base=new Date(`${values.event_date}T12:00:00Z`);
+      values.occurrences=Array.from({length:values.series_count},(_,index)=>{const date=new Date(base.getTime()+index*values.series_interval_days*86400000);return{event_date:date.toISOString().slice(0,10),start_time:values.start_time,end_time:values.end_time,live_room_time:values.live_room_time||values.start_time,is_series:true};});
+    }else if(values.event_format==='single'&&linked&&values.occurrences.length>1){values.occurrences=[values.occurrences[0]];}
     const id=values.event_id||crypto.randomUUID();values.event_id=id;fields.id.value=id;
-    const existing=rows.find(item=>item.event_id===id);
-    const stageAsDraft=isSeries&&values.status==='published'&&existing?.event_format!=='series';
-    const desiredStatus=values.status;
-    const baseValues={...values,status:stageAsDraft?'draft':desiredStatus};
-
+    const desiredStatus=values.status;const baseValues={...values,status:'draft'};
     await saveQueendomEventAdmin(baseValues);
-    await configureQueendomEventSeriesAdmin(baseValues);
-
+    await configureQueendomEventOperationsAdmin({...values,status:'draft'});
     let imageWarning='';
     if(fields.imageFile.files?.[0]){
-      try{
-        message.textContent='Event saved. Placing the event artwork…';
-        const uploaded=await uploadQueendomEventImage(id,fields.imageFile.files[0]);
-        fields.imagePath.value=uploaded.image_path;fields.imageUrl.value=uploaded.image_url;
-        values={...values,...uploaded};
-        await saveQueendomEventAdmin({...values,status:stageAsDraft?'draft':desiredStatus});
-      }catch(imageError){imageWarning=` Artwork could not be added: ${imageError?.message||'try the image again later.'}`;}
+      try{message.textContent='Event saved. Placing the event artwork…';const uploaded=await uploadQueendomEventImage(id,fields.imageFile.files[0]);fields.imagePath.value=uploaded.image_path;fields.imageUrl.value=uploaded.image_url;values={...values,...uploaded};}
+      catch(imageError){imageWarning=` Artwork could not be added: ${imageError?.message||'try the image again later.'}`;}
     }
-
-    if(stageAsDraft){
-      await saveQueendomEventAdmin({...values,status:desiredStatus});
-      await configureQueendomEventSeriesAdmin({...values,status:desiredStatus});
-    }
-
-    message.textContent=desiredStatus==='published'?(isSeries?`Published. Flowtel will treat this as one ${values.series_count}-session vortex and Acuity will own the class-series enrollment + reminder emails.`:'Published. The event is live everywhere Flowtel shows the Queendom Calendar.'):'Draft saved.';
+    await saveQueendomEventAdmin({...values,status:desiredStatus});
+    // Re-run after publish so migration-level published schedule requirements are checked.
+    await configureQueendomEventOperationsAdmin({...values,status:desiredStatus});
+    message.textContent=desiredStatus==='published'
+      ? `${values.event_format==='recurring'?'Recurring event':values.event_format==='series'?'Series / Vortex':'Event'} published.${linked?' Acuity owns the schedule/reminders; Flowtel owns discovery, entitlement, registration, and entry.':''}`
+      : 'Draft saved.';
     if(imageWarning)message.textContent+=imageWarning;
-    await refresh();
-    const row=rows.find(item=>item.event_id===id);if(row)editEvent(row);
+    await refresh();const row=rows.find(item=>item.event_id===id);if(row)editEvent(row);
   }catch(error){message.textContent=error?.message||'This event could not be saved.';}
   finally{saveButton.disabled=false;saveButton.textContent='SAVE EVENT';}
 }
-
 [fields.startHour,fields.startMinute,fields.startPeriod].forEach(control=>control.addEventListener('change',()=>syncTime('start')));
 [fields.endHour,fields.endMinute,fields.endPeriod].forEach(control=>control.addEventListener('change',()=>syncTime('end')));[fields.liveHour,fields.liveMinute,fields.livePeriod].forEach(control=>control.addEventListener('change',()=>syncTime('live')));
-fields.format.addEventListener('change',syncSeriesFields);fields.seriesCount.addEventListener('input',renderSeriesPreview);fields.seriesInterval.addEventListener('input',renderSeriesPreview);fields.date.addEventListener('change',renderSeriesPreview);fields.acuitySeries.addEventListener('change',()=>renderCalendarOptions(''));
+fields.format.addEventListener('change',syncSeriesFields);fields.acuitySync.addEventListener('change',syncSeriesFields);fields.seriesCount.addEventListener('input',renderSchedulePreview);fields.seriesInterval.addEventListener('input',renderSchedulePreview);fields.date.addEventListener('change',()=>{renderSchedulePreview();renderMoonContext();});fields.acuitySeries.addEventListener('change',()=>{importedOccurrences=[];renderCalendarOptions('');syncSeriesFields();});fields.acuityCalendar.addEventListener('change',()=>{importedOccurrences=[];renderSchedulePreview();});fields.loadSchedule.addEventListener('click',()=>importAcuitySchedule().catch(error=>{fields.seriesMessage.textContent=error?.message||'The Acuity schedule could not be imported.';}));document.getElementById('copyAcuityDoorway')?.addEventListener('click',async()=>{try{await navigator.clipboard.writeText(fields.acuityDoorway.textContent);fields.seriesMessage.textContent='Flowtel event doorway copied.';}catch{fields.seriesMessage.textContent='Copy this doorway into the Acuity reminder button: '+fields.acuityDoorway.textContent;}});
 fields.imageFile.addEventListener('change',()=>{const file=fields.imageFile.files?.[0];if(!file){setPreview(fields.imageUrl.value);return;}if(imageObjectUrl)URL.revokeObjectURL(imageObjectUrl);imageObjectUrl=URL.createObjectURL(file);imagePreview.innerHTML=`<img src="${esc(imageObjectUrl)}" alt="Selected event artwork preview">`;});
 form.addEventListener('submit',save);newButton.addEventListener('click',resetForm);cancelButton.addEventListener('click',async()=>{const id=fields.id.value;if(!id||!confirm('Cancel this event? Members who saved it will continue to see it marked Cancelled in My Calendar.'))return;cancelButton.disabled=true;try{await cancelQueendomEventAdmin(id);await refresh();resetForm();}catch(error){message.textContent=error?.message||'This event could not be cancelled.';}finally{cancelButton.disabled=false;}});
 

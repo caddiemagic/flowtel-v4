@@ -1,14 +1,32 @@
 # Flowtel Roadmap
 
-Updated: September 8, 2026
+Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-v0.10.89.1 is a narrow client-entry hotfix over v0.10.89. It removes the Queendom Events module from the `/client/` authentication bundle's hard static import chain so remembered-session boot, Sign In, account creation, password recovery, and Complimentary Stay initialization cannot be blocked by event-module loading. It also repairs the v0.10.89 iCalendar escaping helper. No database or server boundary changes; migration 075 remains latest, 076 next, and Vercel remains 12/12.
+## Current — v0.10.90 Cyclical Calendar + Event Operations
 
-### Feature foundation retained from v0.10.89
+v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-operations release. The Queendom Calendar is publicly discoverable while admission remains entitlement-gated. Flowtel now distinguishes Single Event, independent Recurring Event occurrences, and whole-container Series / Vortex enrollment. Owner Event Administration imports/refreshes the mapped Acuity group schedule; Acuity remains the appointment/reminder engine while Flowtel owns discovery, access resolution, registration confirmation, protected entry, and event context.
 
-## Current — v0.10.89.1 Login Doorway Isolation Hotfix
+The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
+
+### Priority 0 — v0.10.90 live verification
+
+Verify a real Queendom-only weekly recurring class from public discovery through Acuity appointment creation, reminder email, Flowtel check-in, protected Zoom entry, and Event Flow Map. Also regress one single event, one existing Series / Vortex, paid Event Pass isolation/refund behavior, monthly Womb Magic, the private 4-Week Womb Magic Portal, remembered-session login, and mobile calendar/event-room behavior. Source validation does not replace production verification.
+
+### Next Priority — v0.10.91 Cycle Restart Correction
+
+Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Use migration **077** only if database work is required.
+
+### After that — Front Desk / Concierge Messages
+
+Resume the Flowtel-owned support inbox / Correct Member Email operational work after the cyclical correction unless the owner reprioritizes it.
+
+### Previous foundation — v0.10.89.1 / v0.10.89
+
+The unshipped v0.10.89.1 login isolation fix and the v0.10.89 multi-session foundation are retained inside v0.10.90. v0.10.89.1 removed the Queendom Events module from `/client/` authentication boot and repaired iCalendar escaping; v0.10.89 established migration 075 and the group Series / Vortex contract.
+
+## Previous — v0.10.89.1 Login Doorway Isolation Hotfix
 
 v0.10.89 extends the existing Queendom Calendar with **Multi-Session Series**. One Flowtel parent event now holds a repeatable occurrence itinerary while preserving one canonical member registration. Flowtel owns eligibility, Event Room access, and the protected member-facing Zoom doorway; Acuity owns the existing group-class series, class capacity, enrollment, and configured confirmation/reminder emails. Migration 075 adds the private occurrence/enrollment sync layer. No new Vercel function is added; the project remains at 12/12.
 
@@ -20,15 +38,15 @@ v0.10.88.1 remains the current Complimentary Stay access foundation beneath this
 
 v0.10.87.4 confirmed through live diagnostics that Squarespace Pricing Plan purchases surface as `PAYWALL_PRODUCT` Commerce line items with stable `productId` values. Flow FM is `47815dfc-d06e-45bb-8581-332cdff0fbff`; The Queendom | Feminine Mystery School Portal is `9ebc509d-6678-43d0-9162-df7f4cb505e4`. These IDs remain the server-side paid-membership mapping boundary.
 
-Caddie Magic remains **v0.6.0** and Player-first. Migration **075** is latest after this release; **076** is next.
+Caddie Magic remains **v0.6.0** and Player-first. Migration **076** is the v0.10.90 boundary; **077** is next after it is applied live.
 
-### Priority 0 — live verification
+### Carry-forward access verification
 
 Source validation does not replace live production verification. Keep the existing v0.10.88.1 access checks open: first-time paid Queendom / Flow FM signup, Complimentary Stay desktop/mobile UI, Day-15 closure, same-account trial → paid conversion, password recovery actual save, remembered session, Event Pass isolation, refund/revocation, and the full private 4-Week Womb Magic Portal regression.
 
 Also verify v0.10.89 with one real Womb Magic Committee member: the mapped Acuity series exists at the exact first-session time, one Flowtel registration creates/synchronizes the full Acuity series enrollment, Acuity confirmation/reminder emails arrive, every session receives the correct protected Zoom doorway, refresh is idempotent, the event remains in My Upcoming Events through Session 4, and existing single events / monthly Womb Magic / Caddie Magic remain unchanged.
 
-## Next Priority — v0.10.90 Front Desk / Concierge Messages
+## Deferred Priority — Front Desk / Concierge Messages
 
 Build a Flowtel-owned support inbox rather than making Squarespace Forms the source of truth.
 

@@ -1,0 +1,137 @@
+FLOWTEL v0.10.90 — CYCLICAL CALENDAR + EVENT OPERATIONS
+PATCH / DEPLOYMENT INSTRUCTIONS
+Release date: September 30, 2026
+
+SOURCE EXPECTED
+- Flowtel source: v0.10.89.1 source / GitHub main
+- Expected GitHub base HEAD: 9badeb0869c393a60997387bad72c85731cc6b68
+- v0.10.89.1 was not deployed separately by the owner; its login-doorway isolation repair is included in this v0.10.90 source and deployment.
+- Caddie Magic remains v0.6.0.
+
+TARGET
+- Flowtel v0.10.90 — Cyclical Calendar + Event Operations
+- Database boundary after migration: 076
+- Next migration after successful live application: 077
+
+FILES ADDED
+- database/migration-076-cyclical-calendar-event-operations.sql
+- docs/LIVE-TEST-0.10.90.md
+- docs/RELEASE-0.10.90.md
+- scripts/test-flowtel-01090-event-operations.mjs
+- scripts/validate-flowtel-01090-cyclical-calendar-event-operations.mjs
+- PATCH-INSTRUCTIONS-v0.10.90.txt
+
+FILES MODIFIED
+- api/acuity-webhook.js
+- api/acuity.js
+- api/event-ticket-verify.js
+- client/app.js
+- client/index.html
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+- manager/events/app.js
+- manager/events/index.html
+- manager/events/styles.css
+- queendom-calendar/app.js
+- queendom-calendar/index.html
+- queendom-calendar/styles.css
+- queendom-events/app.js
+- queendom-events/index.html
+- queendom-events/styles.css
+- scripts/validate-event-access-beta-exit.mjs
+- scripts/validate-event-calendar-polish.mjs
+- scripts/validate-flowtel-calendar-polish.mjs
+- scripts/validate-flowtel-calendar.mjs
+- shared/moon.js
+- shared/queendom-events.js
+
+FILES DELETED
+- None.
+
+SUPABASE MIGRATION
+- REQUIRED: YES
+- Migration: database/migration-076-cyclical-calendar-event-operations.sql
+- Migration 075 is already live and remains historical. Do not rename or rerun it casually.
+- Run migration 076 BEFORE deploying the v0.10.90 website/source files.
+- Do not run migration 077; it is only the next reserved number after 076 is live.
+
+VERCEL ENVIRONMENT VARIABLES
+- No new environment variables are required.
+- No existing environment variables should be changed for this release.
+- Keep existing Supabase, Acuity, Squarespace, Flowtel origin/trusted-doorway, and related production values unchanged.
+
+VERCEL SERVERLESS FUNCTIONS
+- Added: none.
+- Removed: none.
+- Current count: 12 / 12.
+- This release extends existing api/acuity.js, api/acuity-webhook.js, and api/event-ticket-verify.js rather than adding a 13th function.
+
+WHAT THIS RELEASE DOES
+- Folds the unshipped v0.10.89.1 login/session isolation repair into this deployment.
+- Adds first-class Single, Recurring, and Series/Vortex event behavior.
+- Keeps the Flowtel calendar publicly discoverable while admission remains tier/payment/membership gated.
+- Adds Acuity class/series import-refresh so event schedules do not have to be retyped in Flowtel.
+- Makes Acuity-linked single/recurring seat confirmation Acuity-first and idempotent.
+- Keeps Acuity confirmation/reminder emails enabled.
+- Adds the universal member reminder doorway: /queendom-events/?enter=1
+- Requires a current Flowtel-Day check-in before a normal member opens the protected Zoom doorway.
+- Adds append-oriented event attendance snapshots and the four-chamber host Event Flow Map.
+- Lets host/co-host/Owner open and refresh the Event Flow Map without claiming an attendee seat or creating an Acuity appointment for themselves.
+- Adds automatic New Moon / Half Full Moon / Full Moon / Half New Moon calendar markers and owner lunar context.
+- Preserves event visibility != membership != payment != registration != private-room access.
+
+DEPLOYMENT ORDER
+1. Back up / confirm the current GitHub source is the expected v0.10.89.1 base at 9badeb0869c393a60997387bad72c85731cc6b68.
+2. Run database/migration-076-cyclical-calendar-event-operations.sql in the production Supabase project.
+3. Confirm migration 076 completes successfully before continuing.
+4. Overlay flowtel-v0.10.90-patch-files.zip at the repository root, preserving paths.
+5. Commit/push the v0.10.90 source to GitHub main using the owner's normal workflow.
+6. Wait for Vercel production deployment to report Ready.
+7. Hard-refresh /client/ once so the v0.10.90 cache-busted entry bundle is loaded.
+8. In Acuity, create/confirm the real class or series schedule and its reminder emails. For reminder emails, use an ENTER THE FLOWTEL link pointing to the production equivalent of /queendom-events/?enter=1 rather than exposing Zoom directly.
+9. In Flowtel Owner Event Administration, map the Acuity appointment type/calendar, click IMPORT / REFRESH ACUITY SCHEDULE, set Public/Queendom/Flow FM access, add Flowtel-specific copy/artwork, and publish.
+10. Perform the first-live-test checklist below before declaring the release production verified.
+
+FIRST LIVE TESTS AFTER VERCEL SAYS READY
+1. AUTH / ENTRY
+   - Confirm a remembered valid session auto-enters /client/.
+   - Sign out and confirm Sign In responds normally and authenticates.
+
+2. PUBLIC CALENDAR / QUEENDOM-ONLY WEEKLY CLASS
+   - Open the public calendar while signed out and confirm the weekly class is visible.
+   - Confirm New / Half Full / Full / Half New Moon markers appear on expected dates.
+   - Open a Queendom-only occurrence as a non-member and confirm CLAIM MY SEAT routes to the Queendom doorway rather than granting a seat.
+   - Confirm a Complimentary Stay/rank-0 identity can browse the public calendar but cannot claim a Queendom-only seat.
+
+3. REAL QUEENDOM MEMBER + ACUITY
+   - Use one real eligible Queendom test member.
+   - Claim one specific recurring occurrence.
+   - Confirm Acuity creates exactly one appointment for that email/date.
+   - Confirm Flowtel shows the seat only after Acuity accepts/maps the appointment.
+   - Refresh/retry and confirm no duplicate Acuity appointment is created.
+   - Confirm the configured Acuity confirmation/reminder email arrives.
+   - Confirm its ENTER THE FLOWTEL link returns to the exact registered occurrence.
+
+4. EVENT-DAY ENTRY
+   - Confirm a member without today's Flowtel Stay is sent to check in before JOIN ZOOM.
+   - Complete check-in and confirm return to the correct event occurrence.
+   - Confirm JOIN ZOOM opens the protected Acuity/Zoom doorway.
+
+5. EVENT FLOW MAP
+   - As host/co-host/Owner, open the Event Flow Map without claiming an attendee seat; confirm no Acuity appointment is created for the host merely by viewing the map.
+   - Confirm CLAIMED SEATS shows registered people.
+   - Confirm IN THE ROOM remains empty for a registered member until she actually enters through JOIN ZOOM.
+   - After entry, confirm her tile appears in the correct North/East/West/South Inner Season chamber with Cycle Day and entry time.
+   - Use REFRESH and confirm counts update.
+   - Confirm no reflections, Moon Mail, Personal Cosmology, private Flow Map notes, or practitioner-care data appears.
+
+6. REGRESSIONS
+   - Test one ordinary single event.
+   - Test one Series/Vortex registration.
+   - Test paid/Event Pass isolation if available.
+   - Test monthly Womb Magic and the private 4-Week Womb Magic Portal.
+   - Confirm Caddie Magic still preserves Player-first access.
+
+SOURCE VS LIVE STATUS
+- The supplied v0.10.90 package is SOURCE VALIDATED after the included local/static checks pass.
+- It is NOT LIVE PRODUCTION VERIFIED until the owner completes the production steps above and reports the live tests passed.

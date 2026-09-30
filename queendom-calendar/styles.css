@@ -4,3 +4,7 @@
 
 /* Flowtel v0.10.83.1 — linked event hosts */
 .event-dialog-when a{color:inherit;text-decoration:underline;text-decoration-color:rgba(196,145,65,.5);text-underline-offset:3px}
+
+/* v0.10.90 — cyclical calendar */
+.calendar-day-head{display:flex;align-items:flex-start;justify-content:space-between;gap:6px;min-height:28px}.calendar-moon-marker{display:inline-flex;align-items:center;gap:4px;max-width:78%;font-size:.56rem;line-height:1.2;letter-spacing:.08em;text-transform:uppercase;color:#9a7076;text-align:right}.calendar-day.has-moon-marker{background:linear-gradient(180deg,rgba(252,245,244,.78),rgba(255,255,255,.96))}.event-dialog-copy .save-seat[href]{display:inline-flex;text-decoration:none;align-items:center;justify-content:center}
+@media(max-width:760px){.calendar-moon-marker{font-size:.48rem;letter-spacing:.04em}.calendar-day-head{display:block}.calendar-moon-marker{margin-top:3px;text-align:left;max-width:100%}}

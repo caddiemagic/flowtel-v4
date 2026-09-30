@@ -1,5 +1,6 @@
-// Flowtel v0.10.85 — authenticated Squarespace ticket verification.
-// A paid order grants an event entitlement and registers the signed-in attendee.
+// Flowtel v0.10.90 — authenticated Squarespace ticket verification.
+// A paid order grants event entitlement only. Acuity-linked seat confirmation is
+// completed separately through /api/acuity after capacity/booking succeeds.
 
 const {fetchJson,serverConfig,serviceHeaders,userHeaders}=require('../server/guest-house-server.js');
 const {commerceApiKey,normalizeEmail,orderMatchForProduct}=require('../server/squarespace-commerce.js');
@@ -17,13 +18,13 @@ async function upsertEntitlement({supabaseUrl,serviceKey,eventId,userId,email,or
   const amount=Number(line?.unitPricePaid?.value||0)*Math.max(1,Number(line?.quantity||1));const now=new Date().toISOString();
   const payload={event_id:eventId,member_id:userId,buyer_email:email,source:'squarespace',source_order_id:String(order.id),source_product_id:String(productId),payment_state:'PAID',paid_amount:Number.isFinite(amount)?amount:null,currency:line?.unitPricePaid?.currency||order?.grandTotal?.currency||'USD',verified_at:now,revoked_at:null,raw_context:{order_number:order.orderNumber||null,testmode:Boolean(order.testmode),line_item_id:line?.id||null},updated_at:now};
   await fetchJson(`${supabaseUrl}/rest/v1/flowtel_queendom_event_entitlements?on_conflict=event_id,source_order_id,source_product_id`,{method:'POST',headers:adminHeaders(serviceKey,'resolution=merge-duplicates,return=minimal'),body:JSON.stringify(payload)});
-  await fetchJson(`${supabaseUrl}/rest/v1/flowtel_queendom_event_registrations?on_conflict=event_id,member_id`,{method:'POST',headers:adminHeaders(serviceKey,'resolution=merge-duplicates,return=minimal'),body:JSON.stringify({event_id:eventId,member_id:userId,registered_at:now,cancelled_at:null,updated_at:now})});
 }
 
 async function revokeEntitlement({supabaseUrl,serviceKey,eventId,userId,email,paymentState='REFUNDED'}){
   const now=new Date().toISOString();
   await fetchJson(`${supabaseUrl}/rest/v1/flowtel_queendom_event_entitlements?event_id=eq.${encodeURIComponent(eventId)}&revoked_at=is.null&or=(member_id.eq.${encodeURIComponent(userId)},buyer_email.eq.${encodeURIComponent(email)})`,{method:'PATCH',headers:adminHeaders(serviceKey,'return=minimal'),body:JSON.stringify({payment_state:paymentState,revoked_at:now,updated_at:now})});
   await fetchJson(`${supabaseUrl}/rest/v1/flowtel_queendom_event_registrations?event_id=eq.${encodeURIComponent(eventId)}&member_id=eq.${encodeURIComponent(userId)}&cancelled_at=is.null`,{method:'PATCH',headers:adminHeaders(serviceKey,'return=minimal'),body:JSON.stringify({cancelled_at:now,updated_at:now})});
+  await fetchJson(`${supabaseUrl}/rest/v1/flowtel_queendom_event_occurrence_registrations?event_id=eq.${encodeURIComponent(eventId)}&member_id=eq.${encodeURIComponent(userId)}&cancelled_at=is.null`,{method:'PATCH',headers:adminHeaders(serviceKey,'return=minimal'),body:JSON.stringify({cancelled_at:now,updated_at:now})}).catch(()=>{});
 }
 
 module.exports=async function handler(req,res){
@@ -45,6 +46,6 @@ module.exports=async function handler(req,res){
     if(match.order?.paymentState==='REFUNDED'){await revokeEntitlement({supabaseUrl,serviceKey,eventId,userId:user.id,email,paymentState:'REFUNDED'});return res.status(200).json({ok:true,paid:false,revoked:true,event_id:eventId,message:'This ticket has been refunded, so the private event room is no longer open.'});}
     if(match.order?.paymentState!=='PAID')return res.status(200).json({ok:true,paid:false,event_id:eventId,payment_state:match.order?.paymentState||null,message:'A paid ticket has not appeared for this email yet. If you just checked out, wait a moment and check again.'});
     await upsertEntitlement({supabaseUrl,serviceKey,eventId,userId:user.id,email,order:match.order,line:match.line,productId:event.squarespace_product_id});
-    return res.status(200).json({ok:true,paid:true,registered:true,event_id:eventId,order_id:match.order.id,message:'Your ticket is confirmed. Your event room is open.'});
+    return res.status(200).json({ok:true,paid:true,registered:false,event_id:eventId,order_id:match.order.id,message:'Your ticket is confirmed. Flowtel can now claim the linked Acuity seat.'});
   }catch(error){return res.status(Number(error.statusCode)||500).json({ok:false,error:error.message||'Flowtel could not verify that ticket.'});}
 };
