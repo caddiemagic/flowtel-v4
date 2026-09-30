@@ -1,4 +1,4 @@
-// Flowtel v0.10.85 — server-only Squarespace Commerce helpers.
+// Flowtel v0.10.91 — server-only Squarespace Commerce helpers.
 // Keeps Commerce credentials out of browser code and centralizes exact-email + order matching.
 
 const API_BASE='https://api.squarespace.com';
@@ -6,7 +6,7 @@ const API_BASE='https://api.squarespace.com';
 function safeJson(value){try{return JSON.parse(value);}catch{return null;}}
 function normalizeEmail(value){return String(value||'').trim().toLowerCase();}
 function commerceApiKey(){return String(process.env.SQUARESPACE_COMMERCE_API_KEY||process.env.SQUARESPACE_API_KEY||'').trim();}
-function headers(apiKey){return{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','User-Agent':'Flowtel Event Access/0.10.85'};}
+function headers(apiKey){return{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','User-Agent':'Flowtel Squarespace Membership/0.10.91'};}
 async function jsonFetch(url,options={}){const response=await fetch(url,options);const text=await response.text();const data=safeJson(text);if(!response.ok){const error=new Error(data?.message||data?.error||text||`Squarespace request failed with ${response.status}.`);error.statusCode=response.status;throw error;}return data??{};}
 function contactEmail(contact){return normalizeEmail(contact?.primaryEmail?.email||contact?.email||'');}
 async function exactContact(email,apiKey=commerceApiKey()){
@@ -20,6 +20,12 @@ async function customerOrders(customerId,apiKey=commerceApiKey(),paymentState=''
   for(let page=0;next&&page<20;page+=1){const data=await jsonFetch(next,{method:'GET',headers:headers(apiKey)});rows.push(...(Array.isArray(data?.result)?data.result:[]));const candidate=String(data?.pagination?.nextPageUrl||'').trim();next=candidate?(candidate.startsWith('http')?candidate:`${API_BASE}${candidate.startsWith('/')?'':'/'}${candidate}`):'';}
   return rows;
 }
+async function listOrders(apiKey=commerceApiKey(),paymentState='PAID'){
+  if(!apiKey)return[];
+  const rows=[];const state=String(paymentState||'').trim();let next=`${API_BASE}/1.0/commerce/orders${state?`?paymentStates=${encodeURIComponent(state)}`:''}`;
+  for(let page=0;next&&page<100;page+=1){const data=await jsonFetch(next,{method:'GET',headers:headers(apiKey)});rows.push(...(Array.isArray(data?.result)?data.result:[]));const candidate=String(data?.pagination?.nextPageUrl||'').trim();next=candidate?(candidate.startsWith('http')?candidate:`${API_BASE}${candidate.startsWith('/')?'':'/'}${candidate}`):'';}
+  return rows;
+}
 function lineForProduct(order,productId){const wanted=String(productId||'').trim();return (Array.isArray(order?.lineItems)?order.lineItems:[]).find(line=>String(line?.productId||'').trim()===wanted)||null;}
 function newestOrder(rows=[]){return [...rows].sort((a,b)=>new Date(b?.modifiedOn||b?.createdOn||0).getTime()-new Date(a?.modifiedOn||a?.createdOn||0).getTime())[0]||null;}
 async function orderMatchForProduct(email,productId,apiKey=commerceApiKey()){
@@ -30,4 +36,4 @@ async function paidOrderForProduct(email,productId,apiKey=commerceApiKey()){
   const match=await orderMatchForProduct(email,productId,apiKey);return match.order?.paymentState==='PAID'?match:{...match,order:null,line:null};
 }
 
-module.exports={API_BASE,commerceApiKey,customerOrders,exactContact,headers,jsonFetch,lineForProduct,normalizeEmail,orderMatchForProduct,paidOrderForProduct};
+module.exports={API_BASE,commerceApiKey,customerOrders,exactContact,headers,jsonFetch,lineForProduct,listOrders,normalizeEmail,orderMatchForProduct,paidOrderForProduct};

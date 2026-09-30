@@ -32,14 +32,14 @@ expect(migration.includes("A Queendom membership is required to choose a Mentor 
 expect(migration.includes('flowtel_current_user_has_product_access') && migration.includes('flowtel_trial_ends_at <= now()'), 'Server-side product checks must reject an expired trial even before /client/ is opened.');
 expect(migration.includes('Preserve pre-v0.10.88 canonical Flowtel access') && migration.includes('v_access.flowtel_trial_started_at is null') && migration.includes('coalesce(v_access.flowtel_access,false)'), 'Migration 074 must preserve preexisting legacy Flowtel access rows rather than reclassifying them as trials.');
 
-expect(html.includes('Start Your 14-Day Complimentary Stay') && html.includes('Queendom Members | Create New Account') && html.includes('Or Join the Queendom Here'), 'Public Flowtel doorway is missing the member / complimentary / join hierarchy.');
+expect(html.includes('Start Your 14-Day Complimentary Stay') && html.includes('Queendom Members | Activate My Flowtel') && html.includes('Or Join the Queendom Here'), 'Public Flowtel doorway is missing the member / complimentary / join hierarchy.');
 expect(html.includes('COMPLIMENTARY STAY · DAY 1 OF 14'), 'Suite is missing the complimentary-stay status banner.');
 expect(html.includes('YOUR COMPLIMENTARY STAY IS COMPLETE'), 'Expired stay scene is missing.');
 expect(html.includes('I Joined — Reopen My Room'), 'Expired stay scene must support same-account membership conversion.');
 
 expect(client.includes('accountCreationMode="member"'), 'Client must keep paid-member signup separate from trial signup.');
-expect(client.includes('trial?"trial-signup":"signup"'), 'Client must use the existing bridge with a distinct trial intent.');
-expect(client.includes('if(!trial) metadata.membership_type=bridge.membershipType||"queendom"'), 'Trial Auth metadata must never claim Queendom membership.');
+expect(client.includes('verifySquarespaceMember(email,"trial-signup")') && client.includes('verifySquarespaceMember(email,"provision")'), 'Client must keep trial admission and paid-member provisioning as distinct bridge intents.');
+expect(client.includes('source:"flowtel_complimentary_stay"') && !client.includes('source:trial?"flowtel_complimentary_stay":"flowtel_member_signup"'), 'Trial Auth metadata must remain a dedicated Complimentary Stay path and never masquerade as paid-member signup.');
 expect(client.includes('membershipType:bridge.membershipType') && client.includes('handleTrialMembershipRefresh'), 'Client must reopen the same account after verified membership purchase.');
 expect(client.includes('maybeAutoUpgradeComplimentaryStay') && client.includes('convertComplimentaryStayMembership'), 'Returning complimentary guests must be able to auto-convert after a verified Queendom purchase.');
 expect(html.includes('Join the Queendom to Schedule Your First Womb Magic Call'), 'Trial Womb Magic preview must route to the Queendom rather than scheduling directly.');

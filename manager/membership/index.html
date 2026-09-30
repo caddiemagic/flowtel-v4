@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flowtel Membership Reconciliation</title>
+  <link rel="stylesheet" href="./styles.css?v=0.10.91" />
+</head>
+<body>
+  <main class="membership-desk">
+    <header class="hero">
+      <p class="eyebrow">FLOWTEL OWNER ADMINISTRATION</p>
+      <h1>Queendom Membership Reconciliation</h1>
+      <p>Compare paid Squarespace Queendom / Flow FM memberships with Flowtel identities. Existing Flowtel UUIDs and history are always preserved.</p>
+      <div class="hero-actions">
+        <a href="/manager/">Return to Concierge Desk</a>
+        <button id="scanButton" type="button">Scan Paid Memberships</button>
+      </div>
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+    </header>
+
+    <section id="summary" class="summary hidden" aria-label="Reconciliation summary">
+      <article><span>Already linked</span><strong id="linkedCount">0</strong></article>
+      <article><span>Needs Flowtel invite</span><strong id="inviteCount">0</strong></article>
+      <article><span>Existing identity to upgrade</span><strong id="upgradeCount">0</strong></article>
+      <article><span>Manual review</span><strong id="reviewCount">0</strong></article>
+    </section>
+
+    <section id="resultsSection" class="results hidden">
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow">VERIFIED PAID MEMBERS</p>
+          <h2>Flowtel identity status</h2>
+          <p>Provisioning re-verifies the exact Squarespace contact and PAID mapped order before sending an invite or changing access.</p>
+        </div>
+        <button id="provisionButton" type="button" disabled>Provision Selected</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th></th><th>Member</th><th>Squarespace</th><th>Flowtel</th><th>Status</th></tr></thead>
+          <tbody id="memberRows"></tbody>
+        </table>
+      </div>
+      <p class="fine-print">Email mismatches are never auto-merged. If a member purchased with one email but already uses another Flowtel email, use the future Correct Member Email / identity reconciliation workflow rather than provisioning a duplicate.</p>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.10.91"></script>
+</body>
+</html>

@@ -489,7 +489,7 @@ function updateDoorwayCopy(){
   if(note){
     note.textContent = SQUARESPACE_MEMBERSHIP
       ? `You entered through the ${labelForMembership(SQUARESPACE_MEMBERSHIP)} doorway.`
-      : "Enter with your private room key, create your member account, or begin a 14-day complimentary stay.";
+      : "Enter with your private room key, activate your Queendom membership, or begin a 14-day complimentary stay.";
   }
 
   const nonMemberDoorways=document.getElementById("nonMemberAccountDoorways");
@@ -534,12 +534,14 @@ function setNewAccountMode(mode="member"){
   const copy=document.getElementById("newAccountCopy");
   const button=document.getElementById("createAccountButton");
   const status=document.getElementById("newAccountStatus");
-  if(eyebrow) eyebrow.textContent=trial?"YOUR COMPLIMENTARY STAY":"YOUR FIRST STAY";
-  if(title) title.textContent=trial?"Begin your 14-Day Complimentary Stay":"Create your Flowtel account";
+  const passwordFields=document.getElementById("newAccountPasswordFields");
+  if(eyebrow) eyebrow.textContent=trial?"YOUR COMPLIMENTARY STAY":"WELCOME TO THE QUEENDOM";
+  if(title) title.textContent=trial?"Begin your 14-Day Complimentary Stay":"Activate your Flowtel room";
   if(copy) copy.textContent=trial
     ? "Create a private Flowtel account. Your first 14 days are complimentary; joining the Queendom keeps your room open after your stay."
-    : "Use the email connected to your Queendom membership and choose your own private password.";
-  if(button) button.textContent=trial?"Begin My 14-Day Stay":"Create My Flowtel Account";
+    : "Already joined the Queendom? Use the same email you used at checkout. Flowtel will verify your paid membership and prepare your room automatically.";
+  if(passwordFields) passwordFields.classList.toggle("hidden",!trial);
+  if(button) button.textContent=trial?"Begin My 14-Day Stay":"Activate My Flowtel";
   if(status) status.textContent="";
 }
 
@@ -568,15 +570,34 @@ async function handleCreateAccount(){
   const password=document.getElementById("newAccountPassword")?.value||"";
   const confirm=document.getElementById("newAccountPasswordConfirm")?.value||"";
   const status=document.getElementById("newAccountStatus");
-  if(!email||!email.includes("@")){if(status)status.textContent=trial?"Add the email you want to use for your Flowtel stay.":"Add the email connected to your Queendom membership.";return;}
+  if(!email||!email.includes("@")){if(status)status.textContent=trial?"Add the email you want to use for your Flowtel stay.":"Add the email you used when you joined the Queendom.";return;}
+
+  if(!trial){
+    try{
+      setFlowtelLoading(true,"The Flowtel is verifying your Queendom room key...");
+      if(status)status.textContent="Verifying your paid Queendom membership…";
+      const bridge=await verifySquarespaceMember(email,"provision");
+      try{localStorage.setItem("flowtel:memberEmail",email);}catch(_){ }
+      setFlowtelLoading(false);
+      showLoginForm();
+      const loginEmail=document.getElementById("email");if(loginEmail)loginEmail.value=email;
+      if(bridge.inviteSent){
+        setMessage("Your Queendom membership is verified. Check your email for your Flowtel invitation — you do not need to create another account here.");
+      }else{
+        setMessage("Your Queendom membership is linked to your existing Flowtel identity. Sign in with your existing password, or choose Forgot your password? if you need a fresh doorway.");
+      }
+    }catch(error){setFlowtelLoading(false);console.error("Flowtel membership activation failed.",error);if(status)status.textContent=error?.message||"Your Queendom membership could not be activated just now.";}
+    return;
+  }
+
   if(password.length<10){if(status)status.textContent="Choose a password with at least 10 characters.";return;}
   if(password!==confirm){if(status)status.textContent="Those passwords do not match yet.";return;}
   try{
-    setFlowtelLoading(true,trial?"The Flowtel is preparing your complimentary stay...":"The Flowtel is preparing your first room key...");
-    if(status)status.textContent=trial?"Preparing your complimentary stay…":"Verifying your Queendom doorway…";
-    const bridge=await verifySquarespaceMember(email,trial?"trial-signup":"signup");
+    setFlowtelLoading(true,"The Flowtel is preparing your complimentary stay...");
+    if(status)status.textContent="Preparing your complimentary stay…";
+    const bridge=await verifySquarespaceMember(email,"trial-signup");
 
-    if(trial&&bridge.existingAccount){
+    if(bridge.existingAccount){
       setFlowtelLoading(false);
       showLoginForm();
       const loginEmail=document.getElementById("email");if(loginEmail)loginEmail.value=email;
@@ -593,10 +614,9 @@ async function handleCreateAccount(){
       last_name:bridge.contact?.lastName||null,
       display_name:[bridge.contact?.firstName,bridge.contact?.lastName].filter(Boolean).join(" ")||null,
       squarespace_contact_id:bridge.contact?.id||null,
-      source:trial?"flowtel_complimentary_stay":"flowtel_member_signup",
+      source:"flowtel_complimentary_stay",
       flowtel_password_chosen:true,
     };
-    if(!trial) metadata.membership_type=bridge.membershipType||"queendom";
 
     const data=await createAccountWithEmail(email,password,{redirectTo:redirect.toString(),metadata});
     try{localStorage.setItem("flowtel:memberEmail",email);}catch(_){ }
@@ -605,8 +625,7 @@ async function handleCreateAccount(){
       currentProfile=await ensureProfile({
         firstName:bridge.contact?.firstName,
         lastName:bridge.contact?.lastName,
-        ...(trial?{}:{membershipType:bridge.membershipType}),
-        squarespaceSource:trial?"complimentary-stay":"squarespace-contacts",
+        squarespaceSource:"complimentary-stay",
         squarespaceContactId:bridge.contact?.id,
         squarespaceContactEmail:email,
       });
@@ -614,12 +633,9 @@ async function handleCreateAccount(){
       setFlowtelLoading(false);await continueAuthenticatedEntrance();return;
     }
     setFlowtelLoading(false);showLoginForm();
-    setMessage(trial
-      ? "Check your email to confirm your Flowtel account. Your 14-day complimentary stay begins when you first enter your room."
-      : "Check your email to confirm your Flowtel account. After you confirm, Flowtel will bring you home.");
+    setMessage("Check your email to confirm your Flowtel account. Your 14-day complimentary stay begins when you first enter your room.");
   }catch(error){setFlowtelLoading(false);console.error("Flowtel account creation failed.",error);if(status)status.textContent=error?.message||"Your account could not be created just now.";}
 }
-
 async function openMemberBridge(){ showNewAccountForm("member"); }
 
 // Release 0.10.15 login recovery:

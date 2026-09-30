@@ -1,3 +1,14 @@
+## v0.10.91 — Automatic Queendom Provisioning + Member Reconciliation
+
+- Replaces paid-member browser signup with **Queendom Members | Activate My Flowtel**: one email-only activation after Squarespace checkout.
+- Reuses an existing exact-email Supabase Auth UUID when present; missing identities receive a Supabase Invite User email instead of a second manual Flowtel registration.
+- Keeps exact-email Squarespace Contacts + PAID mapped-order verification fail-closed before every provision/upgrade.
+- Adds Owner-only `/manager/membership/` reconciliation for paid Squarespace members who are already linked, need a Flowtel invite, need an existing-identity upgrade, or require manual review.
+- Adds migration **078** with a service-role-only verified-membership application RPC that preserves higher membership rank, Caddie Magic access, roles, history, and Complimentary Stay identity while refusing revoked Flowtel accounts.
+- Keeps Complimentary Stay password signup and same-account trial → paid conversion intact.
+- No new Vercel serverless function; budget remains **12/12**. Migration 079 is next.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.90.3 — Event Experience Polish
 
 - Makes a protected Recurring Event room occurrence-specific: opening a claimed Monday no longer renders every future recurring gathering inside the modal.

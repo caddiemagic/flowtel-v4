@@ -111,6 +111,10 @@
       "destination": "/manager/events/index.html"
     },
     {
+      "source": "/manager/membership",
+      "destination": "/manager/membership/index.html"
+    },
+    {
       "source": "/concierge",
       "destination": "/manager/index.html"
     },

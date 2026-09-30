@@ -41,7 +41,7 @@ expect(clientHtml.includes('href="/queendom-calendar/">View All Upcoming Events<
 expect(!clientHtml.includes('id="backToUpcomingEventsButton"'),'Lounge must not expose a Back to Upcoming Events toggle.');
 expect(client.includes('function setLoungeEventsView(_view'),'Lounge view helper must force the member view rather than toggle discovery.');
 expect(client.includes('discovery.classList.add("hidden")'),'Lounge discovery view must stay hidden for members.');
-expect(clientHtml.includes('./app.js?v=0.10.90.3'),'Client app cache key must be v0.10.90.3.');
+expect(clientHtml.includes('./app.js?v=0.10.91') || clientHtml.includes('./app.js?v=0.10.90.3'),'Client app cache key must include the current member-experience bundle.');
 
 const apiCount=fs.readdirSync(path.join(root,'api')).filter(name=>name.endsWith('.js')).length;
 expect(apiCount===12,`Vercel API function count is ${apiCount}; expected 12/12.`);

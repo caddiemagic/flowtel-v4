@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Flowtel Passport</title>
-  <link rel="stylesheet" href="./styles.css?v=0.10.90.2" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.91" />
 </head>
 <body>
   <main class="flowtel-app">
@@ -35,7 +35,7 @@
             <button id="forgotPasswordButton" type="button" class="text-button">Forgot your password?</button>
 
             <div class="flowtel-account-doorways">
-              <button id="showNewAccountButton" type="button" class="secondary member-account-doorway-button">Queendom Members | Create New Account</button>
+              <button id="showNewAccountButton" type="button" class="secondary member-account-doorway-button">Queendom Members | Activate My Flowtel</button>
               <div class="nonmember-account-doorways" id="nonMemberAccountDoorways">
                 <p class="nonmember-doorway-label">Not a Queendom member?</p>
                 <button id="showComplimentaryStayButton" type="button" class="complimentary-stay-doorway-button">Start Your 14-Day Complimentary Stay</button>
@@ -46,20 +46,22 @@
 
           <div class="flowtel-new-account-card hidden" id="newAccountCard" aria-hidden="true">
             <p class="eyebrow" id="newAccountEyebrow">YOUR FIRST STAY</p>
-            <h3 id="newAccountTitle">Create your Flowtel account</h3>
-            <p class="microcopy" id="newAccountCopy">Use the email connected to your Queendom membership and choose your own private password.</p>
+            <h3 id="newAccountTitle">Activate your Flowtel room</h3>
+            <p class="microcopy" id="newAccountCopy">Already joined the Queendom? Use the same email you used at checkout. Flowtel will verify your membership and prepare your room automatically.</p>
 
             <label for="newAccountEmail">Email</label>
             <input id="newAccountEmail" type="email" autocomplete="email" />
 
-            <label for="newAccountPassword">Create password</label>
-            <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="10" />
+            <div id="newAccountPasswordFields" class="new-account-password-fields hidden">
+              <label for="newAccountPassword">Create password</label>
+              <input id="newAccountPassword" type="password" autocomplete="new-password" minlength="10" />
 
-            <label for="newAccountPasswordConfirm">Confirm password</label>
-            <input id="newAccountPasswordConfirm" type="password" autocomplete="new-password" minlength="10" />
-            <p class="microcopy">Use at least 10 characters.</p>
+              <label for="newAccountPasswordConfirm">Confirm password</label>
+              <input id="newAccountPasswordConfirm" type="password" autocomplete="new-password" minlength="10" />
+              <p class="microcopy">Use at least 10 characters.</p>
+            </div>
 
-            <button id="createAccountButton" type="button">Create My Flowtel Account</button>
+            <button id="createAccountButton" type="button">Activate My Flowtel</button>
             <button id="backToLoginButton" type="button" class="secondary">I already have an account</button>
             <p id="newAccountStatus" class="microcopy" role="status" aria-live="polite"></p>
           </div>
@@ -535,6 +537,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.90.3"></script>
+  <script type="module" src="./app.js?v=0.10.91"></script>
 </body>
 </html>

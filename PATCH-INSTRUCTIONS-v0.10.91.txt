@@ -1,0 +1,143 @@
+FLOWTEL v0.10.91 — AUTOMATIC QUEENDOM PROVISIONING + MEMBER RECONCILIATION
+
+SOURCE EXPECTED
+Flowtel v0.10.90.3 — Event Experience Polish
+GitHub main base: a21baa9f9e49ca3e68135b400e48f41c2aac1a5d
+Latest live migration before this release: 077
+
+TARGET RELEASE
+Flowtel v0.10.91 — Automatic Queendom Provisioning + Member Reconciliation
+Caddie Magic remains v0.6.0.
+
+IMPORTANT DEPLOYMENT ORDER
+1. RUN migration 078 FIRST:
+   database/migration-078-automatic-queendom-provisioning.sql
+2. Confirm migration 078 completes successfully in Supabase.
+3. Overlay flowtel-v0.10.91-patch-files.zip at the repository root.
+4. Commit/push to GitHub main.
+5. Wait for Vercel production deployment to report Ready.
+6. Hard-refresh /client/ and /manager/membership/.
+7. Run the first-live-test checklist below.
+
+MIGRATION
+YES — migration required.
+Migration filename: database/migration-078-automatic-queendom-provisioning.sql
+Run migration 078 BEFORE deploying the website files.
+After successful deployment, migration 078 is latest and migration 079 is next.
+Do not rename, edit, or rerun historical migrations.
+
+VERCEL ENVIRONMENT VARIABLES
+No new Vercel environment variables are required.
+Keep existing values unchanged, including:
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY
+- SQUARESPACE_API_KEY / SQUARESPACE_COMMERCE_API_KEY
+- SQUARESPACE_QUEENDOM_PRODUCT_IDS
+- SQUARESPACE_FLOWFM_PRODUCT_IDS
+- SQUARESPACE_COUNCIL_PRODUCT_IDS if/when configured
+- FLOWTEL_PUBLIC_ORIGIN if configured
+
+The existing mapped product IDs remain:
+- Flow FM: 47815dfc-d06e-45bb-8581-332cdff0fbff
+- Queendom: 9ebc509d-6678-43d0-9162-df7f4cb505e4
+
+SUPABASE AUTH EMAIL
+No new credential is required. This release reuses the existing Supabase Auth Custom SMTP configuration and the Invite user email template.
+Keep https://app.theflowtel.com/client/ in Supabase Auth Redirect URLs.
+The invite returns to /client/?membershipProvisioned=1.
+
+VERCEL FUNCTIONS
+No serverless function added.
+No serverless function removed.
+Current function count: 12 / 12.
+api/squarespace-bridge.js is extended instead of adding a 13th function.
+
+FILES ADDED
+- PATCH-INSTRUCTIONS-v0.10.91.txt
+- database/migration-078-automatic-queendom-provisioning.sql
+- docs/RELEASE-0.10.91.md
+- manager/membership/app.js
+- manager/membership/index.html
+- manager/membership/styles.css
+- scripts/test-flowtel-01091-auto-membership-provisioning.mjs
+- scripts/validate-flowtel-01091-auto-membership-provisioning.mjs
+
+FILES MODIFIED
+- api/squarespace-bridge.js
+- client/app.js
+- client/index.html
+- client/styles.css
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+- docs/SUPABASE-AUTH-EMAIL-SETUP.md
+- manager/index.html
+- scripts/validate-event-access-beta-exit.mjs
+- scripts/validate-flowtel-010903-registered-event-room.mjs
+- scripts/validate-flowtel-complimentary-stay.mjs
+- scripts/validate-squarespace-purchase-diagnostic.mjs
+- server/squarespace-commerce.js
+- vercel.json
+
+FILES TO DELETE
+None.
+ZIP overlays therefore require no manual DELETE step.
+
+WHAT CHANGES
+- Paid Queendom / Flow FM members no longer manually create a second Flowtel account.
+- The signed-out member doorway becomes: Queendom Members | Activate My Flowtel.
+- Paid activation asks only for the exact email used at Squarespace checkout.
+- Flowtel verifies exact-email Squarespace Contact + PAID mapped membership order fail-closed.
+- If the Flowtel Auth identity already exists, the same UUID/password/history are preserved and membership is linked/upgraded in place.
+- If no Flowtel Auth identity exists, Supabase Invite User creates it and sends the member an invitation email.
+- Migration 078 applies verified membership server-side without lowering existing membership rank, removing Caddie Magic access, replacing history, or reactivating revoked accounts.
+- Complimentary Stay signup remains a separate private-password path.
+- Owner Administration gains /manager/membership/ to compare verified paid Squarespace membership orders against Flowtel identity/access state and provision selected legacy members.
+- Email mismatches are never auto-merged.
+
+FIRST LIVE TESTS AFTER VERCEL SAYS READY
+1. BRAND-NEW PAID QUEENDOM MEMBER
+   - Use an exact Squarespace checkout email with a PAID mapped Queendom order and no existing Flowtel Auth user.
+   - Open /client/.
+   - Choose Queendom Members | Activate My Flowtel.
+   - Enter the checkout email and choose Activate My Flowtel.
+   - Confirm Flowtel reports that an invitation was sent.
+   - Confirm the Supabase Invite user email arrives.
+   - Open the invite.
+   - Confirm Flowtel returns to the same provisioned identity and asks the member to create a private room key/password.
+   - Confirm Queendom rank/access and normal Suite entry.
+
+2. EXISTING FLOWTEL MEMBER
+   - Activate an email that already has a Flowtel Auth identity and paid Queendom membership.
+   - Confirm NO second Auth user is created.
+   - Confirm the existing password still works.
+   - Confirm existing Stay/cycle/event/Womb Magic history remains attached.
+
+3. COMPLIMENTARY STAY → PAID
+   - Use an existing Complimentary Stay identity with a verified Queendom purchase.
+   - Confirm the same UUID upgrades to paid membership and trial history remains preserved.
+
+4. OWNER RECONCILIATION
+   - Open Owner Concierge Desk → Membership Reconciliation.
+   - Scan paid memberships.
+   - Confirm Already linked / Needs Flowtel invite / Existing identity · upgrade / Manual review counts appear.
+   - Select one known legacy member needing Flowtel and Provision Selected.
+   - Confirm purchase is re-verified and invitation is sent.
+
+5. SAFETY
+   - Confirm a random Squarespace Contact without a PAID mapped membership cannot activate Flowtel.
+   - Confirm a revoked Flowtel identity is not automatically restored.
+   - Confirm an email mismatch is not auto-merged.
+
+6. REGRESSION
+   - Remembered-session login.
+   - Forgot Password.
+   - Complimentary Stay signup.
+   - One Queendom recurring event claim/unclaim.
+   - Monthly Womb Magic.
+   - Private 4-Week Womb Magic Portal.
+   - Caddie Magic Player entry.
+
+VALIDATION STATUS
+SOURCE VALIDATED means local/static/source checks passed.
+LIVE PRODUCTION VERIFIED requires the owner to deploy and confirm the live tests above.
+Do not mark this release LIVE PRODUCTION VERIFIED until those tests pass in production.

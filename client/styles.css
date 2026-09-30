@@ -4266,3 +4266,5 @@ body.personal-room-key-is-open{
 
 /* Flowtel v0.10.90.2 — reversible saved event seats */
 .lounge-event-actions .lounge-unclaim-button{border:0!important;background:transparent!important;color:#8d5d58!important;text-decoration:underline!important;text-underline-offset:3px;min-height:auto!important;padding:4px!important;font-size:.61rem!important}.lounge-event-actions .lounge-unclaim-button:disabled{opacity:.5;cursor:default}
+/* v0.10.91 — member activation is email-only; trial signup still collects a private password. */
+.new-account-password-fields{display:grid;gap:10px}.new-account-password-fields.hidden{display:none!important}

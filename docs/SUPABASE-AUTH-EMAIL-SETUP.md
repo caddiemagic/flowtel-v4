@@ -94,3 +94,17 @@ Check Supabase Auth logs and the SMTP provider logs if delivery fails.
 ## 7. Recommended launch hardening
 
 After Custom SMTP is working, review Supabase Auth rate limits and CAPTCHA/attack-protection options before opening first-time signup broadly. Keep Auth email separate from marketing email.
+
+## v0.10.91 paid-member invitations
+
+Flowtel v0.10.91 uses Supabase Auth's **Invite user** email for a verified paid Queendom / Flow FM member who does not yet have a Flowtel Auth identity.
+
+The server sends the invite only after exact-email Squarespace Contact + PAID mapped-order verification. The invitation redirects to:
+
+`https://app.theflowtel.com/client/?membershipProvisioned=1`
+
+Keep `https://app.theflowtel.com/client/` in the Supabase Auth Redirect URLs allow list. The existing Custom SMTP configuration is reused; no new Vercel email environment variable is required.
+
+Customize **Authentication → Email Templates → Invite user** with Flowtel / Queendom language if desired. The member will choose her long-term private Flowtel password inside Flowtel after accepting the invitation.
+
+Invitation delivery is subject to the project's Supabase Auth email-rate limits. Owner Membership Reconciliation therefore provisions at most 20 selected members per action.

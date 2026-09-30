@@ -1,9 +1,9 @@
 // api/squarespace-bridge.js
-// Flowtel v0.10.88 — verified membership + one-time 14-Day Complimentary Stay doorway.
+// Flowtel v0.10.91 — verified membership provisioning + one-time 14-Day Complimentary Stay doorway.
 // Keeps Squarespace and Supabase service keys out of browser code and never resets an existing member password.
 
 const SQUARESPACE_API_BASE = "https://api.squarespace.com";
-const { commerceApiKey, customerOrders } = require("../server/squarespace-commerce.js");
+const { commerceApiKey, customerOrders, listOrders } = require("../server/squarespace-commerce.js");
 const DEFAULT_BETA_PASSWORD = "FlowtelBeta!2026";
 
 function betaTemporaryPassword() {
@@ -22,7 +22,7 @@ const MEMBERSHIP_LABEL = {
 function setCors(res) {
   res.setHeader("Access-Control-Allow-Origin", process.env.FLOWTEL_ALLOWED_ORIGIN || "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 }
 
 function normalizeMembership(value) {
@@ -709,6 +709,247 @@ async function createSupabaseBetaUser({ supabaseUrl, serviceKey, email, password
   });
 }
 
+
+async function findAllSupabaseAuthUsers({ supabaseUrl, serviceKey }) {
+  const users = [];
+  for (let page = 1; page <= 50; page += 1) {
+    const data = await readSupabaseJson(`${supabaseUrl}/auth/v1/admin/users?page=${page}&per_page=1000`, {
+      method: "GET",
+      headers: supabaseAdminHeaders(serviceKey),
+    });
+    const rows = Array.isArray(data?.users) ? data.users : Array.isArray(data) ? data : [];
+    users.push(...rows);
+    if (rows.length < 1000) break;
+  }
+  return users;
+}
+
+async function listSupabaseRows({ supabaseUrl, serviceKey, table, select }) {
+  const data = await readSupabaseJson(`${supabaseUrl}/rest/v1/${table}?select=${encodeURIComponent(select)}`, {
+    method: "GET",
+    headers: supabaseAdminHeaders(serviceKey),
+  });
+  return Array.isArray(data) ? data : [];
+}
+
+function bearerToken(req) {
+  const header = String(req.headers?.authorization || "");
+  return header.toLowerCase().startsWith("bearer ") ? header.slice(7).trim() : "";
+}
+
+async function requireOwnerRequest(req, { supabaseUrl, serviceKey }) {
+  const token = bearerToken(req);
+  if (!token) {
+    const error = new Error("Enter through the Flowtel Owner Concierge Desk first.");
+    error.statusCode = 401;
+    throw error;
+  }
+  const user = await readSupabaseJson(`${supabaseUrl}/auth/v1/user`, {
+    method: "GET",
+    headers: { ...supabaseAdminHeaders(serviceKey), Authorization: `Bearer ${token}` },
+  });
+  if (!user?.id) {
+    const error = new Error("The Owner session could not be verified.");
+    error.statusCode = 401;
+    throw error;
+  }
+  const rows = await readSupabaseJson(`${supabaseUrl}/rest/v1/profiles?select=id,email,role&id=eq.${encodeURIComponent(user.id)}&limit=1`, {
+    method: "GET",
+    headers: supabaseAdminHeaders(serviceKey),
+  });
+  const profile = Array.isArray(rows) ? rows[0] || null : null;
+  if (!profile || !["owner", "admin"].includes(String(profile.role || "").toLowerCase())) {
+    const error = new Error("Membership reconciliation is reserved for the Flowtel Owner/Admin.");
+    error.statusCode = 403;
+    throw error;
+  }
+  return { user, profile };
+}
+
+function membershipPurchaseFromOrder(order) {
+  if (String(order?.paymentState || "").toUpperCase() !== "PAID") return null;
+  const ids = configuredMembershipProductIds();
+  for (const membership of ["council", "flowfm", "queendom"]) {
+    if (orderContainsAnyProduct(order, ids[membership] || [])) {
+      return {
+        membershipType: membership,
+        membershipRank: membershipRank(membership),
+        orderId: order?.id || null,
+        customerId: order?.customerId || null,
+        email: normalizeEmail(order?.customerEmail),
+        modifiedOn: order?.modifiedOn || order?.createdOn || null,
+      };
+    }
+  }
+  return null;
+}
+
+function collapseMembershipOrders(orders = []) {
+  const byEmail = new Map();
+  for (const order of Array.isArray(orders) ? orders : []) {
+    const purchase = membershipPurchaseFromOrder(order);
+    if (!purchase?.email) continue;
+    const current = byEmail.get(purchase.email);
+    if (!current || purchase.membershipRank > current.membershipRank || (
+      purchase.membershipRank === current.membershipRank &&
+      new Date(purchase.modifiedOn || 0).getTime() > new Date(current.modifiedOn || 0).getTime()
+    )) byEmail.set(purchase.email, purchase);
+  }
+  return [...byEmail.values()].sort((a, b) => a.email.localeCompare(b.email));
+}
+
+function flowtelInviteRedirect() {
+  const origin = String(process.env.FLOWTEL_PUBLIC_ORIGIN || "https://app.theflowtel.com").replace(/\/$/, "");
+  return `${origin}/client/?membershipProvisioned=1`;
+}
+
+async function inviteSupabaseFlowtelUser({ supabaseUrl, serviceKey, email, contact, membershipType }) {
+  const redirectTo = flowtelInviteRedirect();
+  const endpoint = `${supabaseUrl}/auth/v1/invite?redirect_to=${encodeURIComponent(redirectTo)}`;
+  const data = await readSupabaseJson(endpoint, {
+    method: "POST",
+    headers: supabaseAdminHeaders(serviceKey),
+    body: JSON.stringify({
+      email,
+      data: {
+        first_name: contact?.firstName || null,
+        last_name: contact?.lastName || null,
+        display_name: [contact?.firstName, contact?.lastName].filter(Boolean).join(" ") || null,
+        squarespace_contact_id: contact?.id || null,
+        membership_type: membershipType,
+        membership_rank: membershipRank(membershipType),
+        source: "flowtel_squarespace_auto_provision",
+      },
+    }),
+  });
+  return data?.user || data || null;
+}
+
+async function applyVerifiedMembershipToAuthUser({ supabaseUrl, serviceKey, userId, email, membershipType, sourceOrderId, squarespaceContactId, source = "squarespace-auto-provision" }) {
+  return await readSupabaseJson(`${supabaseUrl}/rest/v1/rpc/flowtel_apply_verified_membership_server`, {
+    method: "POST",
+    headers: supabaseAdminHeaders(serviceKey),
+    body: JSON.stringify({
+      p_user_id: userId,
+      p_email: email,
+      p_membership_type: membershipType,
+      p_source: source,
+      p_source_order_id: sourceOrderId || null,
+      p_squarespace_contact_id: squarespaceContactId || null,
+    }),
+  });
+}
+
+async function provisionVerifiedMembership({ email, source = "squarespace-auto-provision" }) {
+  const normalizedEmail = normalizeEmail(email);
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
+  if (!serviceKey || !supabaseUrl) {
+    const error = new Error("Supabase server verification is not configured on Vercel.");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  const contact = await querySquarespaceContact(normalizedEmail, { trustedDoorway: false });
+  const purchase = await verifySquarespaceMembershipPurchase(contact);
+  let authUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email: normalizedEmail });
+  let invited = false;
+
+  if (!authUser?.id) {
+    try {
+      authUser = await inviteSupabaseFlowtelUser({
+        supabaseUrl,
+        serviceKey,
+        email: normalizedEmail,
+        contact,
+        membershipType: purchase.membershipType,
+      });
+      invited = true;
+    } catch (error) {
+      if (!/already|registered|exists|duplicate/i.test(String(error?.message || error?.responseText || ""))) throw error;
+      authUser = await findSupabaseAuthUserByEmail({ supabaseUrl, serviceKey, email: normalizedEmail });
+      invited = false;
+    }
+  }
+
+  const userId = authUser?.id || authUser?.user?.id || null;
+  if (!userId) {
+    const error = new Error("Squarespace membership was verified, but Flowtel could not create the member identity.");
+    error.statusCode = 500;
+    throw error;
+  }
+
+  await applyVerifiedMembershipToAuthUser({
+    supabaseUrl,
+    serviceKey,
+    userId,
+    email: normalizedEmail,
+    membershipType: purchase.membershipType,
+    sourceOrderId: purchase.orderId,
+    squarespaceContactId: contact?.id || null,
+    source,
+  });
+
+  return {
+    email: normalizedEmail,
+    userId,
+    membershipType: purchase.membershipType,
+    membershipLabel: MEMBERSHIP_LABEL[purchase.membershipType] || "Flowtel",
+    contact,
+    orderId: purchase.orderId || null,
+    accountStatus: invited ? "created-invited" : "existing-upgraded",
+    inviteSent: invited,
+  };
+}
+
+async function buildMembershipReconciliation({ supabaseUrl, serviceKey }) {
+  const apiKey = commerceApiKey();
+  if (!apiKey) {
+    const error = new Error("Squarespace Commerce verification is not configured on Vercel.");
+    error.statusCode = 503;
+    throw error;
+  }
+  const [orders, authUsers, profiles, accessRows] = await Promise.all([
+    listOrders(apiKey, "PAID"),
+    findAllSupabaseAuthUsers({ supabaseUrl, serviceKey }),
+    listSupabaseRows({ supabaseUrl, serviceKey, table: "profiles", select: "id,email,role,membership_type,membership_rank,squarespace_contact_id,squarespace_contact_email" }),
+    listSupabaseRows({ supabaseUrl, serviceKey, table: "flowtel_product_access", select: "user_id,flowtel_access,flowtel_access_status,access_role,access_source" }),
+  ]);
+  const purchases = collapseMembershipOrders(orders);
+  const authByEmail = new Map(authUsers.map((user) => [normalizeEmail(user?.email), user]));
+  const profileById = new Map(profiles.map((row) => [String(row.id), row]));
+  const accessById = new Map(accessRows.map((row) => [String(row.user_id), row]));
+
+  const rows = purchases.map((purchase) => {
+    const authUser = authByEmail.get(purchase.email) || null;
+    const profile = authUser?.id ? profileById.get(String(authUser.id)) || null : null;
+    const access = authUser?.id ? accessById.get(String(authUser.id)) || null : null;
+    const profileRank = Math.max(Number(profile?.membership_rank || 0), membershipRank(profile?.membership_type));
+    let status = "ready_to_invite";
+    if (authUser?.id && access?.flowtel_access_status === "revoked") status = "manual_review";
+    else if (authUser?.id && access?.flowtel_access === true && profileRank >= purchase.membershipRank) status = "already_linked";
+    else if (authUser?.id) status = "ready_to_upgrade";
+    return {
+      email: purchase.email,
+      membershipType: purchase.membershipType,
+      membershipLabel: MEMBERSHIP_LABEL[purchase.membershipType] || "Flowtel",
+      orderId: purchase.orderId,
+      squarespaceCustomerId: purchase.customerId,
+      authUserId: authUser?.id || null,
+      flowtelMembershipType: profile?.membership_type || null,
+      flowtelMembershipRank: profileRank,
+      flowtelAccess: access?.flowtel_access === true,
+      flowtelAccessStatus: access?.flowtel_access_status || null,
+      status,
+    };
+  });
+  const counts = rows.reduce((memo, row) => {
+    memo[row.status] = (memo[row.status] || 0) + 1;
+    return memo;
+  }, {});
+  return { rows, counts, scannedPaidOrders: Array.isArray(orders) ? orders.length : 0 };
+}
+
 async function ensureSupabaseAuthUser({ email, contact, membershipType, intent, trustedDoorway, existingProfile = null }) {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
@@ -822,17 +1063,73 @@ module.exports = async function handler(req, res) {
     const email = normalizeEmail(body.email);
     const intent = String(body.intent || "enter").toLowerCase();
     const membershipType = normalizeMembership(body.membershipType || body.membership || body.doorway);
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
+
+    if (intent === "membership-reconciliation" || intent === "admin-membership-reconciliation") {
+      if (!serviceKey || !supabaseUrl) {
+        const configError = new Error("Supabase server verification is not configured on Vercel.");
+        configError.statusCode = 503;
+        throw configError;
+      }
+      await requireOwnerRequest(req, { supabaseUrl, serviceKey });
+      const report = await buildMembershipReconciliation({ supabaseUrl, serviceKey });
+      res.status(200).json({ ok: true, ...report });
+      return;
+    }
+
+    if (intent === "admin-provision-memberships") {
+      if (!serviceKey || !supabaseUrl) {
+        const configError = new Error("Supabase server verification is not configured on Vercel.");
+        configError.statusCode = 503;
+        throw configError;
+      }
+      await requireOwnerRequest(req, { supabaseUrl, serviceKey });
+      const emails = [...new Set((Array.isArray(body.emails) ? body.emails : []).map(normalizeEmail).filter((value) => value && value.includes("@")))].slice(0, 20);
+      if (!emails.length) {
+        res.status(400).json({ ok: false, error: "Choose at least one verified member to provision." });
+        return;
+      }
+      const results = [];
+      for (const memberEmail of emails) {
+        try {
+          const result = await provisionVerifiedMembership({ email: memberEmail, source: "owner-membership-reconciliation" });
+          results.push({ ok: true, ...result });
+        } catch (error) {
+          results.push({ ok: false, email: memberEmail, error: error?.message || "Provisioning failed." });
+        }
+      }
+      res.status(200).json({ ok: true, results });
+      return;
+    }
 
     if (!email || !email.includes("@")) {
       res.status(400).json({ ok: false, error: "A valid member email is required." });
       return;
     }
 
+    if (intent === "provision" || intent === "activate-membership") {
+      const result = await provisionVerifiedMembership({ email, source: "member-membership-activation" });
+      res.status(200).json({
+        ok: true,
+        verified: true,
+        membershipType: result.membershipType,
+        membershipLabel: result.membershipLabel,
+        contact: result.contact,
+        orderId: result.orderId,
+        accountStatus: result.accountStatus,
+        inviteSent: result.inviteSent,
+        supabaseUserPrepared: true,
+        note: result.inviteSent
+          ? "Your Queendom membership is verified. Check your email for your Flowtel invitation."
+          : "Your Queendom membership is verified and linked to your existing Flowtel identity.",
+      });
+      return;
+    }
+
     const isTrialSignup = intent === "trial-signup" || intent === "complimentary-stay";
     const verifyOnly = intent === "verify" || intent === "verify-only" || intent === "signup";
     const trustedDoorway = verifyOnly || isTrialSignup ? false : canUseTrustedDoorway(body);
-    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-    const supabaseUrl = normalizeSupabaseProjectUrl(process.env.SUPABASE_URL);
     const existingProfile = serviceKey && supabaseUrl
       ? await findSupabaseProfileByEmail({ supabaseUrl, serviceKey, email })
       : null;

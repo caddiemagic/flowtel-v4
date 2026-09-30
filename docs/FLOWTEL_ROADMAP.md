@@ -4,7 +4,11 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.90.3 Event Experience Polish
+## Current — v0.10.91 Automatic Queendom Provisioning + Member Reconciliation
+
+v0.10.91 removes the second manual Flowtel signup for paid Queendom / Flow FM members. Squarespace remains the current Pricing Plan/billing authority; after exact-email Contact + PAID mapped-order verification, Flowtel reuses the existing Auth UUID or sends a Supabase invite for a missing identity, then applies membership server-side without lowering rank or replacing history. Owner Administration gains a paid-member reconciliation room for legacy members. Migration **078** is this release boundary; **079** is next. Vercel remains 12/12.
+
+### Previous — v0.10.90.3 Event Experience Polish
 
 v0.10.90.3 finishes the member-facing event experience after the v0.10.90.2 lifecycle work. Registered Recurring Event rooms are occurrence-specific and include exact-occurrence **UNCLAIM MY SEAT**; claimed-seat copy is simplified; The Queendom Calendar gains a compact next-three-gatherings snapshot; and the Lounge opens directly on **MY UPCOMING EVENTS** with one **VIEW ALL UPCOMING EVENTS** doorway. The month-calendar dialog also supports the existing Acuity-first seat-release path. No migration is required; migration **077** remains latest and **078** remains next. Vercel remains 12/12.
 
@@ -22,13 +26,13 @@ v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-
 
 The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
 
-### Priority 0 — v0.10.90.3 live verification
+### Priority 0 — v0.10.91 live verification
 
-Verify a real Queendom-only weekly recurring class from public discovery through Acuity appointment creation, reminder email, Flowtel check-in, protected Zoom entry, and Event Flow Map. Also regress one single event, one existing Series / Vortex, paid Event Pass isolation/refund behavior, monthly Womb Magic, the private 4-Week Womb Magic Portal, remembered-session login, and mobile calendar/event-room behavior. Source validation does not replace production verification.
+Verify one brand-new paid Queendom email through **Activate My Flowtel** → Supabase invitation → private room key → full membership access, and verify one existing Flowtel identity is upgraded/relinked without duplication. Run the Owner Membership Reconciliation report and provision one known legacy member. Also keep the v0.10.90.3 recurring-event/Acuity live regression open. Source validation does not replace production verification.
 
-### Next Priority — v0.10.91 Cycle Restart Correction
+### Next Priority — v0.10.92 Cycle Restart Correction
 
-Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **078** is next if the cycle-correction release needs database work.
+Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **079** is next if the cycle-correction release needs database work.
 
 ### After that — Front Desk / Concierge Messages
 

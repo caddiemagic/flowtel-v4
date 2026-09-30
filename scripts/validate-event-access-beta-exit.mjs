@@ -20,7 +20,7 @@ assert.ok(migration.includes("Find a private space. Light a candle + incense. Ma
 
 must('manager/events/index.html',['Co-host','How to prepare','Attendee guide URL','Will this be recorded?','Live room / gathering time','Who is included?','Squarespace product ID']);
 must('manager/events/app.js',['co_host_member_id','how_to_prepare','attendee_guide_url','will_be_recorded','public_access','queendom_access','flowfm_access']);
-must('client/index.html',['Queendom Members | Create New Account','Forgot your password?','eventRoomOverlay']);
+must('client/index.html',['Queendom Members | Activate My Flowtel','Forgot your password?','eventRoomOverlay']);
 const client=must('client/app.js',['createAccountWithEmail']);
 assert.ok(client.includes('/queendom-events/')||client.includes('loadQueendomEventsModule'),'Client must preserve a doorway into the canonical Queendom Event Room.');
 assert.ok(!/temporary Flowtel beta password/i.test(client),'customer beta password copy must not return');
