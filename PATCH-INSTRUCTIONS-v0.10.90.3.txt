@@ -1,0 +1,82 @@
+FLOWTEL v0.10.90.3 — EVENT EXPERIENCE POLISH
+
+SOURCE VERSION EXPECTED
+Flowtel v0.10.90.2 — Event Lifecycle Hotfix
+GitHub main base: 907eb6e725385480c20f67b2877aae6bd660c6b4
+Caddie Magic: v0.6.0
+Latest database migration: 077
+Next migration: 078
+
+TARGET RELEASE
+Flowtel v0.10.90.3 — Event Experience Polish
+
+FILES ADDED
+- PATCH-INSTRUCTIONS-v0.10.90.3.txt
+- docs/RELEASE-0.10.90.3.md
+- docs/LIVE-TEST-0.10.90.3.md
+- scripts/validate-flowtel-010903-registered-event-room.mjs
+- scripts/test-flowtel-010903-registered-event-room.mjs
+
+FILES MODIFIED
+- client/app.js
+- client/index.html
+- queendom-calendar/app.js
+- queendom-calendar/index.html
+- queendom-calendar/styles.css
+- queendom-events/app.js
+- queendom-events/index.html
+- queendom-events/styles.css
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+
+FILES DELETED
+- None.
+
+SUPABASE MIGRATION
+No migration required.
+Migration 077 remains latest.
+Migration 078 remains next.
+Do NOT rerun migration 077 for this release.
+
+VERCEL ENVIRONMENT VARIABLES
+No variables added or changed.
+Keep every existing production environment variable unchanged.
+
+VERCEL SERVERLESS FUNCTIONS
+No function added.
+No function removed.
+Current function count remains 12/12.
+
+WHAT THIS PATCH DOES
+1. Registered recurring Event Rooms show only the exact claimed occurrence being opened.
+2. UNCLAIM MY SEAT is available directly inside the registered Event Room and preserves the exact recurring occurrence id.
+3. Registered independently claimable events use the simpler copy: ✓ SEAT CLAIMED · OPEN EVENT.
+4. The Queendom Calendar shows a compact preview of the next three upcoming gatherings above the month grid.
+5. The Lounge defaults directly to MY UPCOMING EVENTS instead of requiring a discovery/My Events toggle.
+6. The visible Lounge footer has one VIEW ALL UPCOMING EVENTS doorway to The Queendom Calendar.
+7. The Queendom Calendar event dialog also supports Acuity-first UNCLAIM MY SEAT for consistency.
+8. Series / Vortex rooms remain multi-session by design.
+
+DEPLOYMENT ORDER
+1. Confirm GitHub main is v0.10.90.2 / 907eb6e725385480c20f67b2877aae6bd660c6b4.
+2. Do NOT run a Supabase migration.
+3. Overlay flowtel-v0.10.90.3-patch-files.zip at the repository root, preserving folders.
+4. No files need manual deletion.
+5. Review the Git diff.
+6. Commit and push.
+7. Wait for Vercel to report Ready.
+8. Hard-refresh /client/, /queendom-events/, and /queendom-calendar/ before testing.
+
+FIRST LIVE TESTS AFTER VERCEL READY
+1. Open the Lounge and confirm MY UPCOMING EVENTS is visible immediately.
+2. Confirm the footer says VIEW ALL UPCOMING EVENTS and opens The Queendom Calendar.
+3. Confirm the calendar's compact next-three preview appears above the month grid and opens exact occurrences.
+4. Open a claimed recurring gathering and confirm the button says ✓ SEAT CLAIMED · OPEN EVENT.
+5. Confirm the protected room shows only that occurrence and no recurring UPCOMING GATHERINGS list.
+6. Confirm UNCLAIM MY SEAT appears in the protected room and cancels the matching Acuity appointment before Flowtel releases the seat.
+7. Confirm another independently claimed occurrence remains untouched.
+8. Confirm a Series / Vortex still shows its full intended itinerary.
+9. Regress monthly Womb Magic, 4-Week Womb Magic Portal, remembered login, and Caddie Magic.
+
+STATUS LANGUAGE
+This package is SOURCE VALIDATED only until the owner deploys it and confirms these live tests.

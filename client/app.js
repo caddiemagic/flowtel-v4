@@ -304,8 +304,8 @@ function updatePhaseOneSuiteLinks(){
   const myEvents=document.getElementById("my-upcoming-events");
   const eventsStatus=document.getElementById("loungeEventsStatus");
   const trialInvitation=document.getElementById("complimentaryStayLoungeInvitation");
-  if(loungeEvents) loungeEvents.classList.toggle("hidden",trial);
-  if(myEvents) myEvents.classList.toggle("hidden",trial||myEvents.getAttribute("aria-hidden")==="true");
+  if(loungeEvents){loungeEvents.classList.add("hidden");loungeEvents.setAttribute("aria-hidden","true");}
+  if(myEvents){myEvents.classList.toggle("hidden",trial);myEvents.setAttribute("aria-hidden",trial?"true":"false");}
   if(eventsStatus) eventsStatus.classList.toggle("hidden",trial);
   if(trialInvitation) trialInvitation.classList.toggle("hidden",!trial);
 
@@ -765,20 +765,15 @@ function cleanEventDoorwayUrl(){
   eventDoorwayEventId="";
 }
 
-function setLoungeEventsView(view,{scroll=true}={}){
+function setLoungeEventsView(_view,{scroll=true}={}){
   const discovery=document.getElementById("loungeEventsCard");
   const mine=document.getElementById("my-upcoming-events");
-  if(!discovery||!mine) return;
-  const showMine=view==="mine";
-  discovery.classList.toggle("hidden",showMine);
-  discovery.setAttribute("aria-hidden",showMine?"true":"false");
-  mine.classList.toggle("hidden",!showMine);
-  mine.setAttribute("aria-hidden",showMine?"false":"true");
-  if(showMine) renderLoungeEvents();
-  if(scroll){
-    const target=showMine?mine:discovery;
-    window.setTimeout(()=>target.scrollIntoView({behavior:"smooth",block:"start"}),40);
-  }
+  if(!mine) return;
+  if(discovery){discovery.classList.add("hidden");discovery.setAttribute("aria-hidden","true");}
+  mine.classList.remove("hidden");
+  mine.setAttribute("aria-hidden","false");
+  renderLoungeEvents();
+  if(scroll) window.setTimeout(()=>mine.scrollIntoView({behavior:"smooth",block:"start"}),40);
 }
 
 function focusMyUpcomingEvents(){

@@ -394,7 +394,7 @@
           </div>
         </section>
 
-        <section class="lounge-events-card" id="loungeEventsCard">
+        <section class="lounge-events-card hidden" id="loungeEventsCard" aria-hidden="true">
           <header class="lounge-events-heading">
             <p class="eyebrow">UPCOMING EVENTS IN THE QUEENDOM</p>
             <h3>There is always something happening here.</h3>
@@ -408,7 +408,7 @@
           </div>
         </section>
 
-        <section class="lounge-events-card lounge-my-calendar-card hidden" id="my-upcoming-events" aria-hidden="true">
+        <section class="lounge-events-card lounge-my-calendar-card" id="my-upcoming-events" aria-hidden="false">
           <header class="lounge-events-heading lounge-my-events-heading">
             <p class="eyebrow">MY UPCOMING EVENTS</p>
             <h3>Everything you saved, all in one place.</h3>
@@ -416,7 +416,7 @@
           </header>
           <div class="lounge-event-list" id="loungeMyCalendar"></div>
           <div class="lounge-events-footer-actions">
-            <button type="button" class="lounge-calendar-link" id="backToUpcomingEventsButton">Back to Upcoming Events</button>
+            <a class="lounge-calendar-link" href="/queendom-calendar/">View All Upcoming Events</a>
           </div>
         </section>
         <p class="lounge-events-status lounge-events-global-status" id="loungeEventsStatus" role="status"></p>
@@ -535,6 +535,6 @@
     </div>
   </section>
 
-  <script type="module" src="./app.js?v=0.10.90.2"></script>
+  <script type="module" src="./app.js?v=0.10.90.3"></script>
 </body>
 </html>

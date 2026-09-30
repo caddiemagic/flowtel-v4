@@ -4,9 +4,13 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.90.2 Event Lifecycle Hotfix
+## Current — v0.10.90.3 Event Experience Polish
 
-v0.10.90.2 closes the first live event-lifecycle gaps on top of v0.10.90.1. Cancelled events are removed from public/member calendar feeds; members can **UNCLAIM MY SEAT** with Acuity cancellation first; and Owner/Admin can permanently delete Draft/Cancelled events after active Acuity seats are cleared. Migration **077** is this release boundary and **078** is next. Vercel remains 12/12.
+v0.10.90.3 finishes the member-facing event experience after the v0.10.90.2 lifecycle work. Registered Recurring Event rooms are occurrence-specific and include exact-occurrence **UNCLAIM MY SEAT**; claimed-seat copy is simplified; The Queendom Calendar gains a compact next-three-gatherings snapshot; and the Lounge opens directly on **MY UPCOMING EVENTS** with one **VIEW ALL UPCOMING EVENTS** doorway. The month-calendar dialog also supports the existing Acuity-first seat-release path. No migration is required; migration **077** remains latest and **078** remains next. Vercel remains 12/12.
+
+### Previous lifecycle hotfix — v0.10.90.2
+
+v0.10.90.2 closes the first live event-lifecycle gaps on top of v0.10.90.1. Cancelled events are removed from public/member calendar feeds; members can **UNCLAIM MY SEAT** with Acuity cancellation first; and Owner/Admin can permanently delete Draft/Cancelled events after active Acuity seats are cleared. Migration **077** is this release boundary and **078** is next.
 
 ### Previous hotfix — v0.10.90.1
 
@@ -18,7 +22,7 @@ v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-
 
 The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
 
-### Priority 0 — v0.10.90.2 live verification
+### Priority 0 — v0.10.90.3 live verification
 
 Verify a real Queendom-only weekly recurring class from public discovery through Acuity appointment creation, reminder email, Flowtel check-in, protected Zoom entry, and Event Flow Map. Also regress one single event, one existing Series / Vortex, paid Event Pass isolation/refund behavior, monthly Womb Magic, the private 4-Week Womb Magic Portal, remembered-session login, and mobile calendar/event-room behavior. Source validation does not replace production verification.
 

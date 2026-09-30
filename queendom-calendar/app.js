@@ -1,11 +1,13 @@
 import { getCurrentProfile } from '/shared/profiles.js?v=0.10.90';
 import { timezoneDisplayName } from '/shared/timezone-labels.js?v=0.10.90';
-import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, enterQueendomEvent } from '/shared/queendom-events.js?v=0.10.90';
+import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, enterQueendomEvent } from '/shared/queendom-events.js?v=0.10.90.2';
 import { getMoonPhaseMarker } from '/shared/moon.js?v=0.10.90';
 
 const shell=document.getElementById('calendarShell');
 const nav=document.getElementById('calendarNav');
 const hero=document.getElementById('calendarHero');
+const preview=document.getElementById('calendarPreview');
+const previewList=document.getElementById('calendarPreviewList');
 const grid=document.getElementById('calendarGrid');
 const monthTitle=document.getElementById('calendarMonth');
 const message=document.getElementById('calendarMessage');
@@ -17,6 +19,7 @@ const embed=new URLSearchParams(location.search).get('embed')==='1';
 let memberMode=false;
 let profile=null;
 let events=[];
+let previewEvents=[];
 let cursor=monthStart(new Date());
 let currentEventId='';
 
@@ -38,7 +41,26 @@ function eventTile(event){
   const image=event.image_url?`<img src="${esc(event.image_url)}" alt="">`:'<div class="event-tile-placeholder">✦</div>';const occurrence=activeOccurrence(event);const series=event.event_format==='series',recurring=event.event_format==='recurring';
   return `<button class="calendar-event-tile ${event.audience==='flowfm'?'is-flowfm':'is-queendom'} ${event.status==='cancelled'?'is-cancelled':''}" type="button" data-event-id="${esc(event.event_id)}" ${occurrence?`data-occurrence-id="${esc(occurrence.occurrence_id)}"`:''}><span class="calendar-event-image">${image}</span><span class="calendar-event-copy"><small>${series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience))}</small><strong>${esc(event.title)}</strong><em>${esc(eventTime(event))}</em></span></button>`;
 }
+function previewMoments(rows){
+  const threshold=Date.now()-60*60*1000;
+  return rows.flatMap(event=>{
+    if(event.status==='cancelled')return[];
+    if(['series','recurring'].includes(event.event_format)&&Array.isArray(event.occurrences)){
+      return event.occurrences.filter(occurrence=>occurrence.status!=='cancelled'&&new Date(occurrence.ends_at||occurrence.live_room_starts_at||occurrence.starts_at).getTime()>=threshold).map(occurrence=>({...event,_calendar_occurrence:occurrence}));
+    }
+    const stamp=new Date(event.ends_at||event.live_room_starts_at||event.starts_at).getTime();
+    return Number.isFinite(stamp)&&stamp>=threshold?[event]:[];
+  }).sort((a,b)=>new Date(activeOccurrence(a)?.starts_at||a.starts_at).getTime()-new Date(activeOccurrence(b)?.starts_at||b.starts_at).getTime()).slice(0,3);
+}
+function previewDate(event){const value=activeOccurrence(event)?.event_date||event.event_date;return new Intl.DateTimeFormat('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'}).format(monthDate(value));}
+function renderPreview(){
+  if(!previewList)return;
+  const rows=previewMoments(previewEvents);
+  previewList.innerHTML=rows.length?rows.map(event=>{const occurrence=activeOccurrence(event),series=event.event_format==='series',recurring=event.event_format==='recurring',kind=series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience));return `<button type="button" class="calendar-preview-item" data-preview-event-id="${esc(event.event_id)}" ${occurrence?`data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:''}><span>${esc(previewDate(event))} · ${esc(eventTime(event))}</span><strong>${esc(event.title)}</strong><small>${kind}</small></button>`;}).join(''):'<p class="calendar-preview-empty">The next gathering has not been placed yet.</p>';
+  previewList.querySelectorAll('[data-preview-event-id]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.previewEventId,button.dataset.previewOccurrenceId||'')));
+}
 function render(){
+  renderPreview();
   monthTitle.textContent=monthLabel(cursor);
   const first=monthDate(cursor);const leading=(first.getUTCDay()+6)%7;const total=daysInMonth(cursor);const cells=[];
   for(let i=0;i<leading;i++)cells.push('<div class="calendar-day is-empty" aria-hidden="true"></div>');
@@ -64,24 +86,25 @@ function actionMarkup(event){
   }
   if(!event.can_join)return `<div class="event-access-note"><strong>Membership required</strong><span>This gathering is visible on the public Flowtel calendar, but your current access does not include admission.</span></div>`;
   if(event.event_format==='series'){
-    if(registered)return `<div class="event-dialog-actions"><span class="save-seat is-saved">✓ VORTEX JOINED</span><button type="button" class="join-zoom" data-join-event>OPEN SESSION</button></div><p class="event-dialog-passcode" data-event-passcode></p>`;
+    if(registered)return `<div class="event-dialog-actions"><span class="save-seat is-saved">✓ VORTEX JOINED</span><button type="button" class="join-zoom" data-join-event>OPEN SESSION</button><button type="button" class="release-seat" data-release-seat>UNCLAIM MY SEAT</button></div><p class="event-dialog-passcode" data-event-passcode></p>`;
     return `<div class="event-dialog-actions"><button type="button" class="save-seat" data-save-seat>CLAIM THE ${Number(event.series_count||0)===4&&Number(event.series_interval_days||7)===7?'4-WEEK VORTEX':`${esc(event.series_count||'')} SESSION SERIES`}</button></div>`;
   }
-  return `<div class="event-dialog-actions"><button type="button" class="save-seat ${registered?'is-saved':''}" data-save-seat>${registered?'✓ SEAT CLAIMED':'CLAIM MY SEAT'}</button>${registered?'<button type="button" class="join-zoom" data-join-event>ENTER GATHERING</button>':''}</div><p class="event-dialog-passcode" data-event-passcode></p>`;
+  return `<div class="event-dialog-actions">${registered?'<span class="save-seat is-saved">✓ SEAT CLAIMED</span>':'<button type="button" class="save-seat" data-save-seat>CLAIM MY SEAT</button>'}${registered?'<button type="button" class="join-zoom" data-join-event>ENTER GATHERING</button><button type="button" class="release-seat" data-release-seat>UNCLAIM MY SEAT</button>':''}</div><p class="event-dialog-passcode" data-event-passcode></p>`;
 }
 function renderDialog(event){
   const image=event.image_url?`<img class="event-dialog-image" src="${esc(event.image_url)}" alt="">`:'<div class="event-dialog-image event-dialog-placeholder">✦</div>';
   dialogContent.innerHTML=`${image}<section class="event-dialog-copy"><p class="eyebrow">${esc(eventTypeLabel(event.event_type))} · ${event.event_format==='series'?`SESSION ${esc(activeOccurrence(event)?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:event.event_format==='recurring'?'RECURRING GATHERING':esc(audienceLabel(event.audience))}</p><h2>${esc(event.title)}</h2><p class="event-dialog-when"><strong>${esc(detailDate(event))}</strong><span>${esc(eventTime(event))} · ${esc(eventTimezone(event))}</span>${hostLine(event)}</p>${event.description?`<p class="event-dialog-description">${esc(event.description)}</p>`:''}${actionMarkup(event)}</section>`;
-  dialogContent.querySelector('[data-save-seat]')?.addEventListener('click',()=>toggleRegistration(event));
+  dialogContent.querySelector('[data-save-seat]')?.addEventListener('click',()=>toggleRegistration(event,true));
+  dialogContent.querySelector('[data-release-seat]')?.addEventListener('click',()=>toggleRegistration(event,false));
   dialogContent.querySelector('[data-join-event]')?.addEventListener('click',button=>joinEvent(event,button));
 }
 function openEvent(id,occurrenceId=''){const base=events.find(item=>item.event_id===id);if(!base)return;const occurrence=['series','recurring'].includes(base.event_format)&&Array.isArray(base.occurrences)?base.occurrences.find(item=>String(item.occurrence_id)===String(occurrenceId)):null;const event=occurrence?{...base,_calendar_occurrence:occurrence}:base;currentEventId=id;renderDialog(event);if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}
-async function toggleRegistration(event){
-  const occurrence=activeOccurrence(event),target=!occurrenceRegistered(event);const button=dialogContent.querySelector('[data-save-seat]');if(button)button.disabled=true;
+async function toggleRegistration(event,target=true){
+  const occurrence=activeOccurrence(event),button=dialogContent.querySelector(target?'[data-save-seat]':'[data-release-seat]');if(button)button.disabled=true;
   try{
-    if(!target)throw new Error('Acuity-linked cancellations are handled through the event/Front Desk so reminders and seats stay synchronized.');
-    await setQueendomEventRegistration(event.event_id,true,event.event_format==='recurring'?occurrence?.occurrence_id:null);
-    events=memberMode?await listQueendomEvents({monthStart:cursor,monthCount:1}):events;render();const base=events.find(item=>item.event_id===event.event_id);if(base)openEvent(base.event_id,occurrence?.occurrence_id||'');message.textContent='Your seat is confirmed in Flowtel and Acuity will send the configured reminders.';
+    if(!target){const prompt=event.event_format==='series'?'Leave this entire vortex? Flowtel will cancel your linked Acuity sessions and release your registration.':'Release this seat? Flowtel will cancel the linked Acuity appointment and release this gathering.';if(!window.confirm(prompt)){if(button)button.disabled=false;return;}}
+    await setQueendomEventRegistration(event.event_id,target,event.event_format==='recurring'?occurrence?.occurrence_id:null);
+    const feed=memberMode?listQueendomEvents:listPublicQueendomEvents;events=await feed({monthStart:cursor,monthCount:1});previewEvents=await feed({monthStart:monthStart(new Date()),monthCount:6});render();const base=events.find(item=>item.event_id===event.event_id);if(target&&base)openEvent(base.event_id,occurrence?.occurrence_id||'');else dialog.close();message.textContent=target?'Your seat is confirmed in Flowtel and Acuity will send the configured reminders.':'Your seat has been released in Flowtel and Acuity.';
   }catch(error){message.textContent=error?.message||'Your seat could not be updated.';if(button)button.disabled=false;}
 }
 async function joinEvent(event,button){
@@ -99,24 +122,26 @@ async function joinEvent(event,button){
 async function load(){
   message.textContent='Opening the calendar…';
   try{
+    const previewStart=monthStart(new Date());
     if(memberMode&&!embed){
-      try{events=await listQueendomEvents({monthStart:cursor,monthCount:1});}
+      try{[events,previewEvents]=await Promise.all([listQueendomEvents({monthStart:cursor,monthCount:1}),listQueendomEvents({monthStart:previewStart,monthCount:6})]);}
       catch(error){
         // A signed-in limited identity (Complimentary Stay, public Event Pass, etc.)
         // should still be able to browse the public calendar. Membership remains
         // authoritative when CLAIM MY SEAT is evaluated.
         memberMode=false;
         events=await listPublicQueendomEvents({monthStart:cursor,monthCount:1});
+        previewEvents=await listPublicQueendomEvents({monthStart:previewStart,monthCount:6});
       }
-    }else events=await listPublicQueendomEvents({monthStart:cursor,monthCount:1});
+    }else [events,previewEvents]=await Promise.all([listPublicQueendomEvents({monthStart:cursor,monthCount:1}),listPublicQueendomEvents({monthStart:previewStart,monthCount:6})]);
     message.textContent=events.length?'':'No events have been placed in this month yet.';render();
     if(currentEventId&&dialog.open){const current=events.find(item=>item.event_id===currentEventId);if(current)renderDialog(current);else dialog.close();}
-  }catch(error){events=[];render();message.textContent=error?.message||'The calendar could not open just now.';}
+  }catch(error){events=[];previewEvents=[];render();message.textContent=error?.message||'The calendar could not open just now.';}
 }
 previous.addEventListener('click',()=>{cursor=shiftMonth(cursor,-1);load();});next.addEventListener('click',()=>{cursor=shiftMonth(cursor,1);load();});
 dialog.querySelector('[data-close-event]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
 async function init(){
-  if(embed){document.body.classList.add('is-embed');nav.hidden=true;hero.hidden=true;}
+  if(embed){document.body.classList.add('is-embed');nav.hidden=true;hero.hidden=true;if(preview)preview.hidden=true;}
   if(!embed){try{profile=await getCurrentProfile();memberMode=Boolean(profile);}catch{memberMode=false;}}
   await load();
 }

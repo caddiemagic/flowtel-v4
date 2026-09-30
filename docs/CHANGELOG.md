@@ -1,3 +1,17 @@
+## v0.10.90.3 — Event Experience Polish
+
+- Makes a protected Recurring Event room occurrence-specific: opening a claimed Monday no longer renders every future recurring gathering inside the modal.
+- Prefers the member's next registered recurring occurrence when an occurrence id is not explicitly supplied.
+- Adds **UNCLAIM MY SEAT** directly inside the registered Event Room and preserves the exact recurring occurrence id.
+- Simplifies registered event copy to **✓ SEAT CLAIMED · OPEN EVENT**.
+- Adds a compact next-three-gatherings preview above The Queendom Calendar month grid.
+- Changes the Flowtel Lounge to default directly to **MY UPCOMING EVENTS** rather than requiring a discovery/My Events toggle.
+- Replaces the Lounge toggle footer with one **VIEW ALL UPCOMING EVENTS** doorway to The Queendom Calendar.
+- Adds Acuity-first **UNCLAIM MY SEAT** to the month-calendar event dialog for consistency.
+- Keeps Series / Vortex rooms multi-session by design.
+- No migration or Vercel function change. Migration 077 remains latest; 078 remains next; Vercel remains **12/12**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.90.2 — Event Lifecycle Hotfix
 
 - Removes cancelled events from public/member calendar feeds and My Upcoming Events while retaining them in Owner Event Administration until explicitly deleted.

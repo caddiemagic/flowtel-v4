@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="The Queendom Calendar — ceremonies, workshops, and Flow FM gatherings." />
   <title>The Queendom Calendar | Flowtel</title>
-  <link rel="stylesheet" href="/queendom-calendar/styles.css?v=0.10.90" />
+  <link rel="stylesheet" href="/queendom-calendar/styles.css?v=0.10.90.3" />
 </head>
 <body>
   <main class="queendom-calendar-shell" id="calendarShell">
@@ -18,6 +18,14 @@
       <h1>Upcoming Events</h1>
       <p>Ceremonies, workshops, community calls, and the gatherings happening inside Flow FM — all in one place.</p>
     </header>
+
+    <section class="calendar-preview" id="calendarPreview" aria-labelledby="calendarPreviewTitle">
+      <header class="calendar-preview-heading">
+        <p class="eyebrow">COMING UP NEXT</p>
+        <h2 id="calendarPreviewTitle">The next three gatherings.</h2>
+      </header>
+      <div class="calendar-preview-list" id="calendarPreviewList"></div>
+    </section>
 
     <section class="calendar-card">
       <div class="calendar-toolbar">
@@ -39,6 +47,6 @@
     <div id="eventDialogContent"></div>
   </dialog>
 
-  <script type="module" src="/queendom-calendar/app.js?v=0.10.90"></script>
+  <script type="module" src="/queendom-calendar/app.js?v=0.10.90.3"></script>
 </body>
 </html>

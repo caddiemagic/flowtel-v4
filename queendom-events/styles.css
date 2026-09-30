@@ -88,3 +88,5 @@
 
 /* Flowtel v0.10.90.2 — reversible event seats */
 .agenda-seat-actions{display:grid;gap:7px}.agenda-unclaim{border:0;background:transparent;color:#8d5d58;font:700 9px/1.2 Montserrat,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}.agenda-unclaim:disabled{opacity:.5;cursor:default}
+/* Flowtel v0.10.90.3 — registered occurrence room */
+.agenda-room-unclaim{width:100%;min-height:42px;border:0;background:transparent;color:#8d5d58;font:700 .66rem/1.2 Montserrat,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px;cursor:pointer}.agenda-room-unclaim:hover{color:#6f4541}.agenda-room-unclaim:disabled{opacity:.5;cursor:default}
