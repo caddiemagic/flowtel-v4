@@ -4,9 +4,13 @@ Updated: September 30, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.91.1 Event Claim Conversion Flow
+## Current — v0.10.91.2 Mobile Event Experience Polish
 
-v0.10.91.1 turns the compact next-three-gatherings preview into a conversion surface. Eligible signed-in members can claim the exact preview occurrence immediately; signed-out visitors choose between entering Flowtel and joining the Queendom; signed-in nonmembers route to the canonical Queendom signup. Exact recurring-occurrence context now survives the v0.10.91 login/automatic-provisioning invitation flow so a selected Monday remains the selected Monday after authentication. No migration is required; migration **078** remains latest and **079** remains next. Vercel remains 12/12.
+v0.10.91.2 is the launch-critical mobile event repair rather than a full mobile redesign. Calendar preview/month tiles now have native event links and can open preview events outside the displayed month; mobile event sheets are compact and vertically stacked; claimed-seat styling is consistent; ENTER GATHERING hands off to the full protected Event Room; protected Zoom entry is resilient to mobile popup blocking; event artwork preserves the full uploaded graphic across member-facing event surfaces; and Lounge/My Upcoming Events uses equal-width, stacked mobile actions. No migration is required; migration **078** remains latest and **079** remains next. Vercel remains 12/12.
+
+### Previous — v0.10.91.1 Event Claim Conversion Flow
+
+v0.10.91.1 turns the compact next-three-gatherings preview into a conversion surface. Eligible signed-in members can claim the exact preview occurrence immediately; signed-out visitors choose between entering Flowtel and joining the Queendom; signed-in nonmembers route to the canonical Queendom signup. Exact recurring-occurrence context survives the v0.10.91 login/automatic-provisioning invitation flow so a selected Monday remains the selected Monday after authentication.
 
 ### Previous — v0.10.91 Automatic Queendom Provisioning + Member Reconciliation
 
@@ -30,11 +34,15 @@ v0.10.90 consolidates the unshipped v0.10.89.1 login repair with the next event-
 
 The release adds the universal **ENTER THE FLOWTEL** reminder doorway, current Flowtel-Day check-in before Zoom entry, attendance snapshots, claimed-seat tracking, the four-chamber Event Flow Map, and automatic New / Half Full / Full / Half New Moon calendar markers. Migration **076** is the release database boundary. Vercel remains **12/12** serverless functions. Caddie Magic remains **v0.6.0** and Player-first.
 
-### Priority 0 — v0.10.91 live verification
+### Priority 0 — v0.10.91.2 launch verification
 
-Verify one brand-new paid Queendom email through **Activate My Flowtel** → Supabase invitation → private room key → full membership access, and verify one existing Flowtel identity is upgraded/relinked without duplication. Run the Owner Membership Reconciliation report and provision one known legacy member. Also keep the v0.10.90.3 recurring-event/Acuity live regression open. Source validation does not replace production verification.
+Verify the mobile calendar, Event Room, protected Zoom doorway, Lounge/My Upcoming Events stacking, equal action sizing, and non-cropping event artwork on real phones. Keep v0.10.91 automatic provisioning/reconciliation and the recurring-event/Acuity regression in the same launch checklist. Source validation does not replace production verification.
 
-### Next Priority — v0.10.92 Cycle Restart Correction
+### Deferred post-launch — Full Mobile Experience Redesign
+
+Reorganize Flowtel mobile as an intentional information architecture rather than continuing to compress desktop surfaces. Revisit the mobile hierarchy across **Suite → Lounge → Calendar → Event Room**, establish a consistent card/sheet/navigation system, reduce above-the-fold density, and decide which hospitality actions deserve primary placement on small screens. Preserve the current launch-safe mobile behaviors while redesigning the system as a whole.
+
+### Next planned functional release — v0.10.92 Cycle Restart Correction
 
 Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **079** is next if the cycle-correction release needs database work.
 

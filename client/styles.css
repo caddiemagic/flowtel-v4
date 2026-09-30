@@ -4268,3 +4268,20 @@ body.personal-room-key-is-open{
 .lounge-event-actions .lounge-unclaim-button{border:0!important;background:transparent!important;color:#8d5d58!important;text-decoration:underline!important;text-underline-offset:3px;min-height:auto!important;padding:4px!important;font-size:.61rem!important}.lounge-event-actions .lounge-unclaim-button:disabled{opacity:.5;cursor:default}
 /* v0.10.91 — member activation is email-only; trial signup still collects a private password. */
 .new-account-password-fields{display:grid;gap:10px}.new-account-password-fields.hidden{display:none!important}
+
+/* Flowtel v0.10.91.2 — mobile My Upcoming Events + consistent event actions */
+.lounge-event-actions>.lounge-join-button,.lounge-event-actions>.lounge-add-calendar,.lounge-add-calendar>.lounge-calendar-button{width:100%;min-height:40px}
+.lounge-event-actions>.lounge-join-button,.lounge-add-calendar>.lounge-calendar-button{box-sizing:border-box}
+.lounge-my-calendar-card .lounge-event-art{background:#fff8f3}
+.lounge-my-calendar-card .lounge-event-art img{object-fit:contain;background:#fff8f3}
+@media(max-width:760px){
+  .lounge-events-card{padding:16px 12px;border-radius:20px}.lounge-events-heading{margin-bottom:14px}.lounge-events-heading h3{font-size:1.45rem}.lounge-events-heading>p:last-child{font-size:.95rem}
+  .lounge-my-calendar-card .lounge-event-row,.lounge-my-calendar-card .lounge-event-row.is-compact{grid-template-columns:1fr;gap:0;min-height:0;padding-top:10px}
+  .lounge-my-calendar-card .lounge-event-art,.lounge-my-calendar-card .lounge-event-row.is-compact .lounge-event-art{grid-column:1;width:min(180px,calc(100% - 24px));min-height:0;aspect-ratio:16/10;justify-self:center;margin:0;border-radius:13px}
+  .lounge-my-calendar-card .lounge-event-placeholder,.lounge-my-calendar-card .lounge-event-row.is-compact .lounge-event-placeholder{min-height:100px}
+  .lounge-my-calendar-card .lounge-event-copy{grid-column:1;padding:10px 14px 9px;text-align:center}.lounge-my-calendar-card .lounge-event-copy .eyebrow{font-size:.62rem}.lounge-my-calendar-card .lounge-event-copy h4{font-size:1.22rem}.lounge-my-calendar-card .lounge-event-copy>p:not(.eyebrow){font-size:.9rem;line-height:1.35}.lounge-my-calendar-card .lounge-time-stack{justify-items:center}.lounge-my-calendar-card .lounge-event-hosts{justify-items:center}
+  .lounge-my-calendar-card .lounge-event-actions{grid-column:1;grid-template-columns:1fr;width:100%;gap:7px;padding:0 12px 12px;min-width:0}.lounge-my-calendar-card .lounge-event-actions button,.lounge-my-calendar-card .lounge-event-actions a,.lounge-my-calendar-card .lounge-add-calendar,.lounge-my-calendar-card .lounge-calendar-button{width:100%;min-height:42px}
+  .lounge-my-calendar-card .lounge-add-calendar{grid-column:auto}.lounge-my-calendar-card .lounge-calendar-options{grid-template-columns:1fr;width:100%}.lounge-my-calendar-card .lounge-calendar-options a,.lounge-my-calendar-card .lounge-calendar-options button{width:100%;min-height:38px!important}
+  .lounge-my-calendar-card .lounge-event-actions .lounge-unclaim-button{width:100%;min-height:32px!important}
+  .lounge-live-event-alert{padding:13px}.lounge-live-event-alert button{width:100%}
+}

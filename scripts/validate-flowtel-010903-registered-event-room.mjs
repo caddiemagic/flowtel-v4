@@ -14,8 +14,8 @@ const clientHtml=read('client/index.html');
 const failures=[];
 const expect=(ok,msg)=>{if(!ok)failures.push(msg);};
 
-expect(agendaHtml.includes('/queendom-events/app.js?v=0.10.90.3'),'Queendom Events app cache key must be v0.10.90.3.');
-expect(agendaHtml.includes('/queendom-events/styles.css?v=0.10.90.3'),'Queendom Events CSS cache key must be v0.10.90.3.');
+expect(/\/queendom-events\/app\.js\?v=0\.10\.(?:90\.3|91(?:\.\d+)?)/.test(agendaHtml),'Queendom Events app cache key must remain on the current event-experience bundle.');
+expect(/\/queendom-events\/styles\.css\?v=0\.10\.(?:90\.3|91(?:\.\d+)?)/.test(agendaHtml),'Queendom Events CSS cache key must remain on the current event-experience bundle.');
 expect(agenda.includes("if(detail?.event_format==='recurring'){const registered=rows.filter(item=>item.is_registered);"),'Recurring room selection must prefer the member\'s registered occurrence.');
 expect(agenda.includes("const registeredContext=detail.event_format==='series'?occurrenceItinerary(detail,current):'';"),'Recurring registered rooms must not render the full recurring itinerary.');
 expect(agenda.includes('data-room-unclaim'),'Registered Event Room must expose an in-room unclaim action.');

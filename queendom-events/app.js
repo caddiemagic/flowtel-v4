@@ -172,17 +172,21 @@ async function refreshEventFlowMap(detail,occurrence){
 }
 async function launchGathering(detail,occurrence,button){
   button.disabled=true;button.textContent='OPENING…';
+  // Open synchronously so iOS/mobile browsers do not block the Zoom doorway
+  // after the protected Flowtel/Acuity checks complete.
+  let zoomWindow=null;try{zoomWindow=window.open('about:blank','_blank');}catch(_){zoomWindow=null;}
   try{
     let entry=await enterQueendomEvent(detail.event_id,occurrence?.occurrence_id||null,null);
-    if(entry?.requires_checkin){window.location.href=entry.checkin_url;return;}
+    if(entry?.requires_checkin){try{zoomWindow?.close();}catch(_){}window.location.href=entry.checkin_url;return;}
     if(entry?.requires_event_cycle_day){
-      const raw=window.prompt('What cycle day are you on today? Enter a number so the host can see your Inner Season on the Event Flow Map.');if(!raw)return;
+      const raw=window.prompt('What cycle day are you on today? Enter a number so the host can see your Inner Season on the Event Flow Map.');if(!raw){try{zoomWindow?.close();}catch(_){}return;}
       entry=await enterQueendomEvent(detail.event_id,occurrence?.occurrence_id||null,Number(raw));
     }
     if(!entry?.ready||!entry?.meeting_url)throw new Error('Your Zoom doorway is still syncing from Acuity. Refresh in a moment.');
-    window.open(entry.meeting_url,'_blank','noopener,noreferrer');
+    if(zoomWindow&&!zoomWindow.closed){zoomWindow.location.replace(entry.meeting_url);}
+    else window.location.href=entry.meeting_url;
     if(detail.can_view_flow_map)await refreshEventFlowMap(detail,occurrence);
-  }catch(error){eventRoomStatus.textContent=error?.message||'The gathering could not open.';}
+  }catch(error){try{zoomWindow?.close();}catch(_){}eventRoomStatus.textContent=error?.message||'The gathering could not open.';}
   finally{button.disabled=false;button.textContent=detail.event_format==='series'?`JOIN ZOOM · SESSION ${occurrence?.occurrence_number||''}`:'JOIN ZOOM';}
 }
 async function openEventRoom(eventId,requestedOccurrenceId=''){

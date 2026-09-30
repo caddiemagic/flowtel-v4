@@ -90,3 +90,23 @@
 .agenda-seat-actions{display:grid;gap:7px}.agenda-unclaim{border:0;background:transparent;color:#8d5d58;font:700 9px/1.2 Montserrat,sans-serif;letter-spacing:.08em;text-transform:uppercase;text-decoration:underline;text-underline-offset:3px;cursor:pointer;padding:4px}.agenda-unclaim:disabled{opacity:.5;cursor:default}
 /* Flowtel v0.10.90.3 — registered occurrence room */
 .agenda-room-unclaim{width:100%;min-height:42px;border:0;background:transparent;color:#8d5d58;font:700 .66rem/1.2 Montserrat,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px;cursor:pointer}.agenda-room-unclaim:hover{color:#6f4541}.agenda-room-unclaim:disabled{opacity:.5;cursor:default}
+
+/* Flowtel v0.10.91.2 — mobile event cards + claimed-state polish */
+.agenda-seat.is-saved{background:linear-gradient(135deg,var(--rose),#fffaf7);border-color:rgba(184,130,38,.55);box-shadow:0 7px 18px rgba(159,103,91,.07)}
+.agenda-art,.agenda-art img{background:#fff8f3}
+.agenda-art img{object-fit:contain}
+@media(max-width:600px){
+  .agenda-shell{width:min(100% - 12px,980px);padding-top:14px}
+  .agenda-flowtel-nav{gap:7px}.agenda-flowtel-nav a{width:100%;min-height:40px;padding:9px 12px}
+  .agenda-hero{margin-bottom:18px}.agenda-hero h1{font-size:2.45rem}.agenda-hero>p:last-child{font-size:1rem}
+  .agenda-tools{margin-bottom:16px}
+  .agenda-event{grid-template-columns:1fr;gap:0;min-height:0;border-radius:18px}
+  .agenda-date{grid-row:auto;grid-column:1;align-self:auto;flex-direction:row;justify-content:flex-start;gap:6px;min-height:0;padding:10px 13px;border-right:0;border-bottom:1px solid rgba(216,166,82,.2)}
+  .agenda-date span{font-size:9px}.agenda-date strong{margin:0;font-size:1rem}
+  .agenda-art{grid-column:1;width:auto;height:auto;aspect-ratio:16/10;margin:10px 10px 0;border-radius:13px}
+  .agenda-copy{grid-column:1;padding:10px 13px 8px}.agenda-copy h2{font-size:1.35rem}.agenda-when{font-size:.92rem}.agenda-description{display:-webkit-box;-webkit-line-clamp:2}
+  .agenda-actions{grid-column:1;padding:0 10px 12px;gap:7px}.agenda-actions>.agenda-seat,.agenda-seat-actions,.agenda-ticket-actions{width:100%}.agenda-seat-actions{gap:5px}.agenda-seat{width:100%;min-height:44px}
+  .agenda-modal{place-items:end center;padding:6px}.agenda-modal-card{width:100%;max-height:92vh;max-height:92dvh;padding:24px 15px 18px;border-radius:24px 24px 14px 14px}.agenda-modal-card h2{font-size:2rem;margin-right:42px}
+  .agenda-event-room-times{gap:7px;margin:13px 0}.agenda-event-room-times>div{padding:11px;border-radius:13px}.agenda-event-room-section{margin-top:14px;padding:14px;border-radius:16px}.agenda-event-room-section>p:last-of-type{font-size:1rem}.event-cycle-disclosure{margin:14px 0;padding:10px 12px}
+  .agenda-event-room-actions{margin-top:14px}.agenda-primary-action,.agenda-secondary-action{min-height:44px;padding:11px 13px}
+}

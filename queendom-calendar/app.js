@@ -1,6 +1,6 @@
 import { getCurrentProfile } from '/shared/profiles.js?v=0.10.90';
 import { timezoneDisplayName } from '/shared/timezone-labels.js?v=0.10.90';
-import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration, getQueendomEventJoinDetails, enterQueendomEvent } from '/shared/queendom-events.js?v=0.10.90.2';
+import { listQueendomEvents, listPublicQueendomEvents, setQueendomEventRegistration } from '/shared/queendom-events.js?v=0.10.90.2';
 import { getMoonPhaseMarker } from '/shared/moon.js?v=0.10.90';
 
 const shell=document.getElementById('calendarShell');
@@ -18,7 +18,8 @@ const dialogContent=document.getElementById('eventDialogContent');
 const claimDoorway=document.getElementById('calendarClaimDoorway');
 const enterFlowtelLink=document.getElementById('calendarEnterFlowtel');
 const QUEENDOM_JOIN_URL='https://www.theidyllcollective.com/queendomhome';
-const embed=new URLSearchParams(location.search).get('embed')==='1';
+const params=new URLSearchParams(location.search);
+const embed=params.get('embed')==='1';
 let memberMode=false;
 let profile=null;
 let events=[];
@@ -40,9 +41,15 @@ function eventTime(event){const occurrence=activeOccurrence(event);const start=o
 function eventTimezone(event){const dateValue=activeOccurrence(event)?.event_date||event?.event_date;const date=/^\d{4}-\d{2}-\d{2}$/.test(String(dateValue||''))?new Date(`${dateValue}T12:00:00Z`):new Date();return timezoneDisplayName(event?.event_timezone||'America/Los_Angeles',date)||'Pacific Time';}
 function hostLine(event){if(!event?.host_name)return'';const name=esc(event.host_name);if(memberMode&&!embed&&event.host_member_id)return `<span>Hosted by <a href="/flow-fm/team-map/profile/?member=${encodeURIComponent(event.host_member_id)}">${name}</a></span>`;return `<span>Hosted by ${name}</span>`;}
 function eventsForDate(date){return events.flatMap(event=>{if(['series','recurring'].includes(event.event_format)&&Array.isArray(event.occurrences)){return event.occurrences.filter(occurrence=>occurrence.event_date===date&&occurrence.status!=='cancelled').map(occurrence=>({...event,_calendar_occurrence:occurrence}));}return event.event_date===date?[event]:[];});}
+function calendarDetailUrl(event){
+  const url=new URL('/queendom-calendar/',window.location.origin);url.searchParams.set('openEvent',event.event_id);const occurrence=activeOccurrence(event);if(occurrence?.occurrence_id)url.searchParams.set('occurrence',occurrence.occurrence_id);return url.toString();
+}
+function eventRoomUrl(event){
+  const url=new URL('/queendom-events/',window.location.origin);url.searchParams.set('openEvent',event.event_id);const occurrence=activeOccurrence(event);if(occurrence?.occurrence_id)url.searchParams.set('occurrence',occurrence.occurrence_id);return url.toString();
+}
 function eventTile(event){
   const image=event.image_url?`<img src="${esc(event.image_url)}" alt="">`:'<div class="event-tile-placeholder">✦</div>';const occurrence=activeOccurrence(event);const series=event.event_format==='series',recurring=event.event_format==='recurring';
-  return `<button class="calendar-event-tile ${event.audience==='flowfm'?'is-flowfm':'is-queendom'} ${event.status==='cancelled'?'is-cancelled':''}" type="button" data-event-id="${esc(event.event_id)}" ${occurrence?`data-occurrence-id="${esc(occurrence.occurrence_id)}"`:''}><span class="calendar-event-image">${image}</span><span class="calendar-event-copy"><small>${series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience))}</small><strong>${esc(event.title)}</strong><em>${esc(eventTime(event))}</em></span></button>`;
+  return `<a class="calendar-event-tile ${event.audience==='flowfm'?'is-flowfm':'is-queendom'} ${event.status==='cancelled'?'is-cancelled':''}" href="${esc(calendarDetailUrl(event))}" data-event-id="${esc(event.event_id)}" ${occurrence?`data-occurrence-id="${esc(occurrence.occurrence_id)}"`:''}><span class="calendar-event-image">${image}</span><span class="calendar-event-copy"><small>${series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience))}</small><strong>${esc(event.title)}</strong><em>${esc(eventTime(event))}</em></span></a>`;
 }
 function previewMoments(rows){
   const threshold=Date.now()-60*60*1000;
@@ -66,7 +73,7 @@ function previewFlowtelUrl(event){
 }
 function previewActionMarkup(event){
   const occurrence=activeOccurrence(event),registered=occurrenceRegistered(event),occurrenceAttr=occurrence?.occurrence_id?` data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:'';
-  if(memberMode&&registered)return `<button type="button" class="calendar-preview-claim is-claimed" data-preview-open-registered="${esc(event.event_id)}"${occurrenceAttr}>✓ SEAT CLAIMED · OPEN EVENT</button>`;
+  if(memberMode&&registered)return `<a class="calendar-preview-claim is-claimed" href="${esc(eventRoomUrl(event))}">✓ SEAT CLAIMED · OPEN EVENT</a>`;
   if(memberMode)return `<button type="button" class="calendar-preview-claim" data-preview-claim-event="${esc(event.event_id)}"${occurrenceAttr}>CLAIM MY SEAT</button>`;
   if(profile)return `<a class="calendar-preview-claim" href="${QUEENDOM_JOIN_URL}" target="_top">CLAIM MY SEAT</a>`;
   return `<button type="button" class="calendar-preview-claim" data-preview-claim-doorway="${esc(event.event_id)}"${occurrenceAttr}>CLAIM MY SEAT</button>`;
@@ -103,11 +110,10 @@ function renderPreview(){
   previewList.innerHTML=rows.length?rows.map(event=>{
     const occurrence=activeOccurrence(event),series=event.event_format==='series',recurring=event.event_format==='recurring',kind=series?`SESSION ${esc(occurrence?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:recurring?'WEEKLY GATHERING':esc(audienceLabel(event.audience));
     const occurrenceAttr=occurrence?.occurrence_id?` data-preview-occurrence-id="${esc(occurrence.occurrence_id)}"`:'';
-    return `<article class="calendar-preview-item"><button type="button" class="calendar-preview-open" data-preview-event-id="${esc(event.event_id)}"${occurrenceAttr}><span>${esc(previewDate(event))} · ${esc(eventTime(event))}</span><strong>${esc(event.title)}</strong><small>${kind}</small></button><div class="calendar-preview-action">${previewActionMarkup(event)}</div></article>`;
+    return `<article class="calendar-preview-item"><a class="calendar-preview-open" href="${esc(calendarDetailUrl(event))}" data-preview-event-id="${esc(event.event_id)}"${occurrenceAttr}><span>${esc(previewDate(event))} · ${esc(eventTime(event))}</span><strong>${esc(event.title)}</strong><small>${kind}</small></a><div class="calendar-preview-action">${previewActionMarkup(event)}</div></article>`;
   }).join(''):'<p class="calendar-preview-empty">The next gathering has not been placed yet.</p>';
-  previewList.querySelectorAll('[data-preview-event-id]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.previewEventId,button.dataset.previewOccurrenceId||'')));
+  previewList.querySelectorAll('[data-preview-event-id]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();openEvent(link.dataset.previewEventId,link.dataset.previewOccurrenceId||'');}));
   previewList.querySelectorAll('[data-preview-claim-event]').forEach(button=>button.addEventListener('click',()=>claimPreviewSeat(button.dataset.previewClaimEvent,button.dataset.previewOccurrenceId||'',button)));
-  previewList.querySelectorAll('[data-preview-open-registered]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.previewOpenRegistered,button.dataset.previewOccurrenceId||'')));
   previewList.querySelectorAll('[data-preview-claim-doorway]').forEach(button=>button.addEventListener('click',()=>openClaimDoorway(button.dataset.previewClaimDoorway,button.dataset.previewOccurrenceId||'')));
 }
 function render(){
@@ -121,7 +127,7 @@ function render(){
   }
   const trailing=(7-(cells.length%7))%7;for(let i=0;i<trailing;i++)cells.push('<div class="calendar-day is-empty" aria-hidden="true"></div>');
   grid.innerHTML=cells.join('');
-  grid.querySelectorAll('[data-event-id]').forEach(button=>button.addEventListener('click',()=>openEvent(button.dataset.eventId,button.dataset.occurrenceId||'')));
+  grid.querySelectorAll('[data-event-id]').forEach(link=>link.addEventListener('click',event=>{event.preventDefault();openEvent(link.dataset.eventId,link.dataset.occurrenceId||'');}));
 }
 function detailDate(event){const d=monthDate(activeOccurrence(event)?.event_date||event.event_date);return new Intl.DateTimeFormat('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric',timeZone:'UTC'}).format(d);}
 function occurrenceRegistered(event){const o=activeOccurrence(event);return event.event_format==='recurring'?Boolean(o?.is_registered):Boolean(event.is_registered);}
@@ -147,28 +153,16 @@ function renderDialog(event){
   dialogContent.innerHTML=`${image}<section class="event-dialog-copy"><p class="eyebrow">${esc(eventTypeLabel(event.event_type))} · ${event.event_format==='series'?`SESSION ${esc(activeOccurrence(event)?.occurrence_number||'')} OF ${esc(event.series_count||'')}`:event.event_format==='recurring'?'RECURRING GATHERING':esc(audienceLabel(event.audience))}</p><h2>${esc(event.title)}</h2><p class="event-dialog-when"><strong>${esc(detailDate(event))}</strong><span>${esc(eventTime(event))} · ${esc(eventTimezone(event))}</span>${hostLine(event)}</p>${event.description?`<p class="event-dialog-description">${esc(event.description)}</p>`:''}${actionMarkup(event)}</section>`;
   dialogContent.querySelector('[data-save-seat]')?.addEventListener('click',()=>toggleRegistration(event,true));
   dialogContent.querySelector('[data-release-seat]')?.addEventListener('click',()=>toggleRegistration(event,false));
-  dialogContent.querySelector('[data-join-event]')?.addEventListener('click',button=>joinEvent(event,button));
+  dialogContent.querySelector('[data-join-event]')?.addEventListener('click',()=>{window.location.href=eventRoomUrl(event);});
 }
-function openEvent(id,occurrenceId=''){const base=events.find(item=>item.event_id===id);if(!base)return;const occurrence=['series','recurring'].includes(base.event_format)&&Array.isArray(base.occurrences)?base.occurrences.find(item=>String(item.occurrence_id)===String(occurrenceId)):null;const event=occurrence?{...base,_calendar_occurrence:occurrence}:base;currentEventId=id;renderDialog(event);if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}
+function openEvent(id,occurrenceId=''){const base=events.find(item=>String(item.event_id)===String(id))||previewEvents.find(item=>String(item.event_id)===String(id));if(!base)return;const occurrence=['series','recurring'].includes(base.event_format)&&Array.isArray(base.occurrences)?base.occurrences.find(item=>String(item.occurrence_id)===String(occurrenceId)):null;const event=occurrence?{...base,_calendar_occurrence:occurrence}:base;currentEventId=id;renderDialog(event);if(dialog.open)return;try{if(typeof dialog.showModal==='function')dialog.showModal();else dialog.setAttribute('open','');}catch{dialog.setAttribute('open','');}}
 async function toggleRegistration(event,target=true){
   const occurrence=activeOccurrence(event),button=dialogContent.querySelector(target?'[data-save-seat]':'[data-release-seat]');if(button)button.disabled=true;
   try{
     if(!target){const prompt=event.event_format==='series'?'Leave this entire vortex? Flowtel will cancel your linked Acuity sessions and release your registration.':'Release this seat? Flowtel will cancel the linked Acuity appointment and release this gathering.';if(!window.confirm(prompt)){if(button)button.disabled=false;return;}}
     await setQueendomEventRegistration(event.event_id,target,event.event_format==='recurring'?occurrence?.occurrence_id:null);
-    const feed=memberMode?listQueendomEvents:listPublicQueendomEvents;events=await feed({monthStart:cursor,monthCount:1});previewEvents=await feed({monthStart:monthStart(new Date()),monthCount:6});render();const base=events.find(item=>item.event_id===event.event_id);if(target&&base)openEvent(base.event_id,occurrence?.occurrence_id||'');else dialog.close();message.textContent=target?'Your seat is confirmed in Flowtel and Acuity will send the configured reminders.':'Your seat has been released in Flowtel and Acuity.';
+    const feed=memberMode?listQueendomEvents:listPublicQueendomEvents;events=await feed({monthStart:cursor,monthCount:1});previewEvents=await feed({monthStart:monthStart(new Date()),monthCount:6});render();const base=events.find(item=>item.event_id===event.event_id)||previewEvents.find(item=>item.event_id===event.event_id);if(target&&base)openEvent(base.event_id,occurrence?.occurrence_id||'');else dialog.close();message.textContent=target?'Your seat is confirmed in Flowtel and Acuity will send the configured reminders.':'Your seat has been released in Flowtel and Acuity.';
   }catch(error){message.textContent=error?.message||'Your seat could not be updated.';if(button)button.disabled=false;}
-}
-async function joinEvent(event,button){
-  const occurrence=activeOccurrence(event);button.disabled=true;button.textContent='OPENING…';
-  try{
-    const entry=await enterQueendomEvent(event.event_id,occurrence?.occurrence_id||null,null);
-    if(entry?.requires_checkin){window.location.href=entry.checkin_url;return;}
-    if(entry?.requires_event_cycle_day){throw new Error('Open this event from the full Event Room to share your current cycle day before entering.');}
-    if(!entry?.ready||!entry?.meeting_url)throw new Error('The Zoom doorway is still syncing. Refresh in a moment.');
-    const passcode=dialogContent.querySelector('[data-event-passcode]');if(passcode&&entry.zoom_passcode)passcode.textContent=`Zoom passcode: ${entry.zoom_passcode}`;
-    window.open(entry.meeting_url,'_blank','noopener,noreferrer');
-  }catch(error){message.textContent=error?.message||'The gathering could not open.';}
-  finally{button.disabled=false;button.textContent=event.event_format==='series'?'OPEN SESSION':'ENTER GATHERING';}
 }
 async function load(){
   message.textContent='Opening the calendar…';
@@ -186,11 +180,13 @@ async function load(){
       }
     }else [events,previewEvents]=await Promise.all([listPublicQueendomEvents({monthStart:cursor,monthCount:1}),listPublicQueendomEvents({monthStart:previewStart,monthCount:6})]);
     message.textContent=events.length?'':'No events have been placed in this month yet.';render();
-    if(currentEventId&&dialog.open){const current=events.find(item=>item.event_id===currentEventId);if(current)renderDialog(current);else dialog.close();}
+    const requestedEvent=params.get('openEvent')||'',requestedOccurrence=params.get('occurrence')||'';if(requestedEvent&&!dialog.open)openEvent(requestedEvent,requestedOccurrence);
+    if(currentEventId&&dialog.open){const current=events.find(item=>item.event_id===currentEventId)||previewEvents.find(item=>item.event_id===currentEventId);if(current)renderDialog(current);else dialog.close();}
   }catch(error){events=[];previewEvents=[];render();message.textContent=error?.message||'The calendar could not open just now.';}
 }
 previous.addEventListener('click',()=>{cursor=shiftMonth(cursor,-1);load();});next.addEventListener('click',()=>{cursor=shiftMonth(cursor,1);load();});
-dialog.querySelector('[data-close-event]').addEventListener('click',()=>dialog.close());dialog.addEventListener('click',event=>{if(event.target===dialog)dialog.close();});
+function closeEventDialog(){dialog.close();currentEventId='';if(params.has('openEvent')||params.has('occurrence')){params.delete('openEvent');params.delete('occurrence');const url=new URL(window.location.href);url.searchParams.delete('openEvent');url.searchParams.delete('occurrence');history.replaceState({},'',url);}}
+dialog.querySelector('[data-close-event]').addEventListener('click',closeEventDialog);dialog.addEventListener('click',event=>{if(event.target===dialog)closeEventDialog();});
 claimDoorway?.querySelector('[data-close-claim-doorway]')?.addEventListener('click',()=>claimDoorway.close());
 claimDoorway?.addEventListener('click',event=>{if(event.target===claimDoorway)claimDoorway.close();});
 async function init(){

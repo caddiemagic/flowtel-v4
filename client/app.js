@@ -2707,6 +2707,9 @@ function loungeHostMarkup(event){
 function loungeMoney(value,currency='USD'){const n=Number(value);if(!Number.isFinite(n))return'';try{return new Intl.NumberFormat('en-US',{style:'currency',currency:currency||'USD',maximumFractionDigits:n%1?2:0}).format(n);}catch(_){return `$${n.toFixed(n%1?2:0)}`;}}
 function loungeEventAccess(event){return event?.access||{};}
 function calendarFlowtelUrl(){return `${window.location.origin}/client/?lounge=1#my-upcoming-events`;}
+function loungeRegisteredEventUrl(event){
+  const url=new URL('/queendom-events/',window.location.origin);url.searchParams.set('openEvent',event.event_id);const occurrence=event?.event_format==='recurring'?(loungeNextRegisteredOccurrence(event)||loungeNextOccurrence(event)):null;if(occurrence?.occurrence_id)url.searchParams.set('occurrence',occurrence.occurrence_id);return url.toString();
+}
 function calendarLocalStamp(dateValue,timeValue){
   const date=String(dateValue||'').replace(/-/g,'');
   const match=/^(\d{2}):(\d{2})/.exec(String(timeValue||''));
@@ -2750,7 +2753,7 @@ function loungeCommunityEventMarkup(event,{mode='discover'}={}){
   let actions='';
   if(cancelled)actions='<span class="lounge-event-locked">CANCELLED</span>';
   else if(mode==='discover')actions=event.is_registered?`<span class="lounge-event-locked lounge-seat-saved">${series?'✓ VORTEX JOINED':'✓ SEAT SAVED'}</span>`:loungeTicketActions(event);
-  else actions=event.is_registered?`<button type="button" class="lounge-join-button" data-lounge-open-event="${loungeEscape(event.event_id)}">${series?'OPEN SERIES':'OPEN EVENT'}</button>${loungeCalendarMarkup(event)}<button type="button" class="lounge-unclaim-button" data-lounge-unclaim="${loungeEscape(event.event_id)}" ${moment?.occurrence_id?`data-occurrence-id="${loungeEscape(moment.occurrence_id)}"`:''}>UNCLAIM MY SEAT</button>`:loungeTicketActions(event);
+  else actions=event.is_registered?`<a class="lounge-join-button" href="${loungeEscape(loungeRegisteredEventUrl(event))}">${series?'OPEN SERIES':'OPEN EVENT'}</a>${loungeCalendarMarkup(event)}<button type="button" class="lounge-unclaim-button" data-lounge-unclaim="${loungeEscape(event.event_id)}" ${moment?.occurrence_id?`data-occurrence-id="${loungeEscape(moment.occurrence_id)}"`:''}>UNCLAIM MY SEAT</button>`:loungeTicketActions(event);
   const liveDiff=moment?.live_room_starts_at&&moment?.starts_at&&String(moment.live_room_starts_at)!==String(moment.starts_at),seriesChip=series?`<span class="lounge-series-chip">${loungeEscape(loungeSeriesLabel(event))}</span>`:'',dateCopy=series?loungeSeriesDateRange(event):loungeEventDate(event.event_date),nextCopy=series&&moment?.occurrence_number?`<span class="lounge-series-next">NEXT · SESSION ${loungeEscape(moment.occurrence_number)} OF ${loungeEscape(event.series_count||loungeSeriesOccurrences(event).length)}</span>`:'';
   return `<article class="lounge-event-row ${mode==='manage'?'is-compact':''} ${cancelled?'is-cancelled':''} ${series?'is-series':''}" data-lounge-event="${loungeEscape(event.event_id)}"><div class="lounge-event-art">${image}</div><div class="lounge-event-copy"><p class="eyebrow">${loungeEscape(loungeEventType(event.event_type))} · ${event.audience==='flowfm'?'FLOW FM':'QUEENDOM'} ${seriesChip}</p><h4>${loungeEscape(event.title)}</h4><p>${loungeEscape(dateCopy)}</p>${nextCopy}${loungeTimeStack(event)}${liveDiff?`<p class="lounge-live-room-time"><strong>LIVE GATHERING</strong> · ${loungeEscape(loungeLiveFlowtelTime(event))}${loungeLiveYourTime(event)?` · ${loungeEscape(loungeLiveYourTime(event))} your time`:''}</p>`:''}${loungeHostMarkup(event)}</div><div class="lounge-event-actions">${actions}</div></article>`;
 }

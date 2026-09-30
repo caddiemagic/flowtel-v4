@@ -10,10 +10,10 @@ const clientHtml=read('client/index.html');
 const bridge=read('api/squarespace-bridge.js');
 const release=read('docs/RELEASE-0.10.91.1.md');
 
-assert.match(calendarHtml,/queendom-calendar\/app\.js\?v=0\.10\.91\.1/,'Calendar app cache key must be v0.10.91.1.');
-assert.match(calendarHtml,/queendom-calendar\/styles\.css\?v=0\.10\.91\.1/,'Calendar CSS cache key must be v0.10.91.1.');
-assert.match(clientHtml,/app\.js\?v=0\.10\.91\.1/,'Client app cache key must be v0.10.91.1.');
-assert.match(clientHtml,/styles\.css\?v=0\.10\.91\.1/,'Client CSS cache key must be v0.10.91.1.');
+assert.match(calendarHtml,/queendom-calendar\/app\.js\?v=0\.10\.91\.(?:1|2)/,'Calendar app cache key must retain the v0.10.91.1+ event-claim bundle.');
+assert.match(calendarHtml,/queendom-calendar\/styles\.css\?v=0\.10\.91\.(?:1|2)/,'Calendar CSS cache key must retain the v0.10.91.1+ event-claim bundle.');
+assert.match(clientHtml,/app\.js\?v=0\.10\.91\.(?:1|2)/,'Client app cache key must retain the v0.10.91.1+ event-claim bundle.');
+assert.match(clientHtml,/styles\.css\?v=0\.10\.91\.(?:1|2)/,'Client CSS cache key must retain the v0.10.91.1+ event-claim bundle.');
 
 assert.match(calendar,/calendar-preview-claim/,'Next-three preview must expose seat claim controls.');
 assert.match(calendar,/CLAIM MY SEAT/,'Preview must say CLAIM MY SEAT.');

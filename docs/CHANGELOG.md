@@ -1,3 +1,16 @@
+## v0.10.91.2 — Mobile Event Experience Polish
+
+- Fixes launch-critical mobile event navigation: COMING UP NEXT and month-calendar event tiles now have native/deep-link fallbacks and preview events can open even when they are outside the currently displayed month.
+- Makes the mobile calendar event sheet smaller, scrollable, touch-friendly, and vertically stacked instead of crowding the viewport.
+- Styles claimed seats with the pink/gold **✓ SEAT CLAIMED** treatment and routes **ENTER GATHERING** into the full protected Event Room.
+- Makes protected **JOIN ZOOM** mobile-safe by establishing the destination window from the original tap before asynchronous Flowtel/Acuity checks, with a same-tab fallback when mobile popup protection blocks the new window.
+- Changes Upcoming Events copy from gatherings inside Flow FM to gatherings **in the Flowtel**.
+- Standardizes member-facing event artwork to preserve the full uploaded graphic (`object-fit: contain`) across the calendar, event details, Upcoming Events, and Lounge/My Upcoming Events.
+- Reflows mobile Upcoming Events and Lounge/My Upcoming Events cards into compact vertical layouts; **OPEN EVENT** becomes a native protected-room link and action/calendar buttons share consistent full-width sizing.
+- Intentionally defers the larger full Flowtel mobile redesign until after launch.
+- No migration, environment-variable, or Vercel-function change. Migration **078** remains latest; **079** remains next; function budget remains **12/12**.
+- Caddie Magic remains v0.6.0 and Player-first.
+
 ## v0.10.91.1 — Event Claim Conversion Flow
 
 - Turns the compact next-three-gatherings preview on The Queendom Calendar into an actionable registration surface with a small **CLAIM MY SEAT** button on every preview card.

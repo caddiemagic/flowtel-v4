@@ -1,0 +1,103 @@
+FLOWTEL v0.10.91.2 — MOBILE EVENT EXPERIENCE POLISH
+====================================================
+
+EXPECTED SOURCE
+---------------
+Current GitHub main at handoff/build time:
+142cd099f964978a108711b40ebc5b47f143257b
+
+This is v0.10.91.1 — Event Claim Conversion Flow plus the subsequent one-line
+invite-redirect bridge commit that preserves membershipProvisioned=1.
+
+TARGET
+------
+Flowtel v0.10.91.2 — Mobile Event Experience Polish
+
+DATABASE
+--------
+NO MIGRATION for v0.10.91.2.
+Do NOT rerun migration 078.
+Latest migration remains: 078
+Next migration remains: 079
+
+ENVIRONMENT VARIABLES
+---------------------
+NO CHANGES.
+Keep the existing Supabase, Squarespace, Acuity, and FLOWTEL_PUBLIC_ORIGIN configuration.
+
+VERCEL FUNCTIONS
+----------------
+NO FUNCTIONS ADDED.
+NO FUNCTIONS REMOVED.
+Current budget remains: 12 / 12.
+
+ADDED FILES
+-----------
+PATCH-INSTRUCTIONS-v0.10.91.2.txt
+docs/LIVE-TEST-0.10.91.2.md
+docs/RELEASE-0.10.91.2.md
+scripts/test-flowtel-010912-mobile-event-experience.mjs
+scripts/validate-flowtel-010912-mobile-event-experience.mjs
+
+MODIFIED FILES
+--------------
+client/app.js
+client/index.html
+client/styles.css
+docs/CHANGELOG.md
+docs/FLOWTEL_ROADMAP.md
+queendom-calendar/app.js
+queendom-calendar/index.html
+queendom-calendar/styles.css
+queendom-events/app.js
+queendom-events/index.html
+queendom-events/styles.css
+scripts/validate-flowtel-010903-registered-event-room.mjs
+scripts/validate-flowtel-010911-event-claim-conversion.mjs
+
+DELETED FILES
+-------------
+NONE.
+
+WHAT CHANGED
+------------
+1. COMING UP NEXT event-copy and month-calendar event tiles now have native/deep-link fallbacks instead of depending solely on JavaScript taps.
+2. Preview events can open from the full preview feed even when they are outside the month currently displayed.
+3. Claimed preview seats open the protected Event Room directly and keep the pink ✓ SEAT CLAIMED · OPEN EVENT treatment.
+4. The month-calendar popup no longer performs the protected Zoom workflow; ENTER GATHERING opens the full Event Room.
+5. The protected Event Room establishes the Zoom tab synchronously on the user's tap so iOS/mobile popup protection does not make JOIN ZOOM appear dead; same-tab fallback is provided.
+6. The Upcoming Events hero copy now says gatherings happen in the Flowtel.
+7. Mobile calendar/event-room cards and sheets are tightened to reduce crowding and stack actions vertically.
+8. Event artwork uses object-fit: contain across calendar, event details, Upcoming Events, and Lounge/My Upcoming Events so the uploaded graphic is not cropped differently by view.
+9. Lounge OPEN EVENT becomes a native protected Event Room link.
+10. Lounge OPEN EVENT and ADD TO CALENDAR share consistent action sizing; Lounge actions/calendar choices stack one per row on mobile.
+11. This is launch-critical polish only; the larger full mobile information-architecture redesign remains deferred for post-launch.
+
+DEPLOYMENT ORDER
+----------------
+1. Confirm GitHub main still includes source commit 142cd099f964978a108711b40ebc5b47f143257b or reconcile any newer commits before applying this patch.
+2. NO SQL step is required.
+3. Extract flowtel-v0.10.91.2-patch-files.zip at the repository root, preserving exact paths.
+4. Review the changed files above.
+5. Commit and push to GitHub main.
+6. Wait for Vercel Production to report READY.
+7. Hard-refresh on a real phone or mobile browser:
+   - https://app.theflowtel.com/queendom-calendar/
+   - https://app.theflowtel.com/queendom-events/
+   - https://app.theflowtel.com/client/
+8. Run the first live tests below.
+
+FIRST LIVE TESTS
+----------------
+1. Mobile /queendom-calendar/: tap a COMING UP NEXT event outside the displayed month and confirm it opens.
+2. Tap a month-calendar event and confirm the popup is compact, scrollable, and usable.
+3. Confirm uploaded event artwork remains fully visible in calendar popup, Upcoming Events, and Lounge/My Upcoming Events.
+4. Claimed event: confirm pink ✓ SEAT CLAIMED state and ENTER GATHERING opens the protected Event Room.
+5. Protected Event Room: complete any required check-in/cycle-day step and confirm JOIN ZOOM opens on mobile.
+6. Lounge/My Upcoming Events: confirm OPEN EVENT works and matches ADD TO CALENDAR dimensions.
+7. Confirm all Lounge actions and calendar choices stack cleanly on a narrow screen.
+8. Regression-check recurring claim/unclaim + Acuity, Series/Vortex, Event Flow Map, Activate My Flowtel, Womb Magic, and Caddie Magic.
+
+VALIDATION STATUS
+-----------------
+SOURCE VALIDATED only until the live checks above are confirmed in production.
