@@ -1,0 +1,114 @@
+FLOWTEL v0.10.93 / CADDIE MAGIC v0.7.1
+PUBLIC CALL YOUR CADDIE RECORDER + RADIO SHOW POLISH
+
+EXPECTED SOURCE VERSION
+- Flowtel v0.10.92.1
+- GitHub main expected base commit: 3ed3931e7345da54594a0fb201447d1a4747d68f
+- Apply this patch at the repository root only if the working source still matches that base or has been reconciled deliberately.
+
+TARGET VERSION
+- Flowtel v0.10.93
+- Caddie Magic v0.7.1
+- Migration 081 is the release database boundary.
+- Migration 082 is next after 081 is applied.
+
+WHAT THIS RELEASE DOES
+- Makes ONLY /caddie-magic/call-your-caddie/ usable without a Flowtel/Caddie Magic account.
+- Keeps the Caddie Mailbox, Show Queue, Studio Mode, mailbox metadata, and recording reads private to The Caddie Master.
+- Uses one-path signed private Supabase Storage uploads. No public bucket/read/list policy is added.
+- Reuses api/caddie-acuity.js for public-mailbox-init and public-mailbox-finalize so Vercel remains 12/12.
+- Adds same-origin checks, honeypot protection, HMAC-hashed connection rate limiting, a 15 MB public upload ceiling, supported MIME checks, a two-hour finalize token, and the existing five-minute limit.
+- Restyles Call Your Caddie toward a radio/call-in-show experience.
+- Exact HOW IT WORKS copy in this release:
+  1. You have a problem or an observation
+  2. Leave me a message
+  3. Tune in to the Call Your Caddie podcast for my response
+- Preserves the optional “Please do not use my name in the podcast” request.
+
+ADDED FILES
+- PATCH-INSTRUCTIONS-v0.10.93.txt
+- database/migration-081-call-your-caddie-public-recorder.sql
+- docs/LIVE-TEST-v0.10.93.md
+- docs/RELEASE-0.10.93.md
+- docs/RELEASE-CADDIE-MAGIC-0.7.1.md
+- scripts/test-flowtel-01093-call-your-caddie-public.mjs
+- scripts/validate-flowtel-01093-call-your-caddie-public.mjs
+
+MODIFIED FILES
+- api/caddie-acuity.js
+- caddie-magic/README.md
+- caddie-magic/call-your-caddie/app.js
+- caddie-magic/call-your-caddie/index.html
+- caddie-magic/call-your-caddie/styles.css
+- docs/CADDIE_MAGIC_ROADMAP.md
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+- scripts/test-call-your-caddie.mjs
+- scripts/validate-caddie-magic.mjs
+- scripts/validate-call-your-caddie.mjs
+- shared/caddie-magic-mailbox.js
+- vercel.json
+
+DELETED FILES
+- NONE
+
+DATABASE
+- RUN database/migration-081-call-your-caddie-public-recorder.sql BEFORE deploying the frontend/API patch.
+- Do NOT rerun migrations 079 or 080.
+- Migration 081:
+  * allows public mailbox rows to have null submitted_by_user_id / player_profile_id;
+  * adds public_browser_voice_note to source_type;
+  * creates a server-only upload staging/rate-limit ledger;
+  * creates service-role-only begin/finalize RPCs.
+- The caddie-mailbox-audio bucket remains private.
+
+ENVIRONMENT VARIABLES
+- NO NEW ENVIRONMENT VARIABLES.
+- Existing SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are reused server-side.
+- Existing FLOWTEL_ALLOWED_ORIGIN / FLOWTEL_PUBLIC_ORIGIN behavior is preserved.
+
+VERCEL FUNCTION BUDGET
+- Before: 12/12
+- After: 12/12
+- No function added or removed.
+- api/caddie-acuity.js is reused for the public recorder bridge.
+
+DEPLOY ORDER
+1. Confirm production is still on the expected v0.10.92.1 source/base or reconcile any newer changes first.
+2. In Supabase SQL Editor, run migration 081 once.
+3. Confirm migration 081 succeeds before deploying browser/API code.
+4. Overlay the contents of flowtel-v0.10.93-patch-files.zip at the repository root, preserving paths.
+5. Commit/push to GitHub main (or your normal deployment branch).
+6. Wait for Vercel deployment status READY.
+7. Hard refresh the Call Your Caddie page.
+8. Complete the live tests in docs/LIVE-TEST-v0.10.93.md.
+
+FIRST LIVE TESTS
+1. Open /caddie-magic/call-your-caddie/ in incognito/private browsing with NO Flowtel login.
+2. Confirm the recorder opens without account creation or Player Profile access.
+3. Record and submit a short voicemail.
+4. Submit a second short voicemail with “Please do not use my name in the podcast” checked.
+5. Sign in as The Caddie Master; confirm both arrive NEW · UNHEARD.
+6. Confirm the privacy-requested message shows ANONYMITY REQUESTED privately and ANONYMOUS in Studio Mode.
+7. Confirm selecting/loading a message does not mark it listened; actual Play does.
+8. Repeat microphone/upload on iPhone/Safari.
+9. Verify signed-out visitors cannot retrieve mailbox recordings or open owner Mailbox/Studio data.
+10. Rehearse OBS with camera + host mic + Flowtel voicemail audio only; no screen capture is required.
+
+SOURCE VALIDATION
+- SOURCE VALIDATED only; not yet LIVE PRODUCTION VERIFIED.
+- Current Call Your Caddie validator/test: PASS
+- Flowtel v0.10.93 dedicated validator/test: PASS
+- Canonical Caddie Magic validator: PASS
+- Acuity/Womb Magic validator/test: PASS
+- Automatic membership validator/test: PASS
+- Event claim validator/test: PASS
+- v0.10.91.2 mobile event validator/test: PASS
+- Member-integrity validator: PASS
+- Vercel function budget: PASS 12/12
+- node --check on changed/new JS/MJS and all api/*.js: PASS
+- git diff --check: PASS
+
+PRE-EXISTING BASELINE VALIDATOR DRIFT (NOT INTRODUCED HERE)
+- scripts/validate-flowtel-010813-caddie-060.mjs expects the old exact Acuity bridge string 0.10.81.3-0.6.0; it fails identically on pristine v0.10.92.1.
+- scripts/test-member-integrity.mjs imports retired api/beta-request.js; it fails identically on pristine v0.10.92.1.

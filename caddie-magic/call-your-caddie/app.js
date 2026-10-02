@@ -3,8 +3,8 @@ import {
   chooseMailboxRecorderMime,
   formatMailboxDuration,
   getMyMailboxPlayerSnapshot,
-  submitCaddieMailboxMessage,
-} from "../../shared/caddie-magic-mailbox.js?v=0.10.92.1";
+  submitPublicCaddieMailboxMessage,
+} from "../../shared/caddie-magic-mailbox.js?v=0.7.1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -14,6 +14,7 @@ const callerName = $("callerName");
 const handicap = $("handicap");
 const mediaConsent = $("mediaConsent");
 const anonymityRequested = $("anonymityRequested");
+const website = $("website");
 const startButton = $("startRecordingButton");
 const stopButton = $("stopRecordingButton");
 const againButton = $("recordAgainButton");
@@ -185,7 +186,7 @@ async function sendMessage(event) {
     setState("SENDING");
     setMessage("Sending your private voice note to the Caddie Mailbox…");
     const messageId = crypto.randomUUID();
-    await submitCaddieMailboxMessage({
+    await submitPublicCaddieMailboxMessage({
       messageId,
       callerName: callerName.value,
       handicap: handicap.value,
@@ -194,6 +195,7 @@ async function sendMessage(event) {
       consentRecording: mediaConsent.checked,
       consentPublication: mediaConsent.checked,
       anonymityRequested: anonymityRequested.checked,
+      website: website?.value || "",
     });
     clearRecording();
     form.classList.add("hidden");
@@ -220,17 +222,18 @@ function leaveAnother() {
 }
 
 async function boot() {
+  // The recorder is public. Signed-in Caddie Magic Players are quietly prefilled,
+  // but no Flowtel account or Player Profile is required to leave a message.
   try {
     const { profile } = await getMyMailboxPlayerSnapshot();
-    if (profile.first_name) callerName.value = profile.first_name;
-    if (profile.handicap_or_score_range) handicap.value = profile.handicap_or_score_range;
+    if (profile?.first_name) callerName.value = profile.first_name;
+    if (profile?.handicap_or_score_range) handicap.value = profile.handicap_or_score_range;
+  } catch (_) {
+    // Public callers intentionally continue without authentication.
+  } finally {
     loading.classList.add("hidden");
     form.classList.remove("hidden");
     setState("READY");
-  } catch (error) {
-    loading.textContent = error?.message || "Call Your Caddie could not open your Player Profile.";
-    loading.classList.add("error");
-    setState("LOCKED");
   }
 }
 

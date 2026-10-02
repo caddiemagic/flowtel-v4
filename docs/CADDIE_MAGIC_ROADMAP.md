@@ -7,17 +7,19 @@
 It uses the Flowtel hospitality engine as a foundation, but the brand world remains separate: a private moonlit golf club, a brass-plated Locker Room, personalized Cardinal Clubs, and a quiet professional Caddie Network.
 
 
-## Current — v0.7.0 Call Your Caddie / Caddie Mailbox
+## Current — v0.7.1 Call Your Caddie / Public Recorder
 
-**v0.10.92.1 launch polish:** the player recorder now uses one combined recording/media-use consent, larger identity fields, the simplified three-step HOW IT WORKS copy, and an optional **Please do not use my name in the podcast** request. The private Mailbox retains the submitted name and shows **ANONYMITY REQUESTED**; Show Queue/Studio Mode substitute **ANONYMOUS** for public-facing use. Migration 080 adds the privacy flag; migration 081 is next.
+**Flowtel v0.10.93 public recorder:** Call Your Caddie is now a public submission doorway. A caller does not need a Flowtel or Caddie Magic account: they enter first name + handicap, accept the combined recording/media-use consent, optionally request **Please do not use my name in the podcast**, record up to five minutes, preview locally, and send the final voice note.
 
-Call Your Caddie launches first as a **native Caddie Magic voice-note experience**, not a telephone integration. An authenticated Player enters a first name + handicap, explicitly consents to recording/publication, records up to five minutes in the browser, previews/re-records locally, and sends the final audio into a private Supabase Storage bucket.
+The public browser never receives mailbox read access or a general Storage permission. The existing Caddie API function issues a short-lived signed upload token for exactly one private object path, then a service-role-only finalize boundary creates the mailbox row. Same-origin checks, a honeypot, HMAC-hashed connection rate limiting, MIME/size checks, and a 15 MB public upload ceiling reduce abuse without storing raw IP addresses. Vercel remains **12/12**. Migration **081** is this public-recorder boundary; **082** is next.
 
-The Caddie Master receives each message as **NEW · UNHEARD**. Downloading/preparing private audio does not count as listening; the canonical `first_listened_at` is written only when owner playback actually starts. The owner Mailbox supports New / Listened / Use on Show / Used / Archived, caller-name correction, notes, and a Show Queue.
+The Caddie Master still receives every accepted message as **NEW · UNHEARD**. Downloading/preparing private audio does not count as listening; `first_listened_at` is written only when owner playback actually starts. The private Mailbox supports New / Listened / Use on Show / Used / Archived, caller-name correction, notes, anonymity-requested badges, and a Show Queue.
 
-OBS Studio Mode preloads a selected private recording without playing it, then provides a clean **PLAY VOICEMAIL** stage. When the message ends the visual state becomes **CADDIE'S RESPONSE**, preserving the intended first-reaction workflow. OBS remains the recorder; Flowtel remains the content/control surface.
+OBS Studio Mode remains owner-only and preloads a selected private recording without playing it. When the voicemail ends the visual state becomes **CADDIE'S RESPONSE**. An anonymity request masks the caller name as **ANONYMOUS** in Studio Mode while retaining the submitted name in the private Mailbox. OBS remains the episode recorder; Flowtel remains the control surface.
 
-Phase 1 intentionally has **no Twilio dependency, no transcription, no YouTube/podcast publishing automation, no live caller queue, no browser softphone, and no Acuity private-call dependency**. Vercel remains 12/12 because the feature uses existing Supabase Auth + private Storage + RLS/RPC boundaries instead of a new API function. Migration **079** is the Caddie Mailbox foundation. Migration **080** adds the anonymity request; **081** is next.
+The public page now leans into the call-in-show concept visually with a voicemail-line status, broadcast/waveform details, and three icon-led How It Works cards. The approved copy is **1. You have a problem or an observation / 2. Leave me a message / 3. Tune in to the Call Your Caddie podcast for my response.**
+
+Phase 1 still has **no Twilio dependency, no transcription, no YouTube/podcast publishing automation, no live caller queue, no browser softphone, and no Acuity private-call dependency**.
 
 ### Future Phase 2 — Call Your Caddie Live
 

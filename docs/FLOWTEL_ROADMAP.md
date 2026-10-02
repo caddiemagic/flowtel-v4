@@ -4,13 +4,13 @@ Updated: October 1, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.92 Call Your Caddie Mailbox
+## Current — v0.10.93 Public Call Your Caddie Recorder
 
-Flowtel v0.10.92 advances Caddie Magic to **v0.7.0** and launches the first Call Your Caddie Studio as a native browser voice-note workflow. Authenticated Players record up to five minutes directly in Caddie Magic, explicitly consent to recording/publication, preview locally, and submit private audio to the Caddie Mailbox. The owner can preserve an unheard recording for OBS, select it for the Show Queue, play it for the first time in Studio Mode, then answer on camera. Migration **079** establishes the private storage/RLS/RPC boundary; **080** is next. No new Vercel function or environment variable is required; the budget remains 12/12. Twilio is deferred to future live/private call phases.
+Flowtel v0.10.93 advances Caddie Magic to **v0.7.1** and makes only the Call Your Caddie recorder public. A caller can record and send a five-minute voice note without a Flowtel account, while the Caddie Mailbox, Show Queue, Studio Mode, and all audio reads remain private to The Caddie Master. The existing `/api/caddie-acuity` function now issues one-path signed private upload tokens and finalizes public submissions through service-role-only database functions, keeping the Vercel budget at **12/12**. Migration **081** adds nullable identity linkage for public callers plus the server-only staging/rate-limit ledger. No new environment variable is required.
 
-### Priority 0 — v0.10.92 live verification
+### Priority 0 — v0.10.93 live verification
 
-After migration 079 and deployment, verify browser recording/upload on desktop and iPhone/Safari, owner private playback, UNHEARD → first-listen behavior, Show Queue, Studio Mode response transition, and one OBS rehearsal with host microphone and voicemail browser audio captured separately. Keep the v0.10.91.x mobile-event and automatic-membership production checks open until independently verified live.
+After migration 081 and deployment, open Call Your Caddie in a private/incognito browser with no Flowtel session and submit a short test voicemail. Confirm the audio is not publicly retrievable, the owner Mailbox receives it as NEW · UNHEARD, anonymity requests display ANONYMITY REQUESTED privately and ANONYMOUS in Studio Mode, and first playback still controls first-listen state. Repeat recording/upload on iPhone/Safari and complete one OBS rehearsal with host microphone and voicemail browser audio captured separately.
 
 ### Future — Call Your Caddie Live / Private Calling
 
@@ -54,9 +54,9 @@ Verify the mobile calendar, Event Room, protected Zoom doorway, Lounge/My Upcomi
 
 Reorganize Flowtel mobile as an intentional information architecture rather than continuing to compress desktop surfaces. Revisit the mobile hierarchy across **Suite → Lounge → Calendar → Event Room**, establish a consistent card/sheet/navigation system, reduce above-the-fold density, and decide which hospitality actions deserve primary placement on small screens. Preserve the current launch-safe mobile behaviors while redesigning the system as a whole.
 
-### Next planned Flowtel correction — v0.10.93 Cycle Restart Correction
+### Next planned Flowtel correction — v0.10.94 Cycle Restart Correction
 
-Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **080** is next if the cycle-correction release needs database work.
+Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **082** is next if the cycle-correction release needs database work.
 
 ### After that — Front Desk / Concierge Messages
 

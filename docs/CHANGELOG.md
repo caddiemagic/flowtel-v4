@@ -1,5 +1,17 @@
 # Flowtel Changelog
 
+## v0.10.93 — Public Call Your Caddie Recorder + Radio Show Polish
+
+- Advances Caddie Magic to **v0.7.1** and opens only the Call Your Caddie voice-note recorder to the public; no Flowtel or Caddie Magic account is required to leave a message.
+- Keeps the Caddie Mailbox, Show Queue, Studio Mode, mailbox metadata, and all audio reads owner-only. The Storage bucket remains private.
+- Reuses the existing `/api/caddie-acuity` function for two narrow public mailbox actions, so Vercel remains **12/12** with no 13th function.
+- Public callers receive a short-lived signed upload token scoped to one private audio path; the browser never receives the Supabase service-role key and receives no list/read capability.
+- Adds same-origin request checks, a hidden bot honeypot, HMAC-hashed per-connection rate limiting, a 15 MB public upload ceiling, MIME validation, and the existing five-minute duration ceiling. Raw IP addresses are not stored.
+- Adds migration **081**, allowing mailbox rows without Flowtel identities and adding the server-only public-upload staging/rate-limit ledger plus service-role-only begin/finalize RPCs.
+- Preserves the optional **Please do not use my name in the podcast** request and owner-facing **ANONYMITY REQUESTED** / Studio **ANONYMOUS** behavior.
+- Restyles the public page with a voicemail-line/radio-show treatment and icons while preserving the approved copy: **1. You have a problem or an observation / 2. Leave me a message / 3. Tune in to the Call Your Caddie podcast for my response.**
+- No new environment variable. Migration **082** is next.
+
 ## v0.10.92.1 — Call Your Caddie Form + Anonymity Polish
 
 - Removed the extra hero problem/solution line from Call Your Caddie.

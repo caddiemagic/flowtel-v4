@@ -1,5 +1,5 @@
-// Caddie Magic v0.7.0 — Call Your Caddie browser voice-note mailbox.
-// Phase 1 is intentionally provider-free: MediaRecorder -> private Supabase Storage.
+// Caddie Magic v0.7.1 — Call Your Caddie browser voice-note mailbox.
+// Public recorder uses a narrow signed-upload bridge; all mailbox reads stay private.
 
 import { supabase } from "./supabase.js";
 import { requireProductAccess } from "./product-access.js";
@@ -7,7 +7,8 @@ import { requireProductAccess } from "./product-access.js";
 export const CADDIE_MAILBOX_BUCKET = "caddie-mailbox-audio";
 export const CADDIE_MAILBOX_MAX_SECONDS = 300;
 export const CADDIE_MAILBOX_MAX_BYTES = 50 * 1024 * 1024;
-export const CADDIE_MAILBOX_CONSENT_VERSION = "caddie-mailbox-v2";
+export const CADDIE_PUBLIC_MAILBOX_MAX_BYTES = 15 * 1024 * 1024;
+export const CADDIE_MAILBOX_CONSENT_VERSION = "caddie-mailbox-v3";
 export const CADDIE_MAILBOX_STATUSES = ["new", "listened", "selected", "used", "archived"];
 
 const MIME_EXTENSION = new Map([
@@ -50,6 +51,72 @@ export function formatMailboxDuration(seconds = 0) {
   const minutes = Math.floor(safe / 60);
   const remainder = safe % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
+}
+
+async function postCaddieMagicApi(payload) {
+  const response = await fetch("/api/caddie-acuity", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  let data = null;
+  try { data = await response.json(); } catch (_) {}
+  if (!response.ok || data?.ok === false) {
+    throw new Error(data?.error || "The Caddie line could not complete that request.");
+  }
+  return data || {};
+}
+
+export async function submitPublicCaddieMailboxMessage({
+  messageId,
+  callerName,
+  handicap,
+  audioBlob,
+  durationSeconds,
+  consentRecording,
+  consentPublication,
+  anonymityRequested = false,
+  website = "",
+} = {}) {
+  if (!messageId) throw new Error("The voice-note identifier is missing.");
+  if (!(audioBlob instanceof Blob) || audioBlob.size <= 0) throw new Error("Record a voice note before sending it.");
+  if (audioBlob.size > CADDIE_PUBLIC_MAILBOX_MAX_BYTES) throw new Error("That voice note is too large for the public Caddie line.");
+  if (!consentRecording || !consentPublication) throw new Error("Recording and media-use consent are required before sending.");
+
+  const duration = Math.max(1, Math.min(CADDIE_MAILBOX_MAX_SECONDS, Math.round(Number(durationSeconds) || 0)));
+  const mimeType = normalizeMailboxMime(audioBlob.type);
+  if (!mimeType) throw new Error("This browser produced an unsupported audio format. Try the current version of Safari, Chrome, Edge, or Firefox.");
+
+  const init = await postCaddieMagicApi({
+    action: "public-mailbox-init",
+    message_id: messageId,
+    mime_type: mimeType,
+    size_bytes: audioBlob.size,
+    recording_duration_seconds: duration,
+    website: String(website || ""),
+  });
+
+  if (!init.storage_path || !init.token || !init.finalize_token) throw new Error("The private Caddie upload line could not be opened.");
+  const upload = await supabase.storage
+    .from(CADDIE_MAILBOX_BUCKET)
+    .uploadToSignedUrl(init.storage_path, init.token, audioBlob, {
+      cacheControl: "0",
+      contentType: mimeType,
+    });
+  if (upload.error) throw upload.error;
+
+  await postCaddieMagicApi({
+    action: "public-mailbox-finalize",
+    message_id: messageId,
+    caller_name: String(callerName || "").trim(),
+    handicap: String(handicap || "").trim(),
+    consent_recording: Boolean(consentRecording),
+    consent_publication: Boolean(consentPublication),
+    anonymity_requested: Boolean(anonymityRequested),
+    finalize_token: init.finalize_token,
+    website: String(website || ""),
+  });
+  return messageId;
 }
 
 export async function getMyMailboxPlayerSnapshot() {
