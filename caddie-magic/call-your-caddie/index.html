@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.7.1" />
-  <link rel="stylesheet" href="./styles.css?v=0.7.1" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.1-greeting1" />
 </head>
 <body>
   <main class="cm-shell cycs-shell">
@@ -28,38 +28,26 @@
         <span></span><span></span><span></span><b></b><span></span><span></span><span></span>
       </div>
       <div class="cycs-hero-actions">
-        <a class="cm-button" href="#leave-message">Leave a Message</a>
+        <a class="cm-button" href="#caddie-line">Call Your Caddie</a>
       </div>
     </section>
 
-    <section class="cm-card cycs-intro-card">
-      <div class="cycs-section-label">
-        <span class="cycs-section-icon" aria-hidden="true">☎</span>
-        <p class="cm-eyebrow">HOW IT WORKS</p>
+    <section class="cm-card cycs-answering-machine" id="caddie-line" aria-labelledby="lineTitle">
+      <p class="cm-eyebrow">A DIRECT LINE TO YOUR CADDIE</p>
+      <div class="cycs-phone-seal" aria-hidden="true">☎</div>
+      <h2 id="lineTitle">Your Caddie is one call away.</h2>
+      <p class="cycs-line-copy">Take a breath. Pick up the phone.</p>
+      <button class="cm-button cycs-call-button" id="callCaddieButton" type="button" aria-controls="greetingAudio">Call Your Caddie</button>
+      <p class="cycs-line-status" id="greetingStatus" role="status">THE LINE IS OPEN</p>
+      <div class="cycs-line-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="cycs-greeting-playback hidden" id="greetingPlayback">
+        <audio id="greetingAudio" controls preload="none" src="./answering-machine.mp3"></audio>
+        <p>Listen to Megan’s greeting, then leave your message below.</p>
       </div>
-      <div class="cycs-how-grid" aria-label="How Call Your Caddie works">
-        <article class="cycs-how-step">
-          <div class="cycs-how-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" focusable="false"><circle cx="22" cy="24" r="13"></circle><path d="M18 19h.01M26 18h.01M17 27h.01M25 26h.01M21 22h.01"></path><path d="M34 12l3-3M36 17h4M31 8V4"></path></svg>
-          </div>
-          <div class="cycs-step-line"><span>1.</span><strong>You have a problem or an observation</strong></div>
-        </article>
-        <article class="cycs-how-step">
-          <div class="cycs-how-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" focusable="false"><rect x="17" y="7" width="14" height="24" rx="7"></rect><path d="M12 23c0 7 5 12 12 12s12-5 12-12M24 35v7M18 42h12"></path></svg>
-          </div>
-          <div class="cycs-step-line"><span>2.</span><strong>Leave me a message</strong></div>
-        </article>
-        <article class="cycs-how-step">
-          <div class="cycs-how-icon" aria-hidden="true">
-            <svg viewBox="0 0 48 48" focusable="false"><path d="M9 27v-5C9 13.7 15.7 7 24 7s15 6.7 15 15v5"></path><rect x="7" y="25" width="8" height="14" rx="4"></rect><rect x="33" y="25" width="8" height="14" rx="4"></rect><path d="M21 16c3 0 6 2 6 6s-3 6-6 6M21 20c1 0 2 .8 2 2s-1 2-2 2"></path></svg>
-          </div>
-          <div class="cycs-step-line"><span>3.</span><strong>Tune in to the Call Your Caddie podcast for my response</strong></div>
-        </article>
-      </div>
+      <a class="cycs-skip-link" id="skipGreeting" href="#leave-message">Skip to leaving a message</a>
     </section>
 
-    <section class="cm-card cycs-recorder-card" id="leave-message">
+    <section class="cm-card cycs-recorder-card" id="leave-message" tabindex="-1">
       <div class="cycs-recorder-topline" aria-hidden="true">
         <span>CALL-IN BOARD</span>
         <div><i></i><i></i><i></i><i></i><i></i></div>
@@ -166,6 +154,7 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=0.7.1"></script>
+  <script type="module" src="./greeting.js?v=1"></script>
+  <script type="module" src="./app.js?v=0.7.1-greeting1"></script>
 </body>
 </html>

@@ -105,6 +105,8 @@ function validateBeforeRecording() {
 async function startRecording() {
   try {
     validateBeforeRecording();
+    document.getElementById("greetingAudio")?.pause();
+    previewAudio.pause();
     setMessage("Opening your microphone…");
     clearRecording();
     mediaStream = await navigator.mediaDevices.getUserMedia({
@@ -115,6 +117,7 @@ async function startRecording() {
       },
     });
 
+    document.getElementById("greetingAudio")?.pause();
     const mimeType = chooseMailboxRecorderMime();
     mediaRecorder = mimeType ? new MediaRecorder(mediaStream, { mimeType }) : new MediaRecorder(mediaStream);
     recordingChunks = [];

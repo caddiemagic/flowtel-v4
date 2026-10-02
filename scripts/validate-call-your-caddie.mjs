@@ -27,17 +27,16 @@ const [playerHtml, playerJs, playerCss, shared, adminHtml, adminJs, studioHtml, 
 ]);
 const vercel = JSON.parse(await read("vercel.json"));
 
-// Public caller experience + exact user-approved How It Works copy.
+// Public caller experience with user-approved answering-machine greeting.
 assert(playerHtml.includes("CALL YOUR CADDIE"));
+assert(playerHtml.includes('id="callCaddieButton"'));
+assert(playerHtml.includes('src="./answering-machine.mp3"'));
+assert(!playerHtml.includes("HOW IT WORKS"));
 assert(playerHtml.includes("VOICEMAIL LINE OPEN"));
 assert(playerHtml.includes("I CONSENT TO RECORDING + MEDIA USE"));
 assert.equal((playerHtml.match(/id="mediaConsent"/g) || []).length, 1, "Combined consent checkbox is missing or duplicated.");
 assert(playerHtml.includes("Please do not use my name in the podcast"));
-assert(playerHtml.includes("1.</span><strong>You have a problem or an observation"));
-assert(playerHtml.includes("2.</span><strong>Leave me a message"));
-assert(playerHtml.includes("3.</span><strong>Tune in to the Call Your Caddie podcast for my response"));
 assert(!playerHtml.includes("You record a voicemail and tell me about it"), "Superseded step-two copy remains.");
-assert.equal((playerHtml.match(/class="cycs-how-icon"/g) || []).length, 3, "Each How It Works step should have one icon.");
 assert(playerHtml.includes('id="website"'), "Public recorder honeypot is missing.");
 assert(playerCss.includes("cycs-broadcast-strip") && playerCss.includes("cycs-recorder-meter"), "Radio-show visual treatment is missing.");
 assert(playerJs.includes("submitPublicCaddieMailboxMessage"));
@@ -104,4 +103,4 @@ assert.equal(rewrites.get("/manager/call-your-caddie/studio"), "/manager/call-yo
 const versionHeaders = (vercel.headers || []).flatMap((row) => row.headers || []).filter((h) => h.key === "X-Caddie-Magic-Version");
 assert(versionHeaders.length >= 2 && versionHeaders.every((h) => h.value === "0.7.1"));
 
-console.log("Call Your Caddie validation passed: public signed-upload recorder, radio-show UI, exact How It Works copy, anonymity, private owner mailbox/Studio Mode, 5-minute ceiling, and 12-function reuse boundary verified.");
+console.log("Call Your Caddie validation passed: public signed-upload recorder, radio-show UI, answering-machine greeting, anonymity, private owner mailbox/Studio Mode, 5-minute ceiling, and 12-function reuse boundary verified.");

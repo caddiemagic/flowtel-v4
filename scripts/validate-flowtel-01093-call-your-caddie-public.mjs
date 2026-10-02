@@ -9,7 +9,7 @@ const migration = await readFile("database/migration-081-call-your-caddie-public
 const release = await readFile("docs/RELEASE-0.10.93.md", "utf8");
 
 assert(html.includes("VOICEMAIL LINE OPEN"));
-assert(html.includes("2.</span><strong>Leave me a message"));
+assert(html.includes('id="callCaddieButton"'));
 assert(app.includes("submitPublicCaddieMailboxMessage"));
 assert(app.includes("Public callers intentionally continue without authentication"));
 assert(shared.includes("uploadToSignedUrl"));

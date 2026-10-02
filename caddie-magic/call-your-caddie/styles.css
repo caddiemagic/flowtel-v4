@@ -65,3 +65,24 @@
   .cycs-how-grid .cycs-how-step{grid-template-columns:44px 1fr;min-height:116px;padding:17px;gap:12px}.cycs-how-icon{width:44px;height:44px}.cycs-how-icon svg{width:25px;height:25px}.cycs-step-line{gap:7px}.cycs-how-grid .cycs-step-line strong{font-size:.92rem}.cycs-how-grid .cycs-step-line span{font-size:1.1rem}
   .cycs-recorder-topline{margin-bottom:17px}
 }
+
+/* Answering-machine experience: existing navy, brass, and ivory palette. */
+.cycs-answering-machine{position:relative;text-align:center;overflow:hidden;padding:42px 24px;background:radial-gradient(ellipse at 50% 25%,rgba(211,173,105,.12),transparent 55%),linear-gradient(145deg,#0a2030,#06131f)}
+.cycs-phone-seal{display:grid;place-items:center;width:88px;height:88px;margin:24px auto;border:1px solid var(--gold);border-radius:50%;color:var(--gold-soft);font-size:2.5rem;box-shadow:0 0 0 10px rgba(211,173,105,.035),0 0 0 22px rgba(211,173,105,.02)}
+.cycs-answering-machine h2{font-size:clamp(1.8rem,5vw,2.8rem);margin:26px 0 12px}
+.cycs-line-copy{color:var(--muted);margin-bottom:24px}
+.cycs-call-button{width:auto;min-width:240px;min-height:54px;font-size:.85rem}
+.cycs-call-button:focus-visible,.cycs-skip-link:focus-visible{outline:2px solid var(--gold-soft);outline-offset:5px}
+.cycs-line-status{margin:24px auto 12px;max-width:600px;color:var(--gold-soft);font:700 .65rem/1.6 var(--font-body);letter-spacing:.13em}
+.cycs-line-wave{display:flex;justify-content:center;align-items:center;gap:5px;height:32px;margin:10px auto 22px}
+.cycs-line-wave i{height:8px;width:4px;border-radius:9px;background:var(--gold);opacity:.45}
+.cycs-line-wave i:nth-child(2n){height:16px}.cycs-line-wave i:nth-child(3n){height:26px}.cycs-line-wave i:nth-child(5){height:32px}
+.cycs-answering-machine.is-playing .cycs-line-wave i{animation:cycsMeter .65s ease-in-out infinite alternate;opacity:1}
+.cycs-answering-machine.is-playing .cycs-line-wave i:nth-child(2n){animation-delay:.2s}
+.cycs-answering-machine.is-playing .cycs-line-wave i:nth-child(3n){animation-delay:.4s}
+.cycs-answering-machine.is-playing .cycs-phone-seal{box-shadow:0 0 0 10px rgba(211,173,105,.07),0 0 32px rgba(211,173,105,.14)}
+.cycs-greeting-playback{max-width:520px;margin:0 auto 20px}.cycs-greeting-playback audio{display:block;width:100%}
+.cycs-greeting-playback p{color:var(--muted);font:.75rem/1.6 var(--font-body)}
+.cycs-skip-link{display:inline-block;padding:12px;color:var(--gold-soft);font:.78rem var(--font-body);text-underline-offset:5px}
+@media(prefers-reduced-motion:reduce){.cycs-answering-machine.is-playing .cycs-line-wave i{animation:none}}
+@media(max-width:760px){.cycs-answering-machine{padding:32px 18px}.cycs-call-button{width:100%;min-width:0}}
