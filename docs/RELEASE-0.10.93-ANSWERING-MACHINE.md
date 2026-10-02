@@ -16,3 +16,6 @@ No migration, environment variable, serverless function, or backend change. Func
 - Confirm the greeting does not play into the caller's recording.
 
 Source checks and browser simulation do not establish live production verification. Apply patch ZIP over the base repository (including the new MP3 and greeting.js), then deploy through the existing Vercel workflow. No deployment was performed in this conversation.
+
+## Top button correction
+The hero button reads **Leave a Message** and links to #leave-message. This cumulative package includes the greeting and replaces the earlier greeting ZIP, which preceded this correction.
