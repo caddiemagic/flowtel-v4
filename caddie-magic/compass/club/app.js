@@ -1,8 +1,8 @@
 // Caddie Magic v0.6.0 — personalized Cardinal Club Rooms.
 
 import { supabase } from "../../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.6.0";
-import { getMyCaddieMagicProfile, getMyActiveCompass } from "../../../shared/caddie-magic-compass.js?v=0.6.0";
+import { requireCaddieMagicAccess } from "../../../shared/caddie-magic-access.js?v=0.7.0";
+import { getMyCaddieMagicProfile, getMyActiveCompass } from "../../../shared/caddie-magic-compass.js?v=0.7.0";
 
 const $=(id)=>document.getElementById(id);
 const directions={

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Call Your Caddie · Studio Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css?v=0.7.0" />
+</head>
+<body>
+  <main class="studio-shell">
+    <header class="studio-header">
+      <div><span>CADDIE MAGIC</span><strong>CALL YOUR CADDIE</strong></div>
+      <a href="/manager/call-your-caddie/">Mailbox</a>
+    </header>
+
+    <section class="studio-gate" id="studioGate">
+      <p>OPENING STUDIO MODE</p>
+      <h1>Preparing the Show Queue.</h1>
+      <span id="studioStatus">Checking Caddie Master access…</span>
+    </section>
+
+    <section class="studio-queue hidden" id="queuePanel">
+      <div class="queue-heading"><div><p>SHOW QUEUE</p><h1>Choose the message you want to hear on camera.</h1></div><span id="queueCount"></span></div>
+      <div class="queue-list" id="queueList"></div>
+    </section>
+
+    <section class="studio-stage hidden" id="studioStage">
+      <div class="stage-kicker" id="stageKicker">MESSAGE FOR THE CADDIE</div>
+      <div class="stage-phone" aria-hidden="true">☎</div>
+      <h1 id="callerDisplay">CALLER</h1>
+      <div class="stage-hcp" id="handicapDisplay">HCP —</div>
+      <div class="stage-duration" id="durationDisplay">00:00</div>
+
+      <div class="stage-player" id="playerPanel">
+        <button class="studio-play" id="playButton" type="button">▶ PLAY VOICEMAIL</button>
+        <div class="studio-progress" aria-hidden="true"><span id="progressFill"></span></div>
+        <div class="studio-time"><span id="currentTime">00:00</span><span id="totalTime">00:00</span></div>
+        <audio id="studioAudio" preload="auto"></audio>
+      </div>
+
+      <div class="stage-response hidden" id="responsePanel">
+        <p>CADDIE'S RESPONSE</p>
+        <h2 id="responseIdentity">CALLER · HCP —</h2>
+      </div>
+
+      <div class="studio-actions">
+        <button id="markUsedButton" type="button">MARK USED</button>
+        <button id="nextButton" type="button">NEXT MESSAGE</button>
+        <button id="backToQueueButton" type="button">SHOW QUEUE</button>
+      </div>
+      <p class="studio-message" id="stageMessage"></p>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.7.0"></script>
+</body>
+</html>

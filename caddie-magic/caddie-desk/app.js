@@ -1,6 +1,6 @@
 // Caddie Magic v0.6.0 — simplified Caddie Profile, controlled courses, and shared scheduling.
 
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.7.0";
 import {
   getMyCaddieProfile,
   saveMyCaddieProfile,
@@ -23,7 +23,7 @@ import {
   removeMyCaddieScheduleException,
   getMyCaddieTeamMessages,
   sendMyCaddieTeamMessage,
-} from "../../shared/caddie-magic-network.js?v=0.6.0";
+} from "../../shared/caddie-magic-network.js?v=0.7.0";
 
 const $ = (id) => document.getElementById(id);
 const WEEKDAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];

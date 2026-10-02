@@ -1,7 +1,7 @@
 // Caddie Magic v0.6.0 — Locker Room Verified Release
 
 import { supabase } from "../../shared/supabase.js";
-import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.6.0";
+import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.7.0";
 import { getMoonMagic } from "../../shared/moon.js";
 
 const $ = (id) => document.getElementById(id);

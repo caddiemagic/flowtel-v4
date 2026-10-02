@@ -1,3 +1,15 @@
+## v0.10.92 — Call Your Caddie Mailbox
+
+- Advances Caddie Magic to **v0.7.0** with a native browser voice-note Call Your Caddie Studio; Twilio is intentionally deferred.
+- Adds authenticated Player recording with first name, handicap, explicit recording/publication consent, local preview/re-record, and a hard five-minute maximum.
+- Stores final audio in a new private Supabase Storage bucket and adds migration **079** with owner-only mailbox metadata/audio access.
+- Preserves genuine first reactions: upload/download does not mark a message listened; `first_listened_at` is written only when Caddie Master playback begins.
+- Adds owner **Caddie Mailbox** filters for New / Listened / Use on Show / Used / Archived plus caller-name correction, notes, secure playback, and Show Queue.
+- Adds clean **OBS Studio Mode** with selected-message preloading, caller/HCP/duration, playback progress, and automatic **CADDIE'S RESPONSE** state.
+- Adds Call Your Caddie doorways to the Player Profile and Caddie Master command center.
+- Adds no Vercel function and no environment variable; function budget remains **12/12**. Migration **080** is next.
+- Existing Caddie Magic Player Session Scheduling and Player-first access boundaries remain intact.
+
 ## v0.10.91.2 — Mobile Event Experience Polish
 
 - Fixes launch-critical mobile event navigation: COMING UP NEXT and month-calendar event tiles now have native/deep-link fallbacks and preview events can open even when they are outside the currently displayed month.

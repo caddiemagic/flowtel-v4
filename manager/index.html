@@ -102,6 +102,7 @@
           <button class="stat-card" type="button" data-filter="caddie-team"><span>Caddie Concierge Team</span><strong id="caddieTeamCount">0</strong><em>Active Caddies</em></button>
           <button class="stat-card" type="button" data-filter="caddie-reviews"><span>Scorecard Reviews</span><strong id="caddieReviewCount">0</strong><em>Caddie Master pattern requests</em></button>
           <button class="stat-card" type="button" data-filter="caddie-compass"><span>Caddie Compass</span><strong id="caddieCompassCount">0</strong><em><b id="caddieCompassPlayerCount">0</b> players mapped</em></button>
+          <a class="stat-card stat-card-link" href="/manager/call-your-caddie/"><span>Caddie Mailbox</span><strong>OPEN</strong><em>Unheard voice notes + Show Queue</em></a>
           <a class="stat-card stat-card-link" href="/manager/caddie-scheduling/"><span>Session Scheduling</span><strong>SETUP</strong><em>Map Megan + Caddie calendars</em></a>
           <button class="stat-card" type="button" data-filter="upcoming-golf"><span>Upcoming Golf</span><strong id="upcomingGolfCount">0</strong><em>Admin calendar</em></button>
         </div>
@@ -144,7 +145,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.83").catch(function(error){
+    import("./app.js?v=0.10.92").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

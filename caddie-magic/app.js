@@ -1,15 +1,15 @@
-// Caddie Magic v0.6.0 — Network reintegration, Caddie Master services, and review credits
+// Caddie Magic v0.7.0 — Network reintegration, Caddie Master services, and review credits
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
-import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.6.0";
-import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.6.0";
-import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.6.0";
-import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.6.0";
-import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.6.0";
-import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.6.0";
-import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.6.0";
-import { mountCaddieMagicBooking } from "../shared/caddie-magic-booking.js?v=0.6.0";
+import { getMyCaddieReviewRequests, requestCaddieReview } from "../shared/caddie-magic-reviews.js?v=0.7.0";
+import { validatePlayerInvitation, claimPlayerInvitation, requireCaddieMagicAccess } from "../shared/caddie-magic-access.js?v=0.7.0";
+import { getMyActiveCompass, getCompassAssignments, getCompassDispatches, updateMyCompassAssignment, sendCompassDispatch } from "../shared/caddie-magic-compass.js?v=0.7.0";
+import { getMyUpcomingGolfEvents } from "../shared/caddie-magic-schedule.js?v=0.7.0";
+import { moonLabelForDate, normalizeCaddieMoonPhase } from "../shared/caddie-magic-moon-calendar.js?v=0.7.0";
+import { averageValidGolfScore, bestValidGolfScore } from "../shared/caddie-magic-score-calculations.js?v=0.7.0";
+import { getMyCaddieProfile, listMyCaddieRequests, listMyConsultations, getMyCaddieMasterAccess } from "../shared/caddie-magic-network.js?v=0.7.0";
+import { mountCaddieMagicBooking } from "../shared/caddie-magic-booking.js?v=0.7.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -803,6 +803,11 @@ function renderStats() {
       <span>Assignments</span>
       <strong>${assignmentsSummary.active.length} active</strong>
       <small>${assignmentsSummary.completed.length} completed · Work from The Caddie Master.</small>
+    </a>
+    <a class="cm-stat cm-stat-link cm-stat-call-caddie is-wide" href="/caddie-magic/call-your-caddie/">
+      <span>Call Your Caddie</span>
+      <strong>Got a golf problem?</strong>
+      <small>Leave your Caddie a private voice note up to five minutes. Your question may be answered on the show.</small>
     </a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/">
       <span>Caddie Compass</span>

@@ -1,0 +1,129 @@
+FLOWTEL v0.10.92 / CADDIE MAGIC v0.7.0 — PATCH INSTRUCTIONS
+Call Your Caddie Mailbox — Native Browser Voice Notes
+
+SOURCE VERSION EXPECTED
+- Flowtel v0.10.91.2 / Caddie Magic v0.6.0
+- GitHub main base commit: 252ac4719001d62882490566bca29ad7fe0ae9a4
+
+TARGET VERSION
+- Flowtel v0.10.92
+- Caddie Magic v0.7.0
+
+SCOPE
+- Phase 1 Call Your Caddie uses native browser MediaRecorder + private Supabase Storage.
+- NO Twilio integration in this release.
+- Adds Player recorder, owner Caddie Mailbox, Show Queue, and OBS-friendly Studio Mode.
+- Preserves first reaction: private download/preload does not mark listened; only actual owner playback does.
+
+DATABASE MIGRATION — REQUIRED
+- Run FIRST: database/migration-079-call-your-caddie-mailbox.sql
+- Migration 079 creates the private caddie-mailbox-audio bucket, mailbox table, RLS/storage policies, and RPCs.
+- Do NOT rerun migration 078.
+- Latest after deploy: 079
+- Next migration: 080
+
+ENVIRONMENT VARIABLES
+- No new or changed environment variables.
+- No Twilio secrets are required.
+
+VERCEL FUNCTION BUDGET
+- Functions added: 0
+- Functions removed: 0
+- Current count: 12/12
+
+DEPLOY ORDER
+1. Confirm repository HEAD is still 252ac4719001d62882490566bca29ad7fe0ae9a4 before overlaying this patch.
+2. Run database/migration-079-call-your-caddie-mailbox.sql once in production Supabase.
+3. Overlay the patch-only ZIP at repository root, preserving all project-relative paths.
+4. Commit/push to GitHub and wait for Vercel to report Ready.
+5. Hard-refresh /caddie-magic/ and /manager/ before live testing.
+6. Follow docs/LIVE-TEST-v0.10.92.md.
+
+FIRST LIVE TESTS
+1. Player: open /caddie-magic/call-your-caddie/, check both consent boxes, record a short message, preview/re-record, and submit.
+2. Owner: verify the message appears at /manager/call-your-caddie/ as NEW · UNHEARD.
+3. Select USE ON SHOW without playing it; confirm it stays UNHEARD.
+4. Studio: preload it at /manager/call-your-caddie/studio/, start OBS, press PLAY VOICEMAIL, and verify first-listen is written only when audio begins.
+5. Confirm the finished voicemail switches to CADDIE'S RESPONSE and MARK USED removes it from the Show Queue.
+6. Repeat Player recording/upload on iPhone/Safari.
+7. Confirm existing Caddie Magic Player Session Scheduling and Acuity behavior remain intact.
+
+MODIFIED FILES
+- caddie-magic/README.md
+- caddie-magic/app.js
+- caddie-magic/caddie-desk/app.js
+- caddie-magic/caddie-desk/index.html
+- caddie-magic/caddies/app.js
+- caddie-magic/caddies/index.html
+- caddie-magic/collective-map/app.js
+- caddie-magic/collective-map/index.html
+- caddie-magic/collective-map/styles.css
+- caddie-magic/compass/admin/app.js
+- caddie-magic/compass/admin/index.html
+- caddie-magic/compass/app.js
+- caddie-magic/compass/club/app.js
+- caddie-magic/compass/club/index.html
+- caddie-magic/compass/index.html
+- caddie-magic/index.html
+- caddie-magic/score-map/app.js
+- caddie-magic/score-map/index.html
+- caddie-magic/score-map/styles.css
+- docs/CADDIE_MAGIC_ROADMAP.md
+- docs/CHANGELOG.md
+- docs/FLOWTEL_ROADMAP.md
+- manager/app.js
+- manager/caddie-scheduling/app.js
+- manager/caddie-scheduling/index.html
+- manager/index.html
+- scripts/validate-caddie-magic.mjs
+- vercel.json
+
+ADDED FILES
+- PATCH-INSTRUCTIONS-v0.10.92.txt
+- caddie-magic/call-your-caddie/app.js
+- caddie-magic/call-your-caddie/index.html
+- caddie-magic/call-your-caddie/styles.css
+- database/migration-079-call-your-caddie-mailbox.sql
+- docs/LIVE-TEST-v0.10.92.md
+- docs/RELEASE-0.10.92.md
+- docs/RELEASE-CADDIE-MAGIC-0.7.0.md
+- manager/call-your-caddie/app.js
+- manager/call-your-caddie/index.html
+- manager/call-your-caddie/studio/app.js
+- manager/call-your-caddie/studio/index.html
+- manager/call-your-caddie/studio/styles.css
+- manager/call-your-caddie/styles.css
+- scripts/test-call-your-caddie.mjs
+- scripts/validate-call-your-caddie.mjs
+- shared/caddie-magic-mailbox.js
+
+DELETED FILES
+- None
+
+VALIDATION EXPECTATIONS
+- node --check on every changed JS/MJS file
+- node --check on all 12 api/*.js functions
+- node scripts/validate-call-your-caddie.mjs
+- node scripts/test-call-your-caddie.mjs
+- node scripts/validate-caddie-magic.mjs
+- node scripts/validate-caddie-master-command-center.mjs
+- node scripts/test-flowtel-010813-caddie-060.mjs
+- node scripts/validate-acuity-womb-magic.mjs
+- node scripts/test-acuity-womb-magic.mjs
+- node scripts/validate-flowtel-010912-mobile-event-experience.mjs
+- node scripts/test-flowtel-010912-mobile-event-experience.mjs
+- node scripts/validate-flowtel-01091-auto-membership-provisioning.mjs
+- node scripts/test-flowtel-01091-auto-membership-provisioning.mjs
+- node scripts/validate-member-integrity.mjs
+- node scripts/validate-vercel-function-budget.js => 12/12
+- git diff --check
+- patch overlay must exactly reproduce the full target tree
+- both ZIP archives must pass integrity testing
+
+KNOWN BASELINE TEST DRIFT
+- scripts/test-member-integrity.mjs still imports intentionally retired api/beta-request.js. It fails identically on the untouched v0.10.91.2 base and is not introduced by this release.
+- Other historical exact-version validators may continue to assert older Caddie/Flowtel cache keys; use the current canonical validators above for this release.
+
+STATUS LANGUAGE
+- Package result as SOURCE VALIDATED until the real production recording → Mailbox → Show Queue → Studio/OBS path is completed successfully.
+- Do not call the release LIVE PRODUCTION VERIFIED before that production test.

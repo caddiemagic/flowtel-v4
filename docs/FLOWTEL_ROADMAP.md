@@ -1,10 +1,22 @@
 # Flowtel Roadmap
 
-Updated: September 30, 2026
+Updated: October 1, 2026
 
 This roadmap records intentional future work without making unfinished ideas part of the current live release contract. Source code and current release notes remain authoritative for shipped behavior.
 
-## Current — v0.10.91.2 Mobile Event Experience Polish
+## Current — v0.10.92 Call Your Caddie Mailbox
+
+Flowtel v0.10.92 advances Caddie Magic to **v0.7.0** and launches the first Call Your Caddie Studio as a native browser voice-note workflow. Authenticated Players record up to five minutes directly in Caddie Magic, explicitly consent to recording/publication, preview locally, and submit private audio to the Caddie Mailbox. The owner can preserve an unheard recording for OBS, select it for the Show Queue, play it for the first time in Studio Mode, then answer on camera. Migration **079** establishes the private storage/RLS/RPC boundary; **080** is next. No new Vercel function or environment variable is required; the budget remains 12/12. Twilio is deferred to future live/private call phases.
+
+### Priority 0 — v0.10.92 live verification
+
+After migration 079 and deployment, verify browser recording/upload on desktop and iPhone/Safari, owner private playback, UNHEARD → first-listen behavior, Show Queue, Studio Mode response transition, and one OBS rehearsal with host microphone and voicemail browser audio captured separately. Keep the v0.10.91.x mobile-event and automatic-membership production checks open until independently verified live.
+
+### Future — Call Your Caddie Live / Private Calling
+
+Twilio remains future infrastructure rather than a mailbox launch dependency. Phase 2 may add the permanent phone number, ON AIR state, four-caller queue, browser answering, 10 Minutes in Heaven, +2 minutes, and livestream support. Phase 3 may add the $199 / 45-minute private recorded call with Acuity appointment recognition.
+
+### Previous — v0.10.91.2 Mobile Event Experience Polish
 
 v0.10.91.2 is the launch-critical mobile event repair rather than a full mobile redesign. Calendar preview/month tiles now have native event links and can open preview events outside the displayed month; mobile event sheets are compact and vertically stacked; claimed-seat styling is consistent; ENTER GATHERING hands off to the full protected Event Room; protected Zoom entry is resilient to mobile popup blocking; event artwork preserves the full uploaded graphic across member-facing event surfaces; and Lounge/My Upcoming Events uses equal-width, stacked mobile actions. No migration is required; migration **078** remains latest and **079** remains next. Vercel remains 12/12.
 
@@ -42,9 +54,9 @@ Verify the mobile calendar, Event Room, protected Zoom doorway, Lounge/My Upcomi
 
 Reorganize Flowtel mobile as an intentional information architecture rather than continuing to compress desktop surfaces. Revisit the mobile hierarchy across **Suite → Lounge → Calendar → Event Room**, establish a consistent card/sheet/navigation system, reduce above-the-fold density, and decide which hospitality actions deserve primary placement on small screens. Preserve the current launch-safe mobile behaviors while redesigning the system as a whole.
 
-### Next planned functional release — v0.10.92 Cycle Restart Correction
+### Next planned Flowtel correction — v0.10.93 Cycle Restart Correction
 
-Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **079** is next if the cycle-correction release needs database work.
+Add a member-facing **Return to Previous Cycle** / **Undo Cycle Restart** correction for an accidental confirmed cycle restart. Preserve the mistaken restart and correction in history/audit context; restore the prior cycle anchor and recalculate subsequent cycle progression without requiring the member to remember a historical start date. Keep one Stay per Flowtel Day and append/history principles intact. Migration **080** is next if the cycle-correction release needs database work.
 
 ### After that — Front Desk / Concierge Messages
 

@@ -11,6 +11,9 @@ This directory is the canonical Caddie Magic product surface inside the shared F
 - `/caddie-magic/compass/club/` — personalized North, East, South, or West Cardinal Club room
 - `/caddie-magic/caddies/` — approved Caddie directory, player request, accepted-only availability, and consultation scheduling
 - `/caddie-magic/caddie-desk/` — owner-approved Caddie Profile, private Caddie Team messages, player requests, availability, Acuity sessions, and read-only preparation
+- `/caddie-magic/call-your-caddie/` — native browser voice-note recorder for the Call Your Caddie mailbox
+- `/manager/call-your-caddie/` — owner-only Caddie Mailbox and Show Queue
+- `/manager/call-your-caddie/studio/` — clean OBS-friendly playback + response stage
 - `/caddie-magic/compass/admin/` — retained legacy owner/admin Compass history surface; not part of Caddie Network permissions
 
 ## Current service boundary
@@ -58,6 +61,6 @@ Caddie Magic players use the explicit product-access registry introduced in migr
 
 Both historical migration 052 bodies are already live and must not be rerun or renamed. Migration 053 adds controlled courses, Scorecard Review credits, VIP Caddie Master access, and the shared scheduling foundation without replacing Player identity. Migration 055 adds the owner Command Center, separate private Caddie Team messages, Upcoming Golf acknowledgment, team profiles, and Compass Consecration.
 
-Current integrated version: **Caddie Magic v0.6.0 / Flowtel v0.10.81.3**.
+Current integrated version: **Caddie Magic v0.7.0 / Flowtel v0.10.92**.
 
-Run `node scripts/validate-caddie-magic.mjs` before shipping a merged release.
+Run `node scripts/validate-caddie-magic.mjs` and `node scripts/validate-call-your-caddie.mjs` before shipping a merged release.

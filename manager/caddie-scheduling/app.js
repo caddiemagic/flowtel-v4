@@ -4,7 +4,7 @@ import {
   getCaddieTeamMessages,
   sendCaddieTeamMessage,
   setCompassConsecrated,
-} from "../../shared/caddie-magic-network.js?v=0.6.0";
+} from "../../shared/caddie-magic-network.js?v=0.7.0";
 
 const $=(id)=>document.getElementById(id);
 const WEEKDAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];

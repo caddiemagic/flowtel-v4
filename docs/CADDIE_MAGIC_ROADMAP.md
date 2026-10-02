@@ -6,6 +6,25 @@
 
 It uses the Flowtel hospitality engine as a foundation, but the brand world remains separate: a private moonlit golf club, a brass-plated Locker Room, personalized Cardinal Clubs, and a quiet professional Caddie Network.
 
+
+## Current — v0.7.0 Call Your Caddie / Caddie Mailbox
+
+Call Your Caddie launches first as a **native Caddie Magic voice-note experience**, not a telephone integration. An authenticated Player enters a first name + handicap, explicitly consents to recording/publication, records up to five minutes in the browser, previews/re-records locally, and sends the final audio into a private Supabase Storage bucket.
+
+The Caddie Master receives each message as **NEW · UNHEARD**. Downloading/preparing private audio does not count as listening; the canonical `first_listened_at` is written only when owner playback actually starts. The owner Mailbox supports New / Listened / Use on Show / Used / Archived, caller-name correction, notes, and a Show Queue.
+
+OBS Studio Mode preloads a selected private recording without playing it, then provides a clean **PLAY VOICEMAIL** stage. When the message ends the visual state becomes **CADDIE'S RESPONSE**, preserving the intended first-reaction workflow. OBS remains the recorder; Flowtel remains the content/control surface.
+
+Phase 1 intentionally has **no Twilio dependency, no transcription, no YouTube/podcast publishing automation, no live caller queue, no browser softphone, and no Acuity private-call dependency**. Vercel remains 12/12 because the feature uses existing Supabase Auth + private Storage + RLS/RPC boundaries instead of a new API function. Migration **079** is the Caddie Mailbox foundation; **080** is next.
+
+### Future Phase 2 — Call Your Caddie Live
+
+Add Twilio only when live call-in infrastructure is ready: permanent number, ON AIR/OFF AIR state, four-caller queue, handicap capture, selectable browser answering, 10 Minutes in Heaven, +2 minutes, OBS broadcast scene, and YouTube livestream support.
+
+### Future Phase 3 — Private Call Your Caddie
+
+Add the $199 / 45-minute private recorded call with Acuity appointment recognition, the same permanent number, browser answering, timer/+2 minutes, and publication workflow.
+
 ## Foundation — Player data
 
 Open:

@@ -26,6 +26,16 @@ const required = [
   "caddie-magic/caddie-desk/index.html",
   "caddie-magic/caddie-desk/app.js",
   "caddie-magic/caddie-desk/styles.css",
+  "caddie-magic/call-your-caddie/index.html",
+  "caddie-magic/call-your-caddie/app.js",
+  "caddie-magic/call-your-caddie/styles.css",
+  "shared/caddie-magic-mailbox.js",
+  "manager/call-your-caddie/index.html",
+  "manager/call-your-caddie/app.js",
+  "manager/call-your-caddie/styles.css",
+  "manager/call-your-caddie/studio/index.html",
+  "manager/call-your-caddie/studio/app.js",
+  "manager/call-your-caddie/studio/styles.css",
   "shared/caddie-magic-access.js",
   "shared/caddie-magic-reviews.js",
   "shared/caddie-magic-compass.js",
@@ -49,6 +59,7 @@ const required = [
   "database/migration-052-combined-flowtel-caddie-updates.sql",
   "database/migration-053-caddie-network-reintegration-shared-scheduling.sql",
   "database/migration-055-caddie-master-command-center.sql",
+  "database/migration-079-call-your-caddie-mailbox.sql",
 ];
 
 const missing = [];
@@ -87,6 +98,12 @@ const files = {
   commandMigration: await read("database/migration-055-caddie-master-command-center.sql"),
   teamHtml: await read("manager/caddie-team/index.html"),
   teamJs: await read("manager/caddie-team/app.js"),
+  callHtml: await read("caddie-magic/call-your-caddie/index.html"),
+  callJs: await read("caddie-magic/call-your-caddie/app.js"),
+  mailboxShared: await read("shared/caddie-magic-mailbox.js"),
+  mailboxAdminHtml: await read("manager/call-your-caddie/index.html"),
+  studioHtml: await read("manager/call-your-caddie/studio/index.html"),
+  mailboxMigration: await read("database/migration-079-call-your-caddie-mailbox.sql"),
 };
 
 // Version coherence and removal of internal user-facing version pills.
@@ -99,15 +116,16 @@ const caddieHtmlFiles = [
   "caddie-magic/compass/club/index.html",
   "caddie-magic/caddies/index.html",
   "caddie-magic/caddie-desk/index.html",
+  "caddie-magic/call-your-caddie/index.html",
 ];
 for (const file of caddieHtmlFiles) {
   const html = await read(file);
-  assert(html.includes("0.6.0"), `${file}: missing v0.6.0 cache/version wiring.`);
+  assert(html.includes("0.7.0"), `${file}: missing v0.7.0 cache/version wiring.`);
   assert(!html.includes("cm-version"), `${file}: internal version pill is still user-facing.`);
   assert(!/v0\.(4\.6|5\.0)/.test(html), `${file}: stale active Caddie version remains.`);
 }
-assert(files.managerHtml.includes('app.js?v=0.10.83'), "Manager loader is not on the current Flowtel release.");
-assert(files.managerJs.includes('caddie-magic-network.js?v=0.6.0'), "Manager Caddie Network wiring is not preserved at v0.6.0.");
+assert(files.managerHtml.includes('app.js?v=0.10.92'), "Manager loader is not on the current Flowtel release.");
+assert(files.managerJs.includes('caddie-magic-network.js?v=0.7.0'), "Manager Caddie Network wiring is not preserved at v0.7.0.");
 
 const vercel = JSON.parse(await read("vercel.json"));
 const rewriteSources = new Set((vercel.rewrites || []).map((item) => item.source));
@@ -120,16 +138,36 @@ for (const route of [
   "/caddie-magic/compass/club",
   "/caddie-magic/caddies",
   "/caddie-magic/caddie-desk",
+  "/caddie-magic/call-your-caddie",
+  "/manager/call-your-caddie",
+  "/manager/call-your-caddie/studio",
 ]) assert(rewriteSources.has(route), `vercel.json: missing explicit rewrite for ${route}`);
 const versionHeaders = (vercel.headers || [])
   .filter((entry) => String(entry.source || "").startsWith("/caddie-magic") || String(entry.source || "").startsWith("/manager"))
   .flatMap((entry) => entry.headers || [])
   .filter((header) => header.key === "X-Caddie-Magic-Version");
 assert(versionHeaders.length >= 2, "Caddie Magic version headers are missing.");
-assert(versionHeaders.every((header) => header.value === "0.6.0"), "Caddie Magic version headers are not coherent at 0.5.2.");
+assert(versionHeaders.every((header) => header.value === "0.7.0"), "Caddie Magic version headers are not coherent at 0.7.0.");
+
+// Call Your Caddie v0.7.0 browser-mailbox contract.
+for (const token of ["LEAVE A MESSAGE", "START RECORDING", "SEND TO MY CADDIE", "I CONSENT TO RECORDING MY VOICE", "I CONSENT TO PUBLICATION + MEDIA USE"]) {
+  assert(files.callHtml.toUpperCase().includes(token), `Call Your Caddie player experience missing: ${token}`);
+}
+for (const token of ["MediaRecorder", "getUserMedia", "CADDIE_MAILBOX_MAX_SECONDS", "submitCaddieMailboxMessage"]) {
+  assert(files.callJs.includes(token), `Call Your Caddie recorder wiring missing: ${token}`);
+}
+for (const token of ["caddie-mailbox-audio", "browser_voice_note", "caddie_magic_submit_mailbox_message", "caddie_magic_mailbox_mark_listened", "caddie_magic_mailbox_admin_update"]) {
+  assert(files.mailboxMigration.includes(token), `Migration 079 mailbox foundation missing: ${token}`);
+}
+assert(files.mailboxMigration.includes("recording_duration_seconds between 1 and 300"), "Mailbox recording duration is not capped at 5 minutes.");
+assert(files.mailboxMigration.includes("consent_recording and consent_publication"), "Mailbox consent is not enforced server-side.");
+assert(files.mailboxAdminHtml.includes("CADDIE MAILBOX"), "Caddie Mailbox owner room is missing.");
+assert(files.studioHtml.includes("CADDIE'S RESPONSE"), "OBS Studio Mode response state is missing.");
+assert(files.mailboxShared.includes("downloadCaddieMailboxAudio"), "Private mailbox audio retrieval helper is missing.");
+assert(!files.callHtml.toLowerCase().includes("twilio"), "Twilio leaked into the Phase 1 Player experience.");
 
 // Player Profile: exact approved card family plus separate Caddie Master services.
-for (const label of ["Assignments", "Caddie Compass", "Caddie Network", "Calendar"]) {
+for (const label of ["Assignments", "Call Your Caddie", "Caddie Compass", "Caddie Network", "Calendar"]) {
   assert(files.playerJs.includes(`<span>${label}</span>`), `Player Profile card missing: ${label}`);
 }
 assert(files.playerHtml.includes('id="lockerRoomSharingToggle"'), "Locker Room sharing toggle is missing from Player Profile.");
@@ -142,7 +180,7 @@ assert(files.playerHtml.includes("Messages with The Caddie Master"), "VIP Caddie
 assert(files.playerJs.includes('isPlayer ? "You" : "The Caddie Master"'), "Message thread does not distinguish You and The Caddie Master.");
 assert(files.playerJs.includes("vip_messaging_enabled"), "VIP messaging gate is missing from Player UI.");
 assert(files.playerJs.includes("available_review_credits"), "Scorecard Review credit state is missing from Player UI.");
-assert(files.playerHtml.includes('app.js?v=0.6.0'), "Player Profile login bootstrap cache-bust is missing.");
+assert(files.playerHtml.includes('app.js?v=0.7.0'), "Player Profile login bootstrap cache-bust is missing.");
 assert(/const invitationParams = new URLSearchParams\(window\.location\.search\);[\s\S]*bindEvents\(\);\s*bootPortal\(\);\s*$/.test(files.playerJs), "Player Profile module does not initialize invitation state, bind controls, and restore the remembered session at top level.");
 
 // Compass must be a functional four-door map, not the reverted assignment/message surface.
@@ -293,4 +331,4 @@ assert(files.commandMigration.includes('caddie_magic_acknowledge_upcoming_golf')
 assert(files.teamJs.includes('currentUserHasConciergeAccess'), "Owner-only Caddie Team page gate is missing.");
 assert((vercel.rewrites||[]).some(row=>row.source==='/manager/caddie-team'&&row.destination==='/manager/caddie-team/index.html'), "Caddie Team route is missing.");
 
-console.log(`Caddie Magic v0.6.0 validation passed (${required.length} canonical files plus routes, roles, SQL, and UI boundaries checked).`);
+console.log(`Caddie Magic v0.7.0 validation passed (${required.length} canonical files plus routes, roles, SQL, and UI boundaries checked).`);

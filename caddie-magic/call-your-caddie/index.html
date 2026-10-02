@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Call Your Caddie · Caddie Magic</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.7.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.0" />
+</head>
+<body>
+  <main class="cm-shell cycs-shell">
+    <section class="cm-hero cycs-hero">
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <p class="cm-eyebrow">CADDIE MAGIC</p>
+      <h1>CALL YOUR CADDIE</h1>
+      <p class="cm-lead"><strong>Got a golf problem?</strong><br>Leave it with your Caddie.</p>
+      <div class="cycs-hero-actions">
+        <a class="cm-button secondary" href="/caddie-magic/">← Player Profile</a>
+        <a class="cm-button" href="#leave-message">Leave a Voice Message</a>
+      </div>
+    </section>
+
+    <section class="cm-card cycs-intro-card">
+      <div>
+        <p class="cm-eyebrow">CADDIE MAILBOX · AVAILABLE NOW</p>
+        <h2>Tell me what is happening in your golf game.</h2>
+        <p class="cm-muted">No appointment. No video. One question, in your own voice, with up to five minutes to tell the whole story.</p>
+      </div>
+      <div class="cycs-how-grid" aria-label="How Call Your Caddie works">
+        <article><span>01</span><strong>YOUR NAME</strong><small>Tell the Caddie who is calling.</small></article>
+        <article><span>02</span><strong>YOUR HANDICAP</strong><small>Give the game a little context.</small></article>
+        <article><span>03</span><strong>ONE GOLF QUESTION</strong><small>Be specific. Tell the whole story.</small></article>
+        <article><span>04</span><strong>UP TO 5 MINUTES</strong><small>Leave it in the Caddie Mailbox.</small></article>
+      </div>
+    </section>
+
+    <section class="cm-card cycs-recorder-card" id="leave-message">
+      <div class="cycs-section-heading">
+        <div>
+          <p class="cm-eyebrow">LEAVE A MESSAGE</p>
+          <h2>Call Your Caddie.</h2>
+        </div>
+        <span class="cycs-status-pill" id="recorderState">READY</span>
+      </div>
+
+      <div class="cycs-loading" id="recorderLoading">Opening your Player Profile…</div>
+
+      <form class="cycs-form hidden" id="mailboxForm">
+        <div class="cycs-two-col">
+          <label>First Name
+            <input id="callerName" type="text" autocomplete="given-name" maxlength="60" required placeholder="Ryan" />
+          </label>
+          <label>Handicap
+            <input id="handicap" type="text" maxlength="24" required placeholder="8" />
+          </label>
+        </div>
+
+        <div class="cycs-consent-stack" aria-label="Recording and publication consent">
+          <label class="cycs-consent" for="recordingConsent">
+            <input id="recordingConsent" type="checkbox" required />
+            <span>
+              <strong>I CONSENT TO RECORDING MY VOICE</strong>
+              <small>I understand that this voice note will be recorded and stored privately in the Caddie Mailbox.</small>
+            </span>
+          </label>
+          <label class="cycs-consent" for="publicationConsent">
+            <input id="publicationConsent" type="checkbox" required />
+            <span>
+              <strong>I CONSENT TO PUBLICATION + MEDIA USE</strong>
+              <small>I understand that my voice and golf question may be played, edited, published, and answered through Call Your Caddie, Caddie Magic, YouTube, podcast platforms, and social media. I will not share anything I do not want made public.</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="cycs-recorder" id="recorderPanel">
+          <div class="cycs-record-face" id="recordFace" aria-live="polite">
+            <span class="cycs-record-dot" aria-hidden="true"></span>
+            <div>
+              <strong id="recordPrompt">Ready when you are.</strong>
+              <small id="recordSubcopy">Ask one golf question. You have up to five minutes.</small>
+            </div>
+          </div>
+          <div class="cycs-timer" id="recordTimer">00:00 <span>/ 05:00</span></div>
+          <div class="cycs-recorder-actions">
+            <button class="cm-button" id="startRecordingButton" type="button">Start Recording</button>
+            <button class="cm-button secondary hidden" id="stopRecordingButton" type="button">Stop Recording</button>
+          </div>
+          <p class="cycs-mic-note">Your browser will ask for microphone access. Nothing is sent to the Caddie Mailbox until you press <strong>Send to My Caddie</strong>.</p>
+        </div>
+
+        <section class="cycs-preview hidden" id="previewPanel" aria-live="polite">
+          <p class="cm-eyebrow">YOUR VOICE NOTE</p>
+          <h3>Listen back before you send it.</h3>
+          <audio id="previewAudio" controls preload="metadata"></audio>
+          <div class="cycs-preview-actions">
+            <button class="cm-button secondary" id="recordAgainButton" type="button">Record Again</button>
+            <button class="cm-button" id="sendMessageButton" type="submit">Send to My Caddie</button>
+          </div>
+        </section>
+      </form>
+
+      <p class="cm-message" id="mailboxMessage" role="status"></p>
+
+      <section class="cycs-success hidden" id="successPanel" aria-live="polite">
+        <span>✓</span>
+        <p class="cm-eyebrow">MESSAGE RECEIVED</p>
+        <h2>It’s in the Caddie Mailbox.</h2>
+        <p>Your question is waiting for the Caddie. It may be answered on Call Your Caddie, YouTube, podcast platforms, or Caddie Magic media.</p>
+        <button class="cm-button secondary" id="leaveAnotherButton" type="button">Leave Another Message</button>
+      </section>
+    </section>
+
+    <section class="cm-card cycs-modes-card">
+      <p class="cm-eyebrow">WAYS TO CALL YOUR CADDIE</p>
+      <div class="cycs-mode-grid">
+        <article class="is-live">
+          <span>AVAILABLE NOW</span>
+          <h3>CADDIE MAILBOX</h3>
+          <p>Free. Leave one golf problem or question in a voice note up to five minutes.</p>
+          <a class="cm-button" href="#leave-message">Leave a Message</a>
+        </article>
+        <article>
+          <span>COMING SOON</span>
+          <h3>CALL YOUR CADDIE LIVE</h3>
+          <p>Four callers. Ten Minutes in Heaven. A live conversation with the Caddie.</p>
+          <div class="cycs-coming-soon">LINES CLOSED</div>
+        </article>
+        <article>
+          <span>COMING SOON</span>
+          <h3>PRIVATE CALL YOUR CADDIE</h3>
+          <p>45 minutes · $199. One-on-one recorded Call Your Caddie session.</p>
+          <div class="cycs-coming-soon">BOOKING SOON</div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./app.js?v=0.7.0"></script>
+</body>
+</html>

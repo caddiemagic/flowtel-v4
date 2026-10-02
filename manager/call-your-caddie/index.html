@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Caddie Mailbox · Call Your Caddie</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.7.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.0" />
+</head>
+<body>
+  <main class="cm-shell mailbox-shell">
+    <section class="cm-hero mailbox-hero">
+      <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
+      <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
+      <p class="cm-eyebrow">THE CADDIE MASTER</p>
+      <h1>CADDIE MAILBOX</h1>
+      <p class="cm-lead">Unheard golf problems, show selections, and Call Your Caddie recordings.</p>
+      <div class="mailbox-hero-actions">
+        <a class="cm-button secondary" href="/manager/">← Concierge Desk</a>
+        <a class="cm-button" href="/manager/call-your-caddie/studio/">Enter Studio Mode</a>
+      </div>
+    </section>
+
+    <section class="cm-card mailbox-summary" id="summaryCard">
+      <div><p class="cm-eyebrow">MAILBOX STATUS</p><h2 id="summaryTitle">Opening the Caddie Mailbox…</h2></div>
+      <div class="mailbox-counts" id="mailboxCounts"></div>
+    </section>
+
+    <section class="cm-card mailbox-desk hidden" id="mailboxDesk">
+      <div class="mailbox-tabs" id="mailboxTabs" role="tablist" aria-label="Caddie Mailbox filters">
+        <button type="button" data-filter="new" class="is-active">New</button>
+        <button type="button" data-filter="listened">Listened</button>
+        <button type="button" data-filter="selected">Use on Show</button>
+        <button type="button" data-filter="used">Used</button>
+        <button type="button" data-filter="archived">Archived</button>
+        <button type="button" data-filter="all">All</button>
+      </div>
+      <div class="mailbox-list" id="mailboxList"></div>
+      <p class="cm-message" id="mailboxStatus" role="status"></p>
+    </section>
+  </main>
+  <script type="module" src="./app.js?v=0.7.0"></script>
+</body>
+</html>
