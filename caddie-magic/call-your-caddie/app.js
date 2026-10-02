@@ -4,7 +4,7 @@ import {
   formatMailboxDuration,
   getMyMailboxPlayerSnapshot,
   submitCaddieMailboxMessage,
-} from "../../shared/caddie-magic-mailbox.js?v=0.7.0";
+} from "../../shared/caddie-magic-mailbox.js?v=0.10.92.1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -12,8 +12,8 @@ const form = $("mailboxForm");
 const loading = $("recorderLoading");
 const callerName = $("callerName");
 const handicap = $("handicap");
-const recordingConsent = $("recordingConsent");
-const publicationConsent = $("publicationConsent");
+const mediaConsent = $("mediaConsent");
+const anonymityRequested = $("anonymityRequested");
 const startButton = $("startRecordingButton");
 const stopButton = $("stopRecordingButton");
 const againButton = $("recordAgainButton");
@@ -95,7 +95,7 @@ function validateBeforeRecording() {
   const hcp = String(handicap.value || "").trim();
   if (!name) throw new Error("Enter your first name before recording.");
   if (!hcp) throw new Error("Enter your current handicap before recording.");
-  if (!recordingConsent.checked || !publicationConsent.checked) throw new Error("Consent to both recording and publication before you begin.");
+  if (!mediaConsent.checked) throw new Error("Consent to recording and media use before you begin.");
   if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
     throw new Error("This browser cannot record a voice note. Try the current version of Safari, Chrome, Edge, or Firefox.");
   }
@@ -191,8 +191,9 @@ async function sendMessage(event) {
       handicap: handicap.value,
       audioBlob: recordingBlob,
       durationSeconds: recordingDurationSeconds,
-      consentRecording: recordingConsent.checked,
-      consentPublication: publicationConsent.checked,
+      consentRecording: mediaConsent.checked,
+      consentPublication: mediaConsent.checked,
+      anonymityRequested: anonymityRequested.checked,
     });
     clearRecording();
     form.classList.add("hidden");
@@ -211,8 +212,8 @@ async function sendMessage(event) {
 function leaveAnother() {
   successPanel.classList.add("hidden");
   form.classList.remove("hidden");
-  recordingConsent.checked = false;
-  publicationConsent.checked = false;
+  mediaConsent.checked = false;
+  anonymityRequested.checked = false;
   clearRecording();
   setMessage("");
   document.querySelector("#leave-message")?.scrollIntoView({ behavior: "smooth", block: "start" });

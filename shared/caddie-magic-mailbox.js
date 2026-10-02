@@ -7,7 +7,7 @@ import { requireProductAccess } from "./product-access.js";
 export const CADDIE_MAILBOX_BUCKET = "caddie-mailbox-audio";
 export const CADDIE_MAILBOX_MAX_SECONDS = 300;
 export const CADDIE_MAILBOX_MAX_BYTES = 50 * 1024 * 1024;
-export const CADDIE_MAILBOX_CONSENT_VERSION = "caddie-mailbox-v1";
+export const CADDIE_MAILBOX_CONSENT_VERSION = "caddie-mailbox-v2";
 export const CADDIE_MAILBOX_STATUSES = ["new", "listened", "selected", "used", "archived"];
 
 const MIME_EXTENSION = new Map([
@@ -77,6 +77,7 @@ export async function submitCaddieMailboxMessage({
   durationSeconds,
   consentRecording,
   consentPublication,
+  anonymityRequested = false,
 } = {}) {
   const { user } = await getMyMailboxPlayerSnapshot();
   if (!messageId) throw new Error("The voice-note identifier is missing.");
@@ -110,6 +111,7 @@ export async function submitCaddieMailboxMessage({
       p_recording_duration_seconds: duration,
       p_consent_recording: Boolean(consentRecording),
       p_consent_publication: Boolean(consentPublication),
+      p_anonymity_requested: Boolean(anonymityRequested),
     });
     if (error) throw error;
     return data || messageId;

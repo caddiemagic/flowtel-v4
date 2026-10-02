@@ -60,6 +60,7 @@ const required = [
   "database/migration-053-caddie-network-reintegration-shared-scheduling.sql",
   "database/migration-055-caddie-master-command-center.sql",
   "database/migration-079-call-your-caddie-mailbox.sql",
+  "database/migration-080-call-your-caddie-anonymity.sql",
 ];
 
 const missing = [];
@@ -102,8 +103,11 @@ const files = {
   callJs: await read("caddie-magic/call-your-caddie/app.js"),
   mailboxShared: await read("shared/caddie-magic-mailbox.js"),
   mailboxAdminHtml: await read("manager/call-your-caddie/index.html"),
+  mailboxAdminJs: await read("manager/call-your-caddie/app.js"),
   studioHtml: await read("manager/call-your-caddie/studio/index.html"),
+  studioJs: await read("manager/call-your-caddie/studio/app.js"),
   mailboxMigration: await read("database/migration-079-call-your-caddie-mailbox.sql"),
+  mailboxPrivacyMigration: await read("database/migration-080-call-your-caddie-anonymity.sql"),
 };
 
 // Version coherence and removal of internal user-facing version pills.
@@ -149,10 +153,16 @@ const versionHeaders = (vercel.headers || [])
 assert(versionHeaders.length >= 2, "Caddie Magic version headers are missing.");
 assert(versionHeaders.every((header) => header.value === "0.7.0"), "Caddie Magic version headers are not coherent at 0.7.0.");
 
-// Call Your Caddie v0.7.0 browser-mailbox contract.
-for (const token of ["LEAVE A MESSAGE", "START RECORDING", "SEND TO MY CADDIE", "I CONSENT TO RECORDING MY VOICE", "I CONSENT TO PUBLICATION + MEDIA USE"]) {
+// Call Your Caddie v0.7.0 browser-mailbox contract + v0.10.92.1 launch polish.
+for (const token of ["LEAVE A MESSAGE", "START RECORDING", "SEND TO MY CADDIE", "I CONSENT TO RECORDING + MEDIA USE", "HOW IT WORKS"]) {
   assert(files.callHtml.toUpperCase().includes(token), `Call Your Caddie player experience missing: ${token}`);
 }
+for (const token of ["You have a problem or an observation", "You record a voicemail and tell me about it", "Tune in to the Call Your Caddie podcast for my response", "Please do not use my name in the podcast"]) {
+  assert(files.callHtml.includes(token), `Call Your Caddie requested copy missing: ${token}`);
+}
+assert(!files.callHtml.includes("Got a golf problem?"), "Removed hero problem copy is still present.");
+assert(!files.callHtml.includes("Leave it with your Caddie."), "Removed hero solution copy is still present.");
+assert.equal((files.callHtml.match(/id="mediaConsent"/g) || []).length, 1, "Call Your Caddie must use one combined required consent checkbox.");
 for (const token of ["MediaRecorder", "getUserMedia", "CADDIE_MAILBOX_MAX_SECONDS", "submitCaddieMailboxMessage"]) {
   assert(files.callJs.includes(token), `Call Your Caddie recorder wiring missing: ${token}`);
 }
@@ -164,6 +174,11 @@ assert(files.mailboxMigration.includes("consent_recording and consent_publicatio
 assert(files.mailboxAdminHtml.includes("CADDIE MAILBOX"), "Caddie Mailbox owner room is missing.");
 assert(files.studioHtml.includes("CADDIE'S RESPONSE"), "OBS Studio Mode response state is missing.");
 assert(files.mailboxShared.includes("downloadCaddieMailboxAudio"), "Private mailbox audio retrieval helper is missing.");
+assert(files.mailboxShared.includes("p_anonymity_requested"), "Mailbox submission does not persist anonymity requests.");
+assert(files.mailboxPrivacyMigration.includes("anonymity_requested boolean not null default false"), "Migration 080 anonymity flag is missing.");
+assert(files.mailboxPrivacyMigration.includes("caddie-mailbox-v2"), "Migration 080 combined-consent version is missing.");
+assert(files.mailboxAdminJs.includes("ANONYMITY REQUESTED"), "Private Mailbox anonymity badge is missing.");
+assert(files.studioJs.includes('"ANONYMOUS"'), "Studio Mode does not mask anonymity-requested caller names.");
 assert(!files.callHtml.toLowerCase().includes("twilio"), "Twilio leaked into the Phase 1 Player experience.");
 
 // Player Profile: exact approved card family plus separate Caddie Master services.

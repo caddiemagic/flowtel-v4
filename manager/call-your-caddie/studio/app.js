@@ -5,7 +5,7 @@ import {
   markCaddieMailboxListened,
   requireCaddieMailboxOwner,
   updateCaddieMailboxMessage,
-} from "../../../shared/caddie-magic-mailbox.js?v=0.7.0";
+} from "../../../shared/caddie-magic-mailbox.js?v=0.10.92.1";
 
 const $ = (id) => document.getElementById(id);
 const targetId = new URLSearchParams(location.search).get("message") || "";
@@ -16,6 +16,9 @@ let firstListenMarked = false;
 
 function escapeHtml(value = "") {
   return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+}
+function publicCallerName(message) {
+  return message?.anonymity_requested ? "ANONYMOUS" : String(message?.caller_name || "Caller");
 }
 function setMessage(text = "", error = false) {
   $("stageMessage").textContent = text;
@@ -35,7 +38,7 @@ function renderQueue() {
   $("queueList").innerHTML = queue.length ? queue.map((message) => `
     <button type="button" data-load-message="${message.message_id}">
       <span>${message.first_listened_at ? "LISTENED" : "UNHEARD"}</span>
-      <strong>${escapeHtml(message.caller_name)}</strong>
+      <strong>${escapeHtml(publicCallerName(message))}</strong>
       <small>HCP ${escapeHtml(message.handicap)} · ${formatMailboxDuration(message.recording_duration_seconds)}</small>
     </button>`).join("") : `<div class="queue-empty">The Show Queue is empty. Add a message with <strong>USE ON SHOW</strong> in the Caddie Mailbox.</div>`;
   document.querySelectorAll("[data-load-message]").forEach((button) => button.addEventListener("click", () => loadStage(button.dataset.loadMessage)));
@@ -69,10 +72,10 @@ async function loadStage(messageId) {
     audio.src = currentUrl;
     audio.load();
 
-    $("callerDisplay").textContent = String(message.caller_name || "Caller").toUpperCase();
+    $("callerDisplay").textContent = publicCallerName(message).toUpperCase();
     $("handicapDisplay").textContent = `HCP ${message.handicap}`;
     $("durationDisplay").textContent = formatMailboxDuration(message.recording_duration_seconds);
-    $("responseIdentity").textContent = `${String(message.caller_name || "Caller").toUpperCase()} · HCP ${message.handicap}`;
+    $("responseIdentity").textContent = `${publicCallerName(message).toUpperCase()} · HCP ${message.handicap}`;
     $("stageKicker").textContent = message.first_listened_at ? "MESSAGE FOR THE CADDIE" : "NEW · UNHEARD";
     $("playerPanel").classList.remove("hidden");
     $("responsePanel").classList.add("hidden");

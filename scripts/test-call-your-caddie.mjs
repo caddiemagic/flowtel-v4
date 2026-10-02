@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const migration = await readFile("database/migration-079-call-your-caddie-mailbox.sql", "utf8");
+const migration080 = await readFile("database/migration-080-call-your-caddie-anonymity.sql", "utf8");
 const player = await readFile("caddie-magic/call-your-caddie/app.js", "utf8");
 const admin = await readFile("manager/call-your-caddie/app.js", "utf8");
 const studio = await readFile("manager/call-your-caddie/studio/app.js", "utf8");
@@ -10,6 +11,13 @@ const studio = await readFile("manager/call-your-caddie/studio/app.js", "utf8");
 assert.match(migration, /now\(\),'new',now\(\),now\(\),now\(\)/);
 assert.match(migration, /p_consent_recording is distinct from true or p_consent_publication is distinct from true/);
 assert.match(migration, /consented_at timestamptz not null/);
+assert(player.includes("mediaConsent.checked"));
+assert(!player.includes("recordingConsent.checked") && !player.includes("publicationConsent.checked"));
+assert(player.includes("anonymityRequested.checked"));
+assert(migration080.includes("anonymity_requested boolean not null default false"));
+assert(migration080.includes("coalesce(p_anonymity_requested,false)"));
+assert(studio.includes("message?.anonymity_requested ? \"ANONYMOUS\""));
+assert(admin.includes("ANONYMITY REQUESTED"));
 
 // Downloading/preparing media must not itself mark a message listened.
 const sharedSource = await readFile("shared/caddie-magic-mailbox.js", "utf8");
@@ -45,4 +53,4 @@ for (const status of ["new", "listened", "selected", "used", "archived"]) {
 assert(admin.includes('status === "selected"'));
 assert(studio.includes('status: "used"'));
 
-console.log("Call Your Caddie behavior tests passed: NEW/UNHEARD, explicit consent, five-minute stop, selected-first-listen preservation, Studio preloading, response transition, and USED workflow verified.");
+console.log("Call Your Caddie behavior tests passed: NEW/UNHEARD, combined consent, anonymity handling, five-minute stop, selected-first-listen preservation, Studio preloading, response transition, and USED workflow verified.");

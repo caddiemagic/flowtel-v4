@@ -1,3 +1,16 @@
+# Flowtel Changelog
+
+## v0.10.92.1 — Call Your Caddie Form + Anonymity Polish
+
+- Removed the extra hero problem/solution line from Call Your Caddie.
+- Replaced the explanatory intro with the exact three-step **HOW IT WORKS** copy requested for launch.
+- Enlarged First Name and Handicap inputs for easier reading and tapping.
+- Combined recording/publication consent into one required checkbox while preserving both stored consent flags.
+- Added optional **Please do not use my name in the podcast** privacy request.
+- The private Caddie Mailbox shows **ANONYMITY REQUESTED** while retaining the caller name for The Caddie Master.
+- Studio Mode and its Show Queue automatically display **ANONYMOUS** instead of the caller name when requested.
+- Adds migration 080; no new Vercel function or environment variable. Vercel remains 12/12.
+
 ## v0.10.92 — Call Your Caddie Mailbox
 
 - Advances Caddie Magic to **v0.7.0** with a native browser voice-note Call Your Caddie Studio; Twilio is intentionally deferred.

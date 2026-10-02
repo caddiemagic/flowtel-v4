@@ -1,0 +1,74 @@
+FLOWTEL v0.10.92.1 — CALL YOUR CADDIE FORM + ANONYMITY POLISH
+
+EXPECTED SOURCE
+- Flowtel v0.10.92 / Caddie Magic v0.7.0
+- GitHub main commit: cc908a58fb20a07a94bc74e2b47e45e9abd01c59
+
+TARGET
+- Flowtel v0.10.92.1
+- Caddie Magic remains v0.7.0 with launch-polish updates
+
+ADDED FILES
+- PATCH-INSTRUCTIONS-v0.10.92.1.txt
+- database/migration-080-call-your-caddie-anonymity.sql
+- docs/LIVE-TEST-v0.10.92.1.md
+- docs/RELEASE-0.10.92.1.md
+- scripts/test-flowtel-010921-call-your-caddie-polish.mjs
+- scripts/validate-flowtel-010921-call-your-caddie-polish.mjs
+
+MODIFIED FILES
+- caddie-magic/call-your-caddie/app.js
+- caddie-magic/call-your-caddie/index.html
+- caddie-magic/call-your-caddie/styles.css
+- docs/CADDIE_MAGIC_ROADMAP.md
+- docs/CHANGELOG.md
+- manager/call-your-caddie/app.js
+- manager/call-your-caddie/index.html
+- manager/call-your-caddie/studio/app.js
+- manager/call-your-caddie/studio/index.html
+- manager/call-your-caddie/styles.css
+- scripts/test-call-your-caddie.mjs
+- scripts/validate-caddie-magic.mjs
+- scripts/validate-call-your-caddie.mjs
+- shared/caddie-magic-mailbox.js
+
+DELETED FILES
+- None.
+
+DATABASE
+- Run database/migration-080-call-your-caddie-anonymity.sql ONCE before deploying the frontend patch.
+- Migration 079 must already be installed.
+- Migration 080 adds caddie_magic_mailbox_messages.anonymity_requested and the v2 browser submission RPC.
+- The migration-079 nine-argument submit RPC overload is preserved so a stale/in-progress v1 browser can still finish a submission during rollout.
+- Latest after this release: 080.
+- Next migration: 081.
+
+ENVIRONMENT
+- No environment variable changes.
+
+VERCEL FUNCTIONS
+- Added: none.
+- Removed: none.
+- Current: 12/12.
+
+DEPLOY ORDER
+1. Confirm production is currently Flowtel v0.10.92 / GitHub commit cc908a58fb20a07a94bc74e2b47e45e9abd01c59.
+2. Run database/migration-080-call-your-caddie-anonymity.sql in Supabase.
+3. Extract flowtel-v0.10.92.1-patch-files.zip at the repository root, preserving project-relative paths.
+4. Commit and push to GitHub.
+5. Wait for Vercel to report Ready.
+6. Hard-refresh Call Your Caddie and run docs/LIVE-TEST-v0.10.92.1.md.
+
+FIRST LIVE TESTS
+- Confirm the removed hero copy is gone.
+- Confirm HOW IT WORKS uses exactly the three requested lines.
+- Confirm First Name + Handicap fields are larger on desktop and mobile.
+- Confirm one required combined recording/media-use consent checkbox.
+- Confirm optional “Please do not use my name in the podcast” checkbox.
+- Submit a named test and an anonymity-requested test.
+- Private Mailbox must retain the real first name and show ANONYMITY REQUESTED on the anonymous test.
+- Show Queue, voicemail stage, and CADDIE'S RESPONSE must display ANONYMOUS for the anonymous test.
+- Existing NEW/UNHEARD first-listen behavior and OBS audio playback must remain intact.
+
+ROLLBACK NOTE
+- Frontend rollback can restore the v0.10.92 files. The additive anonymity_requested column may safely remain in the database; do not rerun migration 079.

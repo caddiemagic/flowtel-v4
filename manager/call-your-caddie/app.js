@@ -5,7 +5,7 @@ import {
   markCaddieMailboxListened,
   requireCaddieMailboxOwner,
   updateCaddieMailboxMessage,
-} from "../../shared/caddie-magic-mailbox.js?v=0.7.0";
+} from "../../shared/caddie-magic-mailbox.js?v=0.10.92.1";
 
 const $ = (id) => document.getElementById(id);
 const listNode = $("mailboxList");
@@ -57,10 +57,10 @@ function messageCard(message) {
   const badge = unheard && !["used", "archived"].includes(message.status) ? `${labelStatus(message.status)} · UNHEARD` : labelStatus(message.status);
   return `<article class="mailbox-message ${unheard ? "is-unheard" : ""}" data-card-id="${message.message_id}">
     <div class="mailbox-message-top">
-      <div><span class="mailbox-badge">${escapeHtml(badge)}</span><h3>${escapeHtml(message.caller_name)}</h3><p>HCP ${escapeHtml(message.handicap)}</p></div>
+      <div><div class="mailbox-badge-row"><span class="mailbox-badge">${escapeHtml(badge)}</span>${message.anonymity_requested ? `<span class="mailbox-privacy-badge">ANONYMITY REQUESTED</span>` : ""}</div><h3>${escapeHtml(message.caller_name)}</h3><p>HCP ${escapeHtml(message.handicap)}</p></div>
       <div class="mailbox-meta"><strong>${formatMailboxDuration(message.recording_duration_seconds)}</strong><time>${escapeHtml(formatDate(message.received_at))}</time></div>
     </div>
-    <div class="mailbox-consent">✓ Recording + publication consent · ${escapeHtml(formatDate(message.consented_at))}</div>
+    <div class="mailbox-consent">✓ Recording + media-use consent · ${escapeHtml(formatDate(message.consented_at))}</div>
     <div class="mailbox-audio" data-audio-wrap="${message.message_id}">
       <button class="cm-button" type="button" data-play="${message.message_id}">▶ Play Voicemail</button>
     </div>

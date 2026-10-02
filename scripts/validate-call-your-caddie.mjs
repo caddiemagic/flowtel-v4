@@ -14,6 +14,7 @@ const required = [
   "manager/call-your-caddie/studio/app.js",
   "manager/call-your-caddie/studio/styles.css",
   "database/migration-079-call-your-caddie-mailbox.sql",
+  "database/migration-080-call-your-caddie-anonymity.sql",
   "docs/RELEASE-0.10.92.md",
   "docs/RELEASE-CADDIE-MAGIC-0.7.0.md",
   "vercel.json",
@@ -28,11 +29,20 @@ const adminJs = await read(required[5]);
 const studioHtml = await read(required[7]);
 const studioJs = await read(required[8]);
 const migration = await read(required[10]);
+const migration080 = await read("database/migration-080-call-your-caddie-anonymity.sql");
 const vercel = JSON.parse(await read("vercel.json"));
 
 assert(playerHtml.includes("CALL YOUR CADDIE"));
-assert(playerHtml.includes("I CONSENT TO RECORDING MY VOICE"));
-assert(playerHtml.includes("I CONSENT TO PUBLICATION + MEDIA USE"));
+assert(playerHtml.includes("I CONSENT TO RECORDING + MEDIA USE"));
+assert.equal((playerHtml.match(/id="mediaConsent"/g) || []).length, 1, "Combined consent checkbox is missing or duplicated.");
+assert(!playerHtml.includes("recordingConsent") && !playerHtml.includes("publicationConsent"), "Legacy split consent controls remain.");
+assert(playerHtml.includes("Please do not use my name in the podcast"));
+assert(playerHtml.includes("HOW IT WORKS"));
+assert(playerHtml.includes("You have a problem or an observation"));
+assert(playerHtml.includes("You record a voicemail and tell me about it"));
+assert(playerHtml.includes("Tune in to the Call Your Caddie podcast for my response"));
+assert(!playerHtml.includes("Got a golf problem?"));
+assert(!playerHtml.includes("Leave it with your Caddie."));
 assert(playerHtml.includes("SEND TO MY CADDIE") || playerHtml.includes("Send to My Caddie"));
 assert(playerJs.includes("navigator.mediaDevices.getUserMedia"));
 assert(playerJs.includes("new MediaRecorder"));
@@ -40,6 +50,8 @@ assert(playerJs.includes("CADDIE_MAILBOX_MAX_SECONDS"));
 assert(playerJs.includes("submitCaddieMailboxMessage"));
 assert(!/autoplay/i.test(playerHtml), "Player preview must never autoplay.");
 assert(!/twilio/i.test(playerHtml + playerJs + shared), "Twilio must not be a Phase 1 dependency.");
+assert(playerJs.includes("anonymityRequested.checked"));
+assert(shared.includes("p_anonymity_requested"));
 
 assert(shared.includes('CADDIE_MAILBOX_BUCKET = "caddie-mailbox-audio"'));
 assert(shared.includes("CADDIE_MAILBOX_MAX_SECONDS = 300"));
@@ -60,6 +72,9 @@ assert(studioJs.includes("downloadCaddieMailboxAudio"));
 assert(studioJs.includes('audio.addEventListener("play", markFirstListen)'));
 assert(studioJs.includes('audio.addEventListener("ended", responseState)'));
 assert(!/autoplay/i.test(studioHtml), "Studio voicemail must never autoplay.");
+assert(studioJs.includes("anonymity_requested"));
+assert(studioJs.includes("ANONYMOUS"));
+assert(adminJs.includes("ANONYMITY REQUESTED"));
 
 for (const token of [
   "caddie_magic_mailbox_messages",
@@ -76,6 +91,8 @@ for (const token of [
   "caddie_magic_mailbox_admin_update",
 ]) assert(migration.includes(token), `Migration 079 missing ${token}`);
 assert.equal((migration.match(/\$\$/g) || []).length % 2, 0, "Migration 079 has unmatched SQL dollar quotes.");
+for (const token of ["anonymity_requested", "caddie-mailbox-v2", "p_anonymity_requested", "caddie_magic_mailbox_admin_list"]) assert(migration080.includes(token), `Migration 080 missing ${token}`);
+assert.equal((migration080.match(/\$\$/g) || []).length % 2, 0, "Migration 080 has unmatched SQL dollar quotes.");
 
 const rewrites = new Map((vercel.rewrites || []).map((row) => [row.source, row.destination]));
 assert.equal(rewrites.get("/caddie-magic/call-your-caddie"), "/caddie-magic/call-your-caddie/index.html");
@@ -84,4 +101,4 @@ assert.equal(rewrites.get("/manager/call-your-caddie/studio"), "/manager/call-yo
 const versionHeaders = (vercel.headers || []).flatMap((row) => row.headers || []).filter((h) => h.key === "X-Caddie-Magic-Version");
 assert(versionHeaders.length >= 2 && versionHeaders.every((h) => h.value === "0.7.0"));
 
-console.log("Call Your Caddie v0.7.0 validation passed: browser recording, private mailbox, owner queue, Studio Mode, consent, 5-minute ceiling, routes, and no-Twilio launch boundary verified.");
+console.log("Call Your Caddie validation passed: browser recording, combined consent, anonymity request, private mailbox, owner queue, Studio Mode, 5-minute ceiling, routes, and no-Twilio launch boundary verified.");

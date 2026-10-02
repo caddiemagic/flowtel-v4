@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.7.0" />
-  <link rel="stylesheet" href="./styles.css?v=0.7.0" />
+  <link rel="stylesheet" href="./styles.css?v=0.10.92.1" />
 </head>
 <body>
   <main class="cm-shell cycs-shell">
@@ -17,7 +17,6 @@
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
       <p class="cm-eyebrow">CADDIE MAGIC</p>
       <h1>CALL YOUR CADDIE</h1>
-      <p class="cm-lead"><strong>Got a golf problem?</strong><br>Leave it with your Caddie.</p>
       <div class="cycs-hero-actions">
         <a class="cm-button secondary" href="/caddie-magic/">← Player Profile</a>
         <a class="cm-button" href="#leave-message">Leave a Voice Message</a>
@@ -25,16 +24,11 @@
     </section>
 
     <section class="cm-card cycs-intro-card">
-      <div>
-        <p class="cm-eyebrow">CADDIE MAILBOX · AVAILABLE NOW</p>
-        <h2>Tell me what is happening in your golf game.</h2>
-        <p class="cm-muted">No appointment. No video. One question, in your own voice, with up to five minutes to tell the whole story.</p>
-      </div>
+      <p class="cm-eyebrow">HOW IT WORKS</p>
       <div class="cycs-how-grid" aria-label="How Call Your Caddie works">
-        <article><span>01</span><strong>YOUR NAME</strong><small>Tell the Caddie who is calling.</small></article>
-        <article><span>02</span><strong>YOUR HANDICAP</strong><small>Give the game a little context.</small></article>
-        <article><span>03</span><strong>ONE GOLF QUESTION</strong><small>Be specific. Tell the whole story.</small></article>
-        <article><span>04</span><strong>UP TO 5 MINUTES</strong><small>Leave it in the Caddie Mailbox.</small></article>
+        <article><span>1.</span><strong>You have a problem or an observation</strong></article>
+        <article><span>2.</span><strong>You record a voicemail and tell me about it</strong></article>
+        <article><span>3.</span><strong>Tune in to the Call Your Caddie podcast for my response</strong></article>
       </div>
     </section>
 
@@ -60,19 +54,16 @@
         </div>
 
         <div class="cycs-consent-stack" aria-label="Recording and publication consent">
-          <label class="cycs-consent" for="recordingConsent">
-            <input id="recordingConsent" type="checkbox" required />
+          <label class="cycs-consent" for="mediaConsent">
+            <input id="mediaConsent" type="checkbox" required />
             <span>
-              <strong>I CONSENT TO RECORDING MY VOICE</strong>
-              <small>I understand that this voice note will be recorded and stored privately in the Caddie Mailbox.</small>
+              <strong>I CONSENT TO RECORDING + MEDIA USE</strong>
+              <small>I understand that my voice message will be recorded and stored in the Caddie Mailbox and may be played, edited, published, and answered through Call Your Caddie, Caddie Magic, YouTube, podcast platforms, and social media. I will not share anything I do not want made public.</small>
             </span>
           </label>
-          <label class="cycs-consent" for="publicationConsent">
-            <input id="publicationConsent" type="checkbox" required />
-            <span>
-              <strong>I CONSENT TO PUBLICATION + MEDIA USE</strong>
-              <small>I understand that my voice and golf question may be played, edited, published, and answered through Call Your Caddie, Caddie Magic, YouTube, podcast platforms, and social media. I will not share anything I do not want made public.</small>
-            </span>
+          <label class="cycs-consent cycs-anonymity" for="anonymityRequested">
+            <input id="anonymityRequested" type="checkbox" />
+            <span><strong>Please do not use my name in the podcast</strong></span>
           </label>
         </div>
 
@@ -139,6 +130,6 @@
     </section>
   </main>
 
-  <script type="module" src="./app.js?v=0.7.0"></script>
+  <script type="module" src="./app.js?v=0.10.92.1"></script>
 </body>
 </html>
