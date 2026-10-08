@@ -3,158 +3,273 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Call Your Caddie · Caddie Magic</title>
+  <title>Caddie Magic Player Profile</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/caddie-magic/styles.css?v=0.7.1" />
-  <link rel="stylesheet" href="./styles.css?v=0.7.1-greeting1" />
+  <link rel="stylesheet" href="./styles.css?v=0.7.0" />
 </head>
 <body>
-  <main class="cm-shell cycs-shell">
-    <section class="cm-hero cycs-hero">
-      <div class="cycs-broadcast-strip" aria-label="Voicemail line open">
-        <span class="cycs-live-dot" aria-hidden="true"></span>
-        <strong>VOICEMAIL LINE OPEN</strong>
-        <span class="cycs-mini-wave" aria-hidden="true">
-          <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-        </span>
-      </div>
+  <main class="cm-shell">
+    <section class="cm-hero">
       <img class="cm-scarab-mark" src="/assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true" />
       <div class="cm-progress-wrap" aria-hidden="true"><span></span></div>
-      <p class="cm-eyebrow">CADDIE MAGIC</p>
-      <h1>CALL YOUR CADDIE</h1>
-      <div class="cycs-hero-dial" aria-hidden="true">
-        <span></span><span></span><span></span><b></b><span></span><span></span><span></span>
-      </div>
-      <div class="cycs-hero-actions">
-        <a class="cm-button" href="#leave-message">Leave a Message</a>
+      <div class="cm-hero-copy">
+        <p class="cm-eyebrow">CADDIE MAGIC</p>
+        <h1>SCORECARD</h1>
+        <p class="cm-lead">Track your scores and swing thoughts to uncover patterns over time.</p>
+        <div class="cm-hero-actions" id="heroActions">
+          <button class="cm-button" id="heroLogButton" type="button">Log a Round</button>
+          <a class="cm-button secondary" id="heroScoreMapButton" href="/caddie-magic/score-map/">Score Map</a>
+        </div>
       </div>
     </section>
 
-    <section class="cm-card cycs-answering-machine" id="caddie-line" aria-labelledby="lineTitle">
-      <p class="cm-eyebrow">A DIRECT LINE TO YOUR CADDIE</p>
-      <div class="cycs-phone-seal" aria-hidden="true">☎</div>
-      <h2 id="lineTitle">Your Caddie is one call away.</h2>
-      <p class="cycs-line-copy">Take a breath. Pick up the phone.</p>
-      <button class="cm-button cycs-call-button" id="callCaddieButton" type="button" aria-controls="greetingAudio">Call Your Caddie</button>
-      <p class="cycs-line-status" id="greetingStatus" role="status">THE LINE IS OPEN</p>
-      <div class="cycs-line-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="cycs-greeting-playback hidden" id="greetingPlayback">
-        <audio id="greetingAudio" controls preload="none" src="./answering-machine.mp3"></audio>
-        <p>Listen to Megan’s greeting, then leave your message below.</p>
-      </div>
-      <a class="cycs-skip-link" id="skipGreeting" href="#leave-message">Skip to leaving a message</a>
-    </section>
-
-    <section class="cm-card cycs-recorder-card" id="leave-message" tabindex="-1">
-      <div class="cycs-recorder-topline" aria-hidden="true">
-        <span>CALL-IN BOARD</span>
-        <div><i></i><i></i><i></i><i></i><i></i></div>
-      </div>
-      <div class="cycs-section-heading">
-        <div>
-          <p class="cm-eyebrow">LEAVE A MESSAGE</p>
-          <h2>Call Your Caddie.</h2>
-        </div>
-        <span class="cycs-status-pill" id="recorderState">READY</span>
-      </div>
-
-      <div class="cycs-loading" id="recorderLoading">Opening the Caddie line…</div>
-
-      <form class="cycs-form hidden" id="mailboxForm">
-        <div class="cycs-two-col">
-          <label>First Name
-            <input id="callerName" type="text" autocomplete="given-name" maxlength="60" required placeholder="Ryan" />
-          </label>
-          <label>Handicap
-            <input id="handicap" type="text" maxlength="24" required placeholder="8" />
-          </label>
-        </div>
-
-        <label class="cycs-honeypot" aria-hidden="true">Website
-          <input id="website" type="text" autocomplete="off" tabindex="-1" />
+    <section class="cm-card cm-auth-card" id="authCard">
+      <p class="cm-eyebrow">ENTER THE CLUBHOUSE</p>
+      <h2>Your private player portal.</h2>
+      <p class="cm-muted">Caddie Magic is in private beta. Invited players can create a profile or sign back in here.</p>
+      <form id="authForm" class="cm-form">
+        <label>Email
+          <input id="authEmail" type="email" autocomplete="email" required placeholder="player@example.com" />
         </label>
-
-        <div class="cycs-consent-stack" aria-label="Recording and publication consent">
-          <label class="cycs-consent" for="mediaConsent">
-            <input id="mediaConsent" type="checkbox" required />
-            <span>
-              <strong>I CONSENT TO RECORDING + MEDIA USE</strong>
-              <small>I understand that my voice message will be recorded and stored in the Caddie Mailbox and may be played, edited, published, and answered through Call Your Caddie, Caddie Magic, YouTube, podcast platforms, and social media. I will not share anything I do not want made public.</small>
-            </span>
+        <label>Password
+          <input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters" />
+        </label>
+        <label class="cm-invite-field">Player Invitation Code
+          <input id="authInviteCode" type="text" autocomplete="one-time-code" placeholder="Invitation code" />
+          <small>Your invitation link fills this automatically.</small>
+        </label>
+        <div class="cm-two-col cm-create-fields">
+          <label>First Name
+            <input id="authFirstName" type="text" autocomplete="given-name" placeholder="First" />
           </label>
-          <label class="cycs-consent cycs-anonymity" for="anonymityRequested">
-            <input id="anonymityRequested" type="checkbox" />
-            <span><strong>Please do not use my name in the podcast</strong></span>
+          <label>Last Name
+            <input id="authLastName" type="text" autocomplete="family-name" placeholder="Last" />
           </label>
         </div>
+        <div class="cm-button-row">
+          <button class="cm-button" id="signInButton" type="button">Enter the Clubhouse</button>
+          <button class="cm-button secondary" id="createAccountButton" type="button">Create Player Profile</button>
+        </div>
+      </form>
+      <p class="cm-message" id="authMessage"></p>
+    </section>
 
-        <div class="cycs-recorder" id="recorderPanel">
-          <div class="cycs-recorder-meter" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
-          <div class="cycs-record-face" id="recordFace" aria-live="polite">
-            <span class="cycs-record-dot" aria-hidden="true"></span>
-            <div>
-              <strong id="recordPrompt">Ready when you are.</strong>
-              <small id="recordSubcopy">Ask one golf question. You have up to five minutes.</small>
+    <section class="cm-card cm-profile-card hidden" id="profileCard">
+      <p class="cm-eyebrow">PLAYER PROFILE</p>
+      <h2>Set your player profile.</h2>
+      <p class="cm-muted">This gives every round and reflection somewhere to land. Keep it simple; the scorecard is the main event.</p>
+      <form id="profileForm" class="cm-form">
+        <div class="cm-two-col">
+          <label>First Name
+            <input id="profileFirstName" type="text" required />
+          </label>
+          <label>Last Name
+            <input id="profileLastName" type="text" />
+          </label>
+        </div>
+        <label>Home Course
+          <input id="profileHomeCourse" type="text" placeholder="Pebble Beach, Spyglass, your home club..." />
+        </label>
+        <details class="cm-profile-extras">
+          <summary>Optional player notes</summary>
+          <div class="cm-profile-extras-grid">
+            <label>Handicap or Typical Score Range
+              <input id="profileScoreRange" type="text" placeholder="8 handicap, 85–92, scratch..." />
+            </label>
+            <label>Main Goal
+              <textarea id="profileMainGoal" rows="3" placeholder="What are you trying to see or understand in your game?"></textarea>
+            </label>
+            <label>Biggest Golf Frustration
+              <textarea id="profileFrustration" rows="3" placeholder="Where does the game usually get away from you?"></textarea>
+            </label>
+          </div>
+        </details>
+        <button class="cm-button" type="submit">Save Player Profile</button>
+      </form>
+      <p class="cm-message" id="profileMessage"></p>
+    </section>
+
+    <section class="cm-card cm-moon-dashboard hidden" id="moonDashboardCard">
+      <div class="cm-dashboard-heading">
+        <div>
+          <p class="cm-eyebrow" id="moonSnapshotEyebrow">MOON SCORE DATA</p>
+          <h2 id="moonDashboardTitle">The moon is on day —.</h2>
+          <p class="cm-muted" id="moonDashboardCopy">Click on any day on the moon wheel to view your stored data. Over time, your patterns will be revealed.</p>
+        </div>
+      </div>
+
+      <div class="cm-dashboard-layout">
+        <section class="cm-wheel-section" aria-label="Caddie Magic moon medicine wheel">
+          <div class="cm-moon-wheel" id="moonWheel">
+            <div class="cm-wheel-ring cm-wheel-ring-outer" aria-hidden="true"></div>
+            <div class="cm-wheel-ring cm-wheel-ring-inner" aria-hidden="true"></div>
+            <div class="cm-day-ring" id="moonDayRing"></div>
+            <div class="cm-club-label cm-club-north">North Club</div>
+            <div class="cm-club-label cm-club-east">East Club</div>
+            <div class="cm-club-label cm-club-south">South Club</div>
+            <div class="cm-club-label cm-club-west">West Club</div>
+            <div class="cm-wheel-center" aria-hidden="true">
+              <img class="cm-wheel-center-image" src="/assets/caddie-magic-medicine-wheel-directions.png?v=0.7.0" alt="" />
             </div>
           </div>
-          <div class="cycs-timer" id="recordTimer">00:00 <span>/ 05:00</span></div>
-          <div class="cycs-recorder-actions">
-            <button class="cm-button" id="startRecordingButton" type="button">Start Recording</button>
-            <button class="cm-button secondary hidden" id="stopRecordingButton" type="button">Stop Recording</button>
-          </div>
-          <p class="cycs-mic-note">Your browser will ask for microphone access. Nothing is sent to the Caddie Mailbox until you press <strong>Send to My Caddie</strong>.</p>
-        </div>
-
-        <section class="cycs-preview hidden" id="previewPanel" aria-live="polite">
-          <p class="cm-eyebrow">YOUR VOICE NOTE</p>
-          <h3>Listen back before you send it.</h3>
-          <audio id="previewAudio" controls preload="metadata"></audio>
-          <div class="cycs-preview-actions">
-            <button class="cm-button secondary" id="recordAgainButton" type="button">Record Again</button>
-            <button class="cm-button" id="sendMessageButton" type="submit">Send to My Caddie</button>
-          </div>
+          <p class="cm-wheel-help">Click on any day on the moon wheel to view your stored data.</p>
         </section>
-      </form>
 
-      <p class="cm-message" id="mailboxMessage" role="status"></p>
+        <section class="cm-snapshot-section">
+          <div class="cm-snapshot-grid">
+            <article class="cm-snapshot-card">
+              <span>Moon Day</span>
+              <strong id="moonDayValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Moon Phase</span>
+              <strong id="moonPhaseValue">—</strong>
+              <small id="moonPhaseClubValue" class="cm-snapshot-subcopy"></small>
+            </article>
+            <article class="cm-snapshot-card">
+              <span>Theme</span>
+              <strong id="moonThemeValue">—</strong>
+            </article>
+            <article class="cm-snapshot-card">
+              <span id="nextRelevantMoonLabel">Next Major Moon</span>
+              <strong id="nextRelevantMoonValue">—</strong>
+            </article>
+          </div>
 
-      <section class="cycs-success hidden" id="successPanel" aria-live="polite">
-        <span>✓</span>
-        <p class="cm-eyebrow">MESSAGE RECEIVED</p>
-        <h2>It’s in the Caddie Mailbox.</h2>
-        <p>Your question is waiting for the Caddie. It may be answered on Call Your Caddie, YouTube, podcast platforms, or Caddie Magic media.</p>
-        <button class="cm-button secondary" id="leaveAnotherButton" type="button">Leave Another Message</button>
+          <article class="cm-day-detail" id="moonDayDetail" aria-live="polite">
+            <p class="cm-eyebrow">SELECTED MOON DAY</p>
+            <h3 id="selectedDayTitle">Moon Day —</h3>
+            <div id="selectedDayContent" class="cm-day-detail-content"></div>
+          </article>
+        </section>
+      </div>
+    </section>
+
+    <section class="cm-grid hidden" id="portalGrid">
+      <section class="cm-card cm-log-card" id="roundLogCard">
+        <div class="cm-section-icon" aria-hidden="true">✎</div>
+        <p class="cm-eyebrow">MOOD SWINGS</p>
+        <h2 id="entryFormTitle">Log Your Round</h2>
+        <p class="cm-muted" id="entryModeCopy">Only the essentials: date and score, with course and swing thought optional.</p>
+        <div class="cm-entry-mode" role="group" aria-label="Choose what to log">
+          <button class="cm-entry-mode-button is-active" id="roundModeButton" type="button">Log a Round</button>
+          <button class="cm-entry-mode-button" id="reflectionModeButton" type="button">Log a Swing Thought</button>
+        </div>
+        <form id="roundForm" class="cm-form cm-round-form">
+          <div class="cm-round-fields" id="roundFields">
+            <label class="cm-date-field">Date
+              <input id="roundDate" type="date" required />
+            </label>
+            <label class="cm-round-only-field">Course <span class="cm-optional-label">Optional</span>
+              <input id="coursePlayed" type="text" placeholder="Course name" />
+            </label>
+            <label class="cm-round-only-field">Score
+              <input id="roundScore" type="number" required min="1" max="300" placeholder="69" />
+            </label>
+          </div>
+          <label>Swing Thoughts <span class="cm-optional-label" id="swingThoughtOptionalLabel">Optional</span>
+            <textarea id="swingThoughts" rows="4" placeholder="What went well? What went wrong? What did you notice?"></textarea>
+          </label>
+          <button class="cm-button" id="entrySubmitButton" type="submit">Log Round</button>
+        </form>
+        <p class="cm-message" id="roundMessage"></p>
+      </section>
+
+      <section class="cm-card cm-locker-card" id="lockerCard">
+        <div class="cm-card-header">
+          <div>
+            <div class="cm-section-icon" aria-hidden="true">▥</div>
+            <p class="cm-eyebrow">PLAYER PROFILE</p>
+            <h2 id="lockerTitle">Your Name</h2>
+          </div>
+          <button class="cm-button ghost" id="signOutButton" type="button">Sign Out</button>
+        </div>
+        <p class="cm-muted cm-locker-intro">Your private locker on the moon.</p>
+        <div class="cm-stat-grid" id="statGrid"></div>
+        <label class="cm-sharing-setting" for="lockerRoomSharingToggle">
+          <span>
+            <strong>Locker Room Sharing</strong>
+            <small>Share my scores and swing thoughts anonymously in the Locker Room.</small>
+          </span>
+          <input id="lockerRoomSharingToggle" type="checkbox" checked />
+        </label>
+        <p class="cm-message" id="lockerRoomSharingMessage"></p>
+        <div class="cm-caddie-desk-door hidden" id="caddieDeskDoor" aria-live="polite"></div>
       </section>
     </section>
 
-    <section class="cm-card cycs-modes-card">
-      <p class="cm-eyebrow">WAYS TO CALL YOUR CADDIE</p>
-      <div class="cycs-mode-grid">
-        <article class="is-live">
-          <span>AVAILABLE NOW</span>
-          <h3>CADDIE MAILBOX</h3>
-          <p>Free. Leave one golf problem or question in a voice note up to five minutes.</p>
-          <a class="cm-button" href="#leave-message">Leave a Message</a>
-        </article>
-        <article>
-          <span>COMING SOON</span>
-          <h3>CALL YOUR CADDIE LIVE</h3>
-          <p>Four callers. Ten Minutes in Heaven. A live conversation with the Caddie.</p>
-          <div class="cycs-coming-soon">LINES CLOSED</div>
-        </article>
-        <article>
-          <span>COMING SOON</span>
-          <h3>PRIVATE CALL YOUR CADDIE</h3>
-          <p>45 minutes · $199. One-on-one recorded Call Your Caddie session.</p>
-          <div class="cycs-coming-soon">BOOKING SOON</div>
-        </article>
+
+    <section class="cm-card cm-session-booking-card hidden" id="sessionBookingCard">
+      <div id="caddieMagicBookingRoot"></div>
+    </section>
+
+    <section class="cm-card cm-assignments-card hidden" id="assignmentsCard">
+      <div class="cm-section-heading">
+        <div>
+          <p class="cm-eyebrow">ASSIGNMENTS</p>
+          <h2>Work from The Caddie Master.</h2>
+          <p class="cm-muted">Your active and completed assignments stay with your Player Profile.</p>
+        </div>
+        <span class="cm-status-pill" id="assignmentCount">0 active</span>
+      </div>
+      <div class="cm-assignment-list" id="assignmentList"></div>
+      <p class="cm-message" id="assignmentMessage"></p>
+    </section>
+
+    <section class="cm-card cm-review-card hidden" id="caddieReviewCard">
+      <div class="cm-review-layout">
+        <section class="cm-review-notes">
+          <p class="cm-eyebrow">CADDIE MASTER NOTES</p>
+          <h2>Scorecard notes from The Caddie Master.</h2>
+          <div id="notesUnderDoor"></div>
+        </section>
+        <section class="cm-review-service" id="caddieReviewService">
+          <p class="cm-eyebrow">SCORECARD REVIEW</p>
+          <h2>Earn a review of your pattern.</h2>
+          <div class="cm-review-progress" aria-live="polite">
+            <div class="cm-review-progress-track"><span id="reviewProgressBar"></span></div>
+            <strong id="reviewProgressLabel">0 of 28 entries</strong>
+          </div>
+          <p class="cm-muted" id="reviewRequestCopy">Log 28 scores or swing thoughts to earn your first Scorecard Review credit.</p>
+          <button class="cm-button secondary" id="requestReviewButton" type="button">Request a Scorecard Review</button>
+          <p class="cm-message" id="reviewRequestMessage"></p>
+        </section>
+        <section class="cm-master-messages" id="masterMessagesPanel">
+          <div class="cm-master-messages-heading">
+            <div>
+              <p class="cm-eyebrow">PRIVATE CONCIERGE</p>
+              <h2>Messages with The Caddie Master.</h2>
+            </div>
+            <button class="cm-button secondary" id="toggleMasterMessagesButton" type="button">Messages</button>
+          </div>
+          <div class="cm-message-lock" id="masterMessagesLock"></div>
+          <div class="cm-master-thread hidden" id="masterMessagesThread" aria-live="polite"></div>
+          <form class="cm-master-message-form hidden" id="masterMessageForm">
+            <label for="masterMessageInput">Your Message</label>
+            <textarea id="masterMessageInput" rows="3" placeholder="Ask a question or plan your Pebble Beach visit..."></textarea>
+            <button class="cm-button" type="submit">Send Message</button>
+          </form>
+          <p class="cm-message" id="masterMessageStatus"></p>
+        </section>
       </div>
     </section>
+    <section class="cm-card cm-history-card hidden" id="historyCard">
+      <div class="cm-history-heading">
+        <div>
+          <p class="cm-eyebrow">SCORECARD HISTORY</p>
+          <h2>Previous Entries</h2>
+        </div>
+        <div class="cm-history-actions">
+          <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/score-map/">Score Map</a>
+          <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/collective-map/">Locker Room</a>
+          <a class="cm-button secondary cm-history-map-link" href="/caddie-magic/compass/">Caddie Compass</a>
+        </div>
+      </div>
+      <div id="roundHistory"></div>
+    </section>
   </main>
-
-  <script type="module" src="./greeting.js?v=1"></script>
-  <script type="module" src="./app.js?v=0.7.1-greeting1"></script>
+  <script type="module" src="./app.js?v=0.7.0"></script>
 </body>
 </html>
