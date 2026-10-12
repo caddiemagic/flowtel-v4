@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css?v=0.7.0" />
-</head>
+<link rel="stylesheet" href="/shared/kingdom-ui.css?v=0.8.0"></head>
 <body>
   <main class="cm-shell">
     <section class="cm-hero">
@@ -171,6 +171,8 @@
               <input id="roundScore" type="number" required min="1" max="300" placeholder="69" />
             </label>
           </div>
+          <div class="cm-round-only-field kingdom-tools"><label>Round Length<select id="holesPlayed"><option value="18">18 holes</option><option value="9">9 holes</option></select></label><label>Score Entry<select id="scoreEntryMode"><option value="total">Total score only</option><option value="holes">Hole by hole</option></select></label></div>
+          <section class="cm-round-only-field hidden" id="holeScoresSection"><div id="holeScoreFields" class="hole-fields"></div><p class="cm-muted">Leave unplayed holes blank to save an unfinished round. Your total is calculated automatically. Continue it in the Hole Score Wheel.</p></section>
           <label>Swing Thoughts <span class="cm-optional-label" id="swingThoughtOptionalLabel">Optional</span>
             <textarea id="swingThoughts" rows="4" placeholder="What went well? What went wrong? What did you notice?"></textarea>
           </label>
@@ -272,6 +274,6 @@
       <div id="roundHistory"></div>
     </section>
   </main>
-  <script type="module" src="./app.js?v=0.7.0"></script>
+  <script type="module" src="./app.js?v=0.8.0"></script>
 </body>
 </html>

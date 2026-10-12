@@ -1,7 +1,7 @@
 export function normalizeClub(value) {
   const club=String(value ?? '').trim().replace(/\s+/g,' ');
   if (!club || club.length>60) throw new Error('Enter a club name using 1–60 characters.');
-  if (/putter|putting/i.test(club)) throw new Error('Your putter already has its place at the center. Choose another club.');
+  if (/^p$/i.test(club) || /putter|putting/i.test(club)) throw new Error("You can't choose your putter, select another club");
   return club;
 }
 export function cardinalClubs(selection) {

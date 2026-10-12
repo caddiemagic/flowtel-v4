@@ -907,6 +907,7 @@ async function provisionVerifiedMembership({ email, source = "squarespace-auto-p
     source,
   });
 
+  if(process.env.FLOWTEL_BRANDED_EMAIL_ENABLED==='true') await require('../server/branded-email.js').queueWelcome({email:normalizedEmail,brand:'flowtel',label:MEMBERSHIP_LABEL[purchase.membershipType]||'The Flowtel',firstName:contact?.firstName||'',orderId:purchase.orderId}).catch(()=>({status:'queued'}));
   return {
     email: normalizedEmail,
     userId,
@@ -1075,6 +1076,7 @@ module.exports = async function handler(req, res) {
     return;
   }
 
+  if(req.query?.action==='membership-webhook')return require('../server/squarespace-membership-hook.js').handle(req,res,{provisionFlowtel:provisionVerifiedMembership});
   try {
     const body = await readRequestBody(req);
     const email = normalizeEmail(body.email);
@@ -1309,3 +1311,5 @@ module.exports = async function handler(req, res) {
     });
   }
 };
+
+module.exports.config={api:{bodyParser:false}};

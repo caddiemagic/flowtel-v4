@@ -15,9 +15,11 @@ module.exports=async function handler(req,res){
   if(req.method==='OPTIONS') return res.status(204).end();
   if(req.method!=='POST') return res.status(405).json({ok:false,error:'Use POST to share a private Replay Room invitation.'});
 
+  if(req.query?.action==='auth-email') return require('../server/branded-email.js').authEmailHook(req,res);
   try{
     const owner=await requireOwner(req);
     const body=await readRequestBody(req);
+    if(body.action==='retry-welcome-emails'){const rows=await fetchJson(`${owner.supabaseUrl}/rest/v1/flowtel_branded_email_outbox?sent_at=is.null&select=*&order=created_at.asc&limit=20`,{headers:serviceHeaders(owner.serviceKey)});const results=[];for(const row of rows)results.push(await require('../server/branded-email.js').deliverWelcome(row,owner));return res.status(200).json({ok:true,results});}
     const requestId=String(body.requestId || '').trim();
     const token=String(body.token || '').trim();
     if(!requestId || !validToken(token)){const error=new Error('Prepare a fresh private Replay Room link first.');error.statusCode=400;throw error;}
@@ -82,3 +84,5 @@ module.exports=async function handler(req,res){
     return res.status(200).json({ok:true,email:guest.email,message:'Private Replay Room invitation emailed.'});
   }catch(error){return sendError(res,error,'The private invitation could not be shared.');}
 };
+
+module.exports.config={api:{bodyParser:false}};

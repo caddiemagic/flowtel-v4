@@ -3,7 +3,7 @@ import { sendPasswordResetEmail, updateCurrentPassword } from '../../shared/auth
 const $=id=>document.getElementById(id);
 let recoveryAuthorized=false;
 let sending=false;
-const returnedRecovery=new URLSearchParams(window.location.hash.slice(1)).get('type')==='recovery';
+const returnedRecovery=new URLSearchParams(window.location.hash.slice(1)).get('type')==='recovery'||new URLSearchParams(window.location.hash.slice(1)).get('type')==='invite';
 function message(text){$('recoveryMessage').textContent=text;}
 function showPassword(){recoveryAuthorized=true;$('requestPanel').classList.add('hidden');$('passwordPanel').classList.remove('hidden');message('Your recovery link is verified. Choose a password with at least eight characters.');$('newPassword').focus();}
 // No async Supabase call inside an auth callback: avoid client lock deadlocks.

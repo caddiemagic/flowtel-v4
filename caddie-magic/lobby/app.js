@@ -1,10 +1,10 @@
-import { normalizeClub, cardinalClubs } from './compass.js?v=2';
+import { normalizeClub, cardinalClubs } from './compass.js?v=0.8.0';
 const $=id=>document.getElementById(id);
 const form=$('clubForm'), input=$('clubInput');
 const clubs=[];
 function prompt(){
  const words=['first','second','third','fourth'];
- $('clubPrompt').textContent=`What’s your ${words[clubs.length]} club?`;
+ $('clubPrompt').textContent=clubs.length===0?'If you could only play with 4 clubs for the rest of your career, what 4 clubs would you choose? (Exclude your putter)':`What’s your ${words[clubs.length]} club?`;
  $('clubProgress').textContent=`${clubs.length+1} OF 4`;
  $('nextClub').textContent=clubs.length===3?'Reveal My Caddie Compass':'Next Club';
  input.value='';input.focus();

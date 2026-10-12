@@ -3,7 +3,7 @@
 import { supabase } from "../../shared/supabase.js";
 import { requireCaddieMagicAccess } from "../../shared/caddie-magic-access.js?v=0.7.0";
 import { getMoonMagic } from "../../shared/moon.js";
-import { averageValidGolfScore, validGolfScore } from "../../shared/caddie-magic-score-calculations.js?v=0.7.0";
+import { averageValidGolfScore, validGolfScore } from "../../shared/caddie-magic-score-calculations.js?v=0.8.0";
 
 const $ = (id) => document.getElementById(id);
 
@@ -113,7 +113,7 @@ async function fetchLogs() {
     .order("round_date", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).filter(log=>log.round_complete!==false);
 }
 
 function moonCycleStarts() {
@@ -125,11 +125,12 @@ function previousMoonStart(currentStart) {
 }
 
 function selectedLogs() {
-  if (activeRange === "all") return allLogs;
+  const lengthFiltered=allLogs.filter(log=>$("mapRoundLength").value==="legacy"?log.holes_played==null:log.holes_played===Number($("mapRoundLength").value));
+  if (activeRange === "all") return lengthFiltered;
   const currentStart = getMoonMagic(todayISO()).lastNewMoonDate;
   const targetStart = activeRange === "last" ? previousMoonStart(currentStart) : currentStart;
   if (!targetStart) return [];
-  return allLogs.filter((log) => log.moon_last_new_moon_date === targetStart);
+  return lengthFiltered.filter((log) => log.moon_last_new_moon_date === targetStart);
 }
 
 function rangeLabel() {
@@ -354,6 +355,8 @@ async function init() {
     }
 
     allLogs = await fetchLogs();
+    if(!allLogs.some(log=>log.holes_played==null))$("mapRoundLength").value=allLogs.some(log=>log.holes_played===18)?"18":"9";
+    $("mapRoundLength").addEventListener("change",render);
     bindFilters();
     $("scoreDetailClose")?.addEventListener("click", closeScoreDetail);
     $("scoreDetailBackdrop")?.addEventListener("click", closeScoreDetail);
