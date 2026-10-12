@@ -1,3 +1,5 @@
+> Current source release: Flowtel v0.10.94 / Caddie Magic v0.8.0. Kingdom experience implemented; paid launch and email hooks await configuration/live checks. Source migration 084 is latest; 085 is next. See RELEASE-0.10.94.md. Older numbered plans below are historical.
+
 # Caddie Magic Roadmap
 
 ## Product metaphor

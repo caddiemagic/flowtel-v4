@@ -6,7 +6,7 @@ for(const x of [[],['Driver','Driver','7 Iron','5 Wood'],['Putter','Driver','7 I
 assert.throws(()=>normalizeClub('My Putter'));
 assert.equal(normalizeClub('  56°   wedge '),'56° wedge');
 assert.throws(()=>cardinalClubs(['Driver',' driver ','7 Iron','5 Wood']));
-const guard=await readFile('shared/supabase.js','utf8');assert(guard.includes('["/caddie-magic/lobby/", "/caddie-magic/reset-password/"].includes(path)'));
+const guard=await readFile('shared/supabase.js','utf8');assert(guard.includes('["/caddie-magic/lobby/", "/caddie-magic/reset-password/", "/caddie-magic/join/"].includes(path)'));
 const auth=await readFile('caddie-magic/reset-password/app.js','utf8');assert(auth.includes("event==='PASSWORD_RECOVERY'"));assert(auth.includes('if(!recoveryAuthorized)'));assert(auth.includes('password!=='));assert(auth.includes('supabase.auth.getUser()'));
 const player=await readFile('caddie-magic/index.html','utf8');assert(player.includes('id="authForm"'));assert(player.includes('Forgot your password?'));
 console.log('NEWS mapping, duplicate/putter validation, route exemptions, recovery gates, and player entry checks passed.');

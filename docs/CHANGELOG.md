@@ -1,5 +1,9 @@
 # Flowtel Changelog
 
+## v0.10.94 — Kingdom Experience (Caddie Magic v0.8.0)
+
+Assignments and reflections; 9/18-hole scoring and lunar Hole Wheel; refined Cardinal Clubs and consecration; Sea of Sirens including Breathwork; staged $69 purchase verification and separate branded emails. Migrations 083–084, with missing production prerequisite 082 included. No new function (12/12). See RELEASE-0.10.94.md for setup and validation limits.
+
 ## v0.10.93 — Public Call Your Caddie Recorder + Radio Show Polish
 
 - Advances Caddie Magic to **v0.7.1** and opens only the Call Your Caddie voice-note recorder to the public; no Flowtel or Caddie Magic account is required to leave a message.

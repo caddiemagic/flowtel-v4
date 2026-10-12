@@ -101,6 +101,6 @@ assert.equal(rewrites.get("/caddie-magic/call-your-caddie"), "/caddie-magic/call
 assert.equal(rewrites.get("/manager/call-your-caddie"), "/manager/call-your-caddie/index.html");
 assert.equal(rewrites.get("/manager/call-your-caddie/studio"), "/manager/call-your-caddie/studio/index.html");
 const versionHeaders = (vercel.headers || []).flatMap((row) => row.headers || []).filter((h) => h.key === "X-Caddie-Magic-Version");
-assert(versionHeaders.length >= 2 && versionHeaders.every((h) => h.value === "0.7.1"));
+assert(versionHeaders.length >= 2 && versionHeaders.every((h) => h.value === "0.8.0"));
 
 console.log("Call Your Caddie validation passed: public signed-upload recorder, radio-show UI, answering-machine greeting, anonymity, private owner mailbox/Studio Mode, 5-minute ceiling, and 12-function reuse boundary verified.");

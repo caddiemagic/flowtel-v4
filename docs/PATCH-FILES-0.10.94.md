@@ -1,0 +1,55 @@
+# Patch inventory — v0.10.94
+
+Overlay at the repository root. Full source and patch reproduce the same release against e274668. The patch ZIP also includes unchanged migration 082 because it is not installed in the checked production database.
+
+- `api/caddie-acuity.js`
+- `api/guest-house-notify.js`
+- `api/squarespace-bridge.js`
+- `caddie-magic/app.js`
+- `caddie-magic/assignments/app.js`
+- `caddie-magic/assignments/index.html`
+- `caddie-magic/call-your-caddie/index.html`
+- `caddie-magic/hole-map/app.js`
+- `caddie-magic/hole-map/index.html`
+- `caddie-magic/index.html`
+- `caddie-magic/join/app.js`
+- `caddie-magic/join/index.html`
+- `caddie-magic/lobby/app.js`
+- `caddie-magic/lobby/compass.js`
+- `caddie-magic/lobby/index.html`
+- `caddie-magic/reset-password/app.js`
+- `caddie-magic/score-map/app.js`
+- `caddie-magic/score-map/index.html`
+- `caddie-magic/sea-of-sirens/app.js`
+- `caddie-magic/sea-of-sirens/index.html`
+- `database/migration-082-cardinal-compass-consecration.sql`
+- `database/migration-083-kingdom-experience.sql`
+- `database/migration-084-kingdom-membership-email.sql`
+- `docs/KINGDOM-LAUNCH-SETUP.md`
+- `docs/LIVE-TEST-v0.10.94.md`
+- `docs/PATCH-FILES-0.10.94.md`
+- `docs/RELEASE-0.10.94.md`
+- `manager/app.js`
+- `manager/index.html`
+- `manager/kingdom/app.js`
+- `manager/kingdom/index.html`
+- `scripts/test-kingdom-browser.cjs`
+- `scripts/test-kingdom-database.mjs`
+- `scripts/test-kingdom-emails.cjs`
+- `scripts/test-kingdom-lobby.mjs`
+- `scripts/test-kingdom-membership.cjs`
+- `scripts/test-membership-webhook.cjs`
+- `scripts/validate-call-your-caddie.mjs`
+- `server/branded-email.js`
+- `server/kingdom-membership.js`
+- `server/squarespace-membership-hook.js`
+- `shared/caddie-magic-access.js`
+- `shared/caddie-magic-score-calculations.js`
+- `shared/kingdom-experience.js`
+- `shared/kingdom-holes.js`
+- `shared/kingdom-ui.css`
+- `shared/supabase.js`
+- `vercel.json`
+- `docs/CHANGELOG.md`
+- `docs/CADDIE_MAGIC_ROADMAP.md`
+- `docs/FLOWTEL_ROADMAP.md`

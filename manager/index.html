@@ -97,7 +97,7 @@
       <section class="concierge-audience-group" data-audience="caddie">
         <header><div><p class="eyebrow">CADDIE MAGIC ADMINISTRATION</p><h2>Private Caddie Master command center</h2></div><span>CADDIE MASTER</span></header>
         <div class="stats">
-          <button class="stat-card" type="button" data-filter="caddie-master"><span>Caddie Master</span><strong id="caddieMasterAlertCount">0</strong><em>Private support alerts</em></button>
+          <button class="stat-card" type="button" data-filter="caddie-master"><span>Caddie Master</span><strong id="caddieMasterAlertCount">0</strong><em>Messages, assignments &amp; reflections</em></button>
           <button class="stat-card" type="button" data-filter="caddie-network"><span>Caddie Network</span><strong id="caddieNetworkCount">0</strong><em><b id="caddieNetworkReviewCount">0</b> network actions</em></button>
           <button class="stat-card" type="button" data-filter="caddie-team"><span>Caddie Concierge Team</span><strong id="caddieTeamCount">0</strong><em>Active Caddies</em></button>
           <button class="stat-card" type="button" data-filter="caddie-reviews"><span>Scorecard Reviews</span><strong id="caddieReviewCount">0</strong><em>Caddie Master pattern requests</em></button>
@@ -145,7 +145,7 @@
   </dialog>
 
   <script type="module">
-    import("./app.js?v=0.10.93.2").catch(function(error){
+    import("./app.js?v=0.10.94").catch(function(error){
       document.documentElement.dataset.conciergeLoadFailed="true";
       var message=document.getElementById("managerMessage");
       var button=document.getElementById("managerEntryButton");

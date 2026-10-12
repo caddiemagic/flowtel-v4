@@ -1,3 +1,5 @@
+let kingdomResponses=[];
+async function loadKingdomResponses(){const {data,error}=await supabase.from('caddie_magic_assignment_recipients').select('batch_id,user_id,status,reflection,reviewed_at');kingdomResponses=error?[]:(data||[]).filter(row=>!row.reviewed_at&&(row.status==='completed'||row.reflection));}
 let compassConsecrations=[];
 let compassConsecrationError='';
 async function loadCompassConsecrations(){
@@ -835,7 +837,7 @@ function updateStats(){
   const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
   const caddieNetworkActiveCount=caddieNetworkProfiles.filter(profile=>profile.status==="active").length;
   const caddieNetworkReviewCount=caddieNetworkProfiles.filter(profile=>profile.status==="submitted").length+caddieCourseRequests.filter(row=>row.status==="pending").length+caddiePlayerInvitations.filter(invite=>invite.status==="invited").length;
-  const caddieMasterAlertCount=compassConsecrations.filter(row=>row.status==="awaiting_consecration").length+(Number(caddieMasterCommandCenter.player_message_count)||0)+(Number(caddieMasterCommandCenter.caddie_team_message_count)||0)+(Number(caddieMasterCommandCenter.assignment_count)||0)+(Number(caddieMasterCommandCenter.course_request_count)||0)+(Number(caddieMasterCommandCenter.submitted_profile_count)||0);
+  const caddieMasterAlertCount=kingdomResponses.length+compassConsecrations.filter(row=>row.status==="awaiting_consecration").length+(Number(caddieMasterCommandCenter.player_message_count)||0)+(Number(caddieMasterCommandCenter.caddie_team_message_count)||0)+(Number(caddieMasterCommandCenter.assignment_count)||0)+(Number(caddieMasterCommandCenter.course_request_count)||0)+(Number(caddieMasterCommandCenter.submitted_profile_count)||0);
   const caddieTeamActiveCount=caddieConciergeTeam.filter(row=>row.status==="active").length;
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO() && !event.caddie_master_acknowledged_at).length;
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
@@ -1438,6 +1440,7 @@ function renderCaddieNetworkQueue(){
 }
 
 async function loadCaddieNetworkData(){
+  await loadKingdomResponses().catch(()=>kingdomResponses=[]);
   await loadCompassConsecrations().catch(()=>{compassConsecrations=[];compassConsecrationError="Compass requests could not load. Refresh to try again.";});
   try{
     [caddieNetworkProfiles,caddieCourseRequests,caddieMasterAccessRows,caddieMasterCommandCenter,caddieConciergeTeam,caddieCourseCatalog]=await Promise.all([
@@ -1481,7 +1484,7 @@ function renderMasterAlertRows(rows=[],type="player"){
 function renderCaddieMasterQueue(){
   if(!caddieNetworkServiceAvailable){queue.innerHTML=renderCompassConsecrations()+"<p>The Caddie Master Command Center requires migration 055.</p>";bindCompassConsecrations();return;}
   const center=caddieMasterCommandCenter||{};
-  queue.innerHTML=`<section class="relationship-queue caddie-master-command-center">${renderCompassConsecrations()}
+  queue.innerHTML=`<section class="relationship-queue caddie-master-command-center"><section><p class="eyebrow">KINGDOM RESPONSES · ${kingdomResponses.length} TO REVIEW</p><a href="/manager/kingdom/">Open Assignments, Progress &amp; Sea of Sirens Studio</a></section>${renderCompassConsecrations()}
     <section><p class="eyebrow">PLAYER MESSAGES · ${Number(center.player_message_count)||0} UNREAD</p>${renderMasterAlertRows(center.player_messages||[],"player")}</section>
     <section><p class="eyebrow">CADDIE TEAM MESSAGES · ${Number(center.caddie_team_message_count)||0} UNREAD</p>${renderMasterAlertRows(center.caddie_team_messages||[],"team")}</section>
     <section><p class="eyebrow">ASSIGNMENTS NEEDING ATTENTION · ${Number(center.assignment_count)||0}</p>${renderMasterAlertRows(center.assignments||[],"assignment")}</section>

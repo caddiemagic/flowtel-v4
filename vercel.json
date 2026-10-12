@@ -95,6 +95,26 @@
       "destination": "/caddie-magic/reset-password/index.html"
     },
     {
+      "source": "/caddie-magic/assignments",
+      "destination": "/caddie-magic/assignments/index.html"
+    },
+    {
+      "source": "/caddie-magic/sea-of-sirens",
+      "destination": "/caddie-magic/sea-of-sirens/index.html"
+    },
+    {
+      "source": "/caddie-magic/hole-map",
+      "destination": "/caddie-magic/hole-map/index.html"
+    },
+    {
+      "source": "/manager/kingdom",
+      "destination": "/manager/kingdom/index.html"
+    },
+    {
+      "source": "/caddie-magic/join",
+      "destination": "/caddie-magic/join/index.html"
+    },
+    {
       "source": "/caddie-magic",
       "destination": "/caddie-magic/index.html"
     },
@@ -446,7 +466,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.7.1"
+          "value": "0.8.0"
         }
       ]
     },
@@ -459,7 +479,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.7.1"
+          "value": "0.8.0"
         }
       ]
     },
@@ -472,7 +492,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.7.1"
+          "value": "0.8.0"
         }
       ]
     },
@@ -485,7 +505,7 @@
         },
         {
           "key": "X-Caddie-Magic-Version",
-          "value": "0.7.1"
+          "value": "0.8.0"
         }
       ]
     },

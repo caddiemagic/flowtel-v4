@@ -1,0 +1,42 @@
+const crypto=require('crypto');
+const {fetchJson,serverConfig,serviceHeaders,publicOrigin}=require('./guest-house-server.js');
+const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function brandForRedirect(redirect='',metadata={}){try{const path=new URL(redirect).pathname;if(path.startsWith('/caddie-magic/'))return 'kingdom';if(path!=='/')return 'flowtel';}catch(_){}return String(metadata.source||'').startsWith('caddie_magic')||metadata.source==='kingdom_paid'?'kingdom':'flowtel';}
+function branding(brand){return brand==='kingdom'?{name:'Caddie Magic Kingdom',from:process.env.KINGDOM_FROM_EMAIL,origin:publicOrigin(),path:'/caddie-magic/',background:'#071725',color:'#f7f6f1'}:{name:'The Flowtel',from:process.env.FLOWTEL_FROM_EMAIL||process.env.FLOWTEL_GUEST_HOUSE_FROM_EMAIL,origin:publicOrigin(),path:'/client/',background:'#fffaf3',color:'#4b2d31'};}
+async function sendEmail({brand,to,subject,text,html,key}){const b=branding(brand),apiKey=process.env.RESEND_API_KEY;if(!apiKey||!b.from)throw Error(`Email delivery for ${brand} is not configured.`);return fetchJson('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':key},body:JSON.stringify({from:b.from.includes('<')?b.from:`${b.name} <${b.from}>`,to:[to],subject,text,html,...(process.env.FLOWTEL_EMAIL_REPLY_TO?{reply_to:process.env.FLOWTEL_EMAIL_REPLY_TO}:{})})});}
+function emailBody(brand,title,copy,url,button){const b=branding(brand);return `<div style="max-width:620px;margin:auto;padding:36px;font-family:Georgia,serif;background:${b.background};color:${b.color}"><p>${b.name}</p><h1>${escape(title)}</h1><p>${escape(copy)}</p><a style="display:inline-block;background:#a72c35;color:#fff;padding:16px 24px;border-radius:24px;text-decoration:none" href="${escape(url)}">${escape(button)}</a></div>`;}
+async function queueWelcome({email,brand,label,firstName='',orderId}){
+ if(process.env.FLOWTEL_BRANDED_EMAIL_ENABLED!=='true'||!orderId)return {status:'disabled'};
+ const context=serverConfig(),deliveryKey=`${brand}:${label}:${orderId}`,base=`${context.supabaseUrl}/rest/v1/flowtel_branded_email_outbox`;
+ await fetchJson(base,{method:'POST',headers:serviceHeaders(context.serviceKey,'resolution=ignore-duplicates,return=minimal'),body:JSON.stringify({delivery_key:deliveryKey,recipient_email:email,brand,membership_label:label,first_name:firstName})});
+ const rows=await fetchJson(`${base}?delivery_key=eq.${encodeURIComponent(deliveryKey)}&limit=1`,{headers:serviceHeaders(context.serviceKey)});return deliverWelcome(rows[0],context);
+}
+async function deliverWelcome(row,context=serverConfig()){
+ if(!row)return {status:'missing'};if(row.sent_at)return {status:'already-sent'};
+ const b=branding(row.brand),url=b.origin+b.path;const title=`Welcome to ${row.membership_label}`,copy=`${row.first_name?row.first_name+', ':''}your membership is ready. ${row.brand==='kingdom'?'Enter the Clubhouse to save your compass, record your scores and swing thoughts, and explore the Sea of Sirens.':'Your membership has been verified. Enter the Flowtel to begin.'} If this is a new account, complete the separate account invitation first.`;
+ try{const sent=await sendEmail({brand:row.brand,to:row.recipient_email,subject:title,text:copy+'\n\n'+url,html:emailBody(row.brand,title,copy,url,row.brand==='kingdom'?'Enter the Clubhouse':'Enter the Flowtel'),key:`welcome-${row.id}`});await fetchJson(`${context.supabaseUrl}/rest/v1/flowtel_branded_email_outbox?id=eq.${row.id}`,{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({sent_at:new Date().toISOString(),provider_id:sent.id||null,last_error:null})});return {status:'sent'};}catch(error){await fetchJson(`${context.supabaseUrl}/rest/v1/flowtel_branded_email_outbox?id=eq.${row.id}`,{method:'PATCH',headers:serviceHeaders(context.serviceKey),body:JSON.stringify({last_error:'Email delivery failed; review sender/provider configuration.'})}).catch(()=>{});return {status:'queued'};}
+}
+function verifyHook(raw,headers,secret,now=Math.floor(Date.now()/1000)){
+ const id=headers['webhook-id'],timestamp=headers['webhook-timestamp'],signature=headers['webhook-signature'];
+ if(!id||!timestamp||!signature||!/^\d+$/.test(timestamp)||Math.abs(now-Number(timestamp))>300)throw Error('Invalid email hook signature.');
+ const key=Buffer.from(String(secret||'').replace(/^v1,whsec_|^whsec_/,''),'base64');if(key.length<16)throw Error('Email hook secret is not configured.');
+ const expected=crypto.createHmac('sha256',key).update(`${id}.${timestamp}.${raw}`).digest();
+ const valid=String(signature).split(' ').some(item=>{const [version,value]=item.split(',');if(version!=='v1'||!value)return false;const got=Buffer.from(value,'base64');return got.length===expected.length&&crypto.timingSafeEqual(got,expected);});if(!valid)throw Error('Invalid email hook signature.');return id;
+}
+async function authEmailHook(req,res){
+ try{
+  const chunks=[];let size=0;if(req.rawBody)chunks.push(Buffer.from(req.rawBody));else if(typeof req[Symbol.asyncIterator]==='function'){for await(const chunk of req){size+=chunk.length;if(size>65536)throw Error('Payload too large');chunks.push(Buffer.from(chunk));}}else if(typeof req.body==='string'||Buffer.isBuffer(req.body))chunks.push(Buffer.from(req.body));else throw Error('Raw hook body unavailable');
+  const raw=Buffer.concat(chunks).toString('utf8'),id=verifyHook(raw,req.headers,process.env.SEND_EMAIL_HOOK_SECRET);const payload=JSON.parse(raw),user=payload.user,email=payload.email_data;
+  if(!user?.email||!email?.email_action_type)throw Error('Invalid authentication email');
+  const allowedOrigins=new Set([publicOrigin(),...String(process.env.FLOWTEL_EMAIL_ALLOWED_ORIGINS||'').split(',').filter(Boolean)]);let redirect=new URL(email.redirect_to||publicOrigin()+'/client/');if(!allowedOrigins.has(redirect.origin))throw Error('Unapproved email return URL');
+  const brand=brandForRedirect(redirect.href,user.user_metadata),b=branding(brand),context=serverConfig(),action=email.email_action_type;
+  const captions={signup:['Confirm Your Account','Confirm your email to finish creating your account.','Confirm My Account'],invite:['Your Invitation','Accept your invitation and set up your account.','Accept My Invitation'],recovery:['Reset Your Password','Use this secure link to choose a new password.','Reset My Password'],magiclink:['Your Sign-in Link','Use this secure link to sign in.','Sign In'],email_change:['Confirm Your Email Change','Confirm this change to your account email.','Confirm Email Change'],reauthentication:['Verify Your Identity','Use the verification code below to confirm your identity.','Verify']};
+  let messages=[];
+  if(captions[action]){const [title,copy,button]=captions[action];if(action==='reauthentication'){messages=[{to:user.email,title,copy:`${copy} Your code: ${email.token}`,url:redirect.href,button}];}else{const tokenMessages=action==='email_change'?[...(email.token_hash_new?[{to:user.email,hash:email.token_hash_new}]:[]),{to:user.new_email,hash:email.token_hash}]:[{to:user.email,hash:email.token_hash}];messages=tokenMessages.map(m=>{if(!m.to||!m.hash)throw Error('Missing email token');const url=new URL(context.supabaseUrl+'/auth/v1/verify');url.searchParams.set('token',m.hash);url.searchParams.set('type',action);url.searchParams.set('redirect_to',redirect.href);return {...m,title,copy,url:url.href,button};});}}
+  else if(action.endsWith('_notification')){messages=[{to:user.email,title:'Account Security Notice',copy:`An account security event occurred: ${action.replaceAll('_',' ')}. If this wasn't you, contact support.`,url:redirect.href,button:'Open My Account'}];}
+  else throw Error('Unsupported authentication email type');
+  for(let i=0;i<messages.length;i++){const m=messages[i];await sendEmail({brand,to:m.to,subject:`${b.name} · ${m.title}`,text:m.copy+'\n\n'+m.url,html:emailBody(brand,m.title,m.copy,m.url,m.button),key:`auth-${id}-${i}`});}
+  return res.status(200).json({});
+ }catch(error){console.error('Branded auth email failed:',error.message==='Invalid email hook signature.'?'invalid signature':'delivery/configuration error');return res.status(400).json({error:{http_code:400,message:'Authentication email could not be delivered.'}});}
+}
+module.exports={brandForRedirect,branding,queueWelcome,deliverWelcome,verifyHook,authEmailHook};
