@@ -1,3 +1,21 @@
+let compassConsecrations=[];
+let compassConsecrationError='';
+async function loadCompassConsecrations(){
+ const {data,error}=await supabase.from('caddie_magic_compass_submissions').select('id,caller_name,email,north_club,east_club,west_club,south_club,staff_club,status,submitted_at,consecrated_at').order('submitted_at',{ascending:false}).limit(500);
+ compassConsecrations=error?[]:(data||[]);compassConsecrationError=error?'Compass consecration requests require migration 082 and Concierge access.':'';
+}
+function renderCompassConsecrations(){
+ const pending=compassConsecrations.filter(row=>row.status==='awaiting_consecration');
+ return `<section><p class="eyebrow">COMPASSES AWAITING CONSECRATION · ${pending.length}</p>${compassConsecrationError?`<p>${escapeHtml(compassConsecrationError)}</p>`:pending.length?pending.map(row=>`<article class="guest-row"><div><h3>${escapeHtml(row.caller_name)}</h3><p>${escapeHtml(row.email)}</p><p>North: ${escapeHtml(row.north_club)} · East: ${escapeHtml(row.east_club)} · West: ${escapeHtml(row.west_club)} · South: ${escapeHtml(row.south_club)}</p><p>Center: Putter · Awaiting Consecration</p></div><button type="button" data-consecrate-compass="${escapeHtml(row.id)}">Mark Consecrated</button></article>`).join(''):'<p>No compasses awaiting consecration.</p>'}<button type="button" id="refreshConsecrations">Refresh Compass Requests</button></section>`;
+}
+function bindCompassConsecrations(){
+ queue.querySelector('#refreshConsecrations')?.addEventListener('click',async()=>{await loadCompassConsecrations();updateStats();renderCaddieMasterQueue();});
+ queue.querySelectorAll('[data-consecrate-compass]').forEach(button=>button.addEventListener('click',async()=>{
+  if(!window.confirm('Confirm you have reviewed and consecrated this Caddie Compass?'))return;button.disabled=true;
+  try{const {error}=await supabase.rpc('caddie_magic_consecrate_compass',{p_id:button.dataset.consecrateCompass});if(error)throw error;await loadCompassConsecrations();updateStats();renderCaddieMasterQueue();}
+  catch(error){button.disabled=false;if(managerMessage)managerMessage.textContent=error.message;}
+ }));
+}
 import { signInWithEmail, signUpWithEmail, signOut } from "../shared/auth.js";
 import { supabase } from "../shared/supabase.js";
 import { ensureProfile, getCurrentProfile } from "../shared/profiles.js?v=0.10.78";
@@ -817,7 +835,7 @@ function updateStats(){
   const caddieCompassReplyCount=caddieCompassPlayers.filter(player=>player.needs_reply).length;
   const caddieNetworkActiveCount=caddieNetworkProfiles.filter(profile=>profile.status==="active").length;
   const caddieNetworkReviewCount=caddieNetworkProfiles.filter(profile=>profile.status==="submitted").length+caddieCourseRequests.filter(row=>row.status==="pending").length+caddiePlayerInvitations.filter(invite=>invite.status==="invited").length;
-  const caddieMasterAlertCount=(Number(caddieMasterCommandCenter.player_message_count)||0)+(Number(caddieMasterCommandCenter.caddie_team_message_count)||0)+(Number(caddieMasterCommandCenter.assignment_count)||0)+(Number(caddieMasterCommandCenter.course_request_count)||0)+(Number(caddieMasterCommandCenter.submitted_profile_count)||0);
+  const caddieMasterAlertCount=compassConsecrations.filter(row=>row.status==="awaiting_consecration").length+(Number(caddieMasterCommandCenter.player_message_count)||0)+(Number(caddieMasterCommandCenter.caddie_team_message_count)||0)+(Number(caddieMasterCommandCenter.assignment_count)||0)+(Number(caddieMasterCommandCenter.course_request_count)||0)+(Number(caddieMasterCommandCenter.submitted_profile_count)||0);
   const caddieTeamActiveCount=caddieConciergeTeam.filter(row=>row.status==="active").length;
   const upcomingGolfCount=upcomingGolfEvents.filter(event=>String(event.date_end||event.date_start)>=managerTodayISO() && !event.caddie_master_acknowledged_at).length;
   const honorsAvailable=honorsDashboardRows.reduce((sum,row)=>sum+(Number(row.available_points)||0),0);
@@ -1420,6 +1438,7 @@ function renderCaddieNetworkQueue(){
 }
 
 async function loadCaddieNetworkData(){
+  await loadCompassConsecrations().catch(()=>{compassConsecrations=[];compassConsecrationError="Compass requests could not load. Refresh to try again.";});
   try{
     [caddieNetworkProfiles,caddieCourseRequests,caddieMasterAccessRows,caddieMasterCommandCenter,caddieConciergeTeam,caddieCourseCatalog]=await Promise.all([
       listCaddieNetworkProfiles(),
@@ -1460,14 +1479,15 @@ function renderMasterAlertRows(rows=[],type="player"){
 }
 
 function renderCaddieMasterQueue(){
-  if(!caddieNetworkServiceAvailable){queue.innerHTML="<p>The Caddie Master Command Center requires migration 055.</p>";return;}
+  if(!caddieNetworkServiceAvailable){queue.innerHTML=renderCompassConsecrations()+"<p>The Caddie Master Command Center requires migration 055.</p>";bindCompassConsecrations();return;}
   const center=caddieMasterCommandCenter||{};
-  queue.innerHTML=`<section class="relationship-queue caddie-master-command-center">
+  queue.innerHTML=`<section class="relationship-queue caddie-master-command-center">${renderCompassConsecrations()}
     <section><p class="eyebrow">PLAYER MESSAGES · ${Number(center.player_message_count)||0} UNREAD</p>${renderMasterAlertRows(center.player_messages||[],"player")}</section>
     <section><p class="eyebrow">CADDIE TEAM MESSAGES · ${Number(center.caddie_team_message_count)||0} UNREAD</p>${renderMasterAlertRows(center.caddie_team_messages||[],"team")}</section>
     <section><p class="eyebrow">ASSIGNMENTS NEEDING ATTENTION · ${Number(center.assignment_count)||0}</p>${renderMasterAlertRows(center.assignments||[],"assignment")}</section>
     <section class="caddie-master-shortcuts"><p class="eyebrow">NETWORK ALERTS</p><div class="master-shortcut-grid"><button type="button" data-open-network-alert="courses"><strong>${Number(center.course_request_count)||0}</strong><span>Course Verification Requests</span></button><button type="button" data-open-network-alert="profiles"><strong>${Number(center.submitted_profile_count)||0}</strong><span>Submitted Caddie Profiles</span></button></div></section>
   </section>`;
+  bindCompassConsecrations();
   queue.querySelectorAll("[data-open-network-alert]").forEach(button=>button.addEventListener("click",()=>setFilter("caddie-network")));
   queue.querySelectorAll("[data-note-assignment]").forEach(button=>button.addEventListener("click",async()=>{
     button.disabled=true;

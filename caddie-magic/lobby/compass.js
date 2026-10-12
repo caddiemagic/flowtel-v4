@@ -1,5 +1,12 @@
-export const CLUBS = ['Driver','2 Wood','3 Wood','4 Wood','5 Wood','7 Wood','9 Wood','2 Hybrid','3 Hybrid','4 Hybrid','5 Hybrid','6 Hybrid','1 Iron','2 Iron','3 Iron','4 Iron','5 Iron','6 Iron','7 Iron','8 Iron','9 Iron','Pitching Wedge','Gap Wedge','Sand Wedge','Lob Wedge'];
+export function normalizeClub(value) {
+  const club=String(value ?? '').trim().replace(/\s+/g,' ');
+  if (!club || club.length>60) throw new Error('Enter a club name using 1–60 characters.');
+  if (/putter|putting/i.test(club)) throw new Error('Your putter already has its place at the center. Choose another club.');
+  return club;
+}
 export function cardinalClubs(selection) {
-  if (!Array.isArray(selection) || selection.length !== 4 || selection.some(c => !CLUBS.includes(c)) || new Set(selection).size !== 4) throw new Error('Choose four different clubs. Your putter belongs in the center.');
-  return {north:selection[0],east:selection[1],west:selection[2],south:selection[3],center:'Putter'};
+  if (!Array.isArray(selection) || selection.length!==4) throw new Error('Enter four different clubs.');
+  const clubs=selection.map(normalizeClub);
+  if(new Set(clubs.map(c=>c.toLowerCase().replace(/[\s-]/g,''))).size!==4) throw new Error('Choose a different club—you already entered that one.');
+  return {north:clubs[0],east:clubs[1],west:clubs[2],south:clubs[3],center:'Putter'};
 }

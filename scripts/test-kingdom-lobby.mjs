@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { cardinalClubs, CLUBS } from '../caddie-magic/lobby/compass.js';
+import { cardinalClubs, normalizeClub } from '../caddie-magic/lobby/compass.js';
 assert.deepEqual(cardinalClubs(['Driver','7 Iron','Sand Wedge','5 Wood']),{north:'Driver',east:'7 Iron',west:'Sand Wedge',south:'5 Wood',center:'Putter'});
 for(const x of [[],['Driver','Driver','7 Iron','5 Wood'],['Putter','Driver','7 Iron','5 Wood'],['Driver','7 Iron','Sand Wedge']]) assert.throws(()=>cardinalClubs(x));
-assert(!CLUBS.includes('Putter'));
+assert.throws(()=>normalizeClub('My Putter'));
+assert.equal(normalizeClub('  56°   wedge '),'56° wedge');
+assert.throws(()=>cardinalClubs(['Driver',' driver ','7 Iron','5 Wood']));
 const guard=await readFile('shared/supabase.js','utf8');assert(guard.includes('["/caddie-magic/lobby/", "/caddie-magic/reset-password/"].includes(path)'));
 const auth=await readFile('caddie-magic/reset-password/app.js','utf8');assert(auth.includes("event==='PASSWORD_RECOVERY'"));assert(auth.includes('if(!recoveryAuthorized)'));assert(auth.includes('password!=='));assert(auth.includes('supabase.auth.getUser()'));
 const player=await readFile('caddie-magic/index.html','utf8');assert(player.includes('id="authForm"'));assert(player.includes('Forgot your password?'));
