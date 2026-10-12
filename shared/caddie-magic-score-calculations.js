@@ -7,7 +7,10 @@ export function validGolfScore(value){
 }
 
 export function averageValidGolfScore(entries=[]){
-  const scores=entries
+  const comparable=entries.filter(entry=>typeof entry!=='object'||entry===null||entry.round_complete!==false);
+  const lengths=new Set(comparable.filter(entry=>typeof entry==='object'&&entry!==null&&validGolfScore(entry.score)!==null).map(entry=>entry.holes_played??'legacy'));
+  if(lengths.size>1)return null;
+  const scores=comparable
     .map(entry=>validGolfScore(typeof entry === 'object' && entry !== null ? entry.score : entry))
     .filter(score=>score !== null);
   if(!scores.length) return null;
@@ -15,7 +18,10 @@ export function averageValidGolfScore(entries=[]){
 }
 
 export function bestValidGolfScore(entries=[]){
-  const scores=entries
+  const comparable=entries.filter(entry=>typeof entry!=='object'||entry===null||entry.round_complete!==false);
+  const lengths=new Set(comparable.filter(entry=>typeof entry==='object'&&entry!==null&&validGolfScore(entry.score)!==null).map(entry=>entry.holes_played??'legacy'));
+  if(lengths.size>1)return null;
+  const scores=comparable
     .map(entry=>validGolfScore(typeof entry === 'object' && entry !== null ? entry.score : entry))
     .filter(score=>score !== null);
   return scores.length ? Math.min(...scores) : null;

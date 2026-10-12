@@ -21,6 +21,8 @@ export async function claimPlayerInvitation(inviteCode) {
 }
 
 export async function requireCaddieMagicAccess() {
+  const {data}=await supabase.auth.getSession();
+  if(data.session?.access_token){const response=await fetch('/api/caddie-acuity',{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${data.session.access_token}`},body:JSON.stringify({action:'kingdom-check-access'})});const result=await response.json();if(!response.ok||!result.ok)throw new Error(result.error||'Kingdom access could not be verified.');}
   return requireProductAccess("caddie_magic");
 }
 
