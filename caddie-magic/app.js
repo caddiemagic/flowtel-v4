@@ -1,5 +1,4 @@
-import { holeScorePayload } from "../shared/kingdom-holes.js?v=0.8.0";
-// Caddie Magic v0.8.0 — Kingdom experience, assignments, hole scores and audio library
+// Caddie Magic v0.8.1 — Kingdom experience, assignments, total scores and audio library
 
 import { supabase } from "../shared/supabase.js";
 import { getMoonMagic } from "../shared/moon.js";
@@ -439,11 +438,6 @@ async function logRound(event) {
   const roundDate = isReflection ? todayISO() : ($("roundDate")?.value || "");
   const coursePlayed = clean($("coursePlayed")?.value);
   let score = scoreNumber($("roundScore")?.value);
-  let holePayload=null;
-  if(!isReflection && $("scoreEntryMode").value==="holes"){
-    try{holePayload=holeScorePayload(Number($("holesPlayed").value),[...document.querySelectorAll("[data-hole-score]")].map(input=>input.value));score=holePayload.score;}
-    catch(error){setMessage(roundMessage,error.message,true);return;}
-  }
   const swingThoughts = clean($("swingThoughts")?.value);
 
   if (!isReflection && !roundDate) {
@@ -465,7 +459,7 @@ async function logRound(event) {
 
   const moon = getMoonMagic(roundDate);
   const payload = {
-    ...(isReflection?{}:holePayload||{holes_played:Number($("holesPlayed").value),hole_scores:null,round_complete:true}),
+    ...(isReflection?{}:{holes_played:Number($("holesPlayed").value),hole_scores:null,round_complete:true}),
     player_profile_id: playerProfile.id,
     user_id: currentUser.id,
     entry_type: isReflection ? "reflection" : "round",
@@ -473,7 +467,7 @@ async function logRound(event) {
     course_played: isReflection ? null : (coursePlayed || null),
     score: isReflection ? null : score,
     swing_thoughts: swingThoughts || null,
-    share_anonymously: holePayload?.round_complete===false ? false : playerProfile?.share_anonymously !== false,
+    share_anonymously: playerProfile?.share_anonymously !== false,
     moon_day: moon.moonDay,
     moon_phase: normalizePhase(moon.phase),
     moon_inner_season: moon.innerSeason,
@@ -488,7 +482,6 @@ async function logRound(event) {
 
   $("coursePlayed").value = "";
   $("roundScore").value = "";
-  document.querySelectorAll("[data-hole-score]").forEach(input=>input.value="");
   $("swingThoughts").value = "";
   $("roundDate").value = todayISO();
   setMessage(roundMessage, isReflection
@@ -810,7 +803,6 @@ function renderStats() {
     <a class="cm-button cm-call-red" href="/caddie-magic/call-your-caddie/">Call Your Caddie</a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/assignments/"><span>Assignments</span><strong>View Your Work</strong><small>Assignments and reflections for The Caddie Master.</small></a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/sea-of-sirens/"><span>Sea of Sirens</span><strong>Listen &amp; return to yourself</strong><small>Meditations · Hypnosis · Breathwork · Siren Calls</small></a>
-    <a class="cm-stat cm-stat-link" href="/caddie-magic/hole-map/"><span>Hole Score Wheel</span><strong>Numbers &amp; Moon Phase</strong><small>Your 9- or 18-hole rounds.</small></a>
     <a class="cm-stat cm-stat-link" href="/caddie-magic/compass/">
       <span>Caddie Compass</span>
       <strong>${activeCompass ? "Four Clubs Open" : "Set Your Compass"}</strong>
@@ -1048,7 +1040,7 @@ function setEntryMode(mode) {
   document.querySelectorAll(".cm-round-only-field").forEach((field) => field.classList.toggle("hidden", isReflection));
   document.querySelectorAll(".cm-date-field").forEach((field) => field.classList.toggle("hidden", isReflection));
   $("coursePlayed").required = false;
-  $("roundScore").required = !isReflection && $("scoreEntryMode").value!=="holes";
+  $("roundScore").required = !isReflection;
   $("roundDate").required = !isReflection;
   $("roundDate").value = todayISO();
   $("swingThoughts").required = isReflection;
@@ -1060,25 +1052,14 @@ function setEntryMode(mode) {
     ? "No round required. Leave the swing thought you want to remember."
     : "Only the essentials: date and score, with course and swing thought optional.";
   $("swingThoughtOptionalLabel").textContent = isReflection ? "Required" : "Optional";
-  renderHoleFields();
   setMessage(roundMessage, "");
 }
 
-function renderHoleFields(){
- const holes=Number($("holesPlayed").value);const detailed=$("scoreEntryMode").value==="holes";
- const previous=[...document.querySelectorAll('[data-hole-score]')].map(input=>input.value);
- if(holes===9 && previous.slice(9).some(Boolean) && !window.confirm('Switch to 9 holes and remove scores for holes 10–18?')){$('holesPlayed').value='18';return;}
- $('holeScoreFields').innerHTML=Array.from({length:holes},(_,i)=>`<label>Hole ${i+1}<input type="number" min="1" max="30" step="1" inputmode="numeric" data-hole-score="${i+1}" value="${escapeHtml(previous[i]||'')}"></label>`).join('');
- $('holeScoresSection').classList.toggle('hidden',!detailed||entryMode==='reflection');$('roundScore').closest('label').classList.toggle('hidden',detailed);$('roundScore').required=!detailed && entryMode!=='reflection';
-}
 function bindEvents() {
   $("signInButton")?.addEventListener("click", signIn);
   $("createAccountButton")?.addEventListener("click", createAccount);
   $("profileForm")?.addEventListener("submit", savePlayerProfile);
   $("roundForm")?.addEventListener("submit", logRound);
-  $("holesPlayed")?.addEventListener("change",renderHoleFields);
-  $("scoreEntryMode")?.addEventListener("change",renderHoleFields);
-  renderHoleFields();
   $("signOutButton")?.addEventListener("click", signOut);
   $("heroLogButton")?.addEventListener("click", () => scrollToPortalTarget("roundLogCard"));
   $("roundModeButton")?.addEventListener("click", () => setEntryMode("round"));
