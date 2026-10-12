@@ -87,6 +87,14 @@
       "destination": "/caddie-magic/call-your-caddie/index.html"
     },
     {
+      "source": "/caddie-magic/lobby",
+      "destination": "/caddie-magic/lobby/index.html"
+    },
+    {
+      "source": "/caddie-magic/reset-password",
+      "destination": "/caddie-magic/reset-password/index.html"
+    },
+    {
       "source": "/caddie-magic",
       "destination": "/caddie-magic/index.html"
     },

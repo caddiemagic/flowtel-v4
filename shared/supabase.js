@@ -23,6 +23,7 @@ const FLOWTEL_PROTECTED_PREFIXES = [
 
 function requiredProductForPath(pathname = window.location.pathname) {
   const path = pathname.endsWith("/") ? pathname : `${pathname}/`;
+  if (["/caddie-magic/lobby/", "/caddie-magic/reset-password/"].includes(path)) return null;
   if (path.startsWith("/caddie-magic/")) return "caddie_magic";
   if (FLOWTEL_PROTECTED_PREFIXES.some((prefix) => path.startsWith(prefix))) return "flowtel";
   return null;
