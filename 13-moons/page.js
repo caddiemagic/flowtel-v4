@@ -1,4 +1,4 @@
-import { getCurrentProfile } from '/shared/profiles.js';
+import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
 import { supabase } from '/shared/supabase.js';
 import { flowtelEntryMonth, generateBigVisionVortex } from '/shared/13-moon-vortex.js';
 
@@ -72,6 +72,16 @@ async function load() {
     if (!(await eligible(profile))) {
       message('13 Moons initiation access required',
         'Your account does not have an active 13 Moons or Flow FM entitlement.');
+      return;
+    }
+    if (profileNeedsConfirmation(profile) || !String(profile.hemisphere || '').trim()) {
+      message('First, confirm your Guest Profile',
+        'Review your name, display name, location, time zone, and hemisphere in your existing Flowtel profile before beginning your Vortex.');
+      const link = document.createElement('a');
+      link.href = '/client/';
+      link.textContent = 'Open my Flowtel Guest Profile';
+      link.style.display = 'inline-block';
+      detail.append(document.createTextNode(' '), link);
       return;
     }
     const { data: saved, error } = await supabase.from('flowtel_13_moons_vortices')
