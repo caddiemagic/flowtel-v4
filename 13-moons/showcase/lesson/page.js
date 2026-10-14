@@ -1,4 +1,5 @@
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
+import { LESSON_TEACHING_DRAFTS } from './teaching-drafts.js';
 const root=document.getElementById('lesson');
 const nav=document.getElementById('lessonNavigation');
 const index=Number(new URLSearchParams(location.search).get('lesson'));
@@ -41,14 +42,19 @@ if(!lesson){
  add('p',lesson.description);
  add('p','This lesson follows the fixed Womb Magic curriculum sequence, independent of the calendar moon when you begin.');
  add('p','The lesson below is drawn from the existing Womb Magic curriculum. Calendar moon names and dates are separate from lesson order.');
+ const draft=LESSON_TEACHING_DRAFTS[index];
+ if(draft){
+   add('h2','Written teaching · editorial draft for review');
+   for(const paragraph of draft.paragraphs)add('p',paragraph);
+ }
  add('h2','Your Womb Work');
  add('p',lesson.practice);
  add('h2','Reflection');
  add('p',lesson.prompt);
  add('h2','Daily Cycle Observation');
- add('p','Continue observing your cycle in the existing Flowtel tracker and journal.');
+ add('p',draft?.daily || 'Continue observing your cycle in the existing Flowtel tracker and journal.');
  add('h2','Moon Close · Flow Map');
- add('p','Review your daily cycle notes and record your observations across the four inner seasons using your existing Flow Map.');
+ add('p',draft?.integration || 'Review your daily cycle notes and record your observations across the four inner seasons using your existing Flow Map.');
  if(index>1)link('← Lesson '+(index-1),'?lesson='+(index-1));
  if(index<13)link('Lesson '+(index+1)+' →','?lesson='+(index+1));
 }
