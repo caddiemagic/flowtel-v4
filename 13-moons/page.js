@@ -37,6 +37,14 @@ async function eligible(profile) {
   if (error) throw error;
   return data?.access_granted === true;
 }
+let lessonProgress = null;
+async function loadLessonProgress(profile) {
+  const { data, error } = await supabase.from('flowtel_13_moons_lesson_progress')
+    .select('current_lesson,completed_lessons').eq('user_id', profile.id).maybeSingle();
+  // Migration 087 is only a draft. A missing table must not break onboarding.
+  if (error) return null;
+  return data;
+}
 function renderInitiationPath() {
   const root = byId('initiationPath');
   if (!root) return;
@@ -50,6 +58,13 @@ function renderInitiationPath() {
     eyebrow.textContent = 'INITIATION ' + String(module.index).padStart(2, '0') + ' · ' + module.arc;
     const heading = document.createElement('h3');
     heading.textContent = module.title;
+    if (lessonProgress) {
+      const completed = Array.isArray(lessonProgress.completed_lessons) && lessonProgress.completed_lessons.includes(module.index);
+      const current = Number(lessonProgress.current_lesson) === module.index;
+      const state = document.createElement('p');
+      state.textContent = completed ? 'Completed' : current ? 'Current lesson' : 'Not yet completed';
+      card.append(state);
+    }
     const description = document.createElement('p');
     description.textContent = module.description;
     const practiceHeading = document.createElement('h4');
@@ -123,6 +138,7 @@ async function load() {
         'Your account does not have an active 13 Moons or Flow FM entitlement.');
       return;
     }
+    lessonProgress = await loadLessonProgress(profile);
     // Entitlement has been checked: keep the curriculum visible even while
     // the guest completes the opening onboarding requirements.
     byId('greeting').textContent = 'Welcome, ' + (profile.display_name || profile.first_name || 'Initiate') + '.';
