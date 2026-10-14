@@ -35,6 +35,23 @@ function params(){ return new URLSearchParams(window.location.search); }
 function requestedClientId(){ return params().get("client"); }
 function requestedScope(){ return params().get("scope"); }
 function requestedCycle(){ return params().get("cycle"); }
+function initiationReturnPath(){
+  const value=params().get("return");
+  // Strict local allowlist. Never turn the Flow Map into an external redirect.
+  if(!value || !/^\/13-moons\/(?:showcase\/lesson\/)?(?:\?[^#]*)?$/.test(value)) return "";
+  return value;
+}
+function showInitiationReturn(){
+  const destination=initiationReturnPath();
+  if(!destination) return;
+  const anchor=document.createElement("a");
+  anchor.className="return-link";
+  anchor.href=destination;
+  anchor.textContent="Return to Womb Magic lesson";
+  const actions=document.querySelector(".utility-actions");
+  if(actions) actions.prepend(anchor);
+}
+
 function isGuestFacingMode(){ return currentMode==="self" || currentMode==="client"; }
 function isAdminRole(profile){ return ["admin","owner"].includes(profile?.role); }
 function isMentorRole(profile){ return ["practitioner","admin","owner"].includes(profile?.role); }
@@ -297,6 +314,7 @@ function bindCycleSelector(cycles){
 async function init(){
   try{
     currentProfile=await getCurrentProfile();
+    showInitiationReturn();
     if(!currentProfile){
       intro.textContent="Please sign in through your Suite or Concierge Desk to open your Flow Map.";
       viewingName.textContent="No active session";
