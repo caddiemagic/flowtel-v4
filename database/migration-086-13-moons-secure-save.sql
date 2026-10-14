@@ -53,7 +53,12 @@ begin
   on conflict (user_id) do update
     set reflections=excluded.reflections,
         completed_at=excluded.completed_at,
-        updated_at=now();
+        updated_at=now()
+  where public.flowtel_13_moons_vortices.completed_at is null
+    and public.flowtel_13_moons_vortices.start_month=excluded.start_month;
+  if not found then
+    raise exception 'The opening Vortex is sealed';
+  end if;
   return jsonb_build_object('saved',true,'complete',v_complete);
 end;
 $$;
