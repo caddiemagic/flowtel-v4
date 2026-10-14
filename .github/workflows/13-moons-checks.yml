@@ -1,0 +1,32 @@
+name: 13 Moons Release 1 checks
+on:
+  push:
+    branches:
+      - feature/13-moons-vortex-release1
+  pull_request:
+    paths:
+      - '13-moons/**'
+      - 'shared/13-moon-vortex.js'
+      - 'server/13-moons-purchase-classification.js'
+      - 'tests/13-moon-vortex.test.mjs'
+      - 'scripts/test-13-moons-purchase-classification.cjs'
+      - '.github/workflows/13-moons-checks.yml'
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check JavaScript syntax
+        run: |
+          node --check 13-moons/page.js
+          node --check server/13-moons-purchase-classification.js
+          node --check shared/13-moon-vortex.js
+      - name: Calendar regression tests
+        run: node tests/13-moon-vortex.test.mjs
+      - name: Entitlement classifier regression tests
+        run: node scripts/test-13-moons-purchase-classification.cjs
