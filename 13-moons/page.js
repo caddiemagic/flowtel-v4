@@ -66,7 +66,12 @@ async function load() {
   try {
     const profile = await getCurrentProfile();
     if (!profile) {
-      message('Please sign in', 'Use your existing Flowtel account to begin.');
+      message('Please sign in', 'Your preview uses a separate browser session from live Flowtel. Sign in using your existing Flowtel account.');
+      const link = document.createElement('a');
+      link.href = '/client/';
+      link.textContent = 'Sign in to the Flowtel preview';
+      link.style.cssText = 'display:inline-block;margin-top:1rem;padding:.8rem 1.25rem;border:1px solid currentColor;border-radius:999px;';
+      detail.append(document.createElement('br'), link);
       return;
     }
     if (!(await eligible(profile))) {
