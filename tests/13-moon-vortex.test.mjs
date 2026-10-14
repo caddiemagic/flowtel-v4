@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import {generateBigVisionVortex,flowtelEntryMonth,isVortexComplete} from '../shared/13-moon-vortex.js';
+import {readFile} from 'node:fs/promises';
+const source=await readFile(new URL('../shared/13-moon-vortex.js',import.meta.url),'utf8');
+const {generateBigVisionVortex,flowtelEntryMonth,isVortexComplete}=await import('data:text/javascript,'+encodeURIComponent(source));
 const october=generateBigVisionVortex('2026-10');
 assert.equal(october.length,13);
 assert.equal(october[0].name,'Blood Moon');
