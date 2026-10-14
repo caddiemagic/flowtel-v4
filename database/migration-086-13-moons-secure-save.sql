@@ -31,14 +31,14 @@ begin
     raise exception 'Exactly 13 reflections required';
   end if;
   if exists (
-    select 1 from jsonb_array_elements(p_reflections) x
-    where jsonb_typeof(x) <> 'string' or length(x #>> '{}') > 4000
+    select 1 from jsonb_array_elements(p_reflections) as entry(value)
+    where jsonb_typeof(entry.value) <> 'string' or length(entry.value #>> '{}') > 4000
   ) then
     raise exception 'Invalid reflection';
   end if;
   v_complete := not exists (
-    select 1 from jsonb_array_elements_text(p_reflections) x
-    where length(btrim(x)) = 0
+    select 1 from jsonb_array_elements_text(p_reflections) as entry(value)
+    where length(btrim(entry.value)) = 0
   );
   select * into v_existing from public.flowtel_13_moons_vortices
   where user_id=v_uid for update;
