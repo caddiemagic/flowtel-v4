@@ -55,6 +55,12 @@ if(!lesson){
  add('p',draft?.daily || 'Continue observing your cycle in the existing Flowtel tracker and journal.');
  add('h2','Moon Close · Flow Map');
  add('p',draft?.integration || 'Review your daily cycle notes and record your observations across the four inner seasons using your existing Flow Map.');
+ const mapLink=document.createElement('a');
+ mapLink.href='/flow-map/';
+ mapLink.textContent='Open my existing Flow Map →';
+ mapLink.className='lesson-back';
+ root.append(mapLink);
+ add('p','In the Flow Map, use the cycle selector or previous-cycle navigation to review the cycle you have just completed. Your saved observations remain in your Flowtel account.');
  if(index>1)link('← Lesson '+(index-1),'?lesson='+(index-1));
  if(index<13)link('Lesson '+(index+1)+' →','?lesson='+(index+1));
 }
