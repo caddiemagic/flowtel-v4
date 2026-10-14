@@ -56,7 +56,7 @@ if(!lesson){
  add('h2','Moon Close · Flow Map');
  add('p',draft?.integration || 'Review your daily cycle notes and record your observations across the four inner seasons using your existing Flow Map.');
  const mapLink=document.createElement('a');
- mapLink.href='/flow-map/?cycle=previous';
+ mapLink.href='/flow-map/?cycle=previous&return='+encodeURIComponent('/13-moons/showcase/lesson/?lesson='+index);
  mapLink.textContent='Review my previous cycle on the Flow Map →';
  mapLink.className='lesson-back';
  root.append(mapLink);
