@@ -119,7 +119,14 @@ async function load() {
         'Your account does not have an active 13 Moons or Flow FM entitlement.');
       return;
     }
+    // Entitlement has been checked: keep the curriculum visible even while
+    // the guest completes the opening onboarding requirements.
+    byId('greeting').textContent = 'Welcome, ' + (profile.display_name || profile.first_name || 'Initiate') + '.';
+    view.hidden = false;
+    renderInitiationPath();
+    save.hidden = true;
     if (profileNeedsConfirmation(profile) || !String(profile.hemisphere || '').trim()) {
+      months.replaceChildren();
       message('First, confirm your Guest Profile',
         'Review your name, display name, location, time zone, and hemisphere in your existing Flowtel profile before beginning your Vortex.');
       const link = document.createElement('a');
