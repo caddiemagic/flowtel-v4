@@ -92,7 +92,24 @@ async function load() {
     const { data: saved, error } = await supabase.from('flowtel_13_moons_vortices')
       .select('start_month,reflections,completed_at')
       .eq('user_id', profile.id).maybeSingle();
-    if (error) throw error;
+    if (error) {
+      // Database migrations 085/086 are not installed. Permit only an existing
+      // Flow FM member to view a non-editable calendar; never expose draft fields.
+      if (!flowFmMember(profile)) throw error;
+      const list = document.createElement('ol');
+      for (const row of generateBigVisionVortex(flowtelEntryMonth())) {
+        const item = document.createElement('li');
+        item.textContent = row.month + ' · ' + row.name + ' · ' + row.wing;
+        list.append(item);
+      }
+      months.replaceChildren(list);
+      byId('greeting').textContent = 'Welcome, ' + (profile.display_name || profile.first_name || 'Initiate') + '.';
+      view.hidden = false;
+      save.hidden = true;
+      message('Your thirteen moons — calendar preview', 'Private reflection storage is not installed yet, so saving is disabled. This view does not collect your writing.');
+      showNotice('Read-only preview. Do not enter reflections here.');
+      return;
+    }
     startMonth = saved?.start_month
       ? String(saved.start_month).slice(0, 7)
       : flowtelEntryMonth();
