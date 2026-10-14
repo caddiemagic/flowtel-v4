@@ -1,5 +1,6 @@
 import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
 import { supabase } from '/shared/supabase.js';
+import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
 import { flowtelEntryMonth, generateBigVisionVortex } from '/shared/13-moon-vortex.js';
 
 const byId = (id) => document.getElementById(id);
@@ -31,6 +32,27 @@ async function eligible(profile) {
     .select('access_granted').eq('user_id', profile.id).maybeSingle();
   if (error) throw error;
   return data?.access_granted === true;
+}
+function renderInitiationPath() {
+  const root = byId('initiationPath');
+  if (!root) return;
+  root.replaceChildren();
+  for (const module of WOMB_WORK_MODULES) {
+    const card = document.createElement('article');
+    card.className = 'moon-path-card';
+    card.style.cssText = 'margin:1rem 0;padding:1.2rem;';
+    const eyebrow = document.createElement('p');
+    eyebrow.className = 'eyebrow';
+    eyebrow.textContent = 'INITIATION ' + String(module.index).padStart(2, '0') + ' · ' + module.arc;
+    const heading = document.createElement('h3');
+    heading.textContent = module.title;
+    const description = document.createElement('p');
+    description.textContent = module.description;
+    const note = document.createElement('p');
+    note.textContent = 'Your complete written teaching, monthly practice, and Flow Map reflection will open here in the full release.';
+    card.append(eyebrow, heading, description, note);
+    root.append(card);
+  }
 }
 function renderRows(rows, reflections) {
   months.replaceChildren();
@@ -119,7 +141,8 @@ async function load() {
     byId('greeting').textContent = 'Welcome, ' +
       (profile.display_name || profile.first_name || 'Initiate') + '.';
     view.hidden = false;
-    message('Your Big Vision Vortex',
+    renderInitiationPath();
+    message('Your opening Big Vision Vortex',
       'Write the impressions that arise for all thirteen moons. Save a draft anytime. Filling every moon seals your opening reflections.');
     if (!sealed) showNotice('Not saved yet. Your writing stays in this browser until you save.');
   } catch (error) {
