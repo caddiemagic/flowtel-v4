@@ -31,7 +31,7 @@ create table if not exists public.flowtel_13_moons_vortices (
 );
 alter table public.flowtel_13_moons_vortices enable row level security;
 revoke all on public.flowtel_13_moons_vortices from anon, authenticated;
-grant select, insert, update on public.flowtel_13_moons_vortices to authenticated;
+grant select on public.flowtel_13_moons_vortices to authenticated;
 drop policy if exists thirteen_moons_vortex_owner_read on public.flowtel_13_moons_vortices;
 create policy thirteen_moons_vortex_owner_read
 on public.flowtel_13_moons_vortices for select to authenticated
