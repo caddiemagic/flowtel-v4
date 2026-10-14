@@ -145,6 +145,9 @@ function buildCycles(entries){
 function defaultCycleStart(cycles){
   const explicit=requestedCycle();
   if(explicit==="all") return "__all";
+  // Deep link for the Womb Magic moon-close practice. Respect guest privacy and
+  // use the existing cycle history; never manufacture or duplicate cycle data.
+  if(explicit==="previous" && isGuestFacingMode()) return (cycles[1] || cycles[0])?.start || "__all";
   if(explicit && cycles.some(cycle=>cycle.start===explicit)) return explicit;
   if(isGuestFacingMode()) return cycles[0]?.start || "__all";
   // Admin + mentor collective views default to the most recently completed cycle.
