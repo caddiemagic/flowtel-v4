@@ -16,6 +16,20 @@ function link(label,href){
  anchor.textContent=label;
  nav.append(anchor);
 }
+const jump=document.createElement('label');
+jump.textContent='Browse Womb Magic lessons: ';
+const picker=document.createElement('select');
+picker.setAttribute('aria-label','Choose a Womb Magic lesson');
+for(const item of WOMB_WORK_MODULES){
+ const option=document.createElement('option');
+ option.value=String(item.index);
+ option.textContent=String(item.index).padStart(2,'0')+' · '+item.title;
+ option.selected=item.index===index;
+ picker.append(option);
+}
+picker.addEventListener('change',()=>{location.href='?lesson='+encodeURIComponent(picker.value);});
+jump.append(picker);
+nav.before(jump);
 root.replaceChildren();
 if(!lesson){
  add('h1','Choose a Womb Magic lesson','lesson-heading');
@@ -25,6 +39,7 @@ if(!lesson){
  add('p','Initiation '+String(index).padStart(2,'0')+' · '+lesson.arc,'lesson-label');
  add('h1',lesson.title,'lesson-heading');
  add('p',lesson.description);
+ add('p','This lesson follows the fixed Womb Magic curriculum sequence, independent of the calendar moon when you begin.');
  add('h2','Your Womb Work');
  add('p',lesson.practice);
  add('h2','Reflection');
