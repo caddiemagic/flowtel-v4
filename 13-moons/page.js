@@ -33,18 +33,6 @@ async function eligible(profile) {
   if (error) throw error;
   return data?.access_granted === true;
 }
-const personalPractices = {
-  3: 'Write your BIG VISION as a life you want to live and a woman you want to become. Business is optional.',
-  4: 'Plan one week of life around your energy and your inner seasons, making room for rest and pleasure.',
-  5: 'Choose three boundaries that protect your time, space, purpose, and energy.',
-  6: 'Create an altar or written invocation for the support you feel around your life.',
-  8: 'Write an identity statement for the woman you are becoming, beyond any title or role.',
-  9: 'Name the support, money, relationships, and resources your vision needs, and one invitation to receive each.',
-  10: 'Create a small piece of art, ritual, writing, or experience from your own lived wisdom.',
-  11: 'Identify something you wish to offer or share with the world, without requiring it to become a business.',
-  12: 'Take one visible, grounded action that brings your Big Vision into your everyday life.',
-  13: 'Review all twelve previous moons and celebrate the woman you have become.'
-};
 function renderInitiationPath() {
   const root = byId('initiationPath');
   if (!root) return;
@@ -63,7 +51,7 @@ function renderInitiationPath() {
     const practiceHeading = document.createElement('h4');
     practiceHeading.textContent = 'Your Womb Work';
     const practice = document.createElement('p');
-    practice.textContent = personalPractices[module.index] || module.practice;
+    practice.textContent = module.practice;
     const reflectionHeading = document.createElement('h4');
     reflectionHeading.textContent = 'Reflection';
     const reflection = document.createElement('p');
