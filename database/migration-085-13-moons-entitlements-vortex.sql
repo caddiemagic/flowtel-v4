@@ -35,6 +35,14 @@ grant select on public.flowtel_13_moons_vortices to authenticated;
 drop policy if exists thirteen_moons_vortex_owner_read on public.flowtel_13_moons_vortices;
 create policy thirteen_moons_vortex_owner_read
 on public.flowtel_13_moons_vortices for select to authenticated
-using (user_id=(select auth.uid()));
+using (user_id=(select auth.uid())
+  and (
+    exists (select 1 from public.flowtel_13_moons_entitlements e
+      where e.user_id=(select auth.uid()) and e.access_granted=true)
+    or exists (select 1 from public.profiles p
+      where p.id=(select auth.uid()) and (
+        p.membership_rank>=2 or p.membership_type in ('flowfm','council')
+      ))
+  ));
 -- Writes are deliberately not enabled until a server-side validation routine
 -- enforces eligibility, immutable start month, and completed reflections.
