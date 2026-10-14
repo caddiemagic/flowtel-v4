@@ -48,7 +48,7 @@ function showInitiationReturn(){
   anchor.className="return-link";
   anchor.href=destination;
   anchor.textContent="Return to Womb Magic lesson";
-  const actions=document.querySelector(".utility-actions");
+  const actions=document.querySelector(".control-actions");
   if(actions) actions.prepend(anchor);
 }
 
