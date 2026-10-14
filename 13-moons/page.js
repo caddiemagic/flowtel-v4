@@ -21,6 +21,10 @@ function message(title, description) {
 function showNotice(text) {
   notice.textContent = text;
 }
+function stepStatus(id, text) {
+  const element = byId(id);
+  if (element) element.textContent = '· ' + text;
+}
 function flowFmMember(profile) {
   return Number(profile?.membership_rank || 0) >= 2 ||
     ['flowfm', 'council'].includes(String(profile?.membership_type || '').toLowerCase());
@@ -126,6 +130,8 @@ async function load() {
     renderInitiationPath();
     save.hidden = true;
     if (profileNeedsConfirmation(profile) || !String(profile.hemisphere || '').trim()) {
+      stepStatus('profileStepStatus', 'Needs confirmation');
+      stepStatus('vortexStepStatus', 'Waiting for profile');
       months.replaceChildren();
       message('First, confirm your Guest Profile',
         'Review your name, display name, location, time zone, and hemisphere in your existing Flowtel profile before beginning your Vortex.');
@@ -136,6 +142,8 @@ async function load() {
       detail.append(document.createTextNode(' '), link);
       return;
     }
+    stepStatus('profileStepStatus', 'Confirmed');
+    stepStatus('vortexStepStatus', 'Checking saved reflections');
     const { data: saved, error } = await supabase.from('flowtel_13_moons_vortices')
       .select('start_month,reflections,completed_at')
       .eq('user_id', profile.id).maybeSingle();
@@ -155,6 +163,7 @@ async function load() {
       renderInitiationPath();
       save.hidden = true;
       message('Your thirteen moons — calendar preview', 'Private reflection storage is not installed yet, so saving is disabled. This view does not collect your writing.');
+      stepStatus('vortexStepStatus', 'Storage not installed');
       showNotice('Read-only preview. Do not enter reflections here.');
       return;
     }
@@ -162,6 +171,7 @@ async function load() {
       ? String(saved.start_month).slice(0, 7)
       : flowtelEntryMonth();
     sealed = Boolean(saved?.completed_at);
+    stepStatus('vortexStepStatus', sealed ? 'Complete' : 'In progress');
     const rows = generateBigVisionVortex(startMonth);
     renderRows(rows, Array.isArray(saved?.reflections) ? saved.reflections : []);
     byId('greeting').textContent = 'Welcome, ' +
@@ -190,6 +200,7 @@ save.addEventListener('click', async () => {
     if (error) throw error;
     sealed = data?.complete === true;
     if (sealed) {
+      stepStatus('vortexStepStatus', 'Complete');
       entries.forEach((input) => { input.disabled = true; });
       save.hidden = true;
       showNotice('Your Big Vision Vortex is complete. Your opening reflections are sealed.');
