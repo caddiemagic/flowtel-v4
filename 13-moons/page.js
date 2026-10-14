@@ -59,7 +59,7 @@ function renderInitiationPath() {
     const integration = document.createElement('p');
     integration.textContent = 'At the end of this moon, review your daily journal and your four inner seasons. Record what you notice on your existing Flow Map.';
     const flowLink = document.createElement('a');
-    flowLink.href = '/flow-map/?cycle=previous';
+    flowLink.href = '/flow-map/?cycle=previous&return='+encodeURIComponent('/13-moons/');
     flowLink.textContent = 'Open my Flow Map';
     const journalLink = document.createElement('a');
     journalLink.href = '/cycle-data/';
