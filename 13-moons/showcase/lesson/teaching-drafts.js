@@ -9,5 +9,15 @@ export const LESSON_TEACHING_DRAFTS = {
     ],
     daily: 'Each day, record the moon day and phase, your cycle day if relevant, and a few honest notes about your energy, body, mood, needs, and experiences.',
     integration: 'At the close of the cycle, read back through the notes you collected. Use the existing Flow Map to record what you noticed in each of the four inner seasons. If a pattern is not clear yet, leave room for uncertainty and keep observing.'
-  }
+  },
+  2: {
+    paragraphs: [
+      'Your second initiation builds on the observations you collected in Lesson 1. Now you begin studying the four inner seasons as a way to organize what you noticed about your body, energy, emotions, and needs.',
+      'The four seasons are Inner Winter, Inner Spring, Inner Summer, and Inner Autumn. They offer a vocabulary for recurring changes, not four boxes you must force yourself into. Your experience is the material you are studying.',
+      'Look back through your cycle notes and notice how your capacity and needs may shift. Where do you welcome quiet? When does your attention move outward? When do you feel more expressive, or more discerning? Let the answers come from your own observations rather than from what you think each season should mean.',
+      'As you study your seasons, notice the moments when you respect a need and the moments when you override one. This awareness prepares you for the later lesson on planning with your cycle. For now, your work is to recognize the patterns, not to reorganize your entire life.'
+    ],
+    daily: 'Keep recording your moon day, cycle day if relevant, energy, mood, and needs. Notice which inner season you are experiencing without forcing a conclusion.',
+    integration: 'At the end of the cycle, open your existing Flow Map and review the previous cycle. Read your notes in each of its four seasonal quadrants. Compare what you observed with your own experience, and leave space for patterns that are still emerging.'
+  },
 };
