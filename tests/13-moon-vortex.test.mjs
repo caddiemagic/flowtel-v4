@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import {generateBigVisionVortex,flowtelEntryMonth,isVortexComplete} from '../shared/13-moon-vortex.js';
+const october=generateBigVisionVortex('2026-10');
+assert.equal(october.length,13);
+assert.equal(october[0].name,'Blood Moon');
+assert.equal(october[1].name,'Temple Moon');
+assert.equal(october[3].month,'2027-01');
+assert.equal(october[12].name,'Blood Moon');
+assert.equal(october[12].month,'2027-10');
+assert.equal(flowtelEntryMonth('2026-11-01T06:30:00Z'),'2026-10');
+assert.equal(flowtelEntryMonth('2026-11-01T07:30:00Z'),'2026-11');
+assert.equal(isVortexComplete(Array(13).fill('a reflection')),true);
+assert.equal(isVortexComplete(Array(12).fill('a reflection')),false);
+assert.equal(isVortexComplete([...Array(12).fill('reflection'),' ']),false);
+console.log('13 Moons Vortex mapping tests passed');
