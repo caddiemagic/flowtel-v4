@@ -56,16 +56,30 @@ test('owner can list only limited non-sensitive enrollment fields',async()=>{
  assert.match(requests[0].url,/limit=100/);
  assert.ok(!requests[0].url.includes('offering_snapshot'));
 });
-test('only draft status is editable and date updates are scoped to an enrollment',async()=>{
- const {result,requests}=await mockFetch([[{id:enrollment,status:'draft',starts_on:'2026-10-20',ends_on:'2026-11-03'}]],()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-10-20',endsOn:'2026-11-03'}));
- assert.equal(result.status,'draft');
- assert.match(requests[0].url,/status=eq.draft/);
- assert.equal(requests[0].method,'PATCH');
+test('three-month offering calculates the end date automatically',async()=>{
+ const replies=[[{id:enrollment,status:'draft',offering_snapshot:{duration_months:3,duration_days:null}}],[{id:enrollment,status:'draft',starts_on:'2026-10-20',ends_on:'2027-01-20'}]];
+ const {requests}=await mockFetch(replies,()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-10-20'}));
+ assert.equal(requests.length,2);assert.match(requests[1].url,/status=eq.draft/);
+ const payload=JSON.parse(requests[1].body);assert.equal(payload.ends_on,'2027-01-20');
 });
-test('rejects invalid date window without performing a write',async()=>{
+test('month-end start date clamps to end-of-month',async()=>{
+ const replies=[[{id:enrollment,status:'draft',offering_snapshot:{duration_months:3,duration_days:null}}],[{id:enrollment,status:'draft'}]];
+ const {requests}=await mockFetch(replies,()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-11-30'}));
+ assert.equal(JSON.parse(requests[1].body).ends_on,'2027-02-28');
+});
+test('two-week offering calculates the end date',async()=>{
+ const replies=[[{id:enrollment,status:'draft',offering_snapshot:{duration_days:14,duration_months:null}}],[{id:enrollment,status:'draft'}]];
+ const {requests}=await mockFetch(replies,()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-10-20'}));
+ assert.equal(JSON.parse(requests[1].body).ends_on,'2026-11-03');
+});
+test('flexible calls have no invented expiry',async()=>{
+ const replies=[[{id:enrollment,status:'draft',offering_snapshot:{duration_days:null,duration_months:null}}],[{id:enrollment,status:'draft'}]];
+ const {requests}=await mockFetch(replies,()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-10-20'}));
+ assert.equal(JSON.parse(requests[1].body).ends_on,null);
+});
+test('invalid dates rejected without database requests',async()=>{
  const {requests}=await mockFetch([],async()=>{
-  await assert.rejects(updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-11-03',endsOn:'2026-10-20'}));
-  await assert.rejects(updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-02-30',endsOn:'2026-03-01'}));
+  await assert.rejects(updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-02-30'}));
  });
  assert.equal(requests.length,0);
 });
