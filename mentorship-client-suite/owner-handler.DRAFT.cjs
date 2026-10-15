@@ -1,7 +1,7 @@
 // Draft Vercel handler; intentionally lives INSIDE mentorship-client-suite/
 // and is not published as a /api route until schema + authorization tests pass.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation}=require('./owner-repository.cjs');
+const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions}=require('./owner-repository.cjs');
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -9,7 +9,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
  try{
   // Real owner verification uses existing Flowtel concierge authorization.
   const ctx=await requireOwner(req);
-  if(req.method==='GET')return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
+  if(req.method==='GET'){
+   if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});
+   return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
+  }
   const body=await readRequestBody(req);
   if(body?.action==='create-draft'){
    const enrollment=await createDraftEnrollment(ctx,{email:body.email,offeringId:body.offeringId,startsOn:body.startsOn});
@@ -18,6 +21,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
   if(body?.action==='update-draft'){
    const enrollment=await updateDraftEnrollment(ctx,{enrollmentId:body.enrollmentId,startsOn:body.startsOn});
    return res.status(200).json({ok:true,enrollment});
+  }
+  if(body?.action==='prepare-sessions'){
+   const plan=await prepareSessions(ctx,{enrollmentId:body.enrollmentId});
+   return res.status(200).json({ok:true,...plan});
   }
   if(body?.action==='prepare-access'){
    const enrollment=await prepareInvitation(ctx,{enrollmentId:body.enrollmentId});
