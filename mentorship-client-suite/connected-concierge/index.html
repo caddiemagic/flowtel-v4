@@ -1,0 +1,82 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flowtel · Connected Mentorship Concierge</title>
+<style>
+:root{font:15px Arial,sans-serif;color:#293b32;background:#f7f3ed}*{box-sizing:border-box}body{margin:0}header{background:#293d34;color:#fff9ef;padding:32px 24px}header div,main{max-width:980px;margin:auto}h1,h2{font-family:Georgia,serif;font-weight:400}h1{font-size:38px;margin:10px 0}h2{font-size:26px;margin:0 0 15px}
+main{padding:24px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.card{background:#fff;border:1px solid #e4dbce;border-radius:14px;padding:22px;margin-bottom:18px}
+label{display:block;margin:12px 0 5px;font-weight:600;font-size:13px}input,select,textarea{width:100%;padding:11px;border:1px solid #c7bdb0;border-radius:8px;font:inherit}textarea{min-height:80px}
+button{background:#293d34;color:white;border:0;border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:wait}button.secondary{background:#e9e2d7;color:#293d34}
+p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-size:13px}.small{font-size:12px;color:#777}.entry{border-top:1px solid #e9e2d7;padding:13px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.error{color:#a63827}.success{color:#276749}a{color:#b89058}header a{color:#ead1a9}
+@media(max-width:730px){.grid{grid-template-columns:1fr}}
+</style></head><body><header><div><small>FLOWTEL · OWNER CONCIERGE · DEVELOPMENT PREVIEW</small><h1>Connected Mentorship Desk</h1><p>Secure draft enrollments and monthly client focus</p><a href="../enrollment-workspace/">← Return to demo workspace</a></div></header>
+<main>
+<p class="note"><strong>This page connects to the existing Flowtel Supabase database.</strong> Use only fictional test identities until we finish invitation and client-access testing. Drafts created here are real database records; they do not invite clients, book sessions, or grant membership. This page is separate from production Flowtel navigation.</p>
+<section class="card"><h2>Owner access</h2><p id="session">Checking your Flowtel sign-in…</p><div class="row"><button id="refresh" class="secondary">Refresh connection</button><a href="../../client/">Go to Flowtel sign-in</a></div><p class="small">Sign into Flowtel with your owner account in this same browser, then return here.</p><p id="status" role="status"></p></section>
+<div class="grid">
+<section class="card"><h2>New mentorship draft</h2><form id="create">
+<label for="email">Fictional test email</label><input type="email" id="email" required placeholder="fictional-client@example.com" maxlength="254">
+<label for="offering">Offering</label><select id="offering" required><option value="">Select an offering…</option></select>
+<button type="submit" id="save" disabled style="margin-top:16px">Save draft to Flowtel</button></form><p id="createStatus" role="status"></p></section>
+<section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><div id="enrollments">Sign in to view drafts.</div></section></div>
+<section class="card" id="detail" hidden><h2>Manage draft</h2><p id="selected"></p>
+<form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label for="ends">Program end</label><input type="date" id="ends"></div></div><button id="saveDates" type="submit">Save program dates</button></form>
+<form id="focusForm"><label for="month">Monthly focus · month</label><input type="month" id="month" required>
+<label for="focus">Client-visible focus</label><textarea id="focus" maxlength="5000" required></textarea><button type="submit">Save monthly focus</button></form><p id="detailStatus" role="status"></p></section>
+</main>
+<script type="module">
+import {supabase} from '../../shared/supabase.js';
+const $=id=>document.getElementById(id);
+let token=null,offerings=[],enrollments=[],selected=null;
+function msg(id,message,isError=false){const node=$(id);node.textContent=message;node.className=isError?'error':'success'}
+async function request(method='GET',body=null){
+ if(!token)throw Error('Sign in to Flowtel as the owner first.');
+ const response=await fetch('/api/mentorship-owner',{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(response.status===401?'Your session expired. Sign in again.':response.status===403?'This Flowtel account does not have Concierge owner access.':data.error||'Request failed ('+response.status+')');
+ return data;
+}
+async function connect(){
+ token=null;$('save').disabled=true;$('session').textContent='Checking your Flowtel session…';$('enrollments').textContent='Checking…';
+ try{
+  const {data,error}=await supabase.auth.getSession();if(error)throw error;
+  if(!data.session?.access_token){$('session').textContent='Not signed in. Use the Flowtel sign-in link above.';$('enrollments').textContent='Sign in to view enrollments.';return}
+  token=data.session.access_token;
+  const result=await request();offerings=result.offerings||[];enrollments=result.enrollments||[];
+  $('session').textContent='Owner session verified. Connected to Flowtel.';
+  $('save').disabled=false;
+  const dropdown=$('offering');dropdown.replaceChildren(new Option('Select an offering…',''));
+  for(const o of offerings)dropdown.add(new Option(o.title+' · $'+(o.price_cents/100).toLocaleString('en-US'),o.id));
+  render();
+  msg('status','Connected. You can create fictional draft enrollments.');
+ }catch(error){$('session').textContent='Unable to connect to the Concierge API.';$('enrollments').textContent='No enrollment data loaded.';msg('status',error.message,true)}
+}
+function render(){
+ const root=$('enrollments');root.replaceChildren();
+ if(!enrollments.length){root.textContent='No saved mentorship enrollments yet.';return}
+ for(const item of enrollments){
+  const div=document.createElement('div');div.className='entry';
+  const caption=document.createElement('p');caption.textContent=(item.invited_email||'Linked client')+' · '+item.status;
+  const choose=document.createElement('button');choose.className='secondary';choose.textContent='Manage';choose.type='button';choose.onclick=()=>open(item);
+  div.append(caption,choose);root.append(div);
+ }
+}
+function open(item){selected=item;$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
+ $('starts').value=item.starts_on||'';$('ends').value=item.ends_on||'';$('month').value=new Date().toISOString().slice(0,7);$('focus').value='';$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
+$('refresh').addEventListener('click',connect);
+$('create').addEventListener('submit',async e=>{
+ e.preventDefault();$('save').disabled=true;
+ try{
+ const result=await request('POST',{action:'create-draft',email:$('email').value.trim(),offeringId:$('offering').value});
+ msg('createStatus','Draft saved. No invitation was sent.');$('email').value='';
+ await connect();const row=enrollments.find(x=>x.id===result.enrollment?.id);if(row)open(row);
+ }catch(error){msg('createStatus',error.message,true)}finally{$('save').disabled=false}
+});
+$('update').addEventListener('submit',async e=>{
+ e.preventDefault();if(!selected)return;
+ try{const data=await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null,endsOn:$('ends').value||null});msg('detailStatus','Program dates saved.');await connect();const item=enrollments.find(x=>x.id===selected.id);if(item)open(item)}catch(error){msg('detailStatus',error.message,true)}
+});
+$('focusForm').addEventListener('submit',async e=>{
+ e.preventDefault();if(!selected)return;
+ try{await request('POST',{action:'save-focus',enrollmentId:selected.id,month:$('month').value+'-01',focus:$('focus').value});msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.')}catch(error){msg('detailStatus',error.message,true)}
+});
+connect();
+</script></body></html>
