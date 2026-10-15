@@ -1,13 +1,19 @@
 // DRAFT server endpoint only. Do not publish under api/ until schema and access review.
 // Unlike owner concierge endpoints, this grants no owner or member-wide privileges.
-const {requireUser,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {clientSuite,listMyMentorships}=require('./client-repository.cjs');
+const {requireUser,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
+const {clientSuite,listMyMentorships,claimPreparedMentorship}=require('./client-repository.cjs');
 module.exports=async function mentorshipClientHandler(req,res){
- setPublicCors(res,'GET, OPTIONS');
+ setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
- if(req.method!=='GET')return res.status(405).json({ok:false,error:'Method not allowed'});
+ if(!['GET','POST'].includes(req.method))return res.status(405).json({ok:false,error:'Method not allowed'});
  try{
   const ctx=await requireUser(req);
+  if(req.method==='POST'){
+   const body=await readRequestBody(req);
+   if(body?.action!=='claim-prepared')return res.status(400).json({ok:false,error:'Unsupported action'});
+   const enrollment=await claimPreparedMentorship(ctx);
+   return res.status(200).json({ok:true,enrollment});
+  }
   const requested=req.query?.enrollmentId;
   if(requested===undefined)return res.status(200).json({ok:true,enrollments:await listMyMentorships(ctx)});
   if(typeof requested!=='string')return res.status(400).json({ok:false,error:'Enrollment ID required'});
