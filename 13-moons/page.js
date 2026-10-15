@@ -115,6 +115,35 @@ function renderInitiationPath(userId) {
     }
     const original=document.createElement('div');original.append(practiceHeading,practice,reflectionHeading,reflection,integration,links,note);
     expanded.append(original);
+    const completion=document.createElement('div');
+    completion.style.cssText='margin-top:1rem;padding-top:1rem;border-top:1px solid currentColor';
+    const completionStatus=document.createElement('p');
+    completionStatus.setAttribute('role','status');
+    const alreadyDone=Array.isArray(lessonProgress?.completed_lessons)&&lessonProgress.completed_lessons.includes(module.index);
+    const isCurrent=Number(lessonProgress?.current_lesson||1)===module.index;
+    const completeButton=document.createElement('button');
+    completeButton.type='button';
+    completeButton.textContent=alreadyDone?'Initiation completed':'Complete this initiation';
+    completeButton.style.cssText='padding:.75rem 1.25rem;cursor:pointer';
+    completeButton.disabled=!lessonProgress||alreadyDone||!isCurrent;
+    completionStatus.textContent=!lessonProgress?'Completion saving is not active yet. Your teaching remains available for review.':alreadyDone?'This initiation has been completed.':isCurrent?'Mark this initiation complete when you have finished its Womb Work and reflection.':'Complete the earlier initiations in order first.';
+    completeButton.addEventListener('click',async()=>{
+      if(completeButton.disabled)return;
+      completeButton.disabled=true;
+      completionStatus.textContent='Saving your completion…';
+      const {data,error}=await supabase.rpc('flowtel_complete_13_moons_lesson',{p_lesson:module.index});
+      if(error||!data?.complete){
+        completionStatus.textContent='Completion could not be saved. Please try again.';
+        completeButton.disabled=false;
+        return;
+      }
+      lessonProgress={current_lesson:data.current_lesson,completed_lessons:data.completed_lessons};
+      renderInitiationPath(userId);
+      const next=document.querySelector('#initiationPath article:nth-child('+Math.min(module.index+1,13)+')');
+      if(next&&module.index<13)next.scrollIntoView({block:'start',behavior:'smooth'});
+    });
+    completion.append(completeButton,completionStatus);
+    expanded.append(completion);
     if(module.index===3)void addFutureSelfLetterEditor(expanded,userId);
     if(module.index===13)void addFutureSelfLetterReflection(expanded,userId);
     card.append(eyebrow, heading, description, expanded);
