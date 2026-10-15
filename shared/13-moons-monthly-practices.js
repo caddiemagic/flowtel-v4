@@ -6,7 +6,7 @@ export const NEW_MOON_WATER_RITUAL_URL = 'https://www.theidyllcollective.com/que
 export const MONTHLY_INITIATION_PRACTICES = [
   null,
   {title:'Begin tracking your cycle day',body:'Record your cycle day each day alongside the moon day and your daily observations. If you do not bleed, keep observing your relationship to the moon and your own rhythms.'},
-  {title:'Begin your daily invocation',body:'Speak the supplied daily invocation aloud each day.',script:DAILY_INVOCATION},
+  {title:'Begin your daily invocation',body:'Speak the supplied daily invocation aloud each day, or something of your own.',script:DAILY_INVOCATION},
   {title:'Begin a New Moon ritual',body:'Begin a ritual you return to each New Moon. The New Moon Magic Water Ritual will be offered as one option.',link:NEW_MOON_WATER_RITUAL_URL,linkLabel:'Watch the New Moon Magic Water Ritual'},
   {title:'Plan with your printed moon calendar and make a monthly offering',body:'Use your printed moon calendar to record your cycle and plan your schedule in alignment with the moon and your energy. Leave more open space around your bleed. If you bleed and choose to collect menstrual blood, offer it to the earth. If you do not bleed, make rose water on the Dark Moon and offer some to the earth once a month.'},
   {title:'Bring the four elements into your invocation',body:'Begin working with the four elements as part of your daily invocation.',script:DAILY_INVOCATION+'\n\n'+ELEMENTS_INVOCATION_ADDITION},
