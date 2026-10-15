@@ -51,17 +51,38 @@ async function listEnrollments(ctx){
  if(!Array.isArray(rows))throw Error('Enrollment list was not confirmed');
  return rows;
 }
-async function updateDraftEnrollment(ctx,{enrollmentId,startsOn,endsOn}){
- ownerContext(ctx);validUUID(enrollmentId);
- for(const day of [startsOn,endsOn]){
-  if(day===null||day===undefined)continue;
-  const parsed=typeof day==='string'?Date.parse(day+'T12:00:00Z'):NaN;
-  if(typeof day!=='string'||day.length!==10||!Number.isFinite(parsed)||new Date(parsed).toISOString().slice(0,10)!==day)throw Error('Invalid enrollment date');
+function dateParts(day){
+ if(typeof day!=='string'||day.length!==10)throw Error('Invalid enrollment start date');
+ const parsed=Date.parse(day+'T12:00:00Z');
+ if(!Number.isFinite(parsed)||new Date(parsed).toISOString().slice(0,10)!==day)throw Error('Invalid enrollment start date');
+ return new Date(parsed);
+}
+function calendarEndDate(start,offering){
+ if(!start)return null;
+ const day=dateParts(start);
+ const months=offering.duration_months,days=offering.duration_days;
+ if(Number.isInteger(months)&&months>0){
+  const target=new Date(Date.UTC(day.getUTCFullYear(),day.getUTCMonth()+months,1,12));
+  const lastDay=new Date(Date.UTC(target.getUTCFullYear(),target.getUTCMonth()+1,0,12)).getUTCDate();
+  target.setUTCDate(Math.min(day.getUTCDate(),lastDay));
+  return target.toISOString().slice(0,10);
  }
- if(startsOn && endsOn && startsOn>=endsOn)throw Error('End date must follow start date');
+ if(Number.isInteger(days)&&days>0){
+  day.setUTCDate(day.getUTCDate()+days);return day.toISOString().slice(0,10);
+ }
+ return null; // No invented expiry for flexible sessions.
+}
+async function updateDraftEnrollment(ctx,{enrollmentId,startsOn}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ if(startsOn!==null&&startsOn!==undefined)dateParts(startsOn);
+ const found=await fetchJson(url(ctx,'enrollments','select=id,offering_snapshot,status&id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.draft&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(found)||found.length!==1)throw Error('Draft enrollment not found or no longer editable');
+ const offering=found[0].offering_snapshot;
+ if(!offering||typeof offering!=='object')throw Error('Offering snapshot is missing');
+ const endsOn=calendarEndDate(startsOn??null,offering);
  const result=await fetchJson(url(ctx,'enrollments','id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.draft&select=id,status,starts_on,ends_on'),{
   method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),
-  body:JSON.stringify({starts_on:startsOn??null,ends_on:endsOn??null,updated_at:new Date().toISOString()})
+  body:JSON.stringify({starts_on:startsOn??null,ends_on:endsOn,updated_at:new Date().toISOString()})
  });
  if(!Array.isArray(result)||result.length!==1)throw Error('Draft enrollment not found or no longer editable');
  return result[0];
