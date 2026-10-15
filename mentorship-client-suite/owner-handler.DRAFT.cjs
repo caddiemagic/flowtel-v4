@@ -1,3 +1,6 @@
+const controls=require('./session-controls.cjs');
+const recordings=require('./replay-owner.cjs');
+const guards=require('./request.cjs');
 // Draft Vercel handler; intentionally lives INSIDE mentorship-client-suite/
 // and is not published as a /api route until schema + authorization tests pass.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
@@ -8,12 +11,18 @@ module.exports=async function ownerMentorshipHandler(req,res){
  if(!['GET','POST'].includes(req.method))return res.status(405).json({ok:false,error:'Method not allowed'});
  try{
   // Real owner verification uses existing Flowtel concierge authorization.
+  guards.authenticated(req);
   const ctx=await requireOwner(req);
   if(req.method==='GET'){
+   if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
    if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});
    return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
   }
-  const body=await readRequestBody(req);
+  const body=await guards.body(req);
+  if(body?.action==='session-transition')return res.status(200).json({ok:true,session:await controls.transition(ctx,body)});
+  if(body?.action==='begin-upload')return res.status(200).json({ok:true,upload:await recordings.beginUpload(ctx,body)});
+  if(body?.action==='finish-upload')return res.status(201).json({ok:true,replay:await recordings.finishUpload(ctx,body)});
+  if(body?.action==='replay-visibility')return res.status(200).json({ok:true,replay:await recordings.visibility(ctx,body)});
   if(body?.action==='create-draft'){
    const enrollment=await createDraftEnrollment(ctx,{email:body.email,offeringId:body.offeringId,startsOn:body.startsOn});
    return res.status(201).json({ok:true,enrollment});

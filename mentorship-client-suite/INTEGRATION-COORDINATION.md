@@ -34,3 +34,7 @@ Updated October 2026. This document records a coordination agreement, not a merg
 
 ## Deferred
 - `The Beginning & The Becoming` onboarding and closing reflection questionnaire.
+
+## 2026-10-15 navigation review
+
+Compared current main (5076049) and 13 Moons head (9396a9c). Added one mentorship link in client/index.html, one in the owner section of manager/index.html, and mentorship-scoped privacy headers in vercel.json. The inspected 13 Moons branch does not edit those files. No auth helper, entitlement, Flow Map, migration or 13 Moons code changed. Recheck branch heads before merge.

@@ -58,7 +58,7 @@ async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
  const replay=matches[0];if(!replay){const e=new Error('Replay not available');e.statusCode=404;throw e;}
  const sessionRows=await rows(ctx,'sessions','select=id&enrollment_id=eq.'+encodeURIComponent(enrollment.id)+'&id=eq.'+encodeURIComponent(replay.session_id)+'&limit=1');
  if(sessionRows.length!==1){const e=new Error('Replay not available');e.statusCode=404;throw e;}
- if(typeof replay.storage_path!=='string'||!replay.storage_path.startsWith(enrollment.id+'/'))throw Error('Invalid replay storage location');
+ if(typeof replay.storage_path!=='string'||!replay.storage_path.startsWith(enrollment.id+'/'+replay.session_id+'/')||replay.storage_path.includes('..'))throw Error('Invalid replay storage location');
  const filePath=replay.storage_path.split('/').map(encodeURIComponent).join('/');
  const signed=await fetchJson(ctx.supabaseUrl+'/storage/v1/object/sign/flowtel-mentorship-replays/'+filePath,{
   method:'POST',headers:serviceHeaders(ctx.serviceKey),body:JSON.stringify({expiresIn:300})

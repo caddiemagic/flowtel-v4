@@ -1,3 +1,5 @@
+> Historical audit. Superseded by README.md, DATABASE-APPLICATION-RECORD.md and LAUNCH-VERIFICATION.md. Statements below about absent tables and unrouted handlers describe an earlier development state.
+
 # Essential Client Suite technical audit — October 2026
 
 **Scope:** Secure mentorship enrollment, invitation/login, private upcoming sessions, client-visible monthly focus, and a basic replay library. Acuity automation, Zoom lifecycle synchronization, and deeper Flow Map integration are deferred.

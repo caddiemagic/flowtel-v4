@@ -1,25 +1,35 @@
-# Flowtel Mentorship Client Suite — development branch
+# Flowtel Mentorship Client Suite — development
 
-This directory contains an **isolated, non-production** first increment of the
-mentorship scheduling engine. It does **not** book Acuity appointments, create
-clients, expose client records, or modify existing Flowtel screens.
+Use `/mentorship-client-suite/` for the cohesive preview entrance:
+- Owner: `connected-concierge/` (existing owner Concierge authorization).
+- Client: `my-mentorship/` (existing Supabase account; enrollment ownership required).
+- Earlier fictional design tools remain under `planning-preview.html`, `enrollment-workspace/` and `client-suite-preview/`.
 
-Run `node --test mentorship-client-suite/scheduling-engine.test.mjs`.
+## Implemented
 
-## Templates
-- Womb Activation: 1 activation call (up to 180 minutes), 2 weeks Telegram.
-- Sacred Self-Study: 1 activation + 6 biweekly 90-minute empowerment calls, 3 months Telegram.
-- Kundalini Creatrix: 1 activation + 18 biweekly 90-minute empowerment calls, 9 months Telegram.
-- Four 45-Minute Sessions: flexible Acuity self-booking, no Telegram, $399.
+Automatic calendar end dates, persisted enrollment drafts, prepared verified-email claim without email delivery, session plans, Pacific time proposals/rescheduling, confirmation/completion/cancellation, client-visible monthly focus, private owner uploads, explicit recording publication/hiding, and five-minute client playback links. Uploads bypass Vercel body limits using the existing private bucket's signed upload protocol. Recordings start hidden; finalization checks actual object metadata. Storage MIME and 500 MB limits remain unchanged.
 
-## Before integration
-1. Confirm the next migration sequence number and review schema draft against existing auth and RLS.
-2. Add server-only mentorship invitation / entitlement flow that does not grant Queendom membership.
-3. Implement separate owner-only mentor notes and client-visible summaries.
-4. Add private media storage with access checks, signed URLs and revocation.
-5. Check conflicts and actual time zone/DST resolution before proposing confirmed appointments.
-6. Require human approval and idempotency before creating any Acuity bookings.
-7. Test access isolation for two fictional accounts before enabling real clients.
+Owner/client handlers are already dispatched by `api/caddie-acuity.js?mentorship=owner|client`. Their historical DRAFT filenames do not indicate unrouted endpoints.
 
-Future feature: **The Beginning & The Becoming** onboarding and closing reflection;
-not in the initial release.
+Flowtel client and owner navigation additions are additive. Existing auth, check-ins, Stay rules, product access and Caddie Magic APIs are unchanged. Mentorship-only users may sign into the mentorship page directly without gaining unrelated product access. Existing cycle/Flow Map rooms retain their own membership gates.
+
+## Tests
+
+```
+node --test mentorship-client-suite/*.test.*
+node scripts/test-call-your-caddie.mjs
+node scripts/test-kingdom-membership.cjs
+node mentorship-client-suite/browser-e2e.cjs
+```
+
+The browser command requires Playwright and its Chromium binary; branch CI installs a pinned runner. The HTTP and browser journeys use a local in-memory Supabase/Auth/Storage contract double and fictional owner/client A/client B identities. They never create live accounts or send invitations. These tests do not substitute for deployed integration verification against real Supabase services.
+
+## Database
+
+Read `DATABASE-APPLICATION-RECORD.md`. The base and private replay bucket migrations are already applied. No new schema migration is needed for this increment. All five mentorship tables remain RLS enabled with direct client grants revoked; server handlers authorize before service-role access. No mentorship storage policies permit direct client access.
+
+## Release boundary
+
+Development branch only. No production merge, real-client enrollment, invitations, or automated Acuity bookings are authorized. Acuity and Zoom synchronization, automatic cycle analytics in the mentorship dashboard, and Beginning & Becoming reflections remain outside this increment. Existing Flowtel cycle/Flow Map navigation is available subject to the existing product gates.
+
+Signed playback links remain usable for up to five minutes after hiding a recording; hiding blocks issuance of new links immediately. Interrupted uploads can leave private unlisted objects; no client can discover them through this feature.

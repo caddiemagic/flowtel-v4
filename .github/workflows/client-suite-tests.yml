@@ -4,6 +4,11 @@ on:
     branches: [feature/client-suite-v1]
     paths:
       - 'mentorship-client-suite/**'
+      - 'client/index.html'
+      - 'manager/index.html'
+      - 'server/guest-house-server.js'
+      - 'api/caddie-acuity.js'
+      - 'vercel.json'
       - '.github/workflows/client-suite-tests.yml'
   workflow_dispatch:
 jobs:
@@ -18,3 +23,11 @@ jobs:
           node-version: '22'
       - name: Run Client Suite tests
         run: node --test mentorship-client-suite/*.test.*
+      - name: Install pinned browser test runner
+        run: npm install --prefix /tmp/mentorship-browser --no-save --ignore-scripts playwright@1.56.1
+      - name: Install Chromium
+        run: /tmp/mentorship-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run fictional browser journey
+        run: node mentorship-client-suite/browser-e2e.cjs
+        env:
+          NODE_PATH: /tmp/mentorship-browser/node_modules

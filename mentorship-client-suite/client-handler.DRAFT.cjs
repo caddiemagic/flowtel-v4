@@ -1,3 +1,4 @@
+const guards=require('./request.cjs');
 // DRAFT server endpoint only. Do not publish under api/ until schema and access review.
 // Unlike owner concierge endpoints, this grants no owner or member-wide privileges.
 const {requireUser,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
@@ -7,9 +8,10 @@ module.exports=async function mentorshipClientHandler(req,res){
  if(req.method==='OPTIONS')return res.status(204).end();
  if(!['GET','POST'].includes(req.method))return res.status(405).json({ok:false,error:'Method not allowed'});
  try{
+  guards.authenticated(req);
   const ctx=await requireUser(req);
   if(req.method==='POST'){
-   const body=await readRequestBody(req);
+   const body=await guards.body(req);
    if(body?.action!=='claim-prepared')return res.status(400).json({ok:false,error:'Unsupported action'});
    const enrollment=await claimPreparedMentorship(ctx,body.enrollmentId);
    return res.status(200).json({ok:true,enrollment});
