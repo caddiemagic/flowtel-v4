@@ -6,6 +6,11 @@ function context(ctx){if(!ctx?.user?.id||!ctx?.supabaseUrl||!ctx?.serviceKey)thr
 function id(value){if(typeof value!=='string'||!UUID.test(value))throw Error('Invalid mentorship enrollment ID');return value;}
 function endpoint(ctx,table,query){return ctx.supabaseUrl+'/rest/v1/flowtel_mentorship_'+table+'?'+query}
 async function rows(ctx,table,query){const value=await fetchJson(endpoint(ctx,table,query),{headers:serviceHeaders(ctx.serviceKey)});if(!Array.isArray(value))throw Error('Unexpected mentorship response');return value;}
+async function listMyMentorships(ctx){
+ context(ctx);
+ const records=await rows(ctx,'enrollments','select=id,offering_id,status,starts_on,ends_on&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&order=created_at.desc&limit=30');
+ return records.map(record=>({id:record.id,offeringId:record.offering_id,status:record.status,startsOn:record.starts_on,endsOn:record.ends_on}));
+}
 async function ownedEnrollment(ctx,enrollmentId){
  context(ctx);id(enrollmentId);
  const records=await rows(ctx,'enrollments','select=id,offering_id,status,starts_on,ends_on,client_user_id&id=eq.'+encodeURIComponent(enrollmentId)+'&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&limit=1');
@@ -26,4 +31,4 @@ async function clientSuite(ctx,enrollmentId){
  }
  return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on},sessions,monthlyFocus:focus,replays};
 }
-module.exports={ownedEnrollment,clientSuite};
+module.exports={ownedEnrollment,clientSuite,listMyMentorships};
