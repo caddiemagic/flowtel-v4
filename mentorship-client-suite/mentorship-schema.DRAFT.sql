@@ -16,6 +16,7 @@ create table if not exists public.flowtel_mentorship_offerings (
  flexible_count integer not null default 0 check (flexible_count >= 0),
  flexible_minutes integer not null default 0 check (flexible_minutes >= 0),
  telegram_days integer not null default 0 check (telegram_days >= 0),
+ telegram_months integer not null default 0 check (telegram_months >= 0),
  booking_mode text not null check (booking_mode in ('approval_required','acuity_flexible')),
  is_active boolean not null default true,
  created_at timestamptz not null default now()
@@ -82,12 +83,12 @@ revoke all on public.flowtel_mentorship_offerings, public.flowtel_mentorship_enr
 insert into public.flowtel_mentorship_offerings
 (offering_key,title,price_cents,duration_months,duration_days,activation_minutes,
  empowerment_count,empowerment_minutes,cadence_days,flexible_count,flexible_minutes,
- telegram_days,booking_mode)
+ telegram_days,telegram_months,booking_mode)
 values
-('womb_activation','Womb Activation',77700,null,14,180,0,0,null,0,0,14,'approval_required'),
-('sacred_self_study','Sacred Self-Study',377700,3,null,180,6,90,14,0,0,0,'approval_required'),
-('kundalini_creatrix','The Kundalini Creatrix',577700,9,null,180,18,90,14,0,0,0,'approval_required'),
-('four_sessions','Four 45-Minute Sessions',39900,null,null,0,0,0,null,4,45,0,'acuity_flexible')
+('womb_activation','Womb Activation',77700,null,14,180,0,0,null,0,0,14,0,'approval_required'),
+('sacred_self_study','Sacred Self-Study',377700,3,null,180,6,90,14,0,0,0,3,'approval_required'),
+('kundalini_creatrix','The Kundalini Creatrix',577700,9,null,180,18,90,14,0,0,0,9,'approval_required'),
+('four_sessions','Four 45-Minute Sessions',39900,null,null,0,0,0,null,4,45,0,0,'acuity_flexible')
 on conflict (offering_key) do nothing;
--- NOTE: telegram_days=0 for month-based tiers is a placeholder: month-based
--- support is derived from starts_on + duration_months in application code.
+-- Month-based Telegram support uses telegram_months; calculate actual
+-- support dates on the server with calendar-month semantics.
