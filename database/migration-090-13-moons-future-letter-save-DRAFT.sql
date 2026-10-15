@@ -1,4 +1,4 @@
--- DRAFT ONLY. Do not apply until schema 089 has passed staging security review.
+-- DRAFT ONLY. Requires schemas 089 and 091, with staging security review.
 -- Uses the authenticated user's own record; no direct browser table writes.
 create or replace function public.flowtel_save_13_moons_future_letter(
   p_text text,
@@ -33,8 +33,9 @@ begin
    set letter_text=p_text, sealed_at=case when p_seal then now() else null end, updated_at=now()
    where user_id=v_uid returning * into v_record;
  else
-  -- Flowtel Time (America/Los_Angeles), independent of any browser time zone.
-  v_start := (now() at time zone 'America/Los_Angeles')::date;
+  -- The actual initiation date was registered at entry, not at letter save.
+  select initiation_start_date into v_start from public.flowtel_13_moons_starts where user_id=v_uid;
+  if v_start is null then raise exception 'Begin your 13 Moons initiation before writing your letter' using errcode='22023'; end if;
   insert into public.flowtel_13_moons_future_letters
    (user_id,initiation_start_date,letter_date,letter_text,sealed_at)
   values (v_uid,v_start,(v_start+interval '13 months')::date,p_text,
@@ -51,5 +52,4 @@ end;
 $$;
 revoke all on function public.flowtel_save_13_moons_future_letter(text,boolean) from public,anon;
 grant execute on function public.flowtel_save_13_moons_future_letter(text,boolean) to authenticated;
--- WARNING for reviewer: establish start date at actual initiation entry, not first letter-save day.
--- Review concurrency and calendar clamping before deployment.
+-- Validate registration/letter concurrency and month-end clamping in staging.
