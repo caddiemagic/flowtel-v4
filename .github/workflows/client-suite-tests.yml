@@ -1,0 +1,20 @@
+name: Client Suite Tests
+on:
+  push:
+    branches: [feature/client-suite-v1]
+    paths:
+      - 'mentorship-client-suite/**'
+      - '.github/workflows/client-suite-tests.yml'
+  workflow_dispatch:
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Client Suite tests
+        run: node --test mentorship-client-suite/*.test.*
