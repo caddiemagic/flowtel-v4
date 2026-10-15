@@ -47,7 +47,8 @@ async function loadLessonProgress(profile) {
     .select('current_lesson,completed_lessons').eq('user_id', profile.id).maybeSingle();
   // Migration 087 is only a draft. A missing table must not break onboarding.
   if (error) return null;
-  return data;
+  // A first-time member has no row until completing Lesson 1. The RPC creates it.
+  return data || { current_lesson: 1, completed_lessons: [] };
 }
 function renderInitiationPath(userId) {
   const root = byId('initiationPath');
