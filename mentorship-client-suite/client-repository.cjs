@@ -31,21 +31,24 @@ async function clientSuite(ctx,enrollmentId){
  }
  return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on},sessions,monthlyFocus:focus,replays};
 }
-async function claimPreparedMentorship(ctx){
+async function listPreparedMentorships(ctx){
  context(ctx);
  const email=String(ctx.user.email||'').trim().toLowerCase();
- if(!email||!ctx.user.email_confirmed_at){
-  const err=new Error('A verified Flowtel email is required to claim a mentorship.');err.statusCode=403;throw err;
- }
- const candidates=await rows(ctx,'enrollments','select=id,status,client_user_id,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=10');
- const exact=candidates.filter(r=>String(r.invited_email||'').trim().toLowerCase()===email);
- if(exact.length===0){const err=new Error('No prepared mentorship matches this verified account.');err.statusCode=404;throw err;}
- if(exact.length>1){const err=new Error('More than one mentorship is prepared for this email. Contact your Concierge to activate them individually.');err.statusCode=409;throw err;}
- const claimed=await fetchJson(endpoint(ctx,'enrollments','id=eq.'+encodeURIComponent(exact[0].id)+'&status=eq.invited&client_user_id=is.null&select=id,status,client_user_id'),{
+ if(!email||!ctx.user.email_confirmed_at){const e=new Error('Verified email required.');e.statusCode=403;throw e;}
+ const matches=await rows(ctx,'enrollments','select=id,offering_id,starts_on,ends_on,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=30');
+ return matches.filter(x=>String(x.invited_email||'').trim().toLowerCase()===email).map(x=>({id:x.id,offeringId:x.offering_id,startsOn:x.starts_on,endsOn:x.ends_on}));
+}
+async function claimPreparedMentorship(ctx,enrollmentId){
+ context(ctx);id(enrollmentId);
+ const email=String(ctx.user.email||'').trim().toLowerCase();
+ if(!email||!ctx.user.email_confirmed_at){const e=new Error('Verified email required.');e.statusCode=403;throw e;}
+ const matching=await rows(ctx,'enrollments','select=id,invited_email&id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=1');
+ if(matching.length!==1||String(matching[0].invited_email||'').trim().toLowerCase()!==email){const e=new Error('Prepared mentorship not found for this account.');e.statusCode=404;throw e;}
+ const claimed=await fetchJson(endpoint(ctx,'enrollments','id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&select=id,status,client_user_id'),{
   method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),
   body:JSON.stringify({client_user_id:ctx.user.id,status:'active',updated_at:new Date().toISOString()})
  });
- if(!Array.isArray(claimed)||claimed.length!==1)throw Error('Claim could not be confirmed');
+ if(!Array.isArray(claimed)||claimed.length!==1){const e=new Error('Mentorship was already claimed or is no longer available.');e.statusCode=409;throw e;}
  return {id:claimed[0].id,status:claimed[0].status};
 }
-module.exports={ownedEnrollment,clientSuite,listMyMentorships,claimPreparedMentorship};
+module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship};
