@@ -56,3 +56,25 @@ test('enrollment list filters out draft and archived statuses at the database bo
  const {calls}=await simulate([[]],()=>listMyMentorships(ctx));
  assert.match(calls[0].url,/status=in\.\(invited,active,paused,completed\)/);
 });
+
+test('claim rejects unverified email before querying any enrollments',async()=>{
+ const {claimPreparedMentorship}=require('./client-repository.cjs');
+ const {calls}=await simulate([],()=>assert.rejects(claimPreparedMentorship({...ctx,user:{id:user,email:'test@example.com'}}),e=>e.statusCode===403));
+ assert.equal(calls.length,0);
+});
+test('claim requires exact invited email and a verified Flowtel account',async()=>{
+ const {claimPreparedMentorship}=require('./client-repository.cjs');
+ const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
+ const {calls}=await simulate([[{id:enrollment,status:'invited',client_user_id:null,invited_email:'pilot@example.com'}],[{id:enrollment,status:'active',client_user_id:user}]],()=>claimPreparedMentorship(verified));
+ assert.equal(calls.length,2);
+ assert.match(calls[0].url,/status=eq.invited/);
+ assert.match(calls[0].url,/client_user_id=is.null/);
+ assert.match(calls[1].url,/client_user_id=is.null/);
+ assert.equal(JSON.parse(calls[1].options.body).client_user_id,user);
+});
+test('claim cannot link an enrollment to mismatched account email',async()=>{
+ const {claimPreparedMentorship}=require('./client-repository.cjs');
+ const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
+ const {calls}=await simulate([[{id:enrollment,status:'invited',invited_email:'someoneelse@example.com'}]],()=>assert.rejects(claimPreparedMentorship(verified),e=>e.statusCode===404));
+ assert.equal(calls.length,1);
+});
