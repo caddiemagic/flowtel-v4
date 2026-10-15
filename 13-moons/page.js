@@ -184,6 +184,19 @@ async function load() {
       return;
     }
     stepStatus('profileStepStatus', 'Confirmed');
+    // Establish the actual initiation day once, before any later letter drafting.
+    // Migration 091 remains unapplied in previews, so registration failure must
+    // not masquerade as successful enrollment or block curriculum review.
+    const { data: initiationDay, error: beginError } = await supabase.rpc('flowtel_begin_13_moons');
+    if (!beginError && initiationDay) {
+      const info = document.createElement('p');
+      info.textContent = 'Your initiation began on ' + String(initiationDay) + '. Your future-self letter date is calculated from this day.';
+      byId('greeting').after(info);
+    } else {
+      const info = document.createElement('p');
+      info.textContent = 'Initiation start-date registration is not active in this development preview. Your start date has not been saved.';
+      byId('greeting').after(info);
+    }
     stepStatus('vortexStepStatus', 'Checking saved reflections');
     const { data: saved, error } = await supabase.from('flowtel_13_moons_vortices')
       .select('start_month,reflections,completed_at')
