@@ -20,4 +20,15 @@ export const LESSON_TEACHING_DRAFTS = {
     daily: 'Keep recording your moon day, cycle day if relevant, energy, mood, and needs. Notice which inner season you are experiencing without forcing a conclusion.',
     integration: 'At the end of the cycle, open your existing Flow Map and review the previous cycle. Read your notes in each of its four seasonal quadrants. Compare what you observed with your own experience, and leave space for patterns that are still emerging.'
   },
+  3: {
+    paragraphs: [
+      'Your first two initiations asked you to observe your cycle and study your inner seasons. Now you begin listening for the BIG VISION that keeps returning to you. Your vision is not simply a list of goals. It includes the kind of life you wish to inhabit and the woman you are becoming as you live it.',
+      'Return to the impressions you recorded in your opening Big Vision Vortex. Those impressions belong to the thirteen calendar moons of your personal journey; they do not determine the order of your lessons. Read them as a witness to what you sensed when you began, without trying to prove that any prediction was correct.',
+      'Notice what your body has been telling you in the daily notes you have already collected. When do you feel drawn toward an idea, a relationship, a place, a creative expression, or a different way of spending your time? What vision returns even when your practical mind tries to dismiss it? Let your answers come from lived experience rather than an outside definition of success.',
+      'The original Womb Magic teaching invites you to imagine a larger life and business vision carried by womb wisdom. In this personal initiation, you may include business if that is part of your vision, but your vision does not have to be a business. The work is to write what you genuinely want to create and experience, before rushing into a plan for how to make it happen.',
+      'As you write, remember that a vision can remain alive while its form changes. You are beginning a relationship with your Big Vision across thirteen lessons, not signing a contract with a fixed future. Keep tracking your cycles and let the coming moons give you more information about how your vision wishes to unfold.'
+    ],
+    daily: 'Keep observing your moon day, cycle day if relevant, inner season, energy, and needs. When an image or possibility related to your BIG VISION appears, include it in your existing journal without forcing an immediate action.',
+    integration: 'At the close of the cycle, review your previous cycle in the existing Flow Map. Look for the seasons in which you felt receptive, inspired, cautious, or ready to act. Compare those observations with your Big Vision writing, without requiring every experience to fit a pattern.'
+  },
 };
