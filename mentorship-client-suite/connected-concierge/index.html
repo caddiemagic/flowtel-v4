@@ -15,7 +15,7 @@ p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-s
 <section class="card"><h2>New mentorship draft</h2><form id="create">
 <label for="email">Fictional test email</label><input type="email" id="email" required placeholder="fictional-client@example.com" maxlength="254">
 <label for="offering">Offering</label><select id="offering" required><option value="">Select an offering…</option></select>
-<button type="submit" id="save" disabled style="margin-top:16px">Save draft to Flowtel</button></form><p id="createStatus" role="status"></p></section>
+<label for="newStart">Mentorship start date</label><input type="date" id="newStart"><p class="small">The end date is calculated automatically from the offering duration.</p><button type="submit" id="save" disabled style="margin-top:16px">Save draft to Flowtel</button></form><p id="createStatus" role="status"></p></section>
 <section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><label for="search">Find an enrollment</label><input id="search" type="search" placeholder="Search email, offering, or status"><div id="enrollments">Sign in to view drafts.</div></section></div>
 <section class="card" id="detail" hidden><h2>Manage draft</h2><p id="selected"></p>
 <form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label>Program end · calculated automatically</label><p id="ends" class="note">Choose a start date to see the end date.</p></div></div><button id="saveDates" type="submit">Save program dates</button></form>
@@ -74,8 +74,8 @@ $('refresh').addEventListener('click',connect);
 $('create').addEventListener('submit',async e=>{
  e.preventDefault();$('save').disabled=true;
  try{
- const result=await request('POST',{action:'create-draft',email:$('email').value.trim(),offeringId:$('offering').value});
- msg('createStatus','Draft saved. No invitation was sent.');$('email').value='';
+ const result=await request('POST',{action:'create-draft',email:$('email').value.trim(),offeringId:$('offering').value,startsOn:$('newStart').value||null});
+ msg('createStatus','Draft saved with calculated dates. No invitation was sent.');$('email').value='';$('newStart').value='';
  await connect();const row=enrollments.find(x=>x.id===result.enrollment?.id);if(row)open(row);
  }catch(error){msg('createStatus',error.message,true)}finally{$('save').disabled=false}
 });
