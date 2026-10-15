@@ -29,7 +29,7 @@ let token=null,offerings=[],enrollments=[],selected=null;
 function msg(id,message,isError=false){const node=$(id);node.textContent=message;node.className=isError?'error':'success'}
 async function request(method='GET',body=null){
  if(!token)throw Error('Sign in to Flowtel as the owner first.');
- const response=await fetch('/api/mentorship-owner',{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ const response=await fetch('/api/caddie-acuity?mentorship=owner',{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  const data=await response.json().catch(()=>({}));
  if(!response.ok)throw Error(response.status===401?'Your session expired. Sign in again.':response.status===403?'This Flowtel account does not have Concierge owner access.':data.error||'Request failed ('+response.status+')');
  return data;
