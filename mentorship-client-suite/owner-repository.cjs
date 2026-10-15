@@ -122,4 +122,17 @@ async function listSessions(ctx,{enrollmentId}){
  ownerContext(ctx);validUUID(enrollmentId);
  return fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
 }
-module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions};
+async function setSessionTime(ctx,{enrollmentId,sessionId,scheduledAt}){
+ ownerContext(ctx);validUUID(enrollmentId);validUUID(sessionId);
+ const day=typeof scheduledAt==='string'?new Date(scheduledAt):new Date(NaN);
+ if(!Number.isFinite(day.getTime())||!/(Z|[+-]\\d{2}:\\d{2})$/.test(String(scheduledAt)))throw Error('A timestamp with time zone is required');
+ if(day.getTime()<Date.now()-86400000)throw Error('Choose a future session time');
+ const matches=await fetchJson(url(ctx,'sessions','select=id,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(matches)||matches.length!==1)throw Error('Session not found');
+ if(!['unscheduled','proposed','confirmed'].includes(matches[0].status))throw Error('This session cannot be rescheduled');
+ const records=await fetchJson(url(ctx,'sessions','enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&status=in.(unscheduled,proposed,confirmed)&select=id,status,scheduled_at,timezone'),{
+ method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({scheduled_at:day.toISOString(),timezone:'America/Los_Angeles',status:'proposed'})});
+ if(!Array.isArray(records)||records.length!==1)throw Error('Session could not be saved');
+ return records[0];
+}
+module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime};
