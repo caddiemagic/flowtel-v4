@@ -1,3 +1,4 @@
+import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import {generateBigVisionVortex,flowtelEntryMonth} from '/shared/13-moon-vortex.js';
 import {thirteenMonthsAfter} from '/shared/13-moons-monthly-practices.js';
 import {WOMB_WORK_MODULES} from '/shared/womb-work.js';
@@ -40,24 +41,45 @@ function render(){
   add('span','✺').className='moon-mark';heading('The opening doorway','After reviewing both existing rooms, you are ready for the Big Vision Vortex.');
   const link=add('a','Enter Step 2 · Big Vision Vortex →');link.href='?opening=2';
  }else if(scene==='vortexArrival'){
-  add('span','☾').className='moon-mark';heading('The Big Vision Vortex','Before beginning Lesson 1, listen for your intuitive first impression of each of the thirteen calendar moons ahead.');
+  add('span','☾').className='moon-mark';heading('The Big Vision Vortex','A wish-making journey through the thirteen calendar moons ahead. The present moon is your starting point; your first wish belongs to the next moon.');
  }else if(scene==='vortexHow'){
-  add('span','STEP 02 · THIRTEEN MOONS').className='label';heading('One moon at a time','Your calendar months begin with the current month in Flowtel Time. These are not your lesson numbers. Your reflections can be brief or detailed.');
+  add('span','STEP 02 · THIRTEEN MOONS').className='label';heading('One wish on each future moon','Read each moon name and its initiation themes from Flow FM. Make a wish for that calendar month. Skip the present moon: it will return as Moon 13, one year from now, when you make a wish for its future version.');
   add('p','This no-login experience is only a prototype; nothing you write here will be saved.');
  }else if(scene==='vortexMonth'){
-  const row=vortex[vortexIndex];add('span','MOON '+(vortexIndex+1)+' OF 13').className='label';
+  const row=vortex[vortexIndex];
+  const current=vortexIndex===0;
+  const monthName=new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(row.month+'-01T12:00:00Z'));
+  const sameMoonNextYear=vortexIndex===12;
+  add('span',(current?'CURRENT MOON · NO WISH YET':'WISH '+vortexIndex+' OF 12')+' · POSITION '+(vortexIndex+1)+' OF 13').className='label';
   const marker=add('div');marker.className='moon-progress';
-  for(let i=0;i<13;i++){const dot=add('button',String(i+1),marker);dot.type='button';dot.className=i===vortexIndex?'chosen':'';dot.setAttribute('aria-label','Go to moon '+(i+1));dot.onclick=()=>{vortexIndex=i;render();};}
-  heading(row.name,row.month+' · '+row.wing+' · '+row.season);
-  add('p','What do you sense about this moon?');
-  const field=add('textarea');field.maxLength=4000;field.value=answers.vortex[vortexIndex];field.placeholder='Your intuitive first impression…';field.addEventListener('input',()=>answers.vortex[vortexIndex]=field.value);
+  for(let i=0;i<13;i++){
+   const dot=add('button',i===0?'○':String(i),marker);
+   dot.type='button';dot.className=i===vortexIndex?'chosen':'';
+   dot.setAttribute('aria-label',i===0?'Current moon introduction':'Go to wish '+i);
+   dot.onclick=()=>{vortexIndex=i;render();};
+  }
+  add('span',monthName.toUpperCase()).className='label';
+  heading(row.name,current?'This is the moon you are living in now. Observe it, but save its wish for next year.':sameMoonNextYear?'A full year has turned. Now make a wish for this moon in its future form.':'Read the name and themes of this moon, then make a wish for what you want to experience.');
+  const theme=add('blockquote',MOON_WISH_THEMES[row.calendarMonth]);
+  theme.className='moon-theme';
+  add('p',row.wing+' · '+row.season);
+  if(current){
+   add('p','There is no wish to write for this current month. Move forward into your first future moon.');
+  }else{
+   const label=add('label','My wish for '+monthName+' · '+row.name);label.className='label';
+   const field=add('textarea');field.id='wishText';field.maxLength=4000;
+   field.value=answers.vortex[vortexIndex];field.placeholder='My wish for this moon is…';
+   field.setAttribute('aria-label','My wish for '+monthName);
+   field.addEventListener('input',()=>answers.vortex[vortexIndex]=field.value);
+   add('p','This wish remains here only while you are exploring this preview. It is not saved.');
+  }
   const controls=add('div');controls.className='options';
   const previous=add('button','← Previous moon',controls);previous.className='option';previous.disabled=vortexIndex===0;
   previous.onclick=()=>{vortexIndex=Math.max(0,vortexIndex-1);render();};
-  const next=add('button',vortexIndex===12?'Continue to closing':'Next moon →',controls);next.className='option';
+  const next=add('button',vortexIndex===12?'Close the Vortex →':current?'Begin wishing →':'Next moon →',controls);next.className='option';
   next.onclick=()=>{if(vortexIndex<12){vortexIndex++;render();}else{step++;render();}};
  }else if(scene==='vortexClose'){
-  add('span','✺').className='moon-mark';heading('Your thirteen opening reflections','You have reached the end of the Vortex preview. In the member version, your reflections will be saved privately and sealed when complete.');
+  add('span','✺').className='moon-mark';heading('Your twelve wishes across thirteen moons','The current month was your starting point, not a wish. You returned to it in the thirteenth position, one year later. In the future member experience, your wishes will be privately saved and sealed.');
   const link=add('a','Enter Initiation 1 →');link.href='?lesson=1';
  }else if(scene==='arrival'){
   add('span','☾').className='moon-mark';
