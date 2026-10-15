@@ -1,7 +1,7 @@
 // Draft Vercel handler; intentionally lives INSIDE mentorship-client-suite/
 // and is not published as a /api route until schema + authorization tests pass.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions}=require('./owner-repository.cjs');
+const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -21,6 +21,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
   if(body?.action==='update-draft'){
    const enrollment=await updateDraftEnrollment(ctx,{enrollmentId:body.enrollmentId,startsOn:body.startsOn});
    return res.status(200).json({ok:true,enrollment});
+  }
+  if(body?.action==='set-session-time'){
+   const session=await setSessionTime(ctx,{enrollmentId:body.enrollmentId,sessionId:body.sessionId,scheduledAt:body.scheduledAt});
+   return res.status(200).json({ok:true,session});
   }
   if(body?.action==='prepare-sessions'){
    const plan=await prepareSessions(ctx,{enrollmentId:body.enrollmentId});
