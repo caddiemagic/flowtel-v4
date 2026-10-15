@@ -1,3 +1,4 @@
+import {readWishPreview,writeWishPreview} from '/13-moons/showcase/wish-preview-store.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import {generateBigVisionVortex,flowtelEntryMonth} from '/shared/13-moon-vortex.js';
 import {thirteenMonthsAfter} from '/shared/13-moons-monthly-practices.js';
@@ -19,6 +20,8 @@ let step=0;
 const answers={season:'',checkin:'',reflection:'',letter:'',startDate:'',vortex:Array(13).fill(''),cosmology:'',profileReviewed:false,cosmologyReviewed:false};
 const vortex=generateBigVisionVortex(flowtelEntryMonth());
 let vortexIndex=0;
+const previousWishes=readWishPreview();
+if(opening===2&&previousWishes?.startMonth===vortex[0].month)answers.vortex=previousWishes.wishes.slice();
 const add=(tag,text,parent=root)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el;};
 function heading(title,body){add('h1',title);if(body)add('p',body);}
 function render(){
@@ -70,7 +73,7 @@ function render(){
    const field=add('textarea');field.id='wishText';field.maxLength=4000;
    field.value=answers.vortex[vortexIndex];field.placeholder='My wish for this moon is…';
    field.setAttribute('aria-label','My wish for '+monthName);
-   field.addEventListener('input',()=>answers.vortex[vortexIndex]=field.value);
+   field.addEventListener('input',()=>{answers.vortex[vortexIndex]=field.value;writeWishPreview(vortex[0].month,answers.vortex);});
    add('p','This wish remains here only while you are exploring this preview. It is not saved.');
   }
   const controls=add('div');controls.className='options';
@@ -80,6 +83,8 @@ function render(){
   next.onclick=()=>{if(vortexIndex<12){vortexIndex++;render();}else{step++;render();}};
  }else if(scene==='vortexClose'){
   add('span','✺').className='moon-mark';heading('Your twelve wishes across thirteen moons','The current month was your starting point, not a wish. You returned to it in the thirteenth position, one year later. In the future member experience, your wishes will be privately saved and sealed.');
+  const returnLink=add('a','Return to the Wish & Witness room →');returnLink.href='/13-moons/showcase/#wishesPreview';
+  add('p','Your preview wishes are stored only in this browser tab, not in Flowtel. You can clear them in the library.');
   const link=add('a','Enter Initiation 1 →');link.href='?lesson=1';
  }else if(scene==='arrival'){
   add('span','☾').className='moon-mark';
