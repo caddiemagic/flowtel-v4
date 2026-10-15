@@ -20,7 +20,7 @@ module.exports=async function mentorshipClientHandler(req,res){
   const suite=await clientSuite(ctx,requested);
   return res.status(200).json({ok:true,suite});
  }catch(error){
-  if(error?.statusCode===401||error?.statusCode===403||error?.statusCode===404)return sendError(res,error,'Mentorship not available');
+  if(error?.statusCode===401||error?.statusCode===403||error?.statusCode===404||error?.statusCode===409)return sendError(res,error,'Mentorship not available');
   console.error('Mentorship private suite request failed',error);
   return res.status(error?.message==='Invalid mentorship enrollment ID'?400:500).json({ok:false,error:'Could not open this mentorship suite.'});
  }
