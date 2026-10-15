@@ -1,3 +1,4 @@
+import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
 import { supabase } from '/shared/supabase.js';
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
@@ -101,6 +102,7 @@ function renderInitiationPath() {
       for (const paragraph of teaching.paragraphs) {
         const p=document.createElement('p'); p.textContent=paragraph; expanded.append(p);
       }
+      if(module.index===2)expanded.append(createMoonMagicMedicineWheel());
     }
     const daily = MONTHLY_INITIATION_PRACTICES[module.index];
     if (daily) {
