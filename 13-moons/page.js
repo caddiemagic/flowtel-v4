@@ -1,3 +1,4 @@
+import { addFutureSelfLetterEditor } from '/13-moons/future-letter.js';
 import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
 import { supabase } from '/shared/supabase.js';
@@ -48,7 +49,7 @@ async function loadLessonProgress(profile) {
   if (error) return null;
   return data;
 }
-function renderInitiationPath() {
+function renderInitiationPath(userId) {
   const root = byId('initiationPath');
   if (!root) return;
   root.replaceChildren();
@@ -114,6 +115,7 @@ function renderInitiationPath() {
     }
     const original=document.createElement('div');original.append(practiceHeading,practice,reflectionHeading,reflection,integration,links,note);
     expanded.append(original);
+    if(module.index===3)void addFutureSelfLetterEditor(expanded,userId);
     card.append(eyebrow, heading, description, expanded);
     root.append(card);
   }
@@ -170,7 +172,7 @@ async function load() {
     // the guest completes the opening onboarding requirements.
     byId('greeting').textContent = 'Welcome, ' + (profile.display_name || profile.first_name || 'Initiate') + '.';
     view.hidden = false;
-    renderInitiationPath();
+    renderInitiationPath(profile.id);
     save.hidden = true;
     if (profileNeedsConfirmation(profile) || !String(profile.hemisphere || '').trim()) {
       stepStatus('profileStepStatus', 'Needs confirmation');
@@ -216,7 +218,7 @@ async function load() {
       months.replaceChildren(list);
       byId('greeting').textContent = 'Welcome, ' + (profile.display_name || profile.first_name || 'Initiate') + '.';
       view.hidden = false;
-      renderInitiationPath();
+      renderInitiationPath(profile.id);
       save.hidden = true;
       message('Your thirteen moons — calendar preview', 'Private reflection storage is not installed yet, so saving is disabled. This view does not collect your writing.');
       stepStatus('vortexStepStatus', 'Storage not installed');
@@ -233,7 +235,7 @@ async function load() {
     byId('greeting').textContent = 'Welcome, ' +
       (profile.display_name || profile.first_name || 'Initiate') + '.';
     view.hidden = false;
-    renderInitiationPath();
+    renderInitiationPath(profile.id);
     message('Your opening Big Vision Vortex',
       'Write the impressions that arise for all thirteen moons. Save a draft anytime. Filling every moon seals your opening reflections.');
     if (!sealed) showNotice('Not saved yet. Your writing stays in this browser until you save.');
