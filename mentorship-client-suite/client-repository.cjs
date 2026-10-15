@@ -51,4 +51,19 @@ async function claimPreparedMentorship(ctx,enrollmentId){
  if(!Array.isArray(claimed)||claimed.length!==1){const e=new Error('Mentorship was already claimed or is no longer available.');e.statusCode=409;throw e;}
  return {id:claimed[0].id,status:claimed[0].status};
 }
-module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship};
+async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
+ const enrollment=await ownedEnrollment(ctx,enrollmentId);
+ id(replayId);
+ const matches=await rows(ctx,'replays','select=id,session_id,storage_path,visible_to_client&id=eq.'+encodeURIComponent(replayId)+'&visible_to_client=eq.true&limit=1');
+ const replay=matches[0];if(!replay){const e=new Error('Replay not available');e.statusCode=404;throw e;}
+ const sessionRows=await rows(ctx,'sessions','select=id&enrollment_id=eq.'+encodeURIComponent(enrollment.id)+'&id=eq.'+encodeURIComponent(replay.session_id)+'&limit=1');
+ if(sessionRows.length!==1){const e=new Error('Replay not available');e.statusCode=404;throw e;}
+ if(typeof replay.storage_path!=='string'||!replay.storage_path.startsWith(enrollment.id+'/'))throw Error('Invalid replay storage location');
+ const filePath=replay.storage_path.split('/').map(encodeURIComponent).join('/');
+ const signed=await fetchJson(ctx.supabaseUrl+'/storage/v1/object/sign/flowtel-mentorship-replays/'+filePath,{
+  method:'POST',headers:serviceHeaders(ctx.serviceKey),body:JSON.stringify({expiresIn:300})
+ });
+ if(typeof signed?.signedURL!=='string'||!signed.signedURL.startsWith('/storage/v1/object/sign/'))throw Error('Playback link unavailable');
+ return {url:ctx.supabaseUrl+signed.signedURL,expiresInSeconds:300};
+}
+module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
