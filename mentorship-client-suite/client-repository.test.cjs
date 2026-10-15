@@ -45,3 +45,14 @@ test('mentorship list is scoped to logged-in client and exposes no invitation em
  assert.match(calls[0].url,/client_user_id=eq.11111111-1111-4111-8111-111111111111/);
  assert.ok(!calls[0].url.includes('invited_email'));
 });
+
+test('private suite does not query sessions, focus or replays for a different client',async()=>{
+ const {calls}=await simulate([[]],()=>assert.rejects(clientSuite(ctx,enrollment),e=>e.statusCode===404));
+ assert.equal(calls.length,1);
+ assert.match(calls[0].url,/client_user_id=eq./);
+ assert.ok(!calls.some(call=>/flowtel_mentorship_(sessions|monthly_focus|replays)/.test(call.url)));
+});
+test('enrollment list filters out draft and archived statuses at the database boundary',async()=>{
+ const {calls}=await simulate([[]],()=>listMyMentorships(ctx));
+ assert.match(calls[0].url,/status=in\.\(invited,active,paused,completed\)/);
+});
