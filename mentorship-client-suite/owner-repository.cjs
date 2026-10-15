@@ -12,7 +12,7 @@ async function listOfferings(ctx){
  ownerContext(ctx);
  return fetchJson(url(ctx,'offerings','select=*&is_active=eq.true&order=price_cents.asc'),{headers:serviceHeaders(ctx.serviceKey)});
 }
-async function createDraftEnrollment(ctx,{email,offeringId}){
+async function createDraftEnrollment(ctx,{email,offeringId,startsOn}){
  ownerContext(ctx);
  const normalized=normalizeEmail(email);
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)||normalized.length>254)throw Error('Valid client email required');
@@ -21,7 +21,8 @@ async function createDraftEnrollment(ctx,{email,offeringId}){
  const offering=Array.isArray(rows)?rows[0]:null;
  if(!offering)throw Error('Offering not found or inactive');
  // No auth account, invite, access, or appointments created here.
- const payload={invited_email:normalized,offering_id:offering.id,offering_snapshot:offering,status:'draft',created_by:ctx.user.id};
+ const endsOn=calendarEndDate(startsOn??null,offering);
+ const payload={invited_email:normalized,offering_id:offering.id,offering_snapshot:offering,status:'draft',created_by:ctx.user.id,starts_on:startsOn??null,ends_on:endsOn};
  const result=await fetchJson(url(ctx,'enrollments','select=id,status,invited_email,offering_id,created_at'),{
   method:'POST',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:jsonBody(payload)
  });
