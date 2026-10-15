@@ -57,32 +57,32 @@ test('enrollment list filters out draft and archived statuses at the database bo
  assert.match(calls[0].url,/status=in\.\(invited,active,paused,completed\)/);
 });
 
-test('claim rejects unverified email before querying any enrollments',async()=>{
+test('claim rejects unverified email before querying enrollment',async()=>{
  const {claimPreparedMentorship}=require('./client-repository.cjs');
- const {calls}=await simulate([],()=>assert.rejects(claimPreparedMentorship({...ctx,user:{id:user,email:'test@example.com'}}),e=>e.statusCode===403));
+ const {calls}=await simulate([],()=>assert.rejects(claimPreparedMentorship({...ctx,user:{id:user,email:'test@example.com'}},enrollment),e=>e.statusCode===403));
  assert.equal(calls.length,0);
 });
-test('claim requires exact invited email and a verified Flowtel account',async()=>{
+test('specific prepared enrollment is claimed only after exact verified email match',async()=>{
  const {claimPreparedMentorship}=require('./client-repository.cjs');
  const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
- const {calls}=await simulate([[{id:enrollment,status:'invited',client_user_id:null,invited_email:'pilot@example.com'}],[{id:enrollment,status:'active',client_user_id:user}]],()=>claimPreparedMentorship(verified));
+ const {calls}=await simulate([[{id:enrollment,invited_email:'pilot@example.com'}],[{id:enrollment,status:'active',client_user_id:user}]],()=>claimPreparedMentorship(verified,enrollment));
  assert.equal(calls.length,2);
- assert.match(calls[0].url,/status=eq.invited/);
- assert.match(calls[0].url,/client_user_id=is.null/);
+ assert.match(calls[0].url,/id=eq.22222222/);
+ assert.match(calls[0].url,/invited_email=eq.pilot%40example.com/);
  assert.match(calls[1].url,/client_user_id=is.null/);
  assert.equal(JSON.parse(calls[1].options.body).client_user_id,user);
 });
-test('claim cannot link an enrollment to mismatched account email',async()=>{
+test('mismatched account cannot claim a specific enrollment',async()=>{
  const {claimPreparedMentorship}=require('./client-repository.cjs');
  const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
- const {calls}=await simulate([[{id:enrollment,status:'invited',invited_email:'someoneelse@example.com'}]],()=>assert.rejects(claimPreparedMentorship(verified),e=>e.statusCode===404));
+ const {calls}=await simulate([[]],()=>assert.rejects(claimPreparedMentorship(verified,enrollment),e=>e.statusCode===404));
  assert.equal(calls.length,1);
 });
-
-test('multiple prepared matches do not activate an arbitrary enrollment',async()=>{
- const {claimPreparedMentorship}=require('./client-repository.cjs');
+test('prepared enrollment discovery is limited to verified owner of email',async()=>{
+ const {listPreparedMentorships}=require('./client-repository.cjs');
  const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
- const matches=[{id:enrollment,invited_email:'pilot@example.com'},{id:session,invited_email:'pilot@example.com'}];
- const {calls}=await simulate([matches],()=>assert.rejects(claimPreparedMentorship(verified),e=>e.statusCode===409));
- assert.equal(calls.length,1);
+ const {output,calls}=await simulate([[{id:enrollment,offering_id:session,invited_email:'pilot@example.com'}]],()=>listPreparedMentorships(verified));
+ assert.equal(output.length,1);
+ assert.equal(output[0].invited_email,undefined);
+ assert.match(calls[0].url,/invited_email=eq.pilot%40example.com/);
 });
