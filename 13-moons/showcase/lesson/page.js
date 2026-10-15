@@ -69,7 +69,7 @@ if(!lesson){
  add('p',lesson.practice);
  const extra=MONTHLY_INITIATION_PRACTICES[index];
  if(extra){
-   add('h2','Additional monthly practice');
+   add('h2','Daily Practice');
    add('h3',extra.title);
    add('p',extra.body);
    if(extra.script){
