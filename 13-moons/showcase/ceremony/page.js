@@ -15,7 +15,7 @@ const root=document.getElementById('scene'),progress=document.getElementById('pr
 document.getElementById('chapter').textContent=(opening===1||opening===2)?'BEFORE THE FIRST MOON · STEP '+opening:'INITIATION '+String(n).padStart(2,'0')+' · '+module.arc;
 const scenes=opening===1?['profileArrival','profileCheck','profileCosmology','profileClose']:opening===2?['vortexArrival','vortexHow','vortexMonth','vortexClose']:['arrival','orientation',...teaching.paragraphs.map((_,i)=>'teaching'+i),...(n===2?['wheel','identify']:n===1?['checkin']:[]),'practice','reflection',...(n===3?['letter']:[]),'closing'];
 let step=0;
-const answers={season:'',checkin:'',reflection:'',letter:'',startDate:'',vortex:Array(13).fill(''),cosmology:''};
+const answers={season:'',checkin:'',reflection:'',letter:'',startDate:'',vortex:Array(13).fill(''),cosmology:'',profileReviewed:false,cosmologyReviewed:false};
 const vortex=generateBigVisionVortex(flowtelEntryMonth());
 let vortexIndex=0;
 const add=(tag,text,parent=root)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el;};
@@ -28,10 +28,14 @@ function render(){
   add('span','✧').className='moon-mark';heading('Your journey begins with you','Before the thirteen initiations, review the rooms that hold your personal information. These already exist in Flowtel.');
  }else if(scene==='profileCheck'){
   add('span','STEP 01 · YOUR GUEST PROFILE').className='label';heading('Confirm your Guest Profile','Check your name, display name, location, time zone, and hemisphere in the existing Flowtel Guest Profile.');
-  const link=add('a','Open my Guest Profile →');link.href='/client/';add('p','Return here afterward to continue. No profile information is collected in this preview.');
+  const link=add('a','Open my Guest Profile →');link.href='/client/';link.target='_blank';link.rel='noopener noreferrer';
+  const check=add('label');check.className='review-check';const tick=add('input',undefined,check);tick.type='checkbox';tick.checked=answers.profileReviewed;tick.addEventListener('change',()=>{answers.profileReviewed=tick.checked;});add('span','I have reviewed my Guest Profile',check);
+  add('p','The checkbox is a personal preview reminder, not verified profile confirmation.');
  }else if(scene==='profileCosmology'){
   add('span','STEP 01 · PERSONAL COSMOLOGY').className='label';heading('Visit your Personal Cosmology','Review your existing private Personal Cosmology room, including any birth information you choose to maintain there.');
-  const link=add('a','Open Personal Cosmology →');link.href='/personal-cosmology/';add('p','This design prototype does not duplicate or save your private cosmology.');
+  const link=add('a','Open Personal Cosmology →');link.href='/personal-cosmology/';link.target='_blank';link.rel='noopener noreferrer';
+  const check=add('label');check.className='review-check';const tick=add('input',undefined,check);tick.type='checkbox';tick.checked=answers.cosmologyReviewed;tick.addEventListener('change',()=>{answers.cosmologyReviewed=tick.checked;});add('span','I have reviewed my Personal Cosmology',check);
+  add('p','This preview does not duplicate your birth details or save the checkbox.');
  }else if(scene==='profileClose'){
   add('span','✺').className='moon-mark';heading('The opening doorway','After reviewing both existing rooms, you are ready for the Big Vision Vortex.');
   const link=add('a','Enter Step 2 · Big Vision Vortex →');link.href='?opening=2';
@@ -42,6 +46,8 @@ function render(){
   add('p','This no-login experience is only a prototype; nothing you write here will be saved.');
  }else if(scene==='vortexMonth'){
   const row=vortex[vortexIndex];add('span','MOON '+(vortexIndex+1)+' OF 13').className='label';
+  const marker=add('div');marker.className='moon-progress';
+  for(let i=0;i<13;i++){const dot=add('button',String(i+1),marker);dot.type='button';dot.className=i===vortexIndex?'chosen':'';dot.setAttribute('aria-label','Go to moon '+(i+1));dot.onclick=()=>{vortexIndex=i;render();};}
   heading(row.name,row.month+' · '+row.wing+' · '+row.season);
   add('p','What do you sense about this moon?');
   const field=add('textarea');field.maxLength=4000;field.value=answers.vortex[vortexIndex];field.placeholder='Your intuitive first impression…';field.addEventListener('input',()=>answers.vortex[vortexIndex]=field.value);
@@ -69,6 +75,9 @@ function render(){
   add('span','THE MEDICINE WHEEL').className='label';
   add('h2','Four seasons. One turning wheel.');
   const holder=add('div');holder.className='wheel';holder.append(createMoonMagicMedicineWheel());
+  const choices=add('div');choices.className='options';
+  for(const value of ['Inner Winter','Inner Spring','Inner Summer','Inner Autumn']){const btn=add('button',value,choices);btn.type='button';btn.className='option';btn.setAttribute('aria-pressed',String(answers.season===value));btn.onclick=()=>{answers.season=value;render();};}
+  if(answers.season)add('p','Selected: '+answers.season+'. Continue to reflect on this season.');
  }else if(scene==='identify'){
   add('span','A MOMENT OF RECOGNITION').className='label';
   heading('What season are you observing?','You can choose your current inner season below. This is only an exploration; your answer will not be stored.');
@@ -112,9 +121,10 @@ function render(){
  }
  const back=document.getElementById('back'),forward=document.getElementById('forward');
  back.disabled=step===0;
+ if(scene==='vortexMonth'&&vortexIndex>0){back.disabled=false;}
  forward.textContent=step===scenes.length-1?'Return to beginning ↺':'Continue →';
  if(scene==='vortexMonth')forward.hidden=true;else forward.hidden=false;
 }
-document.getElementById('back').addEventListener('click',()=>{step=Math.max(0,step-1);render();window.scrollTo({top:0,behavior:'smooth'});});
+document.getElementById('back').addEventListener('click',()=>{if(scenes[step]==='vortexMonth'&&vortexIndex>0)vortexIndex--;else step=Math.max(0,step-1);render();window.scrollTo({top:0,behavior:'smooth'});});
 document.getElementById('forward').addEventListener('click',()=>{step=(step+1)%scenes.length;render();window.scrollTo({top:0,behavior:'smooth'});});
 render();
