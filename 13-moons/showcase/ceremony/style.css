@@ -7,3 +7,5 @@
 .moon-progress button{padding:8px 0!important;border:1px solid #d9c3ce!important;border-radius:8px!important;background:#fcf7f9!important;color:#6e5264!important;font:700 11px Arial,sans-serif!important}
 .moon-progress button.chosen{background:#6f4d62!important;color:white!important}
 @media(max-width:540px){.moon-progress{grid-template-columns:repeat(7,minmax(0,1fr))}}
+
+.moon-theme{background:#f8eef3;border-left:3px solid #aa8097;color:#62465a;padding:19px 22px;margin:22px 0;border-radius:0 16px 16px 0;font:600 clamp(1rem,2.2vw,1.2rem)/1.7 Georgia,serif;letter-spacing:.025em}
