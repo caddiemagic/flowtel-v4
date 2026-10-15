@@ -35,6 +35,7 @@ async function request(method='GET',body=null){
  return data;
 }
 async function connect(){
+ const selectedId=selected?.id;
  token=null;$('save').disabled=true;$('session').textContent='Checking your Flowtel session…';$('enrollments').textContent='Checking…';
  try{
   const {data,error}=await supabase.auth.getSession();if(error)throw error;
@@ -46,6 +47,7 @@ async function connect(){
   const dropdown=$('offering');dropdown.replaceChildren(new Option('Select an offering…',''));
   for(const o of offerings)dropdown.add(new Option(o.title+' · $'+(o.price_cents/100).toLocaleString('en-US'),o.id));
   render();
+  if(selectedId){const current=enrollments.find(item=>item.id===selectedId);if(current)open(current);else{$('detail').hidden=true;selected=null}}
   msg('status','Connected. You can create fictional draft enrollments.');
  }catch(error){$('session').textContent='Unable to connect to the Concierge API.';$('enrollments').textContent='No enrollment data loaded.';msg('status',error.message,true)}
 }
@@ -83,9 +85,9 @@ $('create').addEventListener('submit',async e=>{
 });
 $('update').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
- try{const data=await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null});await connect();const item=enrollments.find(x=>x.id===selected?.id);if(item)open(item);msg('detailStatus','Program dates saved.')}catch(error){msg('detailStatus',error.message,true)}
+ try{await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null});await connect();msg('detailStatus','Program dates saved.')}catch(error){msg('detailStatus',error.message,true)}
 });
-$('prepare').addEventListener('click',async()=>{if(!selected||selected.status!=='draft')return;try{await request('POST',{action:'prepare-access',enrollmentId:selected.id});await connect();msg('detailStatus','Access prepared. No email sent. Client can claim with their verified Flowtel email.')}catch(error){msg('detailStatus',error.message,true)}});
+$('prepare').addEventListener('click',async()=>{if(!selected||selected.status!=='draft')return;$('prepare').disabled=true;try{await request('POST',{action:'prepare-access',enrollmentId:selected.id});await connect();msg('detailStatus','Access prepared. No email sent. Client can claim with their verified Flowtel email.')}catch(error){msg('detailStatus',error.message,true);$('prepare').disabled=false}});
 $('focusForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
  try{await request('POST',{action:'save-focus',enrollmentId:selected.id,month:$('month').value+'-01',focus:$('focus').value});msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.')}catch(error){msg('detailStatus',error.message,true)}
