@@ -1,37 +1,70 @@
+import {generateBigVisionVortex,flowtelEntryMonth} from '/shared/13-moon-vortex.js';
+import {thirteenMonthsAfter} from '/shared/13-moons-monthly-practices.js';
 import {WOMB_WORK_MODULES} from '/shared/womb-work.js';
 import {LESSON_TEACHING_DRAFTS} from '/13-moons/showcase/lesson/teaching-drafts.js';
 import {MONTHLY_INITIATION_PRACTICES} from '/shared/13-moons-monthly-practices.js';
 import {createMoonMagicMedicineWheel} from '/shared/moon-magic-medicine-wheel.js';
 const jump=document.getElementById('jump');
 for(const item of WOMB_WORK_MODULES){const opt=document.createElement('option');opt.value=String(item.index);opt.textContent=String(item.index).padStart(2,'0')+' · '+item.title;jump.append(opt);}
-jump.addEventListener('change',()=>{const value=Number(jump.value);if(!value)return;location.href=value<=2?'/13-moons/showcase/ceremony/?lesson='+value:'/13-moons/showcase/lesson/?lesson='+value;});
+jump.addEventListener('change',()=>{const value=Number(jump.value);if(!value)return;location.href='/13-moons/showcase/ceremony/?lesson='+value;});
 const params=new URLSearchParams(location.search);
-const n=params.get('lesson')==='2'?2:1;
+const opening=Number(params.get('opening'));
+const n=Math.min(13,Math.max(1,Number(params.get('lesson'))||1));
 const module=WOMB_WORK_MODULES[n-1],teaching=LESSON_TEACHING_DRAFTS[n],daily=MONTHLY_INITIATION_PRACTICES[n];
 const root=document.getElementById('scene'),progress=document.getElementById('progress');
-document.getElementById('chapter').textContent='INITIATION '+String(n).padStart(2,'0')+' · '+module.arc;
-const scenes=['arrival','orientation','teaching',...(n===2?['wheel','identify']:['checkin']),'practice','reflection','closing'];
+document.getElementById('chapter').textContent=(opening===1||opening===2)?'BEFORE THE FIRST MOON · STEP '+opening:'INITIATION '+String(n).padStart(2,'0')+' · '+module.arc;
+const scenes=opening===1?['profileArrival','profileCheck','profileCosmology','profileClose']:opening===2?['vortexArrival','vortexHow','vortexMonth','vortexClose']:['arrival','orientation',...teaching.paragraphs.map((_,i)=>'teaching'+i),...(n===2?['wheel','identify']:n===1?['checkin']:[]),'practice','reflection',...(n===3?['letter']:[]),'closing'];
 let step=0;
-const answers={season:'',checkin:'',reflection:''};
+const answers={season:'',checkin:'',reflection:'',letter:'',startDate:'',vortex:Array(13).fill(''),cosmology:''};
+const vortex=generateBigVisionVortex(flowtelEntryMonth());
+let vortexIndex=0;
 const add=(tag,text,parent=root)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el;};
 function heading(title,body){add('h1',title);if(body)add('p',body);}
 function render(){
  root.replaceChildren();
  progress.replaceChildren(...scenes.map((_,i)=>{const span=document.createElement('span');if(i<=step)span.className='active';return span;}));
  const scene=scenes[step];
- if(scene==='arrival'){
+ if(scene==='profileArrival'){
+  add('span','✧').className='moon-mark';heading('Your journey begins with you','Before the thirteen initiations, review the rooms that hold your personal information. These already exist in Flowtel.');
+ }else if(scene==='profileCheck'){
+  add('span','STEP 01 · YOUR GUEST PROFILE').className='label';heading('Confirm your Guest Profile','Check your name, display name, location, time zone, and hemisphere in the existing Flowtel Guest Profile.');
+  const link=add('a','Open my Guest Profile →');link.href='/client/';add('p','Return here afterward to continue. No profile information is collected in this preview.');
+ }else if(scene==='profileCosmology'){
+  add('span','STEP 01 · PERSONAL COSMOLOGY').className='label';heading('Visit your Personal Cosmology','Review your existing private Personal Cosmology room, including any birth information you choose to maintain there.');
+  const link=add('a','Open Personal Cosmology →');link.href='/personal-cosmology/';add('p','This design prototype does not duplicate or save your private cosmology.');
+ }else if(scene==='profileClose'){
+  add('span','✺').className='moon-mark';heading('The opening doorway','After reviewing both existing rooms, you are ready for the Big Vision Vortex.');
+  const link=add('a','Enter Step 2 · Big Vision Vortex →');link.href='?opening=2';
+ }else if(scene==='vortexArrival'){
+  add('span','☾').className='moon-mark';heading('The Big Vision Vortex','Before beginning Lesson 1, listen for your intuitive first impression of each of the thirteen calendar moons ahead.');
+ }else if(scene==='vortexHow'){
+  add('span','STEP 02 · THIRTEEN MOONS').className='label';heading('One moon at a time','Your calendar months begin with the current month in Flowtel Time. These are not your lesson numbers. Your reflections can be brief or detailed.');
+  add('p','This no-login experience is only a prototype; nothing you write here will be saved.');
+ }else if(scene==='vortexMonth'){
+  const row=vortex[vortexIndex];add('span','MOON '+(vortexIndex+1)+' OF 13').className='label';
+  heading(row.name,row.month+' · '+row.wing+' · '+row.season);
+  add('p','What do you sense about this moon?');
+  const field=add('textarea');field.maxLength=4000;field.value=answers.vortex[vortexIndex];field.placeholder='Your intuitive first impression…';field.addEventListener('input',()=>answers.vortex[vortexIndex]=field.value);
+  const controls=add('div');controls.className='options';
+  const previous=add('button','← Previous moon',controls);previous.className='option';previous.disabled=vortexIndex===0;
+  previous.onclick=()=>{vortexIndex=Math.max(0,vortexIndex-1);render();};
+  const next=add('button',vortexIndex===12?'Continue to closing':'Next moon →',controls);next.className='option';
+  next.onclick=()=>{if(vortexIndex<12){vortexIndex++;render();}else{step++;render();}};
+ }else if(scene==='vortexClose'){
+  add('span','✺').className='moon-mark';heading('Your thirteen opening reflections','You have reached the end of the Vortex preview. In the member version, your reflections will be saved privately and sealed when complete.');
+  const link=add('a','Enter Initiation 1 →');link.href='?lesson=1';
+ }else if(scene==='arrival'){
   add('span','☾').className='moon-mark';
   heading(module.title,'One doorway at a time. There is nothing here to rush, finish perfectly, or prove.');
   add('p','A moment of stillness before you begin.');
  }else if(scene==='orientation'){
   heading('The invitation',module.description);
   add('p',n===1?'Begin by witnessing your cycle as it is, without trying to change it.': 'The Moon Magic framework brings the four inner seasons, phases of the moon, and cycle days into one medicine wheel.');
- }else if(scene==='teaching'){
+ }else if(scene.startsWith('teaching')){
   add('span','✧').className='moon-mark';
   add('span','THE TEACHING').className='label';
-  heading('Begin noticing');
-  for(const p of teaching.paragraphs.slice(0,n===2?2:3))add('p',p);
-  add('p','The full written teaching is preserved in the existing lesson. This screen demonstrates the ceremonial pacing.');
+  heading('The teaching · '+(Number(scene.slice(8))+1)+' of '+teaching.paragraphs.length);
+  add('p',teaching.paragraphs[Number(scene.slice(8))]);
  }else if(scene==='wheel'){
   add('span','THE MEDICINE WHEEL').className='label';
   add('h2','Four seasons. One turning wheel.');
@@ -63,6 +96,14 @@ function render(){
   const area=add('textarea');area.value=answers.reflection;area.placeholder='Allow your answer to arrive…';
   area.addEventListener('input',()=>answers.reflection=area.value);
   add('p','Your writing is temporary in this design preview. The real member experience will use private saving.');
+ }else if(scene==='letter'){
+  add('span','YOUR FUTURE-SELF LETTER').className='label';heading('Write from thirteen months ahead','Imagine everything worked out. Write from the future, describing who you have become.');
+  const label=add('label','Initiation start date · prototype calculator');label.className='label';
+  const date=add('input');date.type='date';date.value=answers.startDate;
+  const dateText=add('p',answers.startDate?'Date your letter: '+(thirteenMonthsAfter(answers.startDate)||'Choose a valid date'):'Choose a start date to calculate your future letter date.');
+  date.addEventListener('change',()=>{answers.startDate=date.value;dateText.textContent='Date your letter: '+(thirteenMonthsAfter(date.value)||'Choose a valid date');});
+  const textarea=add('textarea');textarea.placeholder='Dear future me…';textarea.value=answers.letter;textarea.addEventListener('input',()=>answers.letter=textarea.value);
+  add('p','Preview only · Your letter will not be saved or sealed here.');
  }else if(scene==='closing'){
   add('span','✺').className='moon-mark';
   heading('Close this circle','Return to your cycle observations and your Flow Map. Notice what your experience is teaching you.');
@@ -71,7 +112,8 @@ function render(){
  }
  const back=document.getElementById('back'),forward=document.getElementById('forward');
  back.disabled=step===0;
- forward.textContent=step===scenes.length-1?'Begin again ↺':'Continue →';
+ forward.textContent=step===scenes.length-1?'Return to beginning ↺':'Continue →';
+ if(scene==='vortexMonth')forward.hidden=true;else forward.hidden=false;
 }
 document.getElementById('back').addEventListener('click',()=>{step=Math.max(0,step-1);render();window.scrollTo({top:0,behavior:'smooth'});});
 document.getElementById('forward').addEventListener('click',()=>{step=(step+1)%scenes.length;render();window.scrollTo({top:0,behavior:'smooth'});});
