@@ -99,4 +99,27 @@ async function prepareInvitation(ctx,{enrollmentId}){
  if(!Array.isArray(updated)||updated.length!==1)throw Error('Could not prepare enrollment');
  return updated[0]; // Does not send mail or grant access.
 }
-module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation};
+async function prepareSessions(ctx,{enrollmentId}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ const found=await fetchJson(url(ctx,'enrollments','select=id,offering_snapshot,status&id=eq.'+encodeURIComponent(enrollmentId)+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(found)||found.length!==1)throw Error('Enrollment not found');
+ if(!['draft','invited'].includes(found[0].status))throw Error('Session plan cannot be changed after activation');
+ const offering=found[0].offering_snapshot||{};
+ const plan=[];
+ if(offering.activation_minutes>0)plan.push({session_kind:'activation',duration_minutes:offering.activation_minutes});
+ for(let i=0;i<(offering.empowerment_count||0);i++)plan.push({session_kind:'empowerment',duration_minutes:offering.empowerment_minutes});
+ for(let i=0;i<(offering.flexible_count||0);i++)plan.push({session_kind:'flexible',duration_minutes:offering.flexible_minutes});
+ if(!plan.length||plan.length>40||plan.some(x=>!Number.isInteger(x.duration_minutes)||x.duration_minutes<=0))throw Error('Offering session configuration is invalid');
+ const existing=await fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(existing))throw Error('Cannot verify existing sessions');
+ if(existing.length)return {sessions:existing,created:false};
+ const data=plan.map((session,i)=>({...session,enrollment_id:enrollmentId,session_number:i+1,status:'unscheduled'}));
+ const inserted=await fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at'),{method:'POST',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify(data)});
+ if(!Array.isArray(inserted)||inserted.length!==data.length)throw Error('Session plan could not be confirmed');
+ return {sessions:inserted,created:true};
+}
+async function listSessions(ctx,{enrollmentId}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ return fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
+}
+module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions};
