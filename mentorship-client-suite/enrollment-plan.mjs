@@ -8,7 +8,7 @@ export const OFFERINGS = Object.freeze({
  four_sessions: Object.freeze({name:"Four 45-Minute Sessions",priceCents:39900,months:null,days:null,activationMinutes:0,empowermentCount:0,empowermentMinutes:0,intervalDays:null,flexibleCount:4,flexibleMinutes:45,telegram:false})
 });
 function parseISO(date) {
- if (typeof date!=="string" || !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) throw Error("Valid ISO start date required");
+ if (typeof date!=="string" || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw Error("Valid ISO start date required");
  const d=new Date(date+"T12:00:00Z");
  if (!Number.isFinite(d.getTime())||d.toISOString().slice(0,10)!==date) throw Error("Invalid calendar date");
  return d;
@@ -23,7 +23,7 @@ function addMonthsClamped(day,months) {
 }
 export function prepareEnrollment({offeringKey,startDate=null,activationDate=null,firstEmpowermentDate=null,localTime="11:00",timezone="America/Los_Angeles"}) {
  const o=OFFERINGS[offeringKey];if(!o) throw Error("Unknown offering");
- if(!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(localTime)) throw Error("Invalid local time");
+ if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(localTime)) throw Error("Invalid local time");
  if(timezone!=="America/Los_Angeles") throw Error("Flowtel Time is required for this preview");
  if(startDate) parseISO(startDate);
  let endDate=null;
