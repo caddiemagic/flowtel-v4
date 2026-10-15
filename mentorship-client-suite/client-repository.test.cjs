@@ -1,6 +1,6 @@
 const test=require('node:test');
 const assert=require('node:assert/strict');
-const {ownedEnrollment,clientSuite}=require('./client-repository.cjs');
+const {ownedEnrollment,clientSuite,listMyMentorships}=require('./client-repository.cjs');
 const user='11111111-1111-4111-8111-111111111111';
 const enrollment='22222222-2222-4222-8222-222222222222';
 const session='33333333-3333-4333-8333-333333333333';
@@ -35,4 +35,13 @@ test('client suite selects only approved fields and visible replay metadata',asy
 test('no session records means no replay query',async()=>{
  const {output,calls}=await simulate([[{id:enrollment,offering_id:enrollment,status:'active',client_user_id:user}],[],[]],()=>clientSuite(ctx,enrollment));
  assert.deepEqual(output.replays,[]);assert.equal(calls.length,3);
+});
+
+test('mentorship list is scoped to logged-in client and exposes no invitation email',async()=>{
+ const {output,calls}=await simulate([[{id:enrollment,offering_id:enrollment,status:'active',starts_on:'2026-10-01'}]],()=>listMyMentorships(ctx));
+ assert.equal(output.length,1);
+ assert.equal(output[0].id,enrollment);
+ assert.equal(output[0].invited_email,undefined);
+ assert.match(calls[0].url,/client_user_id=eq.11111111-1111-4111-8111-111111111111/);
+ assert.ok(!calls[0].url.includes('invited_email'));
 });
