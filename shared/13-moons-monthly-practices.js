@@ -17,7 +17,7 @@ export const MONTHLY_INITIATION_PRACTICES = [
   {title:'Review your thirteen moons and close the spiral',body:'Read back through your Flow Maps and create a new integration Flow Map reflecting on what happened throughout the year and across each inner season. Read the letter you wrote to your future self at the beginning of your initiation.'}
 ];
 export function thirteenMonthsAfter(isoDate){
-  if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(isoDate||'')) return '';
+  if(!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(isoDate||'')) return '';
   const [y,m,d]=isoDate.split('-').map(Number);
   const date=new Date(Date.UTC(y,m-1,d));
   if(date.toISOString().slice(0,10)!==isoDate) return '';
