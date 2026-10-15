@@ -2,6 +2,9 @@ import {WOMB_WORK_MODULES} from '/shared/womb-work.js';
 import {LESSON_TEACHING_DRAFTS} from '/13-moons/showcase/lesson/teaching-drafts.js';
 import {MONTHLY_INITIATION_PRACTICES} from '/shared/13-moons-monthly-practices.js';
 import {createMoonMagicMedicineWheel} from '/shared/moon-magic-medicine-wheel.js';
+const jump=document.getElementById('jump');
+for(const item of WOMB_WORK_MODULES){const opt=document.createElement('option');opt.value=String(item.index);opt.textContent=String(item.index).padStart(2,'0')+' · '+item.title;jump.append(opt);}
+jump.addEventListener('change',()=>{const value=Number(jump.value);if(!value)return;location.href=value<=2?'/13-moons/showcase/ceremony/?lesson='+value:'/13-moons/showcase/lesson/?lesson='+value;});
 const params=new URLSearchParams(location.search);
 const n=params.get('lesson')==='2'?2:1;
 const module=WOMB_WORK_MODULES[n-1],teaching=LESSON_TEACHING_DRAFTS[n],daily=MONTHLY_INITIATION_PRACTICES[n];
