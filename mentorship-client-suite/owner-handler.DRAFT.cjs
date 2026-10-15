@@ -12,8 +12,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
   if(req.method==='GET')return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
   const body=await readRequestBody(req);
   if(body?.action==='create-draft'){
-   let enrollment=await createDraftEnrollment(ctx,{email:body.email,offeringId:body.offeringId});
-   if(body.startsOn)enrollment=await updateDraftEnrollment(ctx,{enrollmentId:enrollment.id,startsOn:body.startsOn});
+   const enrollment=await createDraftEnrollment(ctx,{email:body.email,offeringId:body.offeringId,startsOn:body.startsOn});
    return res.status(201).json({ok:true,enrollment});
   }
   if(body?.action==='update-draft'){
