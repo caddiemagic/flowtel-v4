@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {createDraftEnrollment,saveClientFocus,listOfferings}=require('./owner-repository.cjs');
+const {createDraftEnrollment,saveClientFocus,listOfferings,listEnrollments,updateDraftEnrollment}=require('./owner-repository.cjs');
 const user='11111111-1111-4111-8111-111111111111';
 const offering='22222222-2222-4222-8222-222222222222';
 const enrollment='33333333-3333-4333-8333-333333333333';
@@ -46,6 +46,26 @@ test('invalid focus month and oversized focus rejected before network',async()=>
  const {requests}=await mockFetch([],async()=>{
   await assert.rejects(saveClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-15',focus:'x'}));
   await assert.rejects(saveClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-01',focus:'x'.repeat(5001)}));
+ });
+ assert.equal(requests.length,0);
+});
+
+test('owner can list only limited non-sensitive enrollment fields',async()=>{
+ const {result,requests}=await mockFetch([[{id:enrollment,status:'draft'}]],()=>listEnrollments(ctx));
+ assert.equal(result.length,1);
+ assert.match(requests[0].url,/limit=100/);
+ assert.ok(!requests[0].url.includes('offering_snapshot'));
+});
+test('only draft status is editable and date updates are scoped to an enrollment',async()=>{
+ const {result,requests}=await mockFetch([[{id:enrollment,status:'draft',starts_on:'2026-10-20',ends_on:'2026-11-03'}]],()=>updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-10-20',endsOn:'2026-11-03'}));
+ assert.equal(result.status,'draft');
+ assert.match(requests[0].url,/status=eq.draft/);
+ assert.equal(requests[0].method,'PATCH');
+});
+test('rejects invalid date window without performing a write',async()=>{
+ const {requests}=await mockFetch([],async()=>{
+  await assert.rejects(updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-11-03',endsOn:'2026-10-20'}));
+  await assert.rejects(updateDraftEnrollment(ctx,{enrollmentId:enrollment,startsOn:'2026-02-30',endsOn:'2026-03-01'}));
  });
  assert.equal(requests.length,0);
 });
