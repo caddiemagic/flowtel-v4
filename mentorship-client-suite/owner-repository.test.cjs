@@ -83,3 +83,17 @@ test('invalid dates rejected without database requests',async()=>{
  });
  assert.equal(requests.length,0);
 });
+
+test('creating a draft saves start and calculated end date in one insert',async()=>{
+ const responses=[[{id:offering,offering_key:'womb_activation',duration_days:14,duration_months:null,is_active:true}],[{id:enrollment,status:'draft'}]];
+ const {requests}=await mockFetch(responses,()=>createDraftEnrollment(ctx,{email:'fictional@example.com',offeringId:offering,startsOn:'2026-10-20'}));
+ assert.equal(requests.length,2);
+ const payload=JSON.parse(requests[1].body);
+ assert.equal(payload.starts_on,'2026-10-20');
+ assert.equal(payload.ends_on,'2026-11-03');
+});
+test('invalid initial start date never inserts an enrollment',async()=>{
+ const responses=[[{id:offering,offering_key:'womb_activation',duration_days:14,is_active:true}]];
+ const {requests}=await mockFetch(responses,()=>assert.rejects(createDraftEnrollment(ctx,{email:'fictional@example.com',offeringId:offering,startsOn:'2026-02-30'})));
+ assert.equal(requests.length,1);
+});
