@@ -115,3 +115,21 @@ test('session preparation reuses existing records',async()=>{
  const {requests,result}=await mockFetch([[{id:enrollment,status:'draft',offering_snapshot:{activation_minutes:180}}],existing],()=>prepareSessions(ctx,{enrollmentId:enrollment}));
  assert.equal(result.created,false);assert.equal(requests.length,2);
 });
+
+test('proposed session time updates only selected enrollment and session',async()=>{
+ const {setSessionTime}=require('./owner-repository.cjs');
+ const sessionId='44444444-4444-4444-8444-444444444444';
+ const {requests}=await mockFetch([[{id:sessionId,status:'unscheduled'}],[{id:sessionId,status:'proposed',scheduled_at:'2026-11-20T19:00:00.000Z'}]],()=>setSessionTime(ctx,{enrollmentId:enrollment,sessionId,scheduledAt:'2026-11-20T11:00:00-08:00'}));
+ assert.equal(requests.length,2);
+ assert.match(requests[1].url,/enrollment_id=eq./);
+ assert.match(requests[1].url,/id=eq./);
+ const payload=JSON.parse(requests[1].body);
+ assert.equal(payload.scheduled_at,'2026-11-20T19:00:00.000Z');
+ assert.equal(payload.status,'proposed');
+ assert.equal(payload.timezone,'America/Los_Angeles');
+});
+test('proposed session rejects timezone-free timestamps without database writes',async()=>{
+ const {setSessionTime}=require('./owner-repository.cjs');
+ const {requests}=await mockFetch([],()=>assert.rejects(setSessionTime(ctx,{enrollmentId:enrollment,sessionId:offering,scheduledAt:'2026-11-20T11:00:00'})));
+ assert.equal(requests.length,0);
+});
