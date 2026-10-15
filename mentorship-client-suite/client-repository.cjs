@@ -39,7 +39,8 @@ async function claimPreparedMentorship(ctx){
  }
  const candidates=await rows(ctx,'enrollments','select=id,status,client_user_id,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=10');
  const exact=candidates.filter(r=>String(r.invited_email||'').trim().toLowerCase()===email);
- if(exact.length!==1){const err=new Error('No prepared invitation matches this verified account.');err.statusCode=404;throw err;}
+ if(exact.length===0){const err=new Error('No prepared mentorship matches this verified account.');err.statusCode=404;throw err;}
+ if(exact.length>1){const err=new Error('More than one mentorship is prepared for this email. Contact your Concierge to activate them individually.');err.statusCode=409;throw err;}
  const claimed=await fetchJson(endpoint(ctx,'enrollments','id=eq.'+encodeURIComponent(exact[0].id)+'&status=eq.invited&client_user_id=is.null&select=id,status,client_user_id'),{
   method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),
   body:JSON.stringify({client_user_id:ctx.user.id,status:'active',updated_at:new Date().toISOString()})
