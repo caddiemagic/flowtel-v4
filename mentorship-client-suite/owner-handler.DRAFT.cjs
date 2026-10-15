@@ -1,7 +1,7 @@
 // Draft Vercel handler; intentionally lives INSIDE mentorship-client-suite/
 // and is not published as a /api route until schema + authorization tests pass.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment}=require('./owner-repository.cjs');
+const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation}=require('./owner-repository.cjs');
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -17,6 +17,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
   }
   if(body?.action==='update-draft'){
    const enrollment=await updateDraftEnrollment(ctx,{enrollmentId:body.enrollmentId,startsOn:body.startsOn});
+   return res.status(200).json({ok:true,enrollment});
+  }
+  if(body?.action==='prepare-access'){
+   const enrollment=await prepareInvitation(ctx,{enrollmentId:body.enrollmentId});
    return res.status(200).json({ok:true,enrollment});
   }
   if(body?.action==='save-focus'){
