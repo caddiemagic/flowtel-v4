@@ -88,4 +88,15 @@ async function updateDraftEnrollment(ctx,{enrollmentId,startsOn}){
  if(!Array.isArray(result)||result.length!==1)throw Error('Draft enrollment not found or no longer editable');
  return result[0];
 }
-module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment};
+async function prepareInvitation(ctx,{enrollmentId}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ const existing=await fetchJson(url(ctx,'enrollments','select=id,starts_on,invited_email,status&id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.draft&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(existing)||existing.length!==1)throw Error('Only draft enrollments can be prepared');
+ if(!existing[0].starts_on)throw Error('Set a mentorship start date before preparing access');
+ const updated=await fetchJson(url(ctx,'enrollments','id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.draft&select=id,status,invited_email'),{
+  method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({status:'invited',updated_at:new Date().toISOString()})
+ });
+ if(!Array.isArray(updated)||updated.length!==1)throw Error('Could not prepare enrollment');
+ return updated[0]; // Does not send mail or grant access.
+}
+module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation};
