@@ -1,3 +1,4 @@
+import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
 import { LESSON_TEACHING_DRAFTS } from './teaching-drafts.js';
 import { MONTHLY_INITIATION_PRACTICES, thirteenMonthsAfter } from '/shared/13-moons-monthly-practices.js';
@@ -47,6 +48,7 @@ if(!lesson){
  if(draft){
    add('h2','Written teaching · editorial draft for review');
    for(const paragraph of draft.paragraphs)add('p',paragraph);
+   if(index===2)root.append(createMoonMagicMedicineWheel());
  }
  if(index===3){
    add('h2','Letter to your future self · additional practice');
