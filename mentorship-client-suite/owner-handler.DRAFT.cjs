@@ -16,7 +16,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
    return res.status(201).json({ok:true,enrollment});
   }
   if(body?.action==='update-draft'){
-   const enrollment=await updateDraftEnrollment(ctx,{enrollmentId:body.enrollmentId,startsOn:body.startsOn,endsOn:body.endsOn});
+   const enrollment=await updateDraftEnrollment(ctx,{enrollmentId:body.enrollmentId,startsOn:body.startsOn});
    return res.status(200).json({ok:true,enrollment});
   }
   if(body?.action==='save-focus'){
