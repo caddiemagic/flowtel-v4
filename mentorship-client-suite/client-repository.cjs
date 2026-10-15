@@ -31,4 +31,20 @@ async function clientSuite(ctx,enrollmentId){
  }
  return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on},sessions,monthlyFocus:focus,replays};
 }
-module.exports={ownedEnrollment,clientSuite,listMyMentorships};
+async function claimPreparedMentorship(ctx){
+ context(ctx);
+ const email=String(ctx.user.email||'').trim().toLowerCase();
+ if(!email||!ctx.user.email_confirmed_at){
+  const err=new Error('A verified Flowtel email is required to claim a mentorship.');err.statusCode=403;throw err;
+ }
+ const candidates=await rows(ctx,'enrollments','select=id,status,client_user_id,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=10');
+ const exact=candidates.filter(r=>String(r.invited_email||'').trim().toLowerCase()===email);
+ if(exact.length!==1){const err=new Error('No prepared invitation matches this verified account.');err.statusCode=404;throw err;}
+ const claimed=await fetchJson(endpoint(ctx,'enrollments','id=eq.'+encodeURIComponent(exact[0].id)+'&status=eq.invited&client_user_id=is.null&select=id,status,client_user_id'),{
+  method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),
+  body:JSON.stringify({client_user_id:ctx.user.id,status:'active',updated_at:new Date().toISOString()})
+ });
+ if(!Array.isArray(claimed)||claimed.length!==1)throw Error('Claim could not be confirmed');
+ return {id:claimed[0].id,status:claimed[0].status};
+}
+module.exports={ownedEnrollment,clientSuite,listMyMentorships,claimPreparedMentorship};
