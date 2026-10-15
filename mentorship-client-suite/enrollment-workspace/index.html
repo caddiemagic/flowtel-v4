@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flowtel · Enrollment Workspace Preview</title>
+<style>
+:root{font-family:Arial,sans-serif;color:#334137;background:#f6f2eb}*{box-sizing:border-box}body{margin:0}
+header{background:#283d33;color:#fcf5e9;padding:34px max(22px,calc((100vw - 1120px)/2))}
+h1,h2,h3{font-family:Georgia,serif;font-weight:400}h1{font-size:42px;margin:8px 0}h2{font-size:27px;margin:0 0 16px}
+p{line-height:1.55}.eyebrow{font-size:11px;letter-spacing:2px;color:#dabc87;text-transform:uppercase}
+a{color:#ad7643}header a{color:#edcda2}main{max-width:1120px;margin:auto;padding:25px 20px 70px}
+.columns{display:grid;grid-template-columns:minmax(290px,370px) 1fr;gap:20px;align-items:start}
+.card{background:#fffdf9;border:1px solid #e7dccb;border-radius:17px;padding:22px;margin:0 0 18px}
+label{display:block;margin:12px 0 5px;font-size:13px;font-weight:600}
+input,select,textarea{width:100%;font:15px Arial,sans-serif;color:#334137;background:#fff;border:1px solid #cfc5b6;border-radius:8px;padding:10px}
+textarea{min-height:84px;resize:vertical}
+button{border:1px solid #284236;background:#284236;color:white;padding:11px 15px;border-radius:9px;cursor:pointer;font-weight:600}
+button.alt{background:#fff;color:#284236}button.danger{background:#fff;color:#8f4638;border-color:#d8a69f}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #d1aa72;outline-offset:2px}
+.actions,.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}.row{justify-content:space-between}
+.note{background:#f8e9d3;padding:13px 16px;border-radius:10px;color:#60462f;font-size:13px}
+.small{font-size:12px;color:#73766e}.draft{border-top:1px solid #e7dccb;padding:15px 0}
+.draft:first-of-type{border-top:0}.session{padding:10px 0;border-top:1px solid #eee5d8;font-size:14px}
+.pill{font-size:12px;color:#655442;background:#f0e7d9;border-radius:20px;padding:6px 9px}
+#error{color:#a73528}#notice{color:#376746}ul{padding-left:19px}
+@media(max-width:800px){.columns{grid-template-columns:1fr}header{padding:25px 20px}h1{font-size:34px}}
+</style></head><body>
+<header><div class="eyebrow">FLOWTEL · MENTORSHIP CONCIERGE</div>
+<h1>Enrollment Workspace</h1>
+<p>Build her mentorship experience before sending an invitation.</p>
+<a href="../">← Enrollment overview</a> · <a href="../client-suite-preview/">Explore the Client Suite →</a>
+</header><main>
+<p class="note"><strong>Private prototype — fictional data only.</strong> Drafts save only in this browser on this preview URL. They are not stored in Supabase, are not synced across devices, and do not invite clients, book appointments, or grant access. Do not enter real client names, emails, notes, or other personal information.</p>
+<div class="columns">
+<section>
+<div class="card"><div class="row"><h2 id="formTitle">Create a draft</h2><span class="pill">Demo</span></div>
+<form id="form">
+<label for="client">Fictional client name</label><input id="client" required maxlength="80" placeholder="e.g., Willow">
+<label for="offering">Mentorship offering</label><select id="offering">
+<option value="womb_activation">Womb Activation · $777</option>
+<option value="sacred_self_study">Sacred Self-Study · $3,777</option>
+<option value="kundalini_creatrix">The Kundalini Creatrix · $5,777</option>
+<option value="four_sessions">Four 45-minute sessions · $399</option>
+</select>
+<label for="startDate">Mentorship start date</label><input id="startDate" type="date">
+<label for="activationDate">Activation call date</label><input id="activationDate" type="date">
+<label for="firstEmpowermentDate">First empowerment call</label><input id="firstEmpowermentDate" type="date">
+<label for="localTime">Preferred time · Flowtel Time (Pacific)</label><input id="localTime" type="time" value="11:00" required>
+<label for="focus">Client-visible monthly focus (demo only)</label><textarea id="focus" maxlength="1500" placeholder="What will she focus on this month?"></textarea>
+<div class="actions" style="margin-top:18px"><button type="submit">Save demo draft</button><button class="alt" type="button" id="newDraft">Start fresh</button></div>
+<p id="error" role="alert"></p><p id="notice" role="status"></p>
+</form>
+</div>
+</section>
+<section>
+<div class="card"><div class="row"><h2>Saved demo enrollments</h2><span class="pill" id="total">0 drafts</span></div>
+<p class="small">Select Edit to reopen a saved draft. Browser storage is specific to this device and site.</p>
+<div id="drafts"></div>
+<div class="actions"><button class="danger" id="clear" type="button">Clear all demo drafts</button></div>
+</div>
+<div class="card"><h2>Proposed mentorship plan</h2><div id="plan"><p class="small">Choose a package and provide required dates, then save a demo draft to see its full schedule.</p></div></div>
+</section>
+</div>
+</main>
+<script type="module">
+import {prepareEnrollment,OFFERINGS} from '../enrollment-plan.mjs';
+const KEY='flowtel-client-suite-demo-enrollments-v1';
+const el=id=>document.getElementById(id);
+let activeId=null;
+function read(){try{const a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&typeof x.id==='string').slice(0,100):[]}catch{return []}}
+function write(items){localStorage.setItem(KEY,JSON.stringify(items))}
+function fields(){return {name:el('client').value.trim(),offeringKey:el('offering').value,startDate:el('startDate').value||null,activationDate:el('activationDate').value||null,firstEmpowermentDate:el('firstEmpowermentDate').value||null,localTime:el('localTime').value,focus:el('focus').value.trim()}}
+function apply(item){activeId=item.id;el('client').value=item.name;el('offering').value=item.offeringKey;el('startDate').value=item.startDate||'';el('activationDate').value=item.activationDate||'';el('firstEmpowermentDate').value=item.firstEmpowermentDate||'';el('localTime').value=item.localTime||'11:00';el('focus').value=item.focus||'';el('formTitle').textContent='Edit draft';toggleFields();showPlan(item);el('notice').textContent='Opened '+item.name+' for editing';window.scrollTo({top:0,behavior:'smooth'})}
+function toggleFields(){const key=el('offering').value;const flexible=key==='four_sessions';el('activationDate').disabled=flexible;el('firstEmpowermentDate').disabled=flexible||key==='womb_activation'}
+function reset(){activeId=null;el('form').reset();el('localTime').value='11:00';el('formTitle').textContent='Create a draft';el('notice').textContent='';el('error').textContent='';toggleFields()}
+function appendText(tag,content,cls){const n=document.createElement(tag);n.textContent=content;if(cls)n.className=cls;return n}
+function showPlan(item){const container=el('plan');container.replaceChildren();try{
+ const plan=prepareEnrollment(item);
+ container.append(appendText('p',(plan.offeringSnapshot?.name||item.offeringKey)+' · '+plan.sessions.length+' sessions'));
+ if(plan.startDate)container.append(appendText('p','Program: '+plan.startDate+(plan.endDate?' → '+plan.endDate:''),'small'));
+ if(item.focus)container.append(appendText('p','Monthly focus: '+item.focus));
+ for(const s of plan.sessions){container.append(appendText('div','Session '+s.sessionNumber+' · '+s.kind+' · '+(s.localDate?s.localDate+' at '+s.localTime+' Pacific':'Client books in Acuity')+' · '+s.durationMinutes+' min','session'))}
+ const warn=document.createElement('ul');for(const w of plan.warnings)warn.append(appendText('li',w));container.append(warn);
+ }catch(e){container.append(appendText('p','Set the required call dates to generate the proposed sessions. '+e.message,'small'))}}
+function render(){const items=read(),root=el('drafts');root.replaceChildren();el('total').textContent=items.length+' draft'+(items.length===1?'':'s');
+ if(!items.length){root.append(appendText('p','No demo enrollments saved yet.','small'));return}
+ for(const item of items){const wrap=document.createElement('div');wrap.className='draft';wrap.append(appendText('h3',item.name));wrap.append(appendText('p',(OFFERINGS[item.offeringKey]?.name||item.offeringKey)+' · Draft','small'));const actions=document.createElement('div');actions.className='actions';
+ const edit=appendText('button','Edit');edit.type='button';edit.addEventListener('click',()=>apply(item));
+ const del=appendText('button','Delete','danger');del.type='button';del.addEventListener('click',()=>{if(!confirm('Delete this fictional demo draft?'))return;write(read().filter(x=>x.id!==item.id));if(activeId===item.id)reset();render()});actions.append(edit,del);wrap.append(actions);root.append(wrap)}}
+el('offering').addEventListener('change',toggleFields);el('newDraft').addEventListener('click',reset);
+el('clear').addEventListener('click',()=>{if(!confirm('Delete all fictional drafts from this browser?'))return;localStorage.removeItem(KEY);reset();render();el('plan').replaceChildren(appendText('p','Demo drafts cleared.','small'))});
+el('form').addEventListener('submit',event=>{event.preventDefault();el('error').textContent='';el('notice').textContent='';try{
+ const item=fields();if(!item.name)throw Error('Enter a fictional display name.');
+ const plan=prepareEnrollment(item);if(!plan.sessions.length)throw Error('No sessions generated');
+ item.id=activeId||(globalThis.crypto?.randomUUID?.()||String(Date.now())+'-'+Math.random().toString(36).slice(2));item.status='draft';
+ const saved=read().filter(x=>x.id!==item.id);saved.unshift(item);write(saved);activeId=item.id;el('formTitle').textContent='Edit draft';el('notice').textContent='Demo draft saved in this browser.';render();showPlan(item)
+ }catch(e){el('error').textContent=e.message}});
+toggleFields();render();
+</script></body></html>
