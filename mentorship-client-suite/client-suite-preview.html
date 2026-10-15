@@ -1,0 +1,44 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Flowtel · Your Private Suite Preview</title><style>
+:root{font-family:Arial,sans-serif;color:#354138;background:#f8f5ef}*{box-sizing:border-box}body{margin:0}
+header{background:#294236;color:#fff8eb;padding:26px max(22px,calc((100vw - 1000px)/2));}
+h1,h2,h3{font-family:Georgia,serif;font-weight:normal;margin:6px 0 12px}h1{font-size:37px}h2{font-size:26px}h3{font-size:21px}
+.eyebrow{color:#e0c8a2;letter-spacing:2px;font-size:11px}main{max-width:1000px;margin:auto;padding:24px}
+nav{display:flex;gap:10px;flex-wrap:wrap;padding-top:18px}
+nav a,.action{display:inline-block;border:1px solid #d8be94;color:#f8eadd;border-radius:24px;padding:11px 17px;text-decoration:none;font-size:12px;background:transparent;cursor:pointer}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 20px}.tabs button{background:#fff;border:1px solid #ded4c5;color:#385144;border-radius:30px;padding:12px 18px;cursor:pointer}.tabs button.active{background:#294236;color:#fff}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.card{border:1px solid #e5dbcc;background:white;border-radius:18px;padding:22px;margin-bottom:16px}
+.muted{color:#777b76;font-size:13px;line-height:1.55}.mini{font-size:12px;letter-spacing:1px;text-transform:uppercase;color:#82735e}.metric{font-family:Georgia,serif;font-size:32px;margin:9px 0}
+.bar{height:10px;background:#eee9df;border-radius:20px;overflow:hidden}.bar span{display:block;background:#879e87;width:28%;height:100%}
+.btn{border:0;border-radius:8px;background:#294236;color:white;padding:12px 16px;cursor:pointer}.btn:disabled{opacity:.55;cursor:not-allowed}
+.row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #f0ebe2}
+fieldset{border:0;padding:0}label{display:block;font-size:13px;font-weight:bold;margin:8px 0}textarea{font:14px Arial;width:100%;padding:12px;border:1px solid #d6c9b5;border-radius:10px;min-height:95px}
+.wheel{width:165px;height:165px;border-radius:50%;background:conic-gradient(#e8dded 0deg 90deg,#e4e9de 90deg 180deg,#e9d8b9 180deg 270deg,#e6c9c0 270deg 360deg);border:2px solid #b5a388;position:relative}
+.wheel:before{content:"";position:absolute;top:50%;left:0;width:100%;border-top:1px solid #978b7a}.wheel:after{content:"";position:absolute;left:50%;top:0;height:100%;border-left:1px solid #978b7a}
+.wheel b{position:absolute;top:44%;left:29%;font-size:12px;z-index:1;background:#fffaf5;border-radius:20px;padding:7px}
+.flex{display:flex;gap:25px;align-items:center;flex-wrap:wrap}.hidden{display:none}
+@media(max-width:640px){.grid{grid-template-columns:1fr}h1{font-size:30px}.card{padding:17px}}
+</style></head><body>
+<header><div class="eyebrow">FLOWTEL · PRIVATE MENTORSHIP</div><h1>Your Client Suite</h1><p>One beautiful home for your calls, reflections, and becoming.</p>
+<nav><a href="./">← Concierge Desk</a><a href="#suite">Explore your suite</a></nav></header>
+<main id="suite"><p class="muted">Interactive design preview with fictional information only. No client data, recordings, Zoom meetings, or Acuity bookings are connected.</p>
+<div class="tabs" role="tablist" aria-label="Client Suite sections"><button class="active" data-tab="home">My Suite</button><button data-tab="calls">My Calls</button><button data-tab="flow">My Flow</button></div>
+<section id="home">
+<h2>Welcome back, beautiful.</h2><p class="muted">A private space to return to yourself.</p>
+<div class="grid"><div class="card"><div class="mini">Your current cycle</div><div class="metric">Day 22</div><strong>🍂 Inner Autumn</strong><p class="muted">Example cycle data, not a live calculation</p></div>
+<div class="card"><div class="mini">Your moon</div><div class="metric">☾ Day 5</div><strong>Inner Winter</strong><p class="muted">Illustrative only</p></div></div>
+<div class="card"><div class="mini">Current monthly focus</div><h3>October · Learning to receive</h3><p id="focusText">Learning to receive support without feeling the need to earn it.</p><button class="btn" id="editFocus">Edit focus in demo</button><fieldset id="focusEditor" class="hidden"><label for="focusInput">Preview focus</label><textarea id="focusInput"></textarea><button class="btn" id="saveFocus">Update preview</button></fieldset></div>
+<div class="grid"><div class="card"><div class="mini">Next private call</div><h3>October 20 · 11:00 AM</h3><p class="muted">90-minute empowerment session · Pacific time</p><button class="btn" disabled>Join Zoom · Not connected</button></div>
+<div class="card"><div class="mini">Your mentorship journey</div><div class="metric">5 of 19</div><p class="muted">Example sessions completed</p><div class="bar"><span></span></div><p class="muted">14 remaining · Sample only</p></div></div>
+<div class="card"><h3>Your Flow Map</h3><div class="flex"><div class="wheel" role="img" aria-label="Decorative four season Flow Map illustration"><b>My Flow</b></div><div><p class="muted">Notice your patterns through Inner Winter, Spring, Summer, and Autumn.</p><button class="btn" id="openFlow">Explore My Flow</button></div></div></div>
+</section>
+<section id="calls" class="hidden"><h2>Your private sessions</h2><div class="card"><div class="mini">Upcoming</div><h3>Empowerment Call · October 20</h3><p class="muted">11:00 AM Pacific · 90 minutes</p><button class="btn" disabled>Join Zoom · Demo</button></div><div class="card"><h3>Your call replays</h3><div class="row"><span>Opening Womb Activation</span><span class="muted">Replay pending</span></div><div class="row"><span>Integration and Receiving</span><span class="muted">Replay pending</span></div><p class="muted">Private recordings will appear only after authorization and upload.</p></div></section>
+<section id="flow" class="hidden"><h2>Your cyclical journey</h2><div class="card"><div class="mini">Current inner season</div><h3>🍂 Inner Autumn · Day 22</h3><p>Observe, discern, establish boundaries, and reflect on what is ready to change.</p><p class="muted">Preview data. Live cycle information will use your actual Flowtel history and consent settings.</p></div><div class="card"><h3>Your four seasons</h3><div class="row"><strong>Inner Winter</strong><span class="muted">Recognize</span></div><div class="row"><strong>Inner Spring</strong><span class="muted">Name</span></div><div class="row"><strong>Inner Summer</strong><span class="muted">Feel</span></div><div class="row"><strong>Inner Autumn</strong><span class="muted">Use</span></div></div></section>
+</main><script>
+const tabs=[...document.querySelectorAll("[data-tab]")];
+function show(name){for(const t of tabs){const a=t.dataset.tab===name;t.classList.toggle("active",a);t.setAttribute("aria-selected",String(a));document.getElementById(t.dataset.tab).classList.toggle("hidden",!a);}}
+tabs.forEach(t=>t.addEventListener("click",()=>show(t.dataset.tab)));
+document.getElementById("openFlow").addEventListener("click",()=>show("flow"));
+document.getElementById("editFocus").addEventListener("click",()=>{document.getElementById("focusInput").value=document.getElementById("focusText").textContent;document.getElementById("focusEditor").classList.remove("hidden")});
+document.getElementById("saveFocus").addEventListener("click",()=>{document.getElementById("focusText").textContent=document.getElementById("focusInput").value;document.getElementById("focusEditor").classList.add("hidden")});
+</script></body></html>
