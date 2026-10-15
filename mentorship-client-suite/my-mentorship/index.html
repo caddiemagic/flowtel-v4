@@ -29,10 +29,13 @@ async function open(id){
   for(const [nodeName,records,mapper] of [
    ['sessions',suite.sessions||[],s=>'Session '+s.session_number+' · '+s.session_kind+' · '+(s.scheduled_at?flowtelDateTime(s.scheduled_at):'To be scheduled')],
    ['focus',suite.monthlyFocus||[],s=>s.focus_month+' · '+s.client_visible_focus],
-   ['replays',suite.replays||[],s=>s.title+' · Replay access being prepared']
+   ['replays',[],s=>s.title]
   ]){const root=$(nodeName);root.replaceChildren();if(!records.length){root.append(element('p','Not available yet.','muted'));continue}
    for(const item of records)root.append(element('div',mapper(item),'item'));
   }
+  const replayRoot=$('replays');replayRoot.replaceChildren();
+  if(!(suite.replays||[]).length)replayRoot.append(element('p','No recordings available yet.','muted'));
+  for(const replay of suite.replays||[]){const item=element('div','','item');item.append(element('p',replay.title));const button=element('button','Play recording');button.onclick=async()=>{button.disabled=true;try{const data=await request('&enrollmentId='+encodeURIComponent(id)+'&playbackReplayId='+encodeURIComponent(replay.id));const media=document.createElement('video');media.controls=true;media.preload='metadata';media.src=data.playback.url;media.style.maxWidth='100%';media.style.width='100%';item.append(media);button.remove()}catch(e){$('error').textContent=e.message;button.disabled=false}};item.append(button);replayRoot.append(item)}
  }catch(e){$('error').textContent=e.message;$('detail').hidden=true}
 }
 async function claim(id,button){
