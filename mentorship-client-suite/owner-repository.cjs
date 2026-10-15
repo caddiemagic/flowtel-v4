@@ -42,4 +42,27 @@ async function saveClientFocus(ctx,{enrollmentId,month,focus}){
  if(!Array.isArray(result)||result.length!==1)throw Error('Monthly focus save was not confirmed');
  return result[0];
 }
-module.exports={listOfferings,createDraftEnrollment,saveClientFocus};
+
+async function listEnrollments(ctx){
+ ownerContext(ctx);
+ const rows=await fetchJson(url(ctx,'enrollments','select=id,invited_email,offering_id,status,starts_on,ends_on,created_at,updated_at&order=created_at.desc&limit=100'),{
+  headers:serviceHeaders(ctx.serviceKey)
+ });
+ if(!Array.isArray(rows))throw Error('Enrollment list was not confirmed');
+ return rows;
+}
+async function updateDraftEnrollment(ctx,{enrollmentId,startsOn,endsOn}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ for(const day of [startsOn,endsOn]){
+  if(day!=null && (typeof day!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||new Date(day+'T12:00:00Z').toISOString().slice(0,10)!==day))
+   throw Error('Invalid enrollment date');
+ }
+ if(startsOn && endsOn && startsOn>=endsOn)throw Error('End date must follow start date');
+ const result=await fetchJson(url(ctx,'enrollments','id=eq.'+encodeURIComponent(enrollmentId)+'&status=eq.draft&select=id,status,starts_on,ends_on'),{
+  method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),
+  body:JSON.stringify({starts_on:startsOn??null,ends_on:endsOn??null,updated_at:new Date().toISOString()})
+ });
+ if(!Array.isArray(result)||result.length!==1)throw Error('Draft enrollment not found or no longer editable');
+ return result[0];
+}
+module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment};
