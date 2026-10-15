@@ -1,8 +1,11 @@
+import {readWishPreview,clearWishPreview} from '/13-moons/showcase/wish-preview-store.js';
 import {generateBigVisionVortex,flowtelEntryMonth} from '/shared/13-moon-vortex.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 const area=document.getElementById('wishesPreview');
-const rows=generateBigVisionVortex(flowtelEntryMonth());
-const wishes=Array(13).fill('');
+const preview=readWishPreview();
+const startMonth=preview?.startMonth||flowtelEntryMonth();
+const rows=generateBigVisionVortex(startMonth);
+const wishes=preview?.wishes||Array(13).fill('');
 const journals=Array.from({length:13},()=>[]);
 let active=1;
 function node(tag,value,parent,cls){
@@ -13,7 +16,10 @@ function render(){
  area.replaceChildren();
  node('p','WISH & WITNESS · DESIGN PREVIEW',area,'wish-kicker');
  node('h2','The Wishes of Your Moons',area);
- node('p','Each moon holds the wish you made at the beginning. Return as the year unfolds to witness what has shifted, arrived, or surprised you. The opening wish stays unchanged.',area);
+ node('p','Each moon holds the original wish made in the opening ceremony. Return as the year unfolds to witness what has shifted, arrived, or surprised you.',area);
+ const tools=node('div',undefined,area,'wish-tools');
+ const begin=node('a','Open the Big Vision Vortex →',tools);begin.href='/13-moons/showcase/ceremony/?opening=2';
+ const reset=node('button','Clear preview wishes',tools);reset.type='button';reset.onclick=()=>{clearWishPreview();location.reload();};
  const navigation=node('div',undefined,area,'wish-nav');
  rows.forEach((row,i)=>{
   const b=node('button',String(i+1).padStart(2,'0'),navigation);
@@ -32,10 +38,8 @@ function render(){
   node('p','The current moon is a witnessing doorway. You skip its wish now and return to this moon in position 13 to wish for the future version.',card);
  }else{
   node('h4','The wish I made',card);
-  const wish=node('textarea',undefined,card);
-  wish.value=wishes[active];wish.placeholder='My opening wish for '+row.name+'…';wish.maxLength=4000;
-  wish.setAttribute('aria-label','Opening wish for '+month);wish.oninput=()=>wishes[active]=wish.value;
-  node('p','In the real member experience, the opening wish will be sealed and read-only. This editable field is for trying the preview.',card,'wish-small');
+  const original=node('blockquote',wishes[active]||'No opening wish has been made for this moon in this browser-tab preview.',card,'original-wish');
+  node('p','Opening wishes are read-only here. Return to the Vortex to update an unsealed preview wish. In the real member journey, sealing will preserve it permanently.',card,'wish-small');
   node('h4','What I am witnessing now',card);
   node('p','Has your wish changed? Have you received it, or noticed something arriving in another form?',card);
   const writing=node('textarea',undefined,card);writing.placeholder='What I notice today…';writing.maxLength=4000;
@@ -47,6 +51,6 @@ function render(){
   add.onclick=()=>{const value=writing.value.trim();if(!value){status.textContent='Write a few words before adding your entry.';return;}journals[active].unshift({date:'Preview entry',text:value});writing.value='';status.textContent='Added to this preview only; nothing was saved.';draw();};
   draw();
  }
- const footer=node('p','No login · No personal data saved · Entries disappear when you leave or refresh this preview.',area,'wish-small');
+ const footer=node('p','No login · No personal data saved · Journal entries disappear when you leave or refresh this preview. Wish drafts remain only in this browser tab session, not in Flowtel.',area,'wish-small');
 }
 render();
