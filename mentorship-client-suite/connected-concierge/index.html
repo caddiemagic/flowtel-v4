@@ -16,7 +16,7 @@ p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-s
 <label for="email">Fictional test email</label><input type="email" id="email" required placeholder="fictional-client@example.com" maxlength="254">
 <label for="offering">Offering</label><select id="offering" required><option value="">Select an offering…</option></select>
 <button type="submit" id="save" disabled style="margin-top:16px">Save draft to Flowtel</button></form><p id="createStatus" role="status"></p></section>
-<section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><div id="enrollments">Sign in to view drafts.</div></section></div>
+<section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><label for="search">Find an enrollment</label><input id="search" type="search" placeholder="Search email, offering, or status"><div id="enrollments">Sign in to view drafts.</div></section></div>
 <section class="card" id="detail" hidden><h2>Manage draft</h2><p id="selected"></p>
 <form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label>Program end · calculated automatically</label><p id="ends" class="note">Choose a start date to see the end date.</p></div></div><button id="saveDates" type="submit">Save program dates</button></form>
 <form id="focusForm"><label for="month">Monthly focus · month</label><input type="month" id="month" required>
@@ -51,18 +51,25 @@ async function connect(){
 }
 function render(){
  const root=$('enrollments');root.replaceChildren();
- if(!enrollments.length){root.textContent='No saved mentorship enrollments yet.';return}
- for(const item of enrollments){
+ const search=$('search').value.trim().toLowerCase();
+ const visible=enrollments.filter(item=>{const offering=offerings.find(o=>o.id===item.offering_id);return !search||[item.invited_email,item.status,offering?.title].some(value=>String(value||'').toLowerCase().includes(search))});
+ if(!visible.length){root.textContent=search?'No matching enrollments.':'No saved mentorship enrollments yet.';return}
+ for(const item of visible){
   const div=document.createElement('div');div.className='entry';
-  const caption=document.createElement('p');caption.textContent=(item.invited_email||'Linked client')+' · '+item.status;
+  const caption=document.createElement('p');caption.textContent=item.invited_email||'Linked client';
+  const offering=offerings.find(o=>o.id===item.offering_id);
+  const summary=document.createElement('p');summary.className='small';summary.textContent=(offering?.title||'Offering')+' · '+item.status+' · '+(item.starts_on?'Starts '+item.starts_on:'Start not set')+(item.ends_on?' · Ends '+item.ends_on:'');
   const choose=document.createElement('button');choose.className='secondary';choose.textContent='Manage';choose.type='button';choose.onclick=()=>open(item);
-  div.append(caption,choose);root.append(div);
+  div.append(caption,summary,choose);root.append(div);
  }
 }
 function refreshEnd(){if(!selected)return;const offer=offerings.find(o=>o.id===selected.offering_id);const start=$('starts').value;let text='Set a start date';if(offer&&start){const base=new Date(start+'T12:00:00Z');if(Number.isFinite(base.getTime())&&base.toISOString().slice(0,10)===start){if(offer.duration_months>0){const t=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+offer.duration_months,1,12));const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0,12)).getUTCDate();t.setUTCDate(Math.min(base.getUTCDate(),last));text=t.toISOString().slice(0,10)}else if(offer.duration_days>0){base.setUTCDate(base.getUTCDate()+offer.duration_days);text=base.toISOString().slice(0,10)}else{text='No fixed expiration for this package'}}} $('ends').textContent=text;}
 $('starts').addEventListener('change',refreshEnd);
+$('search').addEventListener('input',render);
 function open(item){selected=item;$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
- $('starts').value=item.starts_on||'';refreshEnd();$('month').value=new Date().toISOString().slice(0,7);$('focus').value='';$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
+ $('starts').value=item.starts_on||'';refreshEnd();
+ $('saveDates').disabled=item.status!=='draft';
+ $('saveDates').textContent=item.status==='draft'?'Save program dates':'Only draft enrollments can be edited';$('month').value=new Date().toISOString().slice(0,7);$('focus').value='';$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
 $('refresh').addEventListener('click',connect);
 $('create').addEventListener('submit',async e=>{
  e.preventDefault();$('save').disabled=true;
@@ -74,7 +81,7 @@ $('create').addEventListener('submit',async e=>{
 });
 $('update').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
- try{const data=await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null});msg('detailStatus','Program dates saved.');await connect();const item=enrollments.find(x=>x.id===selected.id);if(item)open(item)}catch(error){msg('detailStatus',error.message,true)}
+ try{const data=await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null});await connect();const item=enrollments.find(x=>x.id===selected?.id);if(item)open(item);msg('detailStatus','Program dates saved.')}catch(error){msg('detailStatus',error.message,true)}
 });
 $('focusForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
