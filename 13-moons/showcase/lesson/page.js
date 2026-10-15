@@ -1,5 +1,6 @@
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
 import { LESSON_TEACHING_DRAFTS } from './teaching-drafts.js';
+import { MONTHLY_INITIATION_PRACTICES, thirteenMonthsAfter } from '/shared/13-moons-monthly-practices.js';
 const root=document.getElementById('lesson');
 const nav=document.getElementById('lessonNavigation');
 const index=Number(new URLSearchParams(location.search).get('lesson'));
@@ -47,8 +48,32 @@ if(!lesson){
    add('h2','Written teaching · editorial draft for review');
    for(const paragraph of draft.paragraphs)add('p',paragraph);
  }
+ if(index===3){
+   add('h2','Letter to your future self · additional practice');
+   add('p','Write a letter dated exactly thirteen calendar months after your initiation start date. Write from that future day as though everything worked out. Describe what has unfolded, who you have become, and what you are grateful for. Save the letter to read during Initiation 13.');
+   const dateLabel=document.createElement('label');
+   dateLabel.textContent='Initiation start date (preview calculator): ';
+   const dateInput=document.createElement('input');
+   dateInput.type='date';
+   const result=document.createElement('p');
+   result.setAttribute('aria-live','polite');
+   dateInput.addEventListener('change',()=>{
+     const date=thirteenMonthsAfter(dateInput.value);
+     result.textContent=date?'Date your future-self letter: '+new Intl.DateTimeFormat('en-US',{dateStyle:'long',timeZone:'UTC'}).format(new Date(date+'T12:00:00Z')):'Choose a valid start date.';
+   });
+   dateLabel.append(dateInput);
+   root.append(dateLabel,result);
+   add('p','This design-preview calculator does not store your start date or your letter. The member version will use your saved initiation start date.');
+ }
  add('h2','Your Womb Work');
  add('p',lesson.practice);
+ const extra=MONTHLY_INITIATION_PRACTICES[index];
+ if(extra){
+   add('h2','Additional monthly practice');
+   add('h3',extra.title);
+   add('p',extra.body);
+   if(extra.asset)add('p',extra.asset);
+ }
  add('h2','Reflection');
  add('p',lesson.prompt);
  add('h2','Daily Cycle Observation');
