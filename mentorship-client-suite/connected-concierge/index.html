@@ -89,7 +89,29 @@ $('update').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
  try{await request('POST',{action:'update-draft',enrollmentId:selected.id,startsOn:$('starts').value||null});await connect();msg('detailStatus','Program dates saved.')}catch(error){msg('detailStatus',error.message,true)}
 });
-async function loadSessions(id){const root=$('sessionList');root.textContent='Loading sessions…';try{const resp=await fetch('/api/caddie-acuity?mentorship=owner&sessionsFor='+encodeURIComponent(id),{headers:{Authorization:'Bearer '+token},cache:'no-store'});const json=await resp.json();if(!resp.ok)throw Error(json.error||'Could not load sessions');root.replaceChildren();if(!json.sessions?.length){root.textContent='No sessions prepared yet.';return}for(const session of json.sessions){const line=document.createElement('p');line.className='small';line.textContent='Session '+session.session_number+' · '+session.session_kind+' · '+session.duration_minutes+' minutes · '+session.status;root.append(line)}}catch(error){root.textContent=error.message}}
+function pacificTimestamp(date,time){
+ const candidate=new Date(date+'T'+time+':00Z');
+ if(!Number.isFinite(candidate.getTime()))throw Error('Choose a valid date and time');
+ const parts=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',timeZoneName:'shortOffset'}).formatToParts(candidate);
+ const label=parts.find(p=>p.type==='timeZoneName')?.value||'GMT';
+ const match=/^GMT([+-])(\\d{1,2})(?::(\\d{2}))?$/.exec(label);
+ const offset=match?(match[1]+match[2].padStart(2,'0')+':'+(match[3]||'00')):'+00:00';
+ const instant=new Date(date+'T'+time+':00'+offset);
+ const pacific=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(instant);
+ const v=type=>pacific.find(p=>p.type===type)?.value;
+ if(v('year')+'-'+v('month')+'-'+v('day')!==date||v('hour')+':'+v('minute')!==time)throw Error('That Pacific time does not exist because of a daylight-saving transition');
+ return instant.toISOString();
+}
+async function loadSessions(id){const root=$('sessionList');root.textContent='Loading sessions…';try{const resp=await fetch('/api/caddie-acuity?mentorship=owner&sessionsFor='+encodeURIComponent(id),{headers:{Authorization:'Bearer '+token},cache:'no-store'});const json=await resp.json();if(!resp.ok)throw Error(json.error||'Could not load sessions');root.replaceChildren();if(!json.sessions?.length){root.textContent='No sessions prepared yet.';return}for(const session of json.sessions){
+ const line=document.createElement('div');line.className='entry';
+ const heading=document.createElement('p');heading.className='small';
+ heading.textContent='Session '+session.session_number+' · '+session.session_kind+' · '+session.duration_minutes+' minutes · '+session.status+(session.scheduled_at?' · '+new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',dateStyle:'medium',timeStyle:'short'}).format(new Date(session.scheduled_at))+' Pacific':'');
+ const date=document.createElement('input');date.type='date';date.setAttribute('aria-label','Session '+session.session_number+' date');
+ const time=document.createElement('input');time.type='time';time.value='11:00';time.setAttribute('aria-label','Session '+session.session_number+' time in Pacific Time');
+ const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent='Save proposed time';
+ button.onclick=async()=>{if(!date.value||!time.value){msg('detailStatus','Select a date and time first.',true);return}button.disabled=true;try{const instant=pacificTimestamp(date.value,time.value);await request('POST',{action:'set-session-time',enrollmentId:id,sessionId:session.id,scheduledAt:instant});msg('detailStatus','Proposed session time saved. No appointment booked.');await loadSessions(id)}catch(error){msg('detailStatus',error.message,true)}finally{button.disabled=false}};
+ const inputs=document.createElement('div');inputs.className='row';inputs.append(date,time,button);line.append(heading,inputs);root.append(line)
+}}catch(error){root.textContent=error.message}}
 $('makeSessions').addEventListener('click',async()=>{if(!selected)return;$('makeSessions').disabled=true;try{const result=await request('POST',{action:'prepare-sessions',enrollmentId:selected.id});msg('detailStatus',result.created?'Included sessions created. No bookings were made.':'Existing session plan loaded.');await loadSessions(selected.id)}catch(error){msg('detailStatus',error.message,true)}finally{$('makeSessions').disabled=false}});
 $('prepare').addEventListener('click',async()=>{if(!selected||selected.status!=='draft')return;$('prepare').disabled=true;try{await request('POST',{action:'prepare-access',enrollmentId:selected.id});await connect();msg('detailStatus','Access prepared. No email sent. Client can claim with their verified Flowtel email.')}catch(error){msg('detailStatus',error.message,true);$('prepare').disabled=false}});
 $('focusForm').addEventListener('submit',async e=>{
