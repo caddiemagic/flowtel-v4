@@ -50,104 +50,126 @@ async function loadLessonProgress(profile) {
   // A first-time member has no row until completing Lesson 1. The RPC creates it.
   return data || { current_lesson: 1, completed_lessons: [] };
 }
+function lessonSection(label, hint, content, open=false) {
+  const panel=document.createElement('details');
+  panel.className='initiation-lesson-section';
+  panel.open=open;
+  const summary=document.createElement('summary');
+  summary.className='initiation-section-summary';
+  const title=document.createElement('strong');title.textContent=label;
+  const description=document.createElement('span');description.textContent=hint;
+  summary.append(title,description);
+  const body=document.createElement('div');body.className='initiation-section-body';
+  if(Array.isArray(content))body.append(...content);
+  else if(content)body.append(content);
+  panel.append(summary,body);
+  return {panel,body};
+}
+function lessonText(tag,text){
+  const node=document.createElement(tag);node.textContent=text;return node;
+}
 function renderInitiationPath(userId) {
-  const root = byId('initiationPath');
-  if (!root) return;
+  const root=byId('initiationPath');
+  if(!root)return;
   root.replaceChildren();
-  for (const module of WOMB_WORK_MODULES) {
-    const card = document.createElement('article');
-    card.className = 'moon-path-card';
-    card.style.cssText = 'margin:1rem 0;padding:1.2rem;';
-    const eyebrow = document.createElement('p');
-    eyebrow.className = 'eyebrow';
-    eyebrow.textContent = 'INITIATION ' + String(module.index).padStart(2, '0') + ' · ' + module.arc;
-    const heading = document.createElement('h3');
-    heading.textContent = module.title;
-    if (lessonProgress) {
-      const completed = Array.isArray(lessonProgress.completed_lessons) && lessonProgress.completed_lessons.includes(module.index);
-      const current = Number(lessonProgress.current_lesson) === module.index;
-      const state = document.createElement('p');
-      state.textContent = completed ? 'Completed' : current ? 'Current lesson' : 'Not yet completed';
-      card.append(state);
-    }
-    const description = document.createElement('p');
-    description.textContent = module.description;
-    const practiceHeading = document.createElement('h4');
-    practiceHeading.textContent = 'Your Womb Work';
-    const practice = document.createElement('p');
-    practice.textContent = module.practice;
-    const reflectionHeading = document.createElement('h4');
-    reflectionHeading.textContent = 'Reflection';
-    const reflection = document.createElement('p');
-    reflection.textContent = module.prompt;
-    const integration = document.createElement('p');
-    integration.textContent = 'At the end of this moon, review your daily journal and your four inner seasons. Record what you notice on your existing Flow Map.';
-    const flowLink = document.createElement('a');
-    flowLink.href = '/flow-map/?cycle=previous&return='+encodeURIComponent('/13-moons/');
-    flowLink.textContent = 'Open my Flow Map';
-    const journalLink = document.createElement('a');
-    journalLink.href = '/cycle-data/';
-    journalLink.textContent = 'Open my Cycle Data';
-    const links = document.createElement('p');
-    links.append(flowLink, document.createTextNode(' · '), journalLink);
-    const note = document.createElement('small');
-    note.textContent = 'Early lesson preview. Written teaching expansions and private monthly submissions are still in development.';
-    const expanded = document.createElement('details');
-    const toggle = document.createElement('summary');
-    toggle.textContent = 'Open written teaching and Daily Practice';
-    toggle.style.cssText = 'cursor:pointer;font-weight:700;padding:.8rem 0';
-    expanded.append(toggle);
-    const teaching = LESSON_TEACHING_DRAFTS[module.index];
-    if (teaching) {
-      const title = document.createElement('h4'); title.textContent = 'Written Teaching · Draft';
-      expanded.append(title);
-      for (const paragraph of teaching.paragraphs) {
-        const p=document.createElement('p'); p.textContent=paragraph; expanded.append(p);
+  const progress=lessonProgress;
+  const finished=Array.isArray(progress?.completed_lessons)?progress.completed_lessons:[];
+  for(const module of WOMB_WORK_MODULES){
+    const card=document.createElement('article');
+    card.className='initiation-lesson-card';
+    const completed=finished.includes(module.index);
+    const current=Number(progress?.current_lesson||1)===module.index;
+    const header=lessonText('p','INITIATION '+String(module.index).padStart(2,'0')+' · '+module.arc);
+    header.className='initiation-lesson-eyebrow';
+    const title=lessonText('h3',module.title);
+    const intro=lessonText('p',module.description);
+    intro.className='initiation-lesson-intro';
+    const state=lessonText('span',completed?'Completed':current?'Current initiation':'On your path');
+    state.className='initiation-lesson-state';
+    const top=document.createElement('div');
+    top.className='initiation-lesson-top';
+    top.append(header,state);
+    card.append(top,title,intro);
+    const lesson=document.createElement('details');
+    lesson.className='initiation-lesson-open';
+    const label=document.createElement('summary');
+    label.textContent='Enter this initiation';
+    lesson.append(label);
+    const contents=document.createElement('div');contents.className='initiation-lesson-contents';
+    contents.append(lessonText('p','Move through one section at a time. Your teaching and practices will be here whenever you return.'));
+    const teaching=LESSON_TEACHING_DRAFTS[module.index];
+    if(teaching){
+      const textPanel=lessonSection('01 · The Teaching','Read and take in the lesson');
+      const paragraphs=teaching.paragraphs;
+      for(let i=0;i<paragraphs.length;i+=2){
+        const part=lessonSection('Part '+(Math.floor(i/2)+1),'A moment to read',paragraphs.slice(i,i+2).map(p=>lessonText('p',p)),i===0);
+        textPanel.body.append(part.panel);
       }
-      if(module.index===2)expanded.append(createMoonMagicMedicineWheel());
+      if(module.index===2){
+        const visual=lessonSection('Moon Magic Medicine Wheel','Study the full 28-day wheel',createMoonMagicMedicineWheel());
+        textPanel.body.append(visual.panel);
+      }
+      contents.append(textPanel.panel);
     }
-    const daily = MONTHLY_INITIATION_PRACTICES[module.index];
-    if (daily) {
-      const title=document.createElement('h4');title.textContent='Daily Practice';expanded.append(title);
-      const name=document.createElement('strong');name.textContent=daily.title;expanded.append(name);
-      const body=document.createElement('p');body.textContent=daily.body;expanded.append(body);
-      if(daily.script){const script=document.createElement('blockquote');script.textContent=daily.script;script.style.whiteSpace='pre-line';expanded.append(script);}
-      if(daily.link){const a=document.createElement('a');a.href=daily.link;a.textContent=daily.linkLabel||'Open practice';a.target='_blank';a.rel='noopener noreferrer';expanded.append(a);}
+    const daily=MONTHLY_INITIATION_PRACTICES[module.index];
+    if(daily){
+      const dailyContent=[lessonText('h5',daily.title),lessonText('p',daily.body)];
+      if(daily.script){
+        const script=lessonText('blockquote',daily.script);
+        script.style.whiteSpace='pre-line';dailyContent.push(script);
+      }
+      if(daily.link){
+        const anchor=document.createElement('a');
+        anchor.href=daily.link;anchor.textContent=daily.linkLabel||'Open practice';
+        anchor.target='_blank';anchor.rel='noopener noreferrer';
+        dailyContent.push(anchor);
+      }
+      contents.append(lessonSection('02 · Daily Practice','A rhythm to carry into each day',dailyContent).panel);
     }
-    const original=document.createElement('div');original.append(practiceHeading,practice,reflectionHeading,reflection,integration,links,note);
-    expanded.append(original);
-    const completion=document.createElement('div');
-    completion.style.cssText='margin-top:1rem;padding-top:1rem;border-top:1px solid currentColor';
-    const completionStatus=document.createElement('p');
+    const womb=lessonSection('03 · Your Womb Work','One intentional assignment',[lessonText('p',module.practice)]);
+    if(module.index===3)void addFutureSelfLetterEditor(womb.body,userId);
+    contents.append(womb.panel);
+    const reflection=lessonSection('04 · Reflection','Let your experience speak',[lessonText('p',module.prompt)]);
+    contents.append(reflection.panel);
+    const closingContent=[
+      lessonText('p',teaching?.integration||'At the end of this moon, review your existing cycle observations across your four inner seasons.')
+    ];
+    const flowLink=document.createElement('a');
+    flowLink.href='/flow-map/?cycle=previous&return='+encodeURIComponent('/13-moons/');
+    flowLink.textContent='Open my Flow Map →';
+    const journalLink=document.createElement('a');
+    journalLink.href='/cycle-data/';journalLink.textContent='Open my Cycle Data →';
+    closingContent.push(flowLink,journalLink);
+    const moonClose=lessonSection('05 · Moon Close','Return to your Flow Map',closingContent);
+    if(module.index===13)void addFutureSelfLetterReflection(moonClose.body,userId);
+    const completion=document.createElement('div');completion.className='initiation-completion';
+    const completionStatus=lessonText('p',!progress?'Completion saving is not active yet. Your teaching is available for review.':completed?'This initiation is complete.':current?'When you have finished your Womb Work and reflection, mark this initiation complete.':'Complete earlier initiations in order first.');
     completionStatus.setAttribute('role','status');
-    const alreadyDone=Array.isArray(lessonProgress?.completed_lessons)&&lessonProgress.completed_lessons.includes(module.index);
-    const isCurrent=Number(lessonProgress?.current_lesson||1)===module.index;
-    const completeButton=document.createElement('button');
-    completeButton.type='button';
-    completeButton.textContent=alreadyDone?'Initiation completed':'Complete this initiation';
-    completeButton.style.cssText='padding:.75rem 1.25rem;cursor:pointer';
-    completeButton.disabled=!lessonProgress||alreadyDone||!isCurrent;
-    completionStatus.textContent=!lessonProgress?'Completion saving is not active yet. Your teaching remains available for review.':alreadyDone?'This initiation has been completed.':isCurrent?'Mark this initiation complete when you have finished its Womb Work and reflection.':'Complete the earlier initiations in order first.';
-    completeButton.addEventListener('click',async()=>{
-      if(completeButton.disabled)return;
-      completeButton.disabled=true;
-      completionStatus.textContent='Saving your completion…';
-      const {data,error}=await supabase.rpc('flowtel_complete_13_moons_lesson',{p_lesson:module.index});
-      if(error||!data?.complete){
+    const button=document.createElement('button');
+    button.type='button';button.textContent=completed?'Initiation completed':'Complete this initiation';
+    button.disabled=!progress||completed||!current;
+    button.addEventListener('click',async()=>{
+      if(button.disabled)return;
+      button.disabled=true;completionStatus.textContent='Saving your completion…';
+      try{
+        const {data,error}=await supabase.rpc('flowtel_complete_13_moons_lesson',{p_lesson:module.index});
+        if(error||!data?.complete)throw error||new Error('Missing result');
+        lessonProgress={current_lesson:data.current_lesson,completed_lessons:data.completed_lessons};
+        renderInitiationPath(userId);
+        const next=document.getElementById('initiation-'+Math.min(module.index+1,13));
+        if(next&&module.index<13)next.scrollIntoView({block:'start',behavior:'smooth'});
+      }catch(error){
+        console.error('Could not save lesson completion',error);
         completionStatus.textContent='Completion could not be saved. Please try again.';
-        completeButton.disabled=false;
-        return;
+        button.disabled=false;
       }
-      lessonProgress={current_lesson:data.current_lesson,completed_lessons:data.completed_lessons};
-      renderInitiationPath(userId);
-      const next=document.querySelector('#initiationPath article:nth-child('+Math.min(module.index+1,13)+')');
-      if(next&&module.index<13)next.scrollIntoView({block:'start',behavior:'smooth'});
     });
-    completion.append(completeButton,completionStatus);
-    expanded.append(completion);
-    if(module.index===3)void addFutureSelfLetterEditor(expanded,userId);
-    if(module.index===13)void addFutureSelfLetterReflection(expanded,userId);
-    card.append(eyebrow, heading, description, expanded);
+    completion.append(button,completionStatus);
+    moonClose.body.append(completion);
+    contents.append(moonClose.panel);
+    lesson.append(contents);
+    card.append(lesson);
+    card.id='initiation-'+module.index;
     root.append(card);
   }
 }
