@@ -7,6 +7,8 @@ on:
     paths:
       - '13-moons/**'
       - 'shared/13-moon-vortex.js'
+      - 'shared/13-moons-monthly-practices.js'
+      - 'tests/13-moons-monthly-practices.test.mjs'
       - 'server/13-moons-purchase-classification.js'
       - 'tests/13-moon-vortex.test.mjs'
       - 'scripts/test-13-moons-purchase-classification.cjs'
@@ -26,7 +28,12 @@ jobs:
           node --check 13-moons/page.js
           node --check server/13-moons-purchase-classification.js
           node --check shared/13-moon-vortex.js
+          node --check shared/13-moons-monthly-practices.js
+          node --check 13-moons/showcase/lesson/page.js
+          node --check 13-moons/showcase/lesson/teaching-drafts.js
       - name: Calendar regression tests
         run: node tests/13-moon-vortex.test.mjs
+      - name: Monthly practice and future-letter date tests
+        run: node tests/13-moons-monthly-practices.test.mjs
       - name: Entitlement classifier regression tests
         run: node scripts/test-13-moons-purchase-classification.cjs
