@@ -97,3 +97,21 @@ test('invalid initial start date never inserts an enrollment',async()=>{
  const {requests}=await mockFetch(responses,()=>assert.rejects(createDraftEnrollment(ctx,{email:'fictional@example.com',offeringId:offering,startsOn:'2026-02-30'})));
  assert.equal(requests.length,1);
 });
+
+test('session preparation creates activation and six empowerment calls without bookings',async()=>{
+ const {prepareSessions}=require('./owner-repository.cjs');
+ const snapshot={activation_minutes:180,empowerment_count:6,empowerment_minutes:90,flexible_count:0};
+ const inserted=Array.from({length:7},(_,i)=>({id:enrollment,session_number:i+1,status:'unscheduled'}));
+ const {requests,result}=await mockFetch([[{id:enrollment,status:'draft',offering_snapshot:snapshot}],[],inserted],()=>prepareSessions(ctx,{enrollmentId:enrollment}));
+ assert.equal(result.created,true);assert.equal(requests.length,3);
+ const body=JSON.parse(requests[2].body);assert.equal(body.length,7);
+ assert.equal(body[0].session_kind,'activation');assert.equal(body[0].duration_minutes,180);
+ assert.equal(body[6].session_kind,'empowerment');assert.equal(body[6].duration_minutes,90);
+ assert.ok(body.every(s=>s.status==='unscheduled'&&!('scheduled_at' in s)));
+});
+test('session preparation reuses existing records',async()=>{
+ const {prepareSessions}=require('./owner-repository.cjs');
+ const existing=[{id:enrollment,session_number:1,status:'unscheduled'}];
+ const {requests,result}=await mockFetch([[{id:enrollment,status:'draft',offering_snapshot:{activation_minutes:180}}],existing],()=>prepareSessions(ctx,{enrollmentId:enrollment}));
+ assert.equal(result.created,false);assert.equal(requests.length,2);
+});
