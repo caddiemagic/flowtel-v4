@@ -78,3 +78,11 @@ test('claim cannot link an enrollment to mismatched account email',async()=>{
  const {calls}=await simulate([[{id:enrollment,status:'invited',invited_email:'someoneelse@example.com'}]],()=>assert.rejects(claimPreparedMentorship(verified),e=>e.statusCode===404));
  assert.equal(calls.length,1);
 });
+
+test('multiple prepared matches do not activate an arbitrary enrollment',async()=>{
+ const {claimPreparedMentorship}=require('./client-repository.cjs');
+ const verified={...ctx,user:{id:user,email:'pilot@example.com',email_confirmed_at:'2026-10-15T00:00:00Z'}};
+ const matches=[{id:enrollment,invited_email:'pilot@example.com'},{id:session,invited_email:'pilot@example.com'}];
+ const {calls}=await simulate([matches],()=>assert.rejects(claimPreparedMentorship(verified),e=>e.statusCode===409));
+ assert.equal(calls.length,1);
+});
