@@ -1,4 +1,4 @@
-import { addFutureSelfLetterEditor } from '/13-moons/future-letter.js';
+import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
 import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
 import { supabase } from '/shared/supabase.js';
@@ -116,6 +116,7 @@ function renderInitiationPath(userId) {
     const original=document.createElement('div');original.append(practiceHeading,practice,reflectionHeading,reflection,integration,links,note);
     expanded.append(original);
     if(module.index===3)void addFutureSelfLetterEditor(expanded,userId);
+    if(module.index===13)void addFutureSelfLetterReflection(expanded,userId);
     card.append(eyebrow, heading, description, expanded);
     root.append(card);
   }
