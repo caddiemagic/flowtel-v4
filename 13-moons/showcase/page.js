@@ -23,7 +23,7 @@ for (const module of WOMB_WORK_MODULES) {
   details.append(disclosure, practice, reflection, close);
   const open = document.createElement('a');
   open.href = '/13-moons/showcase/lesson/?lesson=' + module.index;
-  open.textContent = 'Open lesson outline →';
+  open.textContent = 'Preview redesigned lesson →';
   open.style.cssText = 'display:inline-block;margin-top:1rem;color:#684a40;font-weight:700;';
   card.append(eyebrow, heading, summary, details, open);
   grid.append(card);
