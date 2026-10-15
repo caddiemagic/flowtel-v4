@@ -74,3 +74,30 @@ export async function addFutureSelfLetterEditor(container,userId){
  seal.addEventListener('click',()=>persist(true));
  input.addEventListener('input',()=>{if(ready)status.textContent='Unsaved changes';});
 }
+
+export async function addFutureSelfLetterReflection(container,userId){
+ const section=element('section');
+ section.style.cssText='border:1px solid currentColor;border-radius:12px;padding:1rem;margin:1rem 0';
+ section.append(element('h4','Return to Your Future-Self Letter'));
+ section.append(element('p','Read the letter you wrote at the beginning of your initiation. Then review your Flow Maps from across the thirteen moons and create a new integration Flow Map reflecting on each inner season.'));
+ const details=element('details'),summary=element('summary','Open my original letter');
+ summary.style.cssText='cursor:pointer;font-weight:700;padding:.75rem 0';
+ details.append(summary);
+ const notice=element('p','Checking your private letter…');
+ notice.setAttribute('aria-live','polite');details.append(notice);section.append(details);
+ const link=element('a','Review my Flow Maps →');
+ link.href='/flow-map/?cycle=previous&return='+encodeURIComponent('/13-moons/');
+ section.append(link);container.append(section);
+ try{
+  const {data,error}=await supabase.from('flowtel_13_moons_future_letters')
+   .select('initiation_start_date,letter_date,letter_text,sealed_at').eq('user_id',userId).maybeSingle();
+  if(error){notice.textContent='Your private letter is not available in this development preview. Letter storage has not been activated.';return;}
+  if(!data){notice.textContent='No future-self letter has been saved yet.';return;}
+  const due=thirteenMonthsAfter(data.initiation_start_date);
+  if(due!==data.letter_date){notice.textContent='Your letter date needs verification before it can be displayed.';return;}
+  const formatted=new Intl.DateTimeFormat('en-US',{dateStyle:'long',timeZone:'UTC'}).format(new Date(due+'T12:00:00Z'));
+  notice.textContent='Written for '+formatted+(data.sealed_at?' · Sealed letter':' · Unsealed draft');
+  const text=element('p',data.letter_text||'Your letter is still blank.');
+  text.style.whiteSpace='pre-wrap';details.append(text);
+ }catch(error){console.error('Unable to retrieve future letter',error);notice.textContent='Unable to load your future-self letter.';}
+}
