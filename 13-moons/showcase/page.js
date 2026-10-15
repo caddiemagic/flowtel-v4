@@ -22,8 +22,8 @@ for (const module of WOMB_WORK_MODULES) {
   close.textContent = 'At the end of the cycle, review your daily notes and your existing Flow Map.';
   details.append(disclosure, practice, reflection, close);
   const open = document.createElement('a');
-  open.href = '/13-moons/showcase/lesson/?lesson=' + module.index;
-  open.textContent = 'Preview redesigned lesson →';
+  open.href = module.index <= 2 ? '/13-moons/showcase/ceremony/?lesson=' + module.index : '/13-moons/showcase/lesson/?lesson=' + module.index;
+  open.textContent = module.index <= 2 ? 'Enter the interactive initiation →' : 'Review lesson draft →';
   open.style.cssText = 'display:inline-block;margin-top:1rem;color:#684a40;font-weight:700;';
   card.append(eyebrow, heading, summary, details, open);
   grid.append(card);
