@@ -1,0 +1,30 @@
+/* 13 Moons member reading room — progressive disclosure without changing lesson content */
+#initiationPath{display:grid;gap:1.05rem}
+.initiation-lesson-card{padding:clamp(1.1rem,3vw,1.8rem);border:1px solid #d9cbbd;border-radius:20px;background:linear-gradient(145deg,#fffcf7,#f7eee7);box-shadow:0 8px 24px rgba(86,58,48,.07)}
+.initiation-lesson-top{display:flex;align-items:center;justify-content:space-between;gap:.8rem;flex-wrap:wrap}
+.initiation-lesson-eyebrow{margin:0;font-size:.74rem;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:#816c69}
+.initiation-lesson-state{font-size:.75rem;border:1px solid #d7bbab;border-radius:30px;padding:.35rem .7rem;color:#725953;background:#fffaf4}
+.initiation-lesson-card h3{font-size:clamp(1.35rem,3vw,1.8rem);margin:.65rem 0;line-height:1.25}
+.initiation-lesson-intro{max-width:58ch;line-height:1.65;margin:.2rem 0 1rem;color:#5d5551}
+.initiation-lesson-open>summary{list-style:none;cursor:pointer;padding:.8rem 1rem;background:#735a58;color:#fff;border-radius:999px;display:inline-block;font-weight:700;font-size:.93rem}
+.initiation-lesson-open>summary::-webkit-details-marker{display:none}
+.initiation-lesson-open[open]>summary{background:#9b756f}
+.initiation-lesson-contents{margin-top:1.2rem;display:grid;gap:.9rem}
+.initiation-lesson-contents>p{font-size:.89rem;line-height:1.6;color:#76665f;margin:.15rem 0}
+.initiation-lesson-section{border:1px solid #e5dad0;background:rgba(255,255,255,.82);border-radius:14px;overflow:hidden}
+.initiation-section-summary{cursor:pointer;padding:1rem 1.1rem;list-style:none;display:flex;align-items:flex-start;gap:.25rem;flex-direction:column}
+.initiation-section-summary::-webkit-details-marker{display:none}
+.initiation-section-summary strong{font-size:1rem;color:#493a39}
+.initiation-section-summary span{font-size:.83rem;color:#81716c}
+.initiation-lesson-section[open]>.initiation-section-summary{background:#f4ece6;border-bottom:1px solid #eaded6}
+.initiation-section-body{padding:1rem 1.1rem 1.25rem;display:grid;gap:.8rem;line-height:1.75;min-width:0}
+.initiation-section-body p{margin:0;max-width:68ch}
+.initiation-section-body h5{font-size:1.07rem;margin:.15rem 0}
+.initiation-section-body>.initiation-lesson-section{margin:0}
+.initiation-section-body blockquote{border-left:3px solid #b9988e;padding:.8rem 1rem;margin:0;background:#faf6f1;border-radius:0 8px 8px 0}
+.initiation-section-body a{color:#76554a;text-decoration:underline;text-underline-offset:3px;font-weight:700;overflow-wrap:anywhere}
+.initiation-completion{border-top:1px solid #e4d7cf;padding-top:1rem;margin-top:.2rem}
+.initiation-completion button{padding:.8rem 1rem;border-radius:999px;background:#735a58;color:white;border:0;font-weight:700;cursor:pointer}
+.initiation-completion button:disabled{opacity:.55;cursor:not-allowed}
+.initiation-completion p{font-size:.88rem;margin-top:.6rem}
+@media(max-width:560px){.initiation-lesson-card{border-radius:15px}.initiation-lesson-contents{gap:.7rem}.initiation-section-body{padding:.9rem}.initiation-section-summary{padding:.9rem}}
