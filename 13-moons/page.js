@@ -2,6 +2,8 @@ import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js
 import { supabase } from '/shared/supabase.js';
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
 import { flowtelEntryMonth, generateBigVisionVortex } from '/shared/13-moon-vortex.js';
+import { LESSON_TEACHING_DRAFTS } from '/13-moons/showcase/lesson/teaching-drafts.js';
+import { MONTHLY_INITIATION_PRACTICES } from '/shared/13-moons-monthly-practices.js';
 
 const byId = (id) => document.getElementById(id);
 const status = byId('status');
@@ -87,7 +89,30 @@ function renderInitiationPath() {
     links.append(flowLink, document.createTextNode(' · '), journalLink);
     const note = document.createElement('small');
     note.textContent = 'Early lesson preview. Written teaching expansions and private monthly submissions are still in development.';
-    card.append(eyebrow, heading, description, practiceHeading, practice, reflectionHeading, reflection, integration, links, note);
+    const expanded = document.createElement('details');
+    const toggle = document.createElement('summary');
+    toggle.textContent = 'Open written teaching and Daily Practice';
+    toggle.style.cssText = 'cursor:pointer;font-weight:700;padding:.8rem 0';
+    expanded.append(toggle);
+    const teaching = LESSON_TEACHING_DRAFTS[module.index];
+    if (teaching) {
+      const title = document.createElement('h4'); title.textContent = 'Written Teaching · Draft';
+      expanded.append(title);
+      for (const paragraph of teaching.paragraphs) {
+        const p=document.createElement('p'); p.textContent=paragraph; expanded.append(p);
+      }
+    }
+    const daily = MONTHLY_INITIATION_PRACTICES[module.index];
+    if (daily) {
+      const title=document.createElement('h4');title.textContent='Daily Practice';expanded.append(title);
+      const name=document.createElement('strong');name.textContent=daily.title;expanded.append(name);
+      const body=document.createElement('p');body.textContent=daily.body;expanded.append(body);
+      if(daily.script){const script=document.createElement('blockquote');script.textContent=daily.script;script.style.whiteSpace='pre-line';expanded.append(script);}
+      if(daily.link){const a=document.createElement('a');a.href=daily.link;a.textContent=daily.linkLabel||'Open practice';a.target='_blank';a.rel='noopener noreferrer';expanded.append(a);}
+    }
+    const original=document.createElement('div');original.append(practiceHeading,practice,reflectionHeading,reflection,integration,links,note);
+    expanded.append(original);
+    card.append(eyebrow, heading, description, expanded);
     root.append(card);
   }
 }
