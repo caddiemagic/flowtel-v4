@@ -72,6 +72,21 @@ if(!lesson){
    add('h2','Additional monthly practice');
    add('h3',extra.title);
    add('p',extra.body);
+   if(extra.script){
+     const script=document.createElement('blockquote');
+     script.textContent=extra.script;
+     script.style.cssText='white-space:pre-line;border-left:3px solid #caa780;padding:12px 18px;margin:16px 0;background:#faf4ed;line-height:1.8';
+     root.append(script);
+   }
+   if(extra.link){
+     const ritual=document.createElement('a');
+     ritual.href=extra.link;
+     ritual.textContent=extra.linkLabel || 'Open ritual';
+     ritual.target='_blank';
+     ritual.rel='noopener noreferrer';
+     ritual.className='lesson-back';
+     root.append(ritual);
+   }
    if(extra.asset)add('p',extra.asset);
  }
  add('h2','Reflection');
