@@ -54,7 +54,7 @@ async function listEnrollments(ctx){
 async function updateDraftEnrollment(ctx,{enrollmentId,startsOn,endsOn}){
  ownerContext(ctx);validUUID(enrollmentId);
  for(const day of [startsOn,endsOn]){
-  if(day!=null && (typeof day!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||new Date(day+'T12:00:00Z').toISOString().slice(0,10)!==day))
+  if(day!=null && (typeof day!=='string'||!/^\\d{4}-\\d{2}-\\d{2}$/.test(day)||!Number.isFinite(new Date(day+'T12:00:00Z').getTime())||new Date(day+'T12:00:00Z').toISOString().slice(0,10)!==day))
    throw Error('Invalid enrollment date');
  }
  if(startsOn && endsOn && startsOn>=endsOn)throw Error('End date must follow start date');
