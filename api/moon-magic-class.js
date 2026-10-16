@@ -48,18 +48,12 @@ function validate(body){
     fail(400,'Please reload the page to create your personal classroom key.');
   const name=cleanString(body.guest_name,100);
   if(!name||name.length<2)fail(400,'Please enter your name.');
-  const email=cleanString(body.email,320).toLowerCase();
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))fail(400,'Please enter a valid email address.');
-  const method=String(body.tracking_method||'');
-  if(!['bleed','moon-no-period','moon-unknown-day-1'].includes(method))fail(400,'Please choose a cycle day or moon tracking.');
+  const method='bleed'; // One cycle-day field; no email or account collected.
   const day=body.selected_cycle_day===null||body.selected_cycle_day===undefined||body.selected_cycle_day===''?null:Number(body.selected_cycle_day);
-  if(method==='bleed'&&(!Number.isInteger(day)||day<1||day>120))fail(400,'Enter a cycle day between 1 and 120.');
-  if(method!=='bleed'&&day!==null)fail(400,'Moon trackers should leave cycle day blank.');
-  if(body.consent!==true)fail(400,'Please agree to display your cycle position in our classroom.');
-  return {room_slug:ROOM,guest_token:guestToken,guest_name:name,email,
-    cycle_day:method==='bleed'?day:null,tracking_method:method,
-    show_first_name:body.show_first_name===true,
-    email_updates_opt_in:body.email_updates_opt_in===true,
+  if(!Number.isInteger(day)||day<1||day>120)fail(400,'Enter a cycle day between 1 and 120.');
+  return {room_slug:ROOM,guest_token:guestToken,guest_name:name,email:null,
+    cycle_day:day,tracking_method:method,
+    show_first_name:true,email_updates_opt_in:false,
     shared_at:new Date().toISOString()};
 }
 function seasonFor(day){
@@ -70,6 +64,7 @@ function summarize(rows){
   const seasons={Winter:0,Spring:0,Summer:0,Autumn:0};
   const seasonNames={Winter:[],Spring:[],Summer:[],Autumn:[]};
   let moonTrackers=0;
+  const moonTrackerNames=[];
   for(const row of rows){
     const day=Number(row.cycle_day);
     const valid=row.tracking_method==='bleed'&&Number.isInteger(day)&&day>0;
@@ -80,10 +75,11 @@ function summarize(rows){
       if(firstName){days[index].names.push(firstName);seasonNames[season].push(firstName);}
     }else{
       moonTrackers++;
+      if(firstName)moonTrackerNames.push(firstName);
     }
   }
   return {ok:true,room_slug:ROOM,total:rows.length,moon_trackers:moonTrackers,
-    days,seasons,season_names:seasonNames,updated_at:new Date().toISOString()};
+    moon_tracker_names:moonTrackerNames,days,seasons,season_names:seasonNames,updated_at:new Date().toISOString()};
 }
 module.exports=async function handler(req,res){
   if(!['GET','POST'].includes(req.method))return respond(res,405,{ok:false,error:'Method not allowed.'});
@@ -91,11 +87,10 @@ module.exports=async function handler(req,res){
     const c=config();
     if(req.method==='GET'){
       await requireOwner(req,c);
-      const rows=await queryDB(c,'/rest/v1/flowtel_moon_magic_class_entries?select=guest_name,email,show_first_name,email_updates_opt_in,cycle_day,tracking_method,shared_at&room_slug=eq.'+encodeURIComponent(ROOM)+'&order=shared_at.asc&limit=500');
+      const rows=await queryDB(c,'/rest/v1/flowtel_moon_magic_class_entries?select=guest_name,show_first_name,cycle_day,tracking_method,shared_at&room_slug=eq.'+encodeURIComponent(ROOM)+'&order=shared_at.asc&limit=500');
       if(String(req.query?.view||'')==='contacts'){
         return respond(res,200,{ok:true,guests:rows.map(row=>({
-          name:row.guest_name||'(no name)',email:row.email||'',
-          email_updates_opt_in:Boolean(row.email_updates_opt_in),
+          name:row.guest_name||'(no name)',cycle_day:row.cycle_day,
           joined_at:row.shared_at
         }))});
       }

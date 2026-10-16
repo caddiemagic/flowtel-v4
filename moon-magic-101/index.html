@@ -18,13 +18,7 @@ h1{font-size:clamp(37px,10vw,61px);line-height:1;font-weight:normal;margin:12px 
 label.field{display:block;font:700 12px Arial,sans-serif;color:#695b50;letter-spacing:.03em}
 .field input{display:block;width:100%;height:51px;margin-top:7px;padding:0 15px;border:1px solid #d6c3a4;border-radius:12px;background:white;color:#46372d;font:17px Arial,sans-serif}
 .field input:focus{outline:2px solid #bda06b;outline-offset:1px}
-.choices{display:flex;gap:10px;margin:13px 0 8px}
-.choices label{flex:1;display:block;border:1px solid #dac6a9;border-radius:12px;padding:12px 10px;font:13px/1.4 Arial,sans-serif;cursor:pointer;text-align:center}
-.choices label:has(input:checked){border-color:#6f7a61;background:#ecf0e7}
-.choices input{accent-color:#596650}
 .note{font:13px/1.5 Arial,sans-serif;color:var(--muted);margin:6px 0 15px}
-.check{display:flex;gap:10px;align-items:flex-start;text-align:left;margin-top:13px;padding:12px 12px;background:var(--pale);border:1px solid #eadfce;border-radius:12px;font:13px/1.5 Arial,sans-serif}
-.check input{margin:3px 0 0;width:18px;height:18px;flex:none;accent-color:#687458}
 button,.alt{display:block;width:100%;border-radius:100px;padding:17px 18px;font:700 12px Arial,sans-serif;letter-spacing:.11em;text-transform:uppercase;text-decoration:none;cursor:pointer}
 button{background:var(--green);color:white;border:1px solid var(--green);margin-top:20px}
 button:disabled{opacity:.55;cursor:wait}
@@ -37,7 +31,7 @@ button:disabled{opacity:.55;cursor:wait}
 .result p{font-size:16px;line-height:1.55}
 .badge{display:inline-block;border:1px solid #cfb684;background:#f9f1df;color:#785c30;border-radius:999px;padding:9px 13px;font:700 11px Arial,sans-serif;letter-spacing:.1em}
 .footer{margin:22px auto;font:12px/1.7 Arial,sans-serif;color:#8b7669}.footer a{color:#665c45}
-@media(max-width:430px){.choices{flex-direction:column}}
+
 </style></head>
 <body>
 <main><article>
@@ -50,32 +44,22 @@ button:disabled{opacity:.55;cursor:wait}
 <p class="eyebrow">Classroom guest check-in</p>
 <form id="joinForm">
  <div class="form-fields">
-  <label class="field">Your name <input name="guest_name" type="text" autocomplete="name" maxlength="100" placeholder="First and last name" required></label>
-  <label class="field">Your email <input name="email" type="email" autocomplete="email" maxlength="320" placeholder="you@example.com" required></label>
-  <div>
-    <span class="eyebrow">Where are you in your cycle?</span>
-    <div class="choices">
-      <label><input type="radio" name="mode" value="bleed" checked> I know my cycle day</label>
-      <label><input type="radio" name="mode" value="moon"> I'm following the moon</label>
-    </div>
-    <label id="dayField" class="field">My cycle day <input name="cycle_day" type="number" inputmode="numeric" min="1" max="120" placeholder="For example: 14" required></label>
-    <p class="note" id="dayNote">Use the day you just discovered in Track Your Cycle. Day 1 is your first day of full flow.</p>
-  </div>
+  <label class="field">Your name <input name="guest_name" type="text" autocomplete="name" maxlength="100" placeholder="Your name" required></label>
+  <label class="field">Your cycle day <input name="cycle_day" type="number" inputmode="numeric" min="1" max="120" placeholder="For example: 14" required></label>
+  <p class="note">Use the cycle day you discovered in Track Your Cycle. Day 1 is the first day of full menstrual flow.</p>
  </div>
- <label class="check"><input type="checkbox" name="class_consent" required><span>Yes, include my cycle day (or moon-tracking choice) on the classroom medicine wheel. My name and email will be saved privately for this class; they will not be shown on the public wheel without my permission.</span></label>
- <label class="check"><input type="checkbox" name="show_name"><span>It's okay to show my <strong>first name</strong> on the classroom projection.</span></label>
- <label class="check"><input type="checkbox" name="email_updates"><span>I'd like to receive Moon Magic resources and invitations by email. <em>Optional.</em></span></label>
+ <p class="note" style="text-align:left;margin:14px 0 0">By joining, your <strong>first name</strong> and cycle day will appear on the classroom screen. Your full name is saved privately for this class.</p>
  <input name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
  <button id="join" type="submit">Join the Moon Magic Room →</button>
  <p id="status" role="status" aria-live="polite"></p>
 </form>
-<p class="fine">No Flowtel login or password is needed. This guest check-in does not create a Queendom or Guest House account.</p>
+<p class="fine">No email, password, or Flowtel account required.</p>
 </div>
 <div id="resultArea" class="result" hidden>
  <span class="badge">You’re in the room ✦</span>
  <h2 id="welcome">Welcome to Moon Magic 101</h2>
  <p id="seasonResult">Your place has been added to the collective medicine wheel.</p>
- <p>Look up at the classroom screen to see how our individual seasons come together under one moon.</p>
+ <p>Look up at the classroom screen to find your name and see how our individual seasons come together under one moon.</p>
  <div class="line"></div>
  <p class="eyebrow">Take your practice home</p>
  <p>Want your Flow Map to remember you? Explore the Queendom, where your cycle tracking and reflections become a living practice.</p>
@@ -89,7 +73,6 @@ button:disabled{opacity:.55;cursor:wait}
 (function(){
 const ROOM='moon-magic-101-2026-10-16';
 const form=document.getElementById('joinForm');
-const dayField=document.getElementById('dayField'),dayNote=document.getElementById('dayNote');
 const dayInput=form.elements.cycle_day,status=document.getElementById('status');
 const button=document.getElementById('join');
 let token='';
@@ -97,26 +80,15 @@ try{token=localStorage.getItem('flowtel:moon-magic-101:guest-token')||'';}catch(
 if(!token){token=crypto.randomUUID();try{localStorage.setItem('flowtel:moon-magic-101:guest-token',token)}catch(e){}}
 try{
  const saved=JSON.parse(sessionStorage.getItem('flowtel:moon-magic-101:last-tracker-result')||'null');
- if(saved && Date.now()-saved.at<24*60*60*1000){
-   if(saved.mode==='bleed'&&saved.day>=1&&saved.day<=120)dayInput.value=String(saved.day);
-   else if(saved.mode==='moon'){const moon=form.querySelector('[name="mode"][value="moon"]');moon.checked=true;}
- }
+ if(saved && Date.now()-saved.at<24*60*60*1000 && saved.mode==='bleed' && saved.day>=1 && saved.day<=120)dayInput.value=String(saved.day);
 }catch(e){}
-function mode(){return form.querySelector('[name="mode"]:checked')?.value||'bleed';}
-function updateMode(){
- const moon=mode()==='moon';
- dayField.hidden=moon;dayNote.hidden=moon;dayInput.required=!moon;dayInput.disabled=moon;
-}
-form.querySelectorAll('[name="mode"]').forEach(x=>x.addEventListener('change',updateMode));updateMode();
 function season(day){return day>=27||day<=5?'Inner Winter':day<=11?'Inner Spring':day<=19?'Inner Summer':'Inner Autumn';}
 form.addEventListener('submit',async function(event){
  event.preventDefault();if(!form.reportValidity())return;
- const f=new FormData(form),moon=mode()==='moon',cycleDay=moon?null:Number(f.get('cycle_day'));
+ const f=new FormData(form),cycleDay=Number(f.get('cycle_day'));
  const name=String(f.get('guest_name')||'').trim();
- const payload={room_slug:ROOM,guest_token:token,guest_name:name,email:String(f.get('email')||'').trim(),
-   tracking_method:moon?'moon-no-period':'bleed',selected_cycle_day:cycleDay,
-   consent:f.get('class_consent')==='on',show_first_name:f.get('show_name')==='on',
-   email_updates_opt_in:f.get('email_updates')==='on',website:String(f.get('website')||'')};
+ const payload={room_slug:ROOM,guest_token:token,guest_name:name,
+   tracking_method:'bleed',selected_cycle_day:cycleDay,website:String(f.get('website')||'')};
  button.disabled=true;status.textContent='Opening your place in the classroom...';
  try{
   const res=await fetch('/api/moon-magic-class',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
@@ -125,9 +97,7 @@ form.addEventListener('submit',async function(event){
   document.getElementById('resultArea').hidden=false;
   const firstName=name.split(/\s+/)[0];
   document.getElementById('welcome').textContent='Welcome, '+firstName+'.';
-  document.getElementById('seasonResult').textContent=moon?
-   'You are tracking with the moon. Your place is counted alongside the other women in our room.':
-   'You’re on cycle day '+cycleDay+' · '+season(cycleDay)+'. Your place is now on the shared medicine wheel.';
+  document.getElementById('seasonResult').textContent='You’re on cycle day '+cycleDay+' · '+season(cycleDay)+'. Your name is now on the shared medicine wheel.';
   window.scrollTo({top:0,behavior:'smooth'});
  }catch(error){status.textContent=error.message||'Unable to check in. Please try again.';}
  finally{button.disabled=false}
