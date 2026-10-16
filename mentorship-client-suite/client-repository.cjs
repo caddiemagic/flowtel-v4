@@ -87,8 +87,12 @@ async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
  const signed=await fetchJson(ctx.supabaseUrl+'/storage/v1/object/sign/flowtel-mentorship-replays/'+filePath,{
   method:'POST',headers:serviceHeaders(ctx.serviceKey),body:JSON.stringify({expiresIn:300})
  });
- if(typeof signed?.signedURL!=='string'||!signed.signedURL.startsWith('/storage/v1/object/sign/'))throw Error('Playback link unavailable');
- return {url:ctx.supabaseUrl+signed.signedURL,expiresInSeconds:300};
+ // Storage REST returns a path relative to /storage/v1; tolerate the gateway-prefixed form too.
+ const raw=signed?.signedURL;
+ if(typeof raw!=='string'||!['/object/sign/','/storage/v1/object/sign/'].some(prefix=>raw.startsWith(prefix))||raw.includes('\\')||raw.includes('..'))throw Error('Playback link unavailable');
+ const resolved=new URL(raw.startsWith('/object/')?'/storage/v1'+raw:raw,ctx.supabaseUrl);
+ if(resolved.origin!==new URL(ctx.supabaseUrl).origin)throw Error('Playback link unavailable');
+ return {url:resolved.href,expiresInSeconds:300};
 }
 module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
 

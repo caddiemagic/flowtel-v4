@@ -1,7 +1,7 @@
 // Run: node mentorship-client-suite/browser-e2e.cjs (requires Playwright + Chromium).
 // Real pages + handlers over HTTP; Supabase/Auth/Storage use the fictional local contract server.
 const {chromium}=require('playwright');const assert=require('node:assert/strict');const {start}=require('./test-harness.cjs');
-(async()=>{const h=await start();let browser;try{
+(async()=>{process.env.VERCEL_ENV='preview';const h=await start();let browser;try{
  browser=await chromium.launch({headless:true});const errors=[];
  const owner=await browser.newContext();await owner.addInitScript(()=>window.__fictionalRole='owner');const desk=await owner.newPage();desk.on('pageerror',e=>errors.push(e.message));
  await desk.goto(h.origin+'/mentorship-client-suite/connected-concierge/');await desk.getByText('Owner session verified. Connected to Flowtel.').waitFor();await desk.getByRole('button',{name:'Manage',exact:true}).click();
@@ -26,5 +26,6 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await desk.reload();await desk.getByRole('button',{name:'Manage',exact:true}).click();await desk.getByRole('button',{name:'Manage session 2 booking',exact:true}).click();await desk.getByLabel('Session 2 existing booking',{exact:true}).selectOption(bookingId);await desk.getByRole('button',{name:'Link session 2 booking',exact:true}).click();await desk.getByText(/Session 2 · empowerment · 90 minutes · confirmed/).waitFor();
  await suite.reload();await suite.getByRole('heading',{name:'Fictional Womb Activation',exact:true}).waitFor();await suite.getByRole('button',{name:'My Calls',exact:true}).click();await suite.getByRole('link',{name:'Join Zoom',exact:true}).waitFor();assert.equal(await suite.getByRole('link',{name:'Join Zoom',exact:true}).getAttribute('href'),'https://us02web.zoom.us/j/fictional');
  await desk.getByRole('button',{name:'Manage session 2 booking',exact:true}).click();await desk.getByRole('button',{name:'Unlink booking',exact:true}).click();await desk.getByText(/Session 2 · empowerment · 90 minutes · proposed/).waitFor();await suite.reload();await suite.getByRole('heading',{name:'Fictional Womb Activation',exact:true}).waitFor();assert.equal(await suite.getByRole('link',{name:'Join Zoom',exact:true}).count(),0);
+ await desk.getByRole('button',{name:'Run live connection check',exact:true}).click();await desk.getByText('Live checks passed and test resources were removed.',{exact:true}).waitFor();assert.equal(h.users.size,0);assert.equal(h.tables.enrollments.length,1);
  assert.deepEqual(errors,[]);console.log('PASS: browser owner/client A/client B journey, mobile layout, upload/publication/playback/hide, focus and completion. Fictional services only.');
  }finally{if(browser)await browser.close();await h.close()}})().catch(error=>{console.error(error);process.exitCode=1});

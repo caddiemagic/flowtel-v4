@@ -2,6 +2,7 @@ const bookings=require('./appointment-link.cjs');
 const controls=require('./session-controls.cjs');
 const recordings=require('./replay-owner.cjs');
 const guards=require('./request.cjs');
+const verification=require('./development-check.cjs');
 // Owner handler routed through the existing caddie-acuity mentorship dispatcher.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
 const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
@@ -17,9 +18,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
    if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
    if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
    if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});
-   return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
+   return res.status(200).json({ok:true,developmentVerification:verification.available(),offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
   }
   const body=await guards.body(req);
+  if(body?.action==='verify-development')return res.status(200).json({ok:true,verification:await verification.run(ctx)});
   if(body?.action==='link-booking')return res.status(200).json({ok:true,session:await bookings.linkBooking(ctx,body)});
   if(body?.action==='unlink-booking')return res.status(200).json({ok:true,session:await bookings.unlinkBooking(ctx,body)});
   if(body?.action==='refresh-booking')return res.status(200).json({ok:true,session:await bookings.refreshBooking(ctx,body)});

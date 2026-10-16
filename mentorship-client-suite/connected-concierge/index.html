@@ -11,6 +11,7 @@ p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-s
 <main>
 <p class="note"><strong>This page connects to the existing Flowtel Supabase database.</strong> Use only fictional test identities until we finish invitation and client-access testing. Drafts created here are real database records; they do not invite clients, book sessions, or grant membership. This page is separate from production Flowtel navigation.</p>
 <section class="card"><h2>Owner access</h2><p id="session">Checking your Flowtel sign-in…</p><div class="row"><button id="refresh" class="secondary">Refresh connection</button><a href="../../client/">Go to Flowtel sign-in</a></div><p class="small">Sign into Flowtel with your owner account in this same browser, then return here.</p><p id="status" role="status"></p></section>
+<section class="card" id="verificationPanel" hidden><h2>Development connection check</h2><p>Test account access, a silent recording upload, private media delivery, and client isolation using two disposable fictional accounts. Test records and accounts are removed afterward. No emails or invitations are sent.</p><button type="button" id="verifyDevelopment">Run live connection check</button><p id="verificationStatus" role="status" aria-live="polite"></p><ul id="verificationResults"></ul><pre id="verificationCleanup" hidden></pre></section>
 <div class="grid">
 <section class="card"><h2>New mentorship draft</h2><form id="create">
 <label for="email">Fictional test email</label><input type="email" id="email" required placeholder="fictional-client@example.com" maxlength="254">
@@ -38,12 +39,13 @@ async function request(method='GET',body=null,query=''){
 }
 async function connect(){
  const selectedId=selected?.id;
- token=null;$('save').disabled=true;$('session').textContent='Checking your Flowtel session…';$('enrollments').textContent='Checking…';
+ token=null;$('verificationPanel').hidden=true;$('save').disabled=true;$('session').textContent='Checking your Flowtel session…';$('enrollments').textContent='Checking…';
  try{
   const {data,error}=await supabase.auth.getSession();if(error)throw error;
   if(!data.session?.access_token){$('session').textContent='Not signed in. Use the Flowtel sign-in link above.';$('enrollments').textContent='Sign in to view enrollments.';return}
   token=data.session.access_token;
   const result=await request();offerings=result.offerings||[];enrollments=result.enrollments||[];
+  $('verificationPanel').hidden=!result.developmentVerification;
   $('session').textContent='Owner session verified. Connected to Flowtel.';
   $('save').disabled=false;
   const dropdown=$('offering');dropdown.replaceChildren(new Option('Select an offering…',''));
@@ -79,6 +81,16 @@ function open(item){selected=item;$('detail').hidden=false;$('selected').textCon
  loadSessions(item.id);
  $('saveDates').textContent=item.status==='draft'?'Save program dates':'Only draft enrollments can be edited';$('month').value=new Date().toISOString().slice(0,7);$('focus').value='';$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
 $('refresh').addEventListener('click',connect);
+$('verifyDevelopment').addEventListener('click',async()=>{
+ const button=$('verifyDevelopment');button.disabled=true;$('verificationResults').replaceChildren();$('verificationCleanup').hidden=true;
+ msg('verificationStatus','Checking the connected project. Keep this page open while disposable test records are removed.');
+ try{const {verification:v}=await request('POST',{action:'verify-development'});
+  for(const item of [...v.steps,...v.cleanup]){const li=document.createElement('li');li.textContent=(item.status==='passed'?'Passed: ':'Failed: ')+item.label;$('verificationResults').append(li);}
+  msg('verificationStatus',v.passed?'Live checks passed and test resources were removed.':'The check needs attention. Reference: '+v.runId,!v.passed);
+  if(!v.cleanupComplete){$('verificationCleanup').hidden=false;$('verificationCleanup').textContent='Cleanup needs attention. Save this reference for follow-up:\n'+JSON.stringify(v.remainingResourceReferences,null,2);}
+ }catch(error){msg('verificationStatus','The check did not return a complete result. Cleanup is unverified; please report this before running again. '+error.message,true);}
+ finally{button.disabled=false;}
+});
 $('create').addEventListener('submit',async e=>{
  e.preventDefault();$('save').disabled=true;
  try{
@@ -134,6 +146,6 @@ $('focusForm').addEventListener('submit',async e=>{
  e.preventDefault();if(!selected)return;
  try{await request('POST',{action:'save-focus',enrollmentId:selected.id,month:$('month').value+'-01',focus:$('focus').value});msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.')}catch(error){msg('detailStatus',error.message,true)}
 });
-supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
+supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
 connect();
 </script></body></html>
