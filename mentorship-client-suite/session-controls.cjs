@@ -11,8 +11,8 @@ async function session(ctx,{enrollmentId,sessionId}){
 }
 async function transition(ctx,args){
  const row=await session(ctx,args);
- const next={confirm:'confirmed',complete:'completed',cancel:'cancelled'}[args.operation];
- const allowed={confirm:['proposed'],complete:['confirmed'],cancel:['unscheduled','proposed','confirmed']};
+ const next={confirm:'confirmed',complete:'completed',cancel:'cancelled',reopen:row.scheduled_at?'proposed':'unscheduled'}[args.operation];
+ const allowed={confirm:['proposed'],complete:['confirmed'],cancel:['unscheduled','proposed','confirmed'],reopen:['cancelled']};
  if(!next||!allowed[args.operation].includes(row.status))throw failure('This session cannot make that transition',409);
  if(next==='confirmed'&&(!row.scheduled_at||!Number.isFinite(Date.parse(row.scheduled_at))))throw failure('Propose a valid time before confirming');
  const result=await fetchJson(endpoint(ctx,'sessions','enrollment_id=eq.'+args.enrollmentId+'&id=eq.'+args.sessionId+'&status=eq.'+row.status+'&scheduled_at='+(row.scheduled_at?'eq.'+encodeURIComponent(row.scheduled_at):'is.null')+'&select=id,status,scheduled_at'),{method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({status:next})});

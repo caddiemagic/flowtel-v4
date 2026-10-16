@@ -102,7 +102,8 @@ async function loadSessions(id){const root=$('sessionList');root.textContent='Lo
  const localStatus=document.createElement('p');localStatus.setAttribute('role','status');line.append(localStatus);
  const inputs=document.createElement('div');inputs.className='row';inputs.append(date,time,button);line.append(heading,inputs);
  button.disabled=!['unscheduled','proposed','confirmed'].includes(session.status);
- for(const [operation,label,states] of [['confirm','Confirm',['proposed']],['complete','Mark complete',['confirmed']],['cancel','Cancel session',['unscheduled','proposed','confirmed']]]){
+ for(const [operation,label,states] of [['confirm','Confirm',['proposed']],['complete','Mark complete',['confirmed']],['cancel','Cancel session',['unscheduled','proposed','confirmed']],['reopen','Reopen session',['cancelled']]]){
+ if(operation==='reopen'&&session.status!=='cancelled')continue;
  const control=document.createElement('button');control.type='button';control.textContent=label;control.disabled=!states.includes(session.status);control.onclick=async()=>{control.disabled=true;try{await request('POST',{action:'session-transition',operation,enrollmentId:id,sessionId:session.id});await loadSessions(id);msg('detailStatus','Session updated.')}catch(e){localStatus.textContent=e.message;localStatus.className='error';msg('detailStatus',e.message,true);control.disabled=false}};line.append(control);
  }
  const recording=document.createElement('div');line.append(recording);renderRecordings(recording,id,session.id);root.append(line)

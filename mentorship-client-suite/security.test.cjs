@@ -20,3 +20,12 @@ test('unpublished and cross-enrollment recordings cannot be signed',async()=>{co
 test('playback URL expires in five minutes and excludes private metadata',async()=>{const {result,requests}=await mocked([[{id:enrollmentId}],[{id:replayId,session_id:sessionId,storage_path:enrollmentId+'/'+sessionId+'/'+replayId+'.mp4'}],[{id:sessionId}],{signedURL:'/storage/v1/object/sign/fictional?token=fictional'}],()=>getReplayPlaybackUrl(ctx,{enrollmentId,replayId}));assert.equal(JSON.parse(requests[3].body).expiresIn,300);assert.deepEqual(Object.keys(result).sort(),['expiresInSeconds','url'])});
 test('client endpoints reject missing authentication',async()=>{const r=response();await mocked([],()=>client({method:'GET',headers:{}},r));assert.equal(r.statusCode,401)});
 test('oversized JSON is rejected before parsing',async()=>{const {body}=require('./request.cjs');await assert.rejects(body({headers:{},body:{notes:'a'.repeat(32769)}}),{statusCode:413})});
+
+test('cancelled sessions can reopen without automatically confirming; completed sessions stay protected',async()=>{
+ for(const scheduled_at of [null,'2020-01-01T19:00:00Z']){
+ const next=scheduled_at?'proposed':'unscheduled';
+ const {requests}=await mocked([[{id:sessionId,status:'cancelled',scheduled_at}],[{id:sessionId,status:next}]],()=>transition(ctx,{...args,operation:'reopen'}));
+ assert.equal(JSON.parse(requests[1].body).status,next);assert.ok(requests[1].url.includes('status=eq.cancelled'));
+ }
+ await mocked([[{id:sessionId,status:'completed'}]],()=>assert.rejects(transition(ctx,{...args,operation:'reopen'}),{statusCode:409}));
+});
