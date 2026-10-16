@@ -1,0 +1,41 @@
+/* Shared finishing details for the mentorship dashboard and its design previews. */
+:root{--green:#183e32;--gold:#a9844e;--line:#ded4bf;--muted:#657268;background:#f6f2e9;color:#263e32}
+body{background:radial-gradient(ellipse at 50% 0,#fffaf0 0,transparent 65%),#f6f2e9}
+.hero,.heritage-hero{position:relative;isolation:isolate;background:radial-gradient(ellipse at 75% 0,#42604a66,transparent 60%),linear-gradient(115deg,#102c25,#254b39 52%,#102e27);border-bottom:1px solid #b59a64;box-shadow:0 12px 36px #12382b14}
+.hero:before,.heritage-hero:before{content:"";position:absolute;inset:11px;border:1px solid #d5ba7c36;pointer-events:none;z-index:-1}
+.hero:after,.heritage-hero:after{content:"";position:absolute;inset:17px;border:1px solid #d5ba7c12;pointer-events:none;z-index:-1}
+.hero{padding-top:32px;padding-bottom:64px}
+.hero h1,.heritage-hero h1{color:#fff5df;text-shadow:0 2px 20px #0b201d30;letter-spacing:-1.6px}
+.hero .eyebrow,.heritage-hero .eyebrow{color:#ddc38f;letter-spacing:2.8px}
+.hero-copy{color:#e1e2d4;line-height:1.8;font-size:16px;max-width:470px}
+.brand{color:#fff3dc}.brand span{color:#dac391}
+.moon-seal{position:relative;color:#e8cf94;border-color:#c5a9688c;background:radial-gradient(circle at 40% 30%,#c8b5770d,#071c1626);box-shadow:0 0 0 8px #193f3100,0 0 0 9px #d7bd7938,0 0 0 17px #d7bd7906,0 0 0 18px #d7bd7921,inset 0 0 28px #0c241c55;text-shadow:0 0 24px #ddc18b18}
+.moon-seal:after{content:"✧";position:absolute;right:12px;top:12px;font:21px Georgia;color:#ddc18b}
+.quiet-button{border-color:#d7bd7966;background:#ffffff04;color:#f5e5c3}
+.card{position:relative;background:linear-gradient(135deg,#fffef9,#fcfaf4);border-color:var(--line);border-radius:12px;box-shadow:0 5px 22px #314a3610,inset 0 0 0 4px #fffdf680;padding:32px}
+.card h3,.card h4{color:#244333;letter-spacing:-.4px}
+.access-card.verified{background:#e8ecdf;border-color:#d4dbc7;box-shadow:none}
+.access-card.verified p:before{content:"✧";color:#826735;margin-right:9px;font-size:15px}
+.next-card{background:radial-gradient(ellipse at 0 0,#ffffff09,transparent 70%),linear-gradient(125deg,#193e30,#284c37);border:1px solid #a58b55;color:#f7eddb;box-shadow:0 9px 28px #17372b20,inset 0 0 0 5px #bcaa7220}
+.next-card:after{content:"✧";position:absolute;right:22px;top:20px;color:#dac18b;font:22px Georgia;pointer-events:none}
+.next-card h3,.next-card h4{color:#fff3da;padding-right:14px}
+.next-card .eyebrow{color:#ddc38f}.next-card .muted{color:#d2d7c9}.next-card .text-button,.next-card .text-link{color:#e8cf9c}
+.next-card .badge{background:#f5e9ca12;color:#f5e9ca;border-color:#d7bd7966}
+.focus-card{background:linear-gradient(125deg,#f7efdf,#fffaf0);border-color:#ddcbaa}
+.eyebrow,.mini{color:#80683c;letter-spacing:2px}
+.focus-copy{font-family:Georgia,serif;color:#45523c;line-height:1.55}
+.program-heading{padding-top:26px;padding-bottom:16px}.program-heading h2{font-size:36px;letter-spacing:-.8px}
+.suite-nav{gap:5px;padding:6px;border:1px solid #dbd1ba;border-radius:10px;background:#ede9de;margin-bottom:30px;box-shadow:inset 0 1px 3px #6b623308}
+.suite-nav button,.suite-nav>a{border:1px solid transparent;border-radius:6px;padding:12px 22px;color:#4e604f;text-decoration:none;font-size:12px;letter-spacing:.35px}
+.suite-nav button[aria-pressed=true]{color:#f9edd2;background:linear-gradient(120deg,#214433,#18372b);border:1px solid #8c7950;font-weight:400;box-shadow:0 2px 6px #19372b16}
+.suite-nav>a:hover,.suite-nav button:not([aria-pressed=true]):hover{background:#fffdf675;color:#173c2c}
+.badge{border-color:#d4cfb7;background:#edeedf;color:#4d6048;font-size:10px;letter-spacing:.9px}
+.progress{background:#e8e5d6;box-shadow:inset 0 1px 3px #283b2510}.progress>span{background:linear-gradient(90deg,#436349,#9da474)}
+.metrics strong{color:#34563d}.metrics>div{border-color:#ded5bd}
+.session-number{color:#9a7c48;font-family:Georgia,serif}.session-card{box-shadow:0 3px 14px #314a3609}
+button:not(.quiet-button):not(.text-button):not([data-panel]),.button-link,.btn{background:linear-gradient(120deg,#2c503b,#193c2e);border:1px solid #72805a66;box-shadow:0 2px 5px #132d2112}
+.text-button,.text-link{color:#496544;text-underline-offset:4px}
+input,select,textarea{background:#fffef9;border-color:#cfc7b0}
+dialog{border-color:#bfa46e;box-shadow:0 25px 100px #0b201b55,inset 0 0 0 5px #b59b6420;background:#fcf9f0}
+footer{border-top-color:#cfc2a2;color:#65705d;padding-top:30px}
+@media(max-width:700px){.hero{padding-top:26px;padding-bottom:38px}.hero:before,.heritage-hero:before{inset:7px}.hero:after,.heritage-hero:after{inset:11px}.card{padding:24px}.program-heading h2{font-size:29px}.suite-nav button,.suite-nav>a{padding:11px 8px;text-align:center}.moon-seal:after{font-size:13px;right:4px;top:3px}.hero h1{letter-spacing:-1px}.next-card:after{right:17px;top:15px}}
