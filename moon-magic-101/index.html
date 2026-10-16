@@ -62,20 +62,20 @@ button:disabled{opacity:.55;cursor:wait}
     <p class="note" id="dayNote">Use the day you just discovered in Track Your Cycle. Day 1 is your first day of full flow.</p>
   </div>
  </div>
- <label class="check"><input type="checkbox" name="class_consent" required><span>Yes, include my cycle day (or moon-tracking choice) on the classroom medicine wheel. My name and email will be saved privately for this class; they will not be shown on the public wheel without my permission.</span></label>
- <label class="check"><input type="checkbox" name="show_name"><span>It's okay to show my <strong>first name</strong> on the classroom projection.</span></label>
+ <label class="check"><input type="checkbox" name="class_consent" required><span>Yes, show my <strong>first name</strong> and cycle day (or moon-tracking choice) on our classroom medicine wheel. My full name and email stay private and are never shown on the projected screen.</span></label>
+ 
  <label class="check"><input type="checkbox" name="email_updates"><span>I'd like to receive Moon Magic resources and invitations by email. <em>Optional.</em></span></label>
  <input name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px">
  <button id="join" type="submit">Join the Moon Magic Room →</button>
  <p id="status" role="status" aria-live="polite"></p>
 </form>
-<p class="fine">No Flowtel login or password is needed. This guest check-in does not create a Queendom or Guest House account.</p>
+<p class="fine">Your first name appears automatically beside your cycle position on our classroom screen. No Flowtel login or password is needed. This check-in does not create a Queendom or Guest House account.</p>
 </div>
 <div id="resultArea" class="result" hidden>
  <span class="badge">You’re in the room ✦</span>
  <h2 id="welcome">Welcome to Moon Magic 101</h2>
  <p id="seasonResult">Your place has been added to the collective medicine wheel.</p>
- <p>Look up at the classroom screen to see how our individual seasons come together under one moon.</p>
+ <p>Look up at the classroom screen to find your name and see how our individual seasons come together under one moon.</p>
  <div class="line"></div>
  <p class="eyebrow">Take your practice home</p>
  <p>Want your Flow Map to remember you? Explore the Queendom, where your cycle tracking and reflections become a living practice.</p>
@@ -115,7 +115,7 @@ form.addEventListener('submit',async function(event){
  const name=String(f.get('guest_name')||'').trim();
  const payload={room_slug:ROOM,guest_token:token,guest_name:name,email:String(f.get('email')||'').trim(),
    tracking_method:moon?'moon-no-period':'bleed',selected_cycle_day:cycleDay,
-   consent:f.get('class_consent')==='on',show_first_name:f.get('show_name')==='on',
+   consent:f.get('class_consent')==='on',show_first_name:true,
    email_updates_opt_in:f.get('email_updates')==='on',website:String(f.get('website')||'')};
  button.disabled=true;status.textContent='Opening your place in the classroom...';
  try{
