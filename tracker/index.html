@@ -1648,6 +1648,12 @@
 </head>
 <body>
   <main class="tracker-shell">
+    <section id="classRoomBanner" hidden style="max-width:880px;margin:0 auto 20px;padding:21px 23px;border:1px solid #d4bc88;border-radius:25px;text-align:center;background:#fffaf0">
+      <p class="tracker-eyebrow" style="margin:0 0 6px">Flowtel · Moon Magic 101</p>
+      <h2 style="font-weight:normal;margin:0 0 9px;font-size:25px">Welcome to the Moon Magic Room</h2>
+      <p style="font-size:14px;line-height:1.5;margin:0">Discover your personal place on the wheel. With your permission, your anonymous position will also appear on the classroom projection.</p>
+      <p id="classRoomSharingMessage" role="status" style="font-size:13px;line-height:1.5;color:#6d6e4b;margin:12px auto 0"></p>
+    </section>
     <section id="cycleTrackerApp" class="tracker-card cycle-widget cycle-widget-refined">
       <div class="tracker-ritual-intro">
         <img class="tracker-scarab tracker-scarab-compact" src="../assets/queendom-scarab-sundisk-transparent.png" alt="" aria-hidden="true">
@@ -1718,6 +1724,8 @@
 
   <script>
     (function(){
+      const classRoomActive = new URLSearchParams(location.search).get("class_room") === "moon-magic-101-2026-10-16";
+      if(classRoomActive)document.getElementById("classRoomBanner").hidden=false;
       let currentStep = 1;
       let screenHistory = ["cycleQuestion1"];
       let pendingResultReason = "";
@@ -1753,6 +1761,36 @@
           source_page: trackerSource(),
           ...detail,
         };
+        // Explicit opt-in only: separate classroom registration, never a Flowtel stay.
+        if (eventType === "tracker_submit" &&
+            new URLSearchParams(location.search).get("class_room") === "moon-magic-101-2026-10-16") {
+          let consent = false;
+          try { consent = sessionStorage.getItem("flowtel:moon-magic-101:consent") === "yes"; } catch(e){}
+          if (consent) {
+            let token = "";
+            try {
+              token = localStorage.getItem("flowtel:moon-magic-101:guest-token") || "";
+              if (!token) {
+                token = crypto.randomUUID();
+                localStorage.setItem("flowtel:moon-magic-101:guest-token", token);
+              }
+            } catch(e) { token = crypto.randomUUID(); }
+            const message = document.getElementById("classRoomSharingMessage");
+            if(message)message.textContent = "Adding your anonymous place to tonight's classroom wheel...";
+            fetch("/api/moon-magic-class", {
+              method:"POST",headers:{"Content-Type":"application/json"},
+              body:JSON.stringify({room_slug:"moon-magic-101-2026-10-16",
+                guest_token:token,tracking_method:detail.tracking_method,
+                selected_cycle_day:detail.selected_cycle_day ?? null,consent:true})
+            }).then(async response=>{
+              const result=await response.json();
+              if(!response.ok)throw Error(result.error||"Classroom could not be updated.");
+              if(message)message.textContent = "Your anonymous place has been added to the Moon Magic Room. Thank you for joining our collective wheel.";
+            }).catch(error=>{
+              if(message)message.textContent = "Your personal cycle result is ready, but the classroom wheel could not update. "+error.message;
+            });
+          }
+        }
         try{
           const body = JSON.stringify(payload);
           if(navigator.sendBeacon){

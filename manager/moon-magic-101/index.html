@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Moon Magic 101 · Collective Wheel | Flowtel Concierge</title>
+<style>
+:root{--cream:#fbf8f0;--ivory:#fffdf9;--ink:#493e32;--gold:#bd9551;--line:#dccaa8;--muted:#8c7b6a}
+*{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:Georgia,serif;background:radial-gradient(circle at 50% -5%,#fff 4%,transparent 60%),linear-gradient(#faf6ed,#f0e6d7);min-height:100vh}
+main{width:min(1300px,96vw);margin:auto;padding:28px 0 60px}.small{font:700 11px Arial,sans-serif;letter-spacing:.23em;text-transform:uppercase;color:#977849}
+header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5vw,63px);font-weight:normal;line-height:1.05;margin:13px 0 9px}header p{font-size:17px;margin:0 auto;max-width:650px;line-height:1.4}
+.topnav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}.topnav a{font:13px Arial,sans-serif;color:#675640;text-decoration:none}
+.panel{background:rgba(255,253,248,.92);border:1px solid var(--line);border-radius:26px;box-shadow:0 25px 60px #6d52351a;padding:clamp(14px,3vw,36px)}
+.layout{display:grid;grid-template-columns:minmax(320px,1fr) minmax(260px,315px);gap:30px;align-items:center}
+.wheel-shell{position:relative;width:min(100%,660px);aspect-ratio:1;margin:auto;border:1px solid #f0e5ce;border-radius:50%;background:radial-gradient(circle,#fffdf8 15%,#f8f1e5 80%,#fbf8f1 100%)}
+.ring{position:absolute;border:2px solid #cba45c;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;pointer-events:none}
+.ring.outer{width:87%;height:87%}.ring.inner{width:70%;height:70%}
+.rose{position:absolute;width:39%;height:39%;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%);opacity:.83}
+.direction{position:absolute;font:700 10px Arial,sans-serif;letter-spacing:.18em;color:#a18453}.north{top:4%;left:50%;transform:translateX(-50%)}.south{bottom:3.2%;left:50%;transform:translateX(-50%)}.west{left:2.5%;top:50%;transform:translateY(-50%)}.east{right:2.5%;top:50%;transform:translateY(-50%)}
+.day{position:absolute;transform:translate(-50%,-50%);width:clamp(23px,3.6vw,40px);height:clamp(23px,3.6vw,40px);border:1px solid #c9a35c;border-radius:50%;display:grid;place-items:center;background:#fffdfa;color:#82663c;font-size:clamp(10px,1.6vw,15px);font-family:Georgia,serif}
+.day.active{background:#59634d;color:#fff;border:2px solid #ddbb6b;box-shadow:0 0 0 5px #dcbd6c44;z-index:2}.day b{font:700 11px Arial,sans-serif;position:absolute;right:-9px;top:-12px;background:#b7904e;color:#fff;padding:4px 6px;border-radius:20px;min-width:24px}
+.seasons{display:grid;grid-template-columns:1fr 1fr;gap:13px}.season{padding:17px;border:1px solid #e7d8bc;border-radius:16px;background:#fffaf2}.season h3{font-weight:normal;font-size:21px;margin:5px 0}.season .count{font-size:32px;color:#6b7154}.season p{font:12px Arial,sans-serif;color:var(--muted);line-height:1.5;margin:6px 0}
+.metric{text-align:center;padding:18px;border:1px solid #e1d0af;border-radius:16px;margin:0 0 17px;background:#fffaf0}.metric strong{display:block;font:normal 58px Georgia,serif;color:#657255}.metric span{font:12px Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+.moon-track{margin-top:16px;background:#f0e9da;border-radius:15px;padding:18px;font-size:15px;line-height:1.5}.moon-track strong{font-size:24px;color:#6b7154}
+.status{font:13px Arial,sans-serif;color:var(--muted);text-align:center;line-height:1.4;min-height:22px;margin:14px auto}
+.foot{font:14px Arial,sans-serif;text-align:center;line-height:1.5;color:#7e6a57;padding:25px 0}.foot a{color:#5c624d}
+#locked{display:none;text-align:center;padding:25px;margin:auto;max-width:540px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.seasons{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:620px){.seasons{grid-template-columns:1fr 1fr}.day{width:23px;height:23px;font-size:10px}.day b{font-size:9px;padding:2px 4px;right:-7px;top:-9px}}
+</style>
+</head>
+<body><main>
+<div class="topnav"><a href="/manager/">← Concierge Desk</a><span class="small">Owner Projection Room</span></div>
+<header><div class="small">Flowtel · October 16, 2026</div><h1>One Moon, Many Inner Seasons</h1><p>As we gather under the same moon, each woman is moving through her own season.</p></header>
+<section class="panel" id="experience">
+<div class="layout">
+ <div class="wheel-shell" aria-label="Collective 28-day medicine wheel">
+  <div class="ring outer"></div><div class="ring inner"></div>
+  <img class="rose" src="/assets/rose_compass_center.png" alt="" aria-hidden="true">
+  <span class="direction north">NORTH</span><span class="direction east">EAST</span><span class="direction south">SOUTH</span><span class="direction west">WEST</span>
+  <div id="days"></div>
+ </div>
+ <div>
+  <div class="metric"><strong id="total">—</strong><span>Women sharing their place</span></div>
+  <div class="seasons">
+   <div class="season"><span class="small">Inner Winter</span><h3>New Moon</h3><div class="count" id="Winter">0</div><p>Days 27–5</p></div>
+   <div class="season"><span class="small">Inner Spring</span><h3>Waxing</h3><div class="count" id="Spring">0</div><p>Days 6–11</p></div>
+   <div class="season"><span class="small">Inner Summer</span><h3>Full Moon</h3><div class="count" id="Summer">0</div><p>Days 12–19</p></div>
+   <div class="season"><span class="small">Inner Autumn</span><h3>Waning</h3><div class="count" id="Autumn">0</div><p>Days 20–26</p></div>
+  </div>
+  <div class="moon-track"><span class="small">Following the moon</span><br><strong id="moonTrackers">0</strong> women are tracking lunar rhythms instead of a known cycle day.</div>
+ </div>
+</div>
+<p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
+</section>
+<section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
+<div class="foot">Each gold marker represents an anonymous classroom position. No names or menstrual start dates are shared.<br><a href="/moon-magic-101/">Guest QR entrance</a></div>
+</main>
+<script type="module">
+import {supabase} from '/shared/supabase.js';
+const ROOM='moon-magic-101-2026-10-16';
+const wheel=document.getElementById('days');
+const markers=[];
+for(let day=1;day<=28;day++){
+ const marker=document.createElement('span');
+ marker.className='day';marker.textContent=day===28?'28+':String(day);
+ marker.setAttribute('aria-label','Cycle day '+(day===28?'28 and later':day));
+ const angle=(180+360/56+(day-1)*360/28)*Math.PI/180;
+ marker.style.left=(50+39.5*Math.cos(angle))+'%';
+ marker.style.top=(50-39.5*Math.sin(angle))+'%';
+ wheel.appendChild(marker);markers.push(marker);
+}
+let timer=null;
+let inFlight=false;
+const status=document.getElementById('status');
+function locked(message){
+ document.getElementById('experience').hidden=true;
+ document.getElementById('locked').style.display='block';
+ document.getElementById('lockedMessage').textContent=message;
+ if(timer)clearInterval(timer);
+}
+async function refresh(){
+ if(inFlight)return;inFlight=true;
+ try{
+  const session=(await supabase.auth.getSession()).data.session;
+  if(!session?.access_token){locked('Sign into Flowtel with your owner account before opening the projection room.');return;}
+  const response=await fetch('/api/moon-magic-class?room='+encodeURIComponent(ROOM),{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+  const body=await response.json();
+  if(!response.ok){
+   if(response.status===401||response.status===403){locked(body.error||'Owner authorization required.');return;}
+   throw new Error(body.error||'The wheel could not refresh.');
+  }
+  document.getElementById('total').textContent=String(body.total||0);
+  document.getElementById('moonTrackers').textContent=String(body.moon_trackers||0);
+  for(const season of ['Winter','Spring','Summer','Autumn'])document.getElementById(season).textContent=String(body.seasons?.[season]||0);
+  (body.days||[]).forEach(function(entry,i){
+    const marker=markers[i];if(!marker)return;
+    const count=Number(entry.count)||0;
+    marker.classList.toggle('active',count>0);
+    marker.replaceChildren(document.createTextNode(i===27?'28+':String(i+1)));
+    if(count){const tag=document.createElement('b');tag.textContent=String(count);marker.appendChild(tag);}
+    marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests');
+  });
+  status.textContent='Live classroom wheel · updates every 5 seconds';
+ }catch(e){status.textContent=e.message||'Refresh failed; reconnecting...';}
+ finally{inFlight=false}
+}
+await refresh();
+if(document.getElementById('locked').style.display!=='block')timer=setInterval(refresh,5000);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
+</script>
+</body></html>

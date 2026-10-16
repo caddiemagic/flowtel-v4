@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#f9f6ef">
+<title>Moon Magic Room | Flowtel</title>
+<style>
+:root{--ink:#4f4036;--muted:#8d786a;--gold:#bd9850;--pale:#faf5eb;--pink:#f5e9df}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Georgia,serif;color:var(--ink);background:radial-gradient(ellipse at 50% -10%,#fff 5%,transparent 66%),linear-gradient(165deg,#faf7f1,#f5ede4)}
+main{width:min(94%,600px);margin:0 auto;padding:32px 0 54px;text-align:center}
+article{border:1px solid #d8c9aa;border-radius:25px;padding:33px 28px 36px;background:rgba(255,253,248,.95);box-shadow:0 22px 60px #77604e19}
+.eyebrow{font:700 11px Arial,sans-serif;letter-spacing:.25em;text-transform:uppercase;color:#a88552}
+.rose{width:105px;height:105px;object-fit:contain;margin:8px auto 15px}
+h1{font-size:clamp(36px,10vw,61px);line-height:1;letter-spacing:.015em;font-weight:normal;margin:12px 0 10px}
+h2{font-size:23px;line-height:1.25;font-weight:normal}
+.intro{max-width:390px;margin:12px auto 27px;font-size:17px;line-height:1.5}
+.line{height:1px;width:80px;background:var(--gold);margin:28px auto}
+.bodycopy{font-size:15px;line-height:1.65;color:var(--muted);text-align:left}
+.privacy{display:flex;gap:11px;text-align:left;align-items:flex-start;padding:17px;background:var(--pale);border:1px solid #e6d9c6;border-radius:15px;margin:24px 0 17px;font:14px/1.55 Arial,sans-serif}
+.privacy input{width:18px;height:18px;accent-color:#a3864c;flex:none;margin-top:3px}
+button,.alt{display:block;width:100%;border-radius:100px;padding:17px 18px;font:700 12px Arial,sans-serif;letter-spacing:.13em;text-transform:uppercase;text-decoration:none;cursor:pointer}
+button{background:#5d6650;color:#fff;border:1px solid #5d6650;transition:opacity .2s}button:disabled{opacity:.42;cursor:not-allowed}
+.alt{border:1px solid #d9cab0;background:#fff;color:var(--ink);margin-top:12px}
+.fine{font:12px/1.6 Arial,sans-serif;color:var(--muted);margin:17px 0 0}
+.footer{margin:24px auto;font:12px/1.7 Arial,sans-serif;color:#8b7669}
+.footer a{color:#68553f}
+@media(max-width:480px){article{padding:26px 19px}.intro{font-size:16px}}
+</style>
+</head>
+<body>
+<main>
+ <article>
+  <p class="eyebrow">Flowtel · Moon Magic 101</p>
+  <img class="rose" src="/assets/rose_compass_center.png" alt="" aria-hidden="true">
+  <h1>The Moon Magic Room</h1>
+  <p class="intro">One moon. Many inner seasons. A room full of women, each moving through her own rhythm.</p>
+  <div class="line"></div>
+  <p class="eyebrow">Your invitation</p>
+  <h2>Find your place on the medicine wheel.</h2>
+  <p class="bodycopy">Take the Track Your Cycle experience to learn your cycle day, Inner Season, and relationship with the moon. If you choose to participate, an anonymous marker will join tonight's collective wheel.</p>
+  <p class="bodycopy">Don't know your cycle day, or don't have a menstrual cycle? You can follow the moon instead. You are welcome here, too.</p>
+  <label class="privacy"><input id="consent" type="checkbox"><span>Yes, include my anonymous cycle position on the classroom wheel. I understand that the group will see positions and counts, <strong>not</strong> names, period dates, or individual accounts.</span></label>
+  <button type="button" id="start" disabled>Find my place on the wheel →</button>
+  <a class="alt" href="/tracker/">Explore my cycle privately instead</a>
+  <p class="fine">Joining the classroom wheel is optional. The tracker works without an account.</p>
+ </article>
+ <div class="footer"><span>Take the magic home with you.</span> <a href="https://www.theidyllcollective.com/queendomhome">Explore the Queendom</a></div>
+</main>
+<script>
+(function(){
+ const consent=document.getElementById('consent');
+ const start=document.getElementById('start');
+ consent.addEventListener('change',function(){start.disabled=!consent.checked});
+ start.addEventListener('click',function(){
+   if(!consent.checked)return;
+   try{sessionStorage.setItem('flowtel:moon-magic-101:consent','yes')}catch(e){}
+   location.assign('/tracker/?class_room=moon-magic-101-2026-10-16');
+ });
+})();
+</script>
+</body>
+</html>
