@@ -1,4 +1,13 @@
 const test=require('node:test'),assert=require('node:assert/strict');const {start}=require('./test-harness.cjs');
+test('monthly focus retrieval is owner-only and limited to the requested client and month',async()=>{
+ const h=await start();
+ try{
+  h.tables.monthly_focus.push({enrollment_id:h.ids.enrollment,focus_month:'2026-10-01',client_visible_focus:'Saved October',private_mentor_notes:'PRIVATE-NOTES'},{enrollment_id:h.ids.enrollment,focus_month:'2026-11-01',client_visible_focus:'Other month'});
+  const get=role=>fetch(h.origin+'/api/caddie-acuity?mentorship=owner&focusFor='+h.ids.enrollment+'&month=2026-10-01',{headers:{Authorization:'Bearer '+role}});
+  assert.equal((await get('a')).status,403);assert.equal((await get('b')).status,403);
+  const response=await get('owner');assert.equal(response.status,200);assert.deepEqual((await response.json()).focus,{month:'2026-10-01',focus:'Saved October'});
+ }finally{await h.close();}
+});
 test('fictional owner and two clients: HTTP session lifecycle, private upload, focus, playback and isolation',async()=>{
  const h=await start();const {enrollment,session}=h.ids;
  async function request(role,kind,body,query=''){const res=await fetch(h.origin+'/api/caddie-acuity?mentorship='+kind+query,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+role,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return {status:res.status,data:await res.json()}}

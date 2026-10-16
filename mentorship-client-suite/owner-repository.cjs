@@ -44,6 +44,16 @@ async function saveClientFocus(ctx,{enrollmentId,month,focus}){
  if(!Array.isArray(result)||result.length!==1)throw Error('Monthly focus save was not confirmed');
  return result[0];
 }
+async function getClientFocus(ctx,{enrollmentId,month}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ if(!/^\d{4}-(0[1-9]|1[0-2])-01$/.test(String(month||'')))throw failure('Month must use YYYY-MM-01',400);
+ const enrolled=await fetchJson(url(ctx,'enrollments','select=id&id=eq.'+enrollmentId+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(enrolled)||enrolled.length!==1)throw failure('Enrollment not found',404);
+ const rows=await fetchJson(url(ctx,'monthly_focus','select=focus_month,client_visible_focus&enrollment_id=eq.'+enrollmentId+'&focus_month=eq.'+month+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(rows))throw Error('Monthly focus could not be loaded');
+ return rows.length?{month:rows[0].focus_month,focus:rows[0].client_visible_focus}:null;
+}
+
 
 async function listEnrollments(ctx){
  ownerContext(ctx);
@@ -137,4 +147,4 @@ async function setSessionTime(ctx,{enrollmentId,sessionId,scheduledAt}){
  if(!Array.isArray(records)||records.length!==1)throw failure('This session changed while you were editing. Refresh its details and try again.',409);
  return records[0];
 }
-module.exports={listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime};
+module.exports={getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime};

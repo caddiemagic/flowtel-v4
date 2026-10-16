@@ -5,7 +5,7 @@ const guards=require('./request.cjs');
 const verification=require('./development-check.cjs');
 // Owner handler routed through the existing caddie-acuity mentorship dispatcher.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
+const {getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -15,6 +15,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
   guards.authenticated(req);
   const ctx=await requireOwner(req);
   if(req.method==='GET'){
+   if(req.query?.focusFor)return res.status(200).json({ok:true,focus:await getClientFocus(ctx,{enrollmentId:req.query.focusFor,month:req.query.month})});
    if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
    if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
    if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});

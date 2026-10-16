@@ -70,3 +70,9 @@ Added All / Upcoming and to be arranged / Session history filters in My Calls, i
 ## Preview route collision correction
 
 The owner's screenshot revealed Vercel cleanUrls was resolving `/mentorship-client-suite/client-suite-preview/` to the older sibling `client-suite-preview.html`, ahead of the new directory index. Renamed the older prototype to `client-suite-preview-legacy.html`, preserving it while removing the collision. The test server now models extensionless HTML precedence and the browser journey asserts the updated navigation and luxury stylesheet at the canonical preview URL. All 80 automated tests and the browser journey passed locally. No Vercel project settings or shared routes were changed.
+
+## Owner monthly focus editing — October 16, 2026
+
+Added an owner-only lookup scoped to one enrollment and calendar month. It returns only the saved client-visible text and month. The owner editor now loads existing focus, uses the Pacific calendar month by default, blocks saving until loading succeeds, retains unsaved edits in session memory across client/month changes, ignores stale responses, and clears drafts on sign-out. No browser storage, migrations, shared auth/product changes, or live-client writes were introduced. A read-only empty-result query verified the existing live columns without reading client notes.
+
+83 automated tests passed. The expanded Chromium journey reopens a saved month, restores an unsaved draft after month switching, and verifies a deliberately delayed old-month response cannot replace the current editor. The new API is also tested for owner-only access, scope, invalid identifiers/months, missing enrollment, and exclusion of private mentor notes. These new endpoint checks run against fictional services; they do not claim an owner-authenticated live test of the newly deployed editor.

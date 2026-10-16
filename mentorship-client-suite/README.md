@@ -36,13 +36,13 @@ Signed playback links remain usable for up to five minutes after hiding a record
 
 ## Connected client dashboard
 
-`my-mentorship/` now uses the shared dashboard layout with four rooms: My Suite, My Calls, My Recordings and My Flow. The single-enrollment case opens automatically. Program titles come from a restricted projection of the enrollment offering snapshot; the full snapshot is not sent to the client. The dashboard selects the current Pacific month focus and excludes historical calls from the next-call card. Recorded cycle information is explicitly dated and fetched through the existing consent-aware RPC using the client's JWT. Existing check-in behavior is unchanged.
+`my-mentorship/` opens My Dashboard. My Suite links directly to `/client/?suite=1`; My Flow links directly to `/flow-map/`. My Calls combines upcoming sessions, session history and the private replay library. The single-enrollment case opens automatically. Program titles come from a restricted projection of the enrollment offering snapshot; the full snapshot is not sent to the client. The dashboard selects the current Pacific month focus and excludes historical calls from the next-call card. Recorded cycle information is explicitly dated and fetched through the existing consent-aware RPC using the client's JWT. Existing check-in behavior is unchanged.
 
 Zoom links are shown only for confirmed sessions linked to a scheduled external appointment belonging to that client, and only HTTPS Zoom hosts are accepted. This does not create or synchronize appointments.
 
 `client-suite-preview/` uses the identical rendering code with an explicitly fictional, in-memory adapter. It does not load real authentication, fetch client data, send invitations, book appointments, or play real recordings. Use it to review the layout without a client account.
 
-Current dashboard verification: 61 unit/security/HTTP tests and the owner/client A/client B Playwright journey passed locally, including the fictional dashboard and mobile overflow check. Desktop and mobile screenshots were visually inspected. Real protected deployment verification remains subject to the previously recorded Vercel connection restriction.
+The owner-triggered live Supabase diagnostic passed, including temporary account creation, private upload/media delivery, cross-client isolation, and cleanup; the owner supplied the successful report screenshot. Automated Vercel browser access remains restricted. Current automated results and the exact verification scope are recorded in LAUNCH-VERIFICATION.md.
 
 ## Session details and calendar downloads
 
@@ -60,3 +60,7 @@ The owner can list matching existing Flowtel appointment records, link one to a 
 No requests create, cancel, reschedule, or import appointments in Acuity. This increment does not add service types or change shared scheduling configuration. It uses appointments already received into Flowtel. Once linked, clients read the saved appointment's latest time/status and safe Zoom location, with ownership and class checks repeated. Wrong-class or unavailable appointments do not display a stale confirmed time or Zoom link. Manual time edits require unlinking first.
 
 76 automated tests and the expanded fictional owner/client browser journey passed locally.
+
+## Owner monthly focus editing
+
+The owner desk loads the saved client-visible focus for the selected enrollment and Pacific calendar month. An enrollment/month-scoped read returns only month and client-visible text after owner authorization. Unsaved edits are retained in memory while switching months or clients, then cleared on sign-out; they are not stored in browser storage. Stale lookup responses cannot fill another client/month editor, and saving is disabled until the requested month loads. No schema migration or product-access change is needed.

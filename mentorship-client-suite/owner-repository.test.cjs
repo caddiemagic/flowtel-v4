@@ -5,6 +5,7 @@ const user='11111111-1111-4111-8111-111111111111';
 const offering='22222222-2222-4222-8222-222222222222';
 const enrollment='33333333-3333-4333-8333-333333333333';
 const ctx={user:{id:user},supabaseUrl:'https://example.supabase.co',serviceKey:'fake-test-key'};
+const {getClientFocus}=require('./owner-repository.cjs');
 async function mockFetch(responses,run){
  const original=global.fetch; const requests=[];
  global.fetch=async (url,opts={})=>{
@@ -33,6 +34,15 @@ test('reject invalid client email before any database access',async()=>{
 });
 test('owner context is required before reading offerings',async()=>{
  await assert.rejects(listOfferings({}),/Verified owner context required/);
+});
+test('saved focus read validates scope and returns only client-visible text',async()=>{
+ const {result,requests}=await mockFetch([[{id:enrollment}],[{focus_month:'2026-10-01',client_visible_focus:'Receiving',private_mentor_notes:'never return'}]],()=>getClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-01'}));
+ assert.deepEqual(result,{month:'2026-10-01',focus:'Receiving'});assert.match(requests[1].url,new RegExp('enrollment_id=eq.'+enrollment));assert.match(requests[1].url,/focus_month=eq.2026-10-01/);assert.match(requests[1].url,/limit=1/);
+});
+test('invalid focus lookup is rejected before network and missing enrollment stops lookup',async()=>{
+ const {requests}=await mockFetch([],async()=>{await assert.rejects(getClientFocus({},{}));await assert.rejects(getClientFocus(ctx,{enrollmentId:enrollment,month:'2026-13-01'}));await assert.rejects(getClientFocus(ctx,{enrollmentId:'not-an-id',month:'2026-10-01'}));});assert.equal(requests.length,0);
+ const missing=await mockFetch([[]],()=>assert.rejects(getClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-01'}),{statusCode:404}));assert.equal(missing.requests.length,1);
+ const empty=await mockFetch([[{id:enrollment}],[]],()=>getClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-01'}));assert.equal(empty.result,null);
 });
 test('focus save updates only client-visible field, never private notes',async()=>{
  const {result,requests}=await mockFetch([[{id:enrollment}],[{enrollment_id:enrollment,focus_month:'2026-10-01',client_visible_focus:'Practice receiving'}]],()=>saveClientFocus(ctx,{enrollmentId:enrollment,month:'2026-10-01',focus:'Practice receiving'}));

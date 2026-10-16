@@ -21,13 +21,15 @@ p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-s
 <section class="card" id="detail" hidden><h2>Manage mentorship</h2><p id="selected"></p>
 <form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label>Program end · calculated automatically</label><p id="ends" class="note">Choose a start date to see the end date.</p></div></div><button id="saveDates" type="submit">Save program dates</button></form><div><h3>Included sessions</h3><p class="small">Prepare the session list from the chosen program; no appointments are booked. Past session dates are supported when entering client history.</p><button id="makeSessions" type="button">Prepare included sessions</button><div id="sessionList"></div></div><div id="preparePanel"><h3>Prepare private access</h3><p class="small">After preparing access, the client may sign into the development Client Suite with a verified Flowtel account using this exact email. No invitation email is sent.</p><button id="prepare" type="button">Prepare access (no email sent)</button></div>
 <form id="focusForm"><label for="month">Monthly focus · month</label><input type="month" id="month" required>
-<label for="focus">Client-visible focus</label><textarea id="focus" maxlength="5000" required></textarea><button type="submit">Save monthly focus</button></form><p id="detailStatus" role="status"></p></section>
+<label for="focus">Client-visible focus</label><textarea id="focus" maxlength="5000" required></textarea><button type="submit" id="saveFocus" disabled>Save monthly focus</button><p id="focusStatus" role="status" class="small"></p></form><p id="detailStatus" role="status"></p></section>
 </main>
 <script type="module">
 import {supabase} from '../../shared/supabase.js';
+import {flowtelTodayISO} from '../../shared/flowtel-date.js';
 import {pacificTimestamp} from '../pacific-time.mjs';
 const $=id=>document.getElementById(id);
 let token=null,offerings=[],enrollments=[],selected=null;
+let focusVersion=0,focusKey=null;const focusDrafts=new Map();
 function msg(id,message,isError=false){const node=$(id);node.textContent=message;node.className=isError?'error':'success'}
 async function request(method='GET',body=null,query=''){
  const {data:auth,error:authError}=await supabase.auth.getSession();if(authError)throw authError;token=auth.session?.access_token;
@@ -79,7 +81,7 @@ function open(item){selected=item;$('detail').hidden=false;$('selected').textCon
  $('prepare').disabled=!item.starts_on;
  $('makeSessions').disabled=!['draft','invited'].includes(item.status);
  loadSessions(item.id);
- $('saveDates').textContent=item.status==='draft'?'Save program dates':'Only draft enrollments can be edited';$('month').value=new Date().toISOString().slice(0,7);$('focus').value='';$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
+ $('saveDates').textContent=item.status==='draft'?'Save program dates':'Only draft enrollments can be edited';$('month').value=flowtelTodayISO().slice(0,7);loadFocus();$('detail').scrollIntoView({behavior:'smooth'});msg('detailStatus','')}
 $('refresh').addEventListener('click',connect);
 $('verifyDevelopment').addEventListener('click',async()=>{
  const button=$('verifyDevelopment');button.disabled=true;$('verificationResults').replaceChildren();$('verificationCleanup').hidden=true;
@@ -142,10 +144,31 @@ async function renderRecordings(root,enrollmentId,sessionId){
 }
 $('makeSessions').addEventListener('click',async()=>{if(!selected)return;$('makeSessions').disabled=true;try{const result=await request('POST',{action:'prepare-sessions',enrollmentId:selected.id});msg('detailStatus',result.created?'Included sessions created. No bookings were made.':'Existing session plan loaded.');await loadSessions(selected.id)}catch(error){msg('detailStatus',error.message,true)}finally{$('makeSessions').disabled=false}});
 $('prepare').addEventListener('click',async()=>{if(!selected||selected.status!=='draft')return;$('prepare').disabled=true;try{await request('POST',{action:'prepare-access',enrollmentId:selected.id});await connect();msg('detailStatus','Access prepared. No email sent. Client can claim with their verified Flowtel email.')}catch(error){msg('detailStatus',error.message,true);$('prepare').disabled=false}});
+async function loadFocus(){
+ const version=++focusVersion,id=selected?.id,month=$('month').value;
+ focusKey=id&&month?id+'/'+month:null;$('focus').value='';$('focus').disabled=true;$('saveFocus').disabled=true;
+ if(!focusKey){msg('focusStatus','Choose a client and month.');return;}
+ const key=focusKey;msg('focusStatus','Loading saved focus…');
+ try{
+  const draft=focusDrafts.get(key);const result=draft===undefined?await request('GET',null,'&focusFor='+encodeURIComponent(id)+'&month='+encodeURIComponent(month+'-01')):null;
+  if(version!==focusVersion||selected?.id!==id)return;
+  $('focus').value=draft===undefined?(result.focus?.focus||''):draft;
+  $('focus').disabled=false;$('saveFocus').disabled=false;
+  msg('focusStatus',draft!==undefined?'Unsaved changes restored.':result.focus?'Saved focus loaded.':'No focus saved for this month yet.');
+ }catch(error){if(version===focusVersion)msg('focusStatus','Could not load saved focus. Choose the month again to retry. '+error.message,true);}
+}
+$('month').addEventListener('change',loadFocus);
+$('focus').addEventListener('input',()=>{if(focusKey){focusDrafts.set(focusKey,$('focus').value);msg('focusStatus','Unsaved changes.');}});
 $('focusForm').addEventListener('submit',async e=>{
- e.preventDefault();if(!selected)return;
- try{await request('POST',{action:'save-focus',enrollmentId:selected.id,month:$('month').value+'-01',focus:$('focus').value});msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.')}catch(error){msg('detailStatus',error.message,true)}
+ e.preventDefault();if(!selected||$('saveFocus').disabled)return;
+ const id=selected.id,month=$('month').value,key=focusKey,text=$('focus').value;
+ $('saveFocus').disabled=true;
+ try{await request('POST',{action:'save-focus',enrollmentId:id,month:month+'-01',focus:text});
+  if(focusDrafts.get(key)===text)focusDrafts.delete(key);
+  if(focusKey===key){msg('focusStatus',focusDrafts.has(key)?'Earlier version saved. Your new changes are still unsaved.':'Monthly focus saved.');msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.');}
+ }catch(error){if(focusKey===key)msg('focusStatus',error.message,true);}
+ finally{if(focusKey===key)$('saveFocus').disabled=false;}
 });
-supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
+supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){focusVersion++;focusKey=null;focusDrafts.clear();$('focusStatus').textContent='';$('saveFocus').disabled=true;$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
 connect();
 </script></body></html>
