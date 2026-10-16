@@ -4,11 +4,17 @@ const supabase=fictionalPreview?demo.demoAuth:(await import('../../shared/supaba
 import {getMoonMagic} from '../../shared/moon.js';
 import {flowtelTodayISO,formatDateOnly} from '../../shared/flowtel-date.js';
 import {dashboardModel,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
+import {sessionCalendar} from '../session-calendar.mjs';
 const $=id=>document.getElementById(id),base='/api/caddie-acuity?mentorship=client';
-let epoch=0,selection=null,account=null;
+let epoch=0,selection=null,account=null,currentSuite=null,currentVersion=0;
+const panels=['home','calls','recordings','flow'];
+let activePanel=panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
+function stopPlayers(){for(const media of document.querySelectorAll('video,audio'))media.pause();}
 function element(tag,text,cls=''){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function empty(root,text){root.replaceChildren(element('p',text,'empty'));}
-function room(name){for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}}
+function room(name,writeHistory=true){if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}}
+window.addEventListener('popstate',()=>room(location.hash.slice(1),false));
+window.addEventListener('hashchange',()=>room(location.hash.slice(1),false));
 for(const button of document.querySelectorAll('[data-panel]'))button.onclick=()=>room(button.dataset.panel);
 for(const button of document.querySelectorAll('[data-open]'))button.onclick=()=>{room(button.dataset.open);$(button.dataset.open).scrollIntoView({behavior:'smooth',block:'start'});};
 async function request(params='',body=null){
@@ -19,7 +25,9 @@ async function request(params='',body=null){
  const json=await res.json().catch(()=>({}));if(!res.ok)throw Object.assign(Error(res.status===404?'This mentorship is not available to this account.':json.error||'Your suite could not load. Please try again.'),{status:res.status});return json;
 }
 function clearPrivate(){
- epoch++;selection=null;
+ stopPlayers();if($('sessionDialog').open)$('sessionDialog').close();
+ epoch++;selection=null;currentSuite=null;
+ $('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
  for(const id of ['enrollments','prepared','sessions','focus','replays','nextCall'])$(id).replaceChildren();
  for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','programStatus','progressNote'])$(id).textContent='';
  for(const id of ['completedCount','remainingCount','replayCount'])$(id).textContent='0';
@@ -30,7 +38,7 @@ function renderNext(model){
  const root=$('nextCall');root.replaceChildren();
  if(model.nextCall){const s=model.nextCall;root.append(element('h3',timeLabel(s.scheduled_at)),element('p',kindLabel(s.session_kind)+' · '+s.duration_minutes+' minutes'),element('span','Confirmed','badge'));if(s.meeting_url){const link=element('a','Join Zoom','button-link');link.href=s.meeting_url;link.target='_blank';link.rel='noopener noreferrer';root.append(link);}else root.append(element('p','Your meeting link will appear when it is ready.','muted'));}
  else{root.append(element('h3',model.remaining?'A little space before our next call.':'Your journey, witnessed.'),element('p',model.remaining?'Your next confirmed session will appear here.':'Your session history and recordings are here to revisit.'));}
- const button=element('button','View your sessions →','text-button');button.onclick=()=>room('calls');root.append(button);
+ const button=element('button',model.nextCall?'View session details →':'View your sessions →','text-button');button.onclick=()=>model.nextCall?showSession(model.nextCall):room('calls');root.append(button);if(model.nextCall&&currentSuite)root.append(calendarButton(model.nextCall));
 }
 function renderSessions(model){
  const root=$('sessions');root.replaceChildren();
@@ -41,7 +49,7 @@ function renderSessions(model){
  const content=element('div','');content.append(element('h4',kindLabel(s.session_kind)),element('p',s.scheduled_at?timeLabel(s.scheduled_at):'Date to be arranged'),element('p',s.duration_minutes+' minutes','muted'));
  if(s.status==='proposed')content.append(element('p','A proposed time, awaiting confirmation.','muted'));
  if(pending.has(s.id))content.append(element('p','Awaiting a session update.','muted'));
- const state=element('div','','session-status');state.append(element('span',s.status,'badge'));if(s.meeting_url){const join=element('a','Join Zoom','text-link');join.href=s.meeting_url;join.target='_blank';join.rel='noopener noreferrer';state.append(join);}card.append(content,state);root.append(card);
+ const state=element('div','','session-status');state.append(element('span',s.status,'badge'));if(s.meeting_url){const join=element('a','Join Zoom','text-link');join.href=s.meeting_url;join.target='_blank';join.rel='noopener noreferrer';state.append(join);}const details=element('button','View session '+s.session_number+' details','text-button');details.onclick=()=>showSession(s);content.append(details);card.append(content,state);root.append(card);
  }
 }
 function renderFocus(model){
@@ -51,8 +59,10 @@ function renderFocus(model){
  for(const f of model.focuses){const row=element('div','','focus-entry');row.append(element('strong',formatDateOnly(f.focus_month,{month:'long',year:'numeric'})),element('p',f.client_visible_focus));root.append(row);}
 }
 function renderReplays(suite,id,version){
- const root=$('replays');root.replaceChildren();const replays=suite.replays||[];
- if(!replays.length){empty(root,'No recordings available yet. Published session recordings will be gathered here.');return;}
+ stopPlayers();const root=$('replays');root.replaceChildren();const search=$('replaySearch').value.trim().toLocaleLowerCase();const sessionFilter=$('replaySession').value;
+ const replays=(suite.replays||[]).filter(replay=>(!sessionFilter||replay.sessionId===sessionFilter)&&(!search||String(replay.title||'').toLocaleLowerCase().includes(search)));
+ $('replayResults').textContent=replays.length+' recording'+(replays.length===1?'':'s')+(search||sessionFilter?' found':'');
+ if(!replays.length){empty(root,(suite.replays||[]).length?'No recordings match these filters. Try another title or choose All sessions.':'No recordings available yet. Published session recordings will be gathered here.');return;}
  for(const replay of replays){
  const card=element('article','','card');const session=(suite.sessions||[]).find(s=>s.id===replay.sessionId);
  card.append(element('p',session?'SESSION '+session.session_number+' · '+kindLabel(session.session_kind):'YOUR PRIVATE RECORDING','eyebrow'),element('h4',replay.title||'Session recording'));
@@ -62,11 +72,36 @@ function renderReplays(suite,id,version){
  const data=await request('&enrollmentId='+encodeURIComponent(id)+'&playbackReplayId='+encodeURIComponent(replay.id));if(version!==epoch||selection!==id)return;
  let url;try{url=new URL(data.playback.url);if(!['https:','http:'].includes(url.protocol))throw Error();}catch{throw Error('This recording could not be opened. Please try again.');}
  const old=card.querySelector('video');if(old){old.pause();old.remove();}
- const media=document.createElement('video');media.controls=true;media.preload='metadata';media.src=url.href;media.setAttribute('aria-label',replay.title||'Session recording');media.addEventListener('error',()=>{message.textContent='Playback could not load. Select Refresh recording to try a new link.';});card.append(media);button.textContent='Refresh recording';
+ const media=document.createElement('video');media.controls=true;media.preload='metadata';media.src=url.href;media.setAttribute('aria-label',replay.title||'Session recording');media.addEventListener('play',()=>{for(const other of document.querySelectorAll('video,audio'))if(other!==media)other.pause();});media.addEventListener('error',()=>{message.textContent='Playback could not load. Select Refresh recording to try a new link.';});card.append(media);button.textContent='Refresh recording';
  }catch(error){if(version===epoch)message.textContent=error.message;}finally{button.disabled=false;}};
  card.append(button,message);root.append(card);
  }
 }
+function calendarButton(session){
+ const button=element('button','Add to calendar','text-button');
+ button.onclick=()=>{try{const text=sessionCalendar(session,currentSuite?.enrollment.programTitle);const url=URL.createObjectURL(new Blob([text],{type:'text/calendar;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='flowtel-session-'+session.session_number+'.ics';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(error){$('error').textContent=error.message;}};
+ return button;
+}
+function showSession(session){
+ if(!currentSuite)return;
+ const root=$('sessionDetailBody');root.replaceChildren();$('sessionDetailTitle').textContent='Session '+session.session_number+' · '+kindLabel(session.session_kind);
+ root.append(element('span',session.status,'badge'),element('p',session.scheduled_at?timeLabel(session.scheduled_at):'Date to be arranged','large-copy'),element('p',session.duration_minutes+' minutes · Flowtel Time (Pacific)','muted'));
+ if(session.status==='confirmed'){
+  const actions=element('div','','session-actions');actions.append(calendarButton(session));
+  if(session.meeting_url){const link=element('a','Join Zoom','button-link');link.href=session.meeting_url;link.target='_blank';link.rel='noopener noreferrer';actions.append(link);}
+  root.append(actions,element('p','If your session time changes, download the updated calendar file from your suite.','muted'));
+ }else if(session.status==='proposed')root.append(element('p','This time is proposed. Your calendar download will be available once the session is confirmed.','muted'));
+ if(session.scheduled_at){
+  const month=flowtelTodayISO(new Date(session.scheduled_at)).slice(0,7)+'-01';const focus=(currentSuite.monthlyFocus||[]).find(item=>item.focus_month===month);
+  if(focus?.client_visible_focus){const card=element('section','','session-focus');card.append(element('p','FOCUS FOR '+formatDateOnly(month,{month:'long',year:'numeric'}),'eyebrow'),element('p',focus.client_visible_focus,'session-focus-copy'));root.append(card);}
+ }
+ const replays=(currentSuite.replays||[]).filter(replay=>replay.sessionId===session.id);
+ if(replays.length){root.append(element('h3','Return to this session'));const list=element('ul','','session-recordings');for(const replay of replays)list.append(element('li',replay.title));root.append(list);const button=element('button','Open recordings for this session');button.onclick=()=>{$('sessionDialog').close();$('replaySearch').value='';$('replaySession').value=session.id;renderReplays(currentSuite,selection,currentVersion);room('recordings');};root.append(button);}
+ else root.append(element('p','A recording will appear here if it is published for this session.','muted'));
+ if(!$('sessionDialog').open)$('sessionDialog').showModal();
+}
+$('closeSession').onclick=()=>$('sessionDialog').close();
+for(const [id,event] of [['replaySearch','input'],['replaySession','change']])$(id).addEventListener(event,()=>{if(currentSuite)renderReplays(currentSuite,selection,currentVersion);});
 async function renderFlow(version){
  const moon=getMoonMagic();$('moonHeading').textContent=moon.emoji+' Moon day '+moon.moonDay;$('moonPhase').textContent=moon.phase;$('moonTheme').textContent=moon.theme;
  $('cycleHeading').textContent='Your cycle';$('cycleSeason').textContent='Your rhythm is personal.';$('cycleNote').textContent='Loading your existing Flowtel check-in…';
@@ -78,11 +113,13 @@ async function renderFlow(version){
 }
 async function open(id){
  const version=++epoch;selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
- try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;const model=dashboardModel(suite);
+ try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);
+ $('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));
+ for(const session of model.sessions)if((suite.replays||[]).some(replay=>replay.sessionId===session.id))$('replaySession').add(new Option('Session '+session.session_number+' · '+kindLabel(session.session_kind),session.id));
  $('title').textContent=suite.enrollment.programTitle||'Your private mentorship';$('dates').textContent='Begins '+dateLabel(suite.enrollment.startsOn)+(suite.enrollment.endsOn?' · Through '+dateLabel(suite.enrollment.endsOn):' · No fixed end date');$('programStatus').textContent=suite.enrollment.status;
  $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.completed+' of '+model.total+' sessions completed';$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
  $('progressNote').textContent=model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
- renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room('home');$('detail').hidden=false;$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';renderFlow(version);
+ renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';renderFlow(version);
  }catch(error){if(version===epoch){$('error').textContent=error.message;$('status').textContent='Your suite could not load.';}}
 }
 async function claim(id,button){button.disabled=true;$('error').textContent='';try{const data=await request('',{action:'claim-prepared',enrollmentId:id});await connect(data.enrollment?.id);}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}}

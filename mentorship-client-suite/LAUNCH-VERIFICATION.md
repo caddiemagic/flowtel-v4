@@ -36,3 +36,9 @@ Browser CI is green. This record does not claim a launch-ready deployed preview 
 Connected four-room dashboard, safe program-title projection, progress and next-call logic, current-month focus, replay library, existing cycle snapshot via the user's JWT, and client-owned linked Zoom access. No new tables, storage policies, product permissions, Stay logic or shared auth code changed. Historical sessions and cancelled-session reopening remain supported. The fictional design preview uses the same rendering module and never touches real auth or data.
 
 61 automated tests and the expanded Playwright journey passed locally. A pinned Chromium runner is now available locally; desktop and mobile screenshots were inspected. The earlier statement that local Chromium was unavailable describes the initial pass, not the current environment. No production merge or deployment was performed.
+
+## Session detail and recording navigation increment
+
+Added accessible session detail dialogs, session-specific monthly focus and recording links, private iCalendar downloads for confirmed calls, recording title/session filters, URL-fragment room navigation, and playback pause behavior. No database schema, authentication, entitlement, check-in, Stay, or 13 Moons files changed.
+
+65 unit/security/HTTP tests passed locally. The expanded browser journey passed locally, including calendar download, recording filtering, session detail navigation and preserving My Recordings on refresh. Mobile session-detail and recording-library screenshots were visually inspected. The calendar tests cover Pacific offsets, UTC end times, UTF-8 line folding, property injection, and exclusion of private playback links and attendees.

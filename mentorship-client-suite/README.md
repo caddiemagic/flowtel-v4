@@ -43,3 +43,7 @@ Zoom links are shown only for confirmed sessions linked to a scheduled external 
 `client-suite-preview/` uses the identical rendering code with an explicitly fictional, in-memory adapter. It does not load real authentication, fetch client data, send invitations, book appointments, or play real recordings. Use it to review the layout without a client account.
 
 Current dashboard verification: 61 unit/security/HTTP tests and the owner/client A/client B Playwright journey passed locally, including the fictional dashboard and mobile overflow check. Desktop and mobile screenshots were visually inspected. Real protected deployment verification remains subject to the previously recorded Vercel connection restriction.
+
+## Session details and calendar downloads
+
+Clients can open a session detail dialog, see that session month's client-visible focus when present, jump directly to its published recordings, and download a private iCalendar file for confirmed sessions. Calendar files use UTC start/end instants, escaped/folded text, stable session UIDs, and no attendees, invitation delivery, or signed playback links. The dashboard section is preserved in the URL fragment on refresh and supports browser back/forward. Recording search and a session filter operate only on already authorized replay metadata. Switching rooms pauses playback, and starting a recording pauses other players.
