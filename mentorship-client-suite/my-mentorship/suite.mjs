@@ -3,13 +3,14 @@ const demo=fictionalPreview?await import('../dashboard-preview.mjs'):null;
 const supabase=fictionalPreview?demo.demoAuth:(await import('../../shared/supabase.js')).supabase;
 import {getMoonMagic} from '../../shared/moon.js';
 import {flowtelTodayISO,formatDateOnly} from '../../shared/flowtel-date.js';
-import {dashboardModel,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
+import {dashboardModel,filterSessions,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
 import {sessionCalendar} from '../session-calendar.mjs';
 const $=id=>document.getElementById(id),base='/api/caddie-acuity?mentorship=client';
 let epoch=0,selection=null,account=null,currentSuite=null,currentVersion=0;
 const panels=['home','calls','recordings','flow'];
 let activePanel=panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
 function stopPlayers(){for(const media of document.querySelectorAll('video,audio'))media.pause();}
+function discardSessionView(){stopPlayers();for(const media of document.querySelectorAll('video,audio')){media.removeAttribute('src');media.load();media.remove();}if($('sessionDialog').open)$('sessionDialog').close();$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';currentSuite=null;}
 function element(tag,text,cls=''){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function empty(root,text){root.replaceChildren(element('p',text,'empty'));}
 function room(name,writeHistory=true){if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}}
@@ -25,9 +26,9 @@ async function request(params='',body=null){
  const json=await res.json().catch(()=>({}));if(!res.ok)throw Object.assign(Error(res.status===404?'This mentorship is not available to this account.':json.error||'Your suite could not load. Please try again.'),{status:res.status});return json;
 }
 function clearPrivate(){
- stopPlayers();if($('sessionDialog').open)$('sessionDialog').close();
+ discardSessionView();
  epoch++;selection=null;currentSuite=null;
- $('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
+ $('callFilter').value='all';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
  for(const id of ['enrollments','prepared','sessions','focus','replays','nextCall'])$(id).replaceChildren();
  for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','programStatus','progressNote'])$(id).textContent='';
  for(const id of ['completedCount','remainingCount','replayCount'])$(id).textContent='0';
@@ -42,9 +43,12 @@ function renderNext(model){
 }
 function renderSessions(model){
  const root=$('sessions');root.replaceChildren();
+ const sessions=filterSessions(model.sessions,$('callFilter').value);
+ $('callResults').textContent=sessions.length+' session'+(sessions.length===1?'':'s');
  if(!model.sessions.length){empty(root,'Your session plan is being prepared. Your included calls will appear here.');return;}
+ if(!sessions.length){empty(root,$('callFilter').value==='history'?'Your session history will gather here as your journey unfolds.':'No upcoming sessions in this view. Choose All sessions to revisit your journey.');return;}
  const pending=new Set(model.pastPending.map(s=>s.id));
- for(const s of model.sessions){
+ for(const s of sessions){
  const card=element('article','','card session-card');card.append(element('span',String(s.session_number).padStart(2,'0'),'session-number'));
  const content=element('div','');content.append(element('h4',kindLabel(s.session_kind)),element('p',s.scheduled_at?timeLabel(s.scheduled_at):'Date to be arranged'),element('p',s.duration_minutes+' minutes','muted'));
  if(s.booking_state==='needs_review')content.append(element('p','Your booking details are being reviewed. Your updated time will appear here.','muted'));
@@ -102,6 +106,7 @@ function showSession(session){
  if(!$('sessionDialog').open)$('sessionDialog').showModal();
 }
 $('closeSession').onclick=()=>$('sessionDialog').close();
+$('callFilter').addEventListener('change',()=>{if(currentSuite)renderSessions(dashboardModel(currentSuite));});
 for(const [id,event] of [['replaySearch','input'],['replaySession','change']])$(id).addEventListener(event,()=>{if(currentSuite)renderReplays(currentSuite,selection,currentVersion);});
 async function renderFlow(version){
  const moon=getMoonMagic();$('moonHeading').textContent=moon.emoji+' Moon day '+moon.moonDay;$('moonPhase').textContent=moon.phase;$('moonTheme').textContent=moon.theme;
@@ -113,7 +118,7 @@ async function renderFlow(version){
  }catch{if(version===epoch)$('cycleNote').textContent='Your cycle snapshot is unavailable. You can return to your existing Flowtel journal below.';}
 }
 async function open(id){
- const version=++epoch;selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
+ const version=++epoch;discardSessionView();selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
  try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);
  $('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));
  for(const session of model.sessions)if((suite.replays||[]).some(replay=>replay.sessionId===session.id))$('replaySession').add(new Option('Session '+session.session_number+' · '+kindLabel(session.session_kind),session.id));
@@ -132,7 +137,7 @@ async function connect(preferred=null){
  if(!enrollments.length)empty(root,'No private mentorship is linked to this account yet.');
  for(const enrollment of enrollments){const card=element('div','','enrollment-choice');card.append(element('p',enrollment.programTitle||'Private mentorship'),element('p',enrollment.status,'muted'));const button=element('button','Open private suite');button.onclick=()=>open(enrollment.id);card.append(button);root.append(card);}
  // Discovery failure does not hide an already linked suite.
- try{const {prepared}=await request('&prepared=1');if(version!==epoch)return;$('preparedSection').hidden=!prepared?.length;for(const invitation of prepared||[]){const row=element('div','','focus-entry');row.append(element('h3',invitation.programTitle||'Private mentorship'),element('p','Begins '+dateLabel(invitation.startsOn)));const button=element('button','Activate this mentorship');button.onclick=()=>claim(invitation.id,button);row.append(button);$('prepared').append(row);}}catch(error){if(error.status!==403)throw error;}
+ try{const {prepared}=await request('&prepared=1');if(version!==epoch)return;$('preparedSection').hidden=!prepared?.length;for(const invitation of prepared||[]){const row=element('div','','focus-entry');row.append(element('h3',invitation.programTitle||'Private mentorship'),element('p','Begins '+dateLabel(invitation.startsOn)));const button=element('button','Activate this mentorship');button.onclick=()=>claim(invitation.id,button);row.append(button);$('prepared').append(row);}}catch(error){if(version!==epoch)return;if(error.status===401)throw error;if(error.status!==403){$('preparedSection').hidden=false;empty($('prepared'),'We could not check for newly prepared mentorships. Refresh your suite to try again. Your linked mentorships remain available below.');}}
  if(version!==epoch)return;
  const chosen=enrollments.find(e=>e.id===prior)||(enrollments.length===1?enrollments[0]:null);if(chosen)await open(chosen.id);
  }catch(error){if(version!==epoch)return;$('status').textContent=error.status===401?'Sign in to enter your private suite.':'Your suite is temporarily unavailable.';$('login').hidden=error.status!==401;$('error').textContent=error.message;}

@@ -58,3 +58,11 @@ Existing live Auth creation triggers and foreign keys were inspected read-only. 
 Fixed playback URL construction for Storage REST's `/object/sign/…` response relative to `/storage/v1`, verified against Supabase storage-js source. The fictional server now emits that format.
 
 79 automated tests plus the expanded Chromium journey passed locally, covering the diagnostic, production/non-owner denial, service failures, cleanup and cleanup failure reporting. The live diagnostic has NOT yet run against the connected Supabase project: automated access to the protected Vercel deployment remains unavailable. Its button permits the check from the authenticated owner preview. Success verifies signed media bytes, not browser audio decoding or live Acuity synchronization. A transport timeout leaves cleanup unverified and the UI says so. Hiding blocks new playback links; previously issued links may remain usable until expiry/cache eviction.
+
+## Connected-project result and dashboard resilience
+
+On October 15, 2026 (Flowtel Time), the owner supplied a screenshot of the deployed diagnostic reporting every live step and all cleanup steps passed: private bucket, two disposable accounts, owner denial for clients, prepared/claimed dashboard access, signed upload, hidden recording, published media bytes, cross-client isolation, hiding, and removal of media, mentorship/session records, and both accounts. This closes the connected-project diagnostic gate described above. The screenshot is evidence of the owner-triggered report; it does not add a claim of browser audio/video decoding or live Acuity API synchronization.
+
+Added All / Upcoming and to be arranged / Session history filters in My Calls, including historical confirmed/proposed sessions and terminal statuses. Fixed prepared-access discovery failures blocking already linked suites, and cleared previous media sources and session dialogs immediately on program refresh/switch. No authentication, database, product-permission, shared navigation, check-in, Caddie Magic, or 13 Moons changes.
+
+80 automated tests and the expanded local Chromium owner/client journey passed. New browser checks cover call filters, existing-suite availability during prepared-access discovery failure, and clearing an open private session dialog/media on a failed refresh.
