@@ -81,7 +81,7 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 <p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
-<div class="foot">Cycle positions are shared with classroom consent. Each guest's first name appears on the projected screen, as explained at check-in. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
+<div class="foot">Each guest's cycle day and first name appear on the projected wheel, as explained at check-in. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
 <dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
  <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
  <h2 style="font-weight:normal;margin-top:0">Private classroom roster</h2>
@@ -169,7 +169,6 @@ async function refresh(){
    throw new Error(body.error||'The wheel could not refresh.');
   }
   document.getElementById('total').textContent=String(body.total||0);
-  document.getElementById('moonTrackers').textContent=String(body.moon_trackers||0);
   for(const season of ['Winter','Spring','Summer','Autumn'])document.getElementById(season).textContent=String(body.seasons?.[season]||0);
   (body.days||[]).forEach(function(entry,i){
     const marker=markers[i];if(!marker)return;
@@ -194,11 +193,6 @@ async function refresh(){
     marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests'+(names.length?', '+names.join(', '):''));
   });
 
-  const moonNames=document.getElementById('moonNames');
-  const lunarNames=Array.isArray(body.moon_tracker_names)?body.moon_tracker_names:[];
-  moonNames.hidden=!lunarNames.length;
-  moonNames.textContent=lunarNames.join(' · ');
-  const names=Object.values(body.season_names||{}).flat();
   const namesList=document.getElementById('visibleFirstNames');
   namesList.replaceChildren();
   let anyNames=false;
