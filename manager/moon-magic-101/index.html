@@ -60,11 +60,11 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 <p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
-<div class="foot">Cycle positions are shared with classroom consent. Only first names appear on the projected screen, with classroom consent. Full names and emails remain private.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private guest list</button></div>
+<div class="foot">Cycle positions are shared with classroom consent. Only first names appear on the projected screen, with classroom consent. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
 <dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
  <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
- <h2 style="font-weight:normal;margin-top:0">Private classroom guest list</h2>
- <p style="font:13px/1.5 Arial,sans-serif">Only open this list when you are not projecting the screen. Email addresses are unverified. Invitations can be sent only to guests who opted in.</p>
+ <h2 style="font-weight:normal;margin-top:0">Private classroom roster</h2>
+ <p style="font:13px/1.5 Arial,sans-serif">Only open this list when you are not projecting the screen. This list shows full names privately; the projection shows first names only.</p>
  <div id="contactsBody" style="font:14px/1.7 Arial,sans-serif"></div>
 </dialog>
 </main>
@@ -149,10 +149,10 @@ document.getElementById('openContacts').addEventListener('click',async function(
    for(const guest of data.guests){
      const item=document.createElement('p');
      item.style.cssText='padding:10px 0;border-bottom:1px solid #e6dbc9;margin:0';
-     const strong=document.createElement('strong');strong.textContent=guest.name+' — '+guest.email;
+     const strong=document.createElement('strong');strong.textContent=guest.name+' — cycle day '+guest.cycle_day;
      item.appendChild(strong);
      const note=document.createElement('small');note.style.display='block';
-     note.textContent=guest.email_updates_opt_in?'✓ Opted in to email resources and invitations':'Classroom only · no email marketing consent';
+     note.textContent='Classroom participation only · no account or email collected';
      item.appendChild(note);content.appendChild(item);
    }
  }catch(error){content.textContent=error.message;}
