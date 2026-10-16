@@ -4,7 +4,7 @@ test('fictional owner and two clients: HTTP session lifecycle, private upload, f
  async function request(role,kind,body,query=''){const res=await fetch(h.origin+'/api/caddie-acuity?mentorship='+kind+query,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+role,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return {status:res.status,data:await res.json()}}
  const args={enrollmentId:enrollment,sessionId:session};
  try{
- const invalidTime=await request('owner','owner',{action:'set-session-time',...args,scheduledAt:'2020-01-01T11:00:00-08:00'});assert.equal(invalidTime.status,400);assert.match(invalidTime.data.error,/future session date/);
+ const invalidTime=await request('owner','owner',{action:'set-session-time',...args,scheduledAt:'2020-01-01T11:00:00'});assert.equal(invalidTime.status,400);assert.match(invalidTime.data.error,/timestamp with time zone/);
  const invalidFocus=await request('owner','owner',{action:'save-focus',enrollmentId:enrollment,month:'invalid',focus:'Fictional focus'});assert.equal(invalidFocus.status,400);assert.match(invalidFocus.data.error,/YYYY-MM-01/);
  assert.equal((await request('b','owner',{action:'session-transition',...args,operation:'confirm'})).status,403);
  assert.equal((await request('owner','owner',{action:'set-session-time',...args,scheduledAt:'2027-01-20T11:00:00-08:00'})).status,200);
@@ -26,5 +26,17 @@ test('fictional owner and two clients: HTTP session lifecycle, private upload, f
  assert.equal((await request('b','client',null,playback)).status,404);
  assert.deepEqual((await request('b','client')).data.enrollments,[]);
  await request('owner','owner',{action:'replay-visibility',...args,replayId:saved.data.replay.id,visible:false});assert.equal((await request('a','client',null,playback)).status,404);
+ }finally{await h.close()}
+});
+
+test('owner can backfill, confirm and complete a historical session',async()=>{
+ const h=await start();
+ const args={enrollmentId:h.ids.enrollment,sessionId:h.ids.session};
+ async function action(body){const res=await fetch(h.origin+'/api/caddie-acuity?mentorship=owner',{method:'POST',headers:{Authorization:'Bearer owner','Content-Type':'application/json'},body:JSON.stringify({...args,...body})});assert.equal(res.status,200);return res.json()}
+ try{
+ const proposed=await action({action:'set-session-time',scheduledAt:'2020-01-01T11:00:00-08:00'});
+ assert.equal(proposed.session.scheduled_at,'2020-01-01T19:00:00.000Z');assert.equal(proposed.session.status,'proposed');
+ assert.equal((await action({action:'session-transition',operation:'confirm'})).session.status,'confirmed');
+ assert.equal((await action({action:'session-transition',operation:'complete'})).session.status,'completed');
  }finally{await h.close()}
 });

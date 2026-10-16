@@ -127,7 +127,7 @@ async function setSessionTime(ctx,{enrollmentId,sessionId,scheduledAt}){
  ownerContext(ctx);validUUID(enrollmentId);validUUID(sessionId);
  const day=typeof scheduledAt==='string'?new Date(scheduledAt):new Date(NaN);
  if(!Number.isFinite(day.getTime())||!/(Z|[+-]\d{2}:\d{2})$/.test(String(scheduledAt)))throw failure('A timestamp with time zone is required',400);
- if(day.getTime()<=Date.now())throw failure('Choose a future session date and time in Pacific time.',400);
+ // Owners may backfill historical sessions for existing clients.
  const matches=await fetchJson(url(ctx,'sessions','select=id,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
  if(!Array.isArray(matches)||matches.length!==1)throw failure('Session not found',404);
  if(!['unscheduled','proposed','confirmed'].includes(matches[0].status))throw failure('This session cannot be rescheduled',409);
