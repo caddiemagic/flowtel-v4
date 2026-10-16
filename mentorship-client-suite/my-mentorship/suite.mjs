@@ -49,7 +49,7 @@ function renderSessions(model){
  if(!sessions.length){empty(root,$('callFilter').value==='history'?'Your session history will gather here as your journey unfolds.':'No upcoming sessions in this view. Choose All sessions to revisit your journey.');return;}
  const pending=new Set(model.pastPending.map(s=>s.id));
  for(const s of sessions){
- const card=element('article','','card session-card');card.append(element('span',String(s.session_number).padStart(2,'0'),'session-number'));
+ const card=element('article','','card session-card');card.dataset.status=s.status;card.append(element('span',String(s.session_number).padStart(2,'0'),'session-number'));
  const content=element('div','');content.append(element('h4',kindLabel(s.session_kind)),element('p',s.scheduled_at?timeLabel(s.scheduled_at):'Date to be arranged'),element('p',s.duration_minutes+' minutes','muted'));
  if(s.booking_state==='needs_review')content.append(element('p','Your booking details are being reviewed. Your updated time will appear here.','muted'));
  if(s.status==='proposed'&&s.booking_state!=='needs_review')content.append(element('p','A proposed time, awaiting confirmation.','muted'));
@@ -69,7 +69,7 @@ function renderReplays(suite,id,version){
  $('replayResults').textContent=replays.length+' recording'+(replays.length===1?'':'s')+(search||sessionFilter?' found':'');
  if(!replays.length){empty(root,(suite.replays||[]).length?'No recordings match these filters. Try another title or choose All sessions.':'No recordings available yet. Published session recordings will be gathered here.');return;}
  for(const replay of replays){
- const card=element('article','','card');const session=(suite.sessions||[]).find(s=>s.id===replay.sessionId);
+ const card=element('article','','card recording-card');const session=(suite.sessions||[]).find(s=>s.id===replay.sessionId);
  card.append(element('p',session?'SESSION '+session.session_number+' · '+kindLabel(session.session_kind):'YOUR PRIVATE RECORDING','eyebrow'),element('h4',replay.title||'Session recording'));
  if(session?.scheduled_at)card.append(element('p',timeLabel(session.scheduled_at),'muted'));
  const button=element('button','Play recording'),message=element('p','','error');message.setAttribute('role','status');
