@@ -49,12 +49,22 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
    <div class="season"><span class="small">Inner Autumn</span><h3>Waning</h3><div class="count" id="Autumn">0</div><p>Days 20–26</p></div>
   </div>
   <div class="moon-track"><span class="small">Following the moon</span><br><strong id="moonTrackers">0</strong> women are tracking lunar rhythms instead of a known cycle day.</div>
+  <div class="moon-track" style="background:#fff9f0;border:1px solid #e2d1ad">
+    <span class="small">In our classroom</span>
+    <p id="visibleFirstNames" style="margin:9px 0 0;font:15px/1.65 Georgia,serif;color:#5d644e">As guests opt to show their first names, they’ll appear here.</p>
+  </div>
  </div>
 </div>
 <p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
-<div class="foot">Each gold marker represents an anonymous classroom position. No names or menstrual start dates are shared.<br><a href="/moon-magic-101/">Guest QR entrance</a></div>
+<div class="foot">Cycle positions are shared with classroom consent. First names appear only when the guest opts in; emails are never projected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private guest list</button></div>
+<dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
+ <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
+ <h2 style="font-weight:normal;margin-top:0">Private classroom guest list</h2>
+ <p style="font:13px/1.5 Arial,sans-serif">Only open this list when you are not projecting the screen. Email addresses are unverified. Invitations can be sent only to guests who opted in.</p>
+ <div id="contactsBody" style="font:14px/1.7 Arial,sans-serif"></div>
+</dialog>
 </main>
 <script type="module">
 import {supabase} from '/shared/supabase.js';
@@ -101,12 +111,37 @@ async function refresh(){
     if(count){const tag=document.createElement('b');tag.textContent=String(count);marker.appendChild(tag);}
     marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests');
   });
+
+  const names=Object.values(body.season_names||{}).flat();
+  document.getElementById('visibleFirstNames').textContent=names.length?names.join(' · '):'Guests who opt to display their first names will appear here.';
   status.textContent='Live classroom wheel · updates every 5 seconds';
  }catch(e){status.textContent=e.message||'Refresh failed; reconnecting...';}
  finally{inFlight=false}
 }
 await refresh();
 if(document.getElementById('locked').style.display!=='block')timer=setInterval(refresh,5000);
+document.getElementById('openContacts').addEventListener('click',async function(){
+ const dialog=document.getElementById('contactsDialog'),content=document.getElementById('contactsBody');
+ dialog.showModal();content.textContent='Loading private guest list...';
+ try{
+   const session=(await supabase.auth.getSession()).data.session;
+   if(!session?.access_token)throw Error('Owner sign-in required.');
+   const response=await fetch('/api/moon-magic-class?view=contacts',{headers:{Authorization:'Bearer '+session.access_token},cache:'no-store'});
+   const data=await response.json();if(!response.ok)throw Error(data.error||'Unable to load guests.');
+   content.replaceChildren();
+   if(!data.guests.length){content.textContent='No guests have checked in yet.';return;}
+   for(const guest of data.guests){
+     const item=document.createElement('p');
+     item.style.cssText='padding:10px 0;border-bottom:1px solid #e6dbc9;margin:0';
+     const strong=document.createElement('strong');strong.textContent=guest.name+' — '+guest.email;
+     item.appendChild(strong);
+     const note=document.createElement('small');note.style.display='block';
+     note.textContent=guest.email_updates_opt_in?'✓ Opted in to email resources and invitations':'Classroom only · no email marketing consent';
+     item.appendChild(note);content.appendChild(item);
+   }
+ }catch(error){content.textContent=error.message;}
+});
+document.getElementById('closeContacts').addEventListener('click',()=>document.getElementById('contactsDialog').close());
 document.addEventListener('visibilitychange',function(){if(!document.hidden)refresh()});
 </script>
 </body></html>

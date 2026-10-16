@@ -2104,6 +2104,9 @@
           alert("Please choose today or a date in the past.");
           return;
         }
+        // Keep only the cycle-day result on this device so QR classroom check-in can prefill it.
+        try{sessionStorage.setItem('flowtel:moon-magic-101:last-tracker-result',
+          JSON.stringify({mode:'bleed',day:cycleDay,at:Date.now()}));}catch(e){}
         const wombSeason = getWombSeason(cycleDay);
         const moon = getMoonData();
         const feelsLike = seasonLabel(selectedFeelsLikeSeason);
@@ -2155,6 +2158,8 @@
 
       window.cycleShowMoonCycle = function(reason){
         const moon = getMoonData();
+        try{sessionStorage.setItem('flowtel:moon-magic-101:last-tracker-result',
+          JSON.stringify({mode:'moon',day:null,at:Date.now()}));}catch(e){}
         currentStep = 4;
         cycleUpdateHeader("My Cycle Data","Begin tracking your energy shifts with the moon’s phases.");
         cycleShowScreen("cycleResults");
