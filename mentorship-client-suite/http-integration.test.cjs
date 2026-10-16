@@ -4,6 +4,8 @@ test('fictional owner and two clients: HTTP session lifecycle, private upload, f
  async function request(role,kind,body,query=''){const res=await fetch(h.origin+'/api/caddie-acuity?mentorship='+kind+query,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+role,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return {status:res.status,data:await res.json()}}
  const args={enrollmentId:enrollment,sessionId:session};
  try{
+ const invalidTime=await request('owner','owner',{action:'set-session-time',...args,scheduledAt:'2020-01-01T11:00:00-08:00'});assert.equal(invalidTime.status,400);assert.match(invalidTime.data.error,/future session date/);
+ const invalidFocus=await request('owner','owner',{action:'save-focus',enrollmentId:enrollment,month:'invalid',focus:'Fictional focus'});assert.equal(invalidFocus.status,400);assert.match(invalidFocus.data.error,/YYYY-MM-01/);
  assert.equal((await request('b','owner',{action:'session-transition',...args,operation:'confirm'})).status,403);
  assert.equal((await request('owner','owner',{action:'set-session-time',...args,scheduledAt:'2027-01-20T11:00:00-08:00'})).status,200);
  assert.equal((await request('owner','owner',{action:'session-transition',...args,operation:'confirm'})).data.session.status,'confirmed');

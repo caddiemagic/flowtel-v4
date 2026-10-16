@@ -1,8 +1,7 @@
 const controls=require('./session-controls.cjs');
 const recordings=require('./replay-owner.cjs');
 const guards=require('./request.cjs');
-// Draft Vercel handler; intentionally lives INSIDE mentorship-client-suite/
-// and is not published as a /api route until schema + authorization tests pass.
+// Owner handler routed through the existing caddie-acuity mentorship dispatcher.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
 const {listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
 module.exports=async function ownerMentorshipHandler(req,res){
@@ -52,7 +51,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
   // Avoid reflecting database internals in browser for 5xx failures.
   if(!error?.statusCode || Number(error.statusCode)>=500){
     console.error('Mentorship owner request failed',error);
-    return res.status(500).json({ok:false,error:'Mentorship Concierge is not available yet.'});
+    return res.status(500).json({ok:false,error:'This mentorship action could not be saved. Please try again; if it repeats, tell us which button you clicked.'});
   }
   return sendError(res,error,'Mentorship Concierge request failed.');
  }
