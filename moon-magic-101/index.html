@@ -31,6 +31,12 @@ button:disabled{opacity:.55;cursor:wait}
 .result p{font-size:16px;line-height:1.55}
 .badge{display:inline-block;border:1px solid #cfb684;background:#f9f1df;color:#785c30;border-radius:999px;padding:9px 13px;font:700 11px Arial,sans-serif;letter-spacing:.1em}
 .footer{margin:22px auto;font:12px/1.7 Arial,sans-serif;color:#8b7669}.footer a{color:#665c45}
+.ritual-invite{margin-top:28px;padding:28px 21px;border:1px solid #ddc9a3;border-radius:22px;background:radial-gradient(ellipse at top,#fffdf6,#f5eadc);box-shadow:0 12px 27px #705e4310;text-align:center}
+.ritual-moon{font:normal 52px/1 Georgia,serif;color:#b99550;display:block;margin-bottom:7px}
+.ritual-invite h2{font:normal clamp(27px,6vw,36px)/1.15 Georgia,serif;margin:12px auto;color:#5a4738}
+.ritual-invite>p:not(.eyebrow):not(.fine){font-size:16px;line-height:1.58;max-width:420px;margin:14px auto 22px}
+.ritual-cta{display:block;background:#5c6850;color:white;text-decoration:none;border-radius:99px;padding:17px 15px;font:700 12px/1.35 Arial,sans-serif;letter-spacing:.07em}
+.ritual-invite .fine a{color:#685a45;text-decoration:underline}
 
 </style></head>
 <body>
@@ -38,7 +44,7 @@ button:disabled{opacity:.55;cursor:wait}
 <p class="eyebrow">Flowtel · Moon Magic</p>
 <img class="rose" src="/assets/rose_compass_center.png" alt="" aria-hidden="true">
 <h1>The Moon Magic Room</h1>
-<p class="intro">One moon, many inner seasons. Add your place to the collective medicine wheel alongside the other guests in your class.</p>
+<p class="intro">One moon, many inner seasons. Find your place on our living Flow Map alongside the other guests in your class.</p>
 <div class="line"></div>
 <div id="formArea">
 <p class="eyebrow">Classroom guest check-in</p>
@@ -58,15 +64,22 @@ button:disabled{opacity:.55;cursor:wait}
 <div id="resultArea" class="result" hidden>
  <span class="badge">You’re in the room ✦</span>
  <h2 id="welcome">Welcome to the Moon Magic Room</h2>
- <p id="seasonResult">Your place has been added to the collective medicine wheel.</p>
- <p>Look up at the classroom screen to find your name and see how our individual seasons come together under one moon.</p>
+ <p id="seasonResult">Your place has been added to the collective Flow Map.</p>
+ <p>Look up at the collective Flow Map and find your name floating in your Inner Season.</p>
  <div class="line"></div>
- <p class="eyebrow">Take your practice home</p>
- <p>Want your Flow Map to remember you? Explore the Queendom, where your cycle tracking and reflections become a living practice.</p>
- <a class="alt" href="https://www.theidyllcollective.com/queendomhome">Explore the Queendom</a>
+ <p class="eyebrow">Your next New Moon practice</p>
+ <p>You'll find my New Moon Water Ritual video just below, inside the Queendom. Bring this practice home to your next cycle.</p>
  <a class="alt" href="/tracker/">Track your cycle again</a>
  <button class="alt" id="anotherGuest" type="button">Check in another guest</button>
 </div>
+<section class="ritual-invite" aria-labelledby="ritualTitle">
+ <span class="ritual-moon" aria-hidden="true">☾</span>
+ <p class="eyebrow">A little Moon Magic to take home</p>
+ <h2 id="ritualTitle">Your New Moon Water Ritual</h2>
+ <p>In this workshop, I invite you to begin a New Moon water ritual. I've created a guided video in the Queendom so you can learn the practice and return to it with each New Moon.</p>
+ <a class="ritual-cta" href="https://www.theidyllcollective.com/queendomlibrary/v/moonmagicwaterritual1" target="_blank" rel="noopener noreferrer">Watch the New Moon Water Ritual ↗</a>
+ <p class="fine">The video is inside the Queendom and requires Queendom access. <a href="https://www.theidyllcollective.com/queendomhome">Explore the Queendom →</a></p>
+</section>
 </article>
 <div class="footer">FLOWTEL · GUEST EXPERIENCE · <a href="/tracker/">Track Your Cycle</a></div>
 </main>
@@ -101,7 +114,7 @@ form.addEventListener('submit',async function(event){
   document.getElementById('resultArea').hidden=false;
   const firstName=name.split(/\s+/)[0];
   document.getElementById('welcome').textContent='Welcome, '+firstName+'.';
-  document.getElementById('seasonResult').textContent='You’re on cycle day '+cycleDay+' · '+season(cycleDay)+'. Your name is now on the shared medicine wheel.';
+  document.getElementById('seasonResult').textContent='You’re on cycle day '+cycleDay+' · '+season(cycleDay)+'. Your name is now on the collective Flow Map.';
   window.scrollTo({top:0,behavior:'smooth'});
  }catch(error){status.textContent=error.message||'Unable to check in. Please try again.';}
  finally{button.disabled=false}
