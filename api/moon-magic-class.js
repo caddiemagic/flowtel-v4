@@ -70,6 +70,7 @@ function summarize(rows){
   const seasons={Winter:0,Spring:0,Summer:0,Autumn:0};
   const seasonNames={Winter:[],Spring:[],Summer:[],Autumn:[]};
   let moonTrackers=0;
+  const moonTrackerNames=[];
   for(const row of rows){
     const day=Number(row.cycle_day);
     const valid=row.tracking_method==='bleed'&&Number.isInteger(day)&&day>0;
@@ -80,10 +81,11 @@ function summarize(rows){
       if(firstName){days[index].names.push(firstName);seasonNames[season].push(firstName);}
     }else{
       moonTrackers++;
+      if(firstName)moonTrackerNames.push(firstName);
     }
   }
   return {ok:true,room_slug:ROOM,total:rows.length,moon_trackers:moonTrackers,
-    days,seasons,season_names:seasonNames,updated_at:new Date().toISOString()};
+    moon_tracker_names:moonTrackerNames,days,seasons,season_names:seasonNames,updated_at:new Date().toISOString()};
 }
 module.exports=async function handler(req,res){
   if(!['GET','POST'].includes(req.method))return respond(res,405,{ok:false,error:'Method not allowed.'});
