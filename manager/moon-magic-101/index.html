@@ -18,7 +18,9 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 .rose{position:absolute;width:39%;height:39%;object-fit:contain;left:50%;top:50%;transform:translate(-50%,-50%);opacity:.83}
 .direction{position:absolute;font:700 10px Arial,sans-serif;letter-spacing:.18em;color:#a18453}.north{top:4%;left:50%;transform:translateX(-50%)}.south{bottom:3.2%;left:50%;transform:translateX(-50%)}.west{left:2.5%;top:50%;transform:translateY(-50%)}.east{right:2.5%;top:50%;transform:translateY(-50%)}
 .day{position:absolute;transform:translate(-50%,-50%);width:clamp(23px,3.6vw,40px);height:clamp(23px,3.6vw,40px);border:1px solid #c9a35c;border-radius:50%;display:grid;place-items:center;background:#fffdfa;color:#82663c;font-size:clamp(10px,1.6vw,15px);font-family:Georgia,serif}
-.day.active{background:#59634d;color:#fff;border:2px solid #ddbb6b;box-shadow:0 0 0 5px #dcbd6c44;z-index:2}.day b{font:700 11px Arial,sans-serif;position:absolute;right:-9px;top:-12px;background:#b7904e;color:#fff;padding:4px 6px;border-radius:20px;min-width:24px}
+.day.active{background:#59634d;color:#fff;border:2px solid #ddbb6b;box-shadow:0 0 0 5px #dcbd6c44;z-index:2}.day b{font:700 11px Arial,sans-serif;position:absolute;right:-9px;top:-12px;background:#b7904e;color:#fff;padding:4px 6px;border-radius:20px;min-width:24px}.day:has(.day-name-tag){z-index:5}
+.day-name-tag{position:absolute;z-index:6;width:max-content;max-width:125px;padding:5px 9px;background:rgba(255,252,242,.98);border:1px solid #c5a66b;border-radius:10px;box-shadow:0 4px 14px #4c43202c;color:#536345;font:700 12px/1.3 Arial,sans-serif;text-align:center;white-space:normal;overflow-wrap:anywhere;pointer-events:none}
+.day-name-tag.inner-left{right:calc(100% + 9px);top:50%;transform:translateY(-50%)}.day-name-tag.inner-right{left:calc(100% + 9px);top:50%;transform:translateY(-50%)}.day-name-tag.below{left:50%;top:calc(100% + 8px);transform:translateX(-50%)}.day-name-tag.above{left:50%;bottom:calc(100% + 8px);transform:translateX(-50%)}
 .seasons{display:grid;grid-template-columns:1fr 1fr;gap:13px}.season{padding:17px;border:1px solid #e7d8bc;border-radius:16px;background:#fffaf2}.season h3{font-weight:normal;font-size:21px;margin:5px 0}.season .count{font-size:32px;color:#6b7154}.season p{font:12px Arial,sans-serif;color:var(--muted);line-height:1.5;margin:6px 0}
 .metric{text-align:center;padding:18px;border:1px solid #e1d0af;border-radius:16px;margin:0 0 17px;background:#fffaf0}.metric strong{display:block;font:normal 58px Georgia,serif;color:#657255}.metric span{font:12px Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .moon-track{margin-top:16px;background:#f0e9da;border-radius:15px;padding:18px;font-size:15px;line-height:1.5}.moon-track strong{font-size:24px;color:#6b7154}
@@ -48,9 +50,9 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
    <div class="season"><span class="small">Inner Summer</span><h3>Full Moon</h3><div class="count" id="Summer">0</div><p>Days 12–19</p></div>
    <div class="season"><span class="small">Inner Autumn</span><h3>Waning</h3><div class="count" id="Autumn">0</div><p>Days 20–26</p></div>
   </div>
-  <div class="moon-track"><span class="small">Following the moon</span><br><strong id="moonTrackers">0</strong> women are tracking lunar rhythms instead of a known cycle day.</div>
+  <div class="moon-track"><span class="small">Following the moon</span><br><strong id="moonTrackers">0</strong> women are tracking lunar rhythms instead of a known cycle day.<p id="moonNames" style="font:700 13px/1.6 Arial,sans-serif;color:#56634a;margin:10px 0 0" hidden></p></div>
   <div class="moon-track" style="background:#fff9f0;border:1px solid #e2d1ad">
-    <span class="small">In our classroom</span>
+    <span class="small">First names on our wheel</span>
     <p id="visibleFirstNames" style="margin:9px 0 0;font:15px/1.65 Georgia,serif;color:#5d644e">As guests opt to show their first names, they’ll appear here.</p>
   </div>
  </div>
@@ -58,7 +60,7 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 <p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
-<div class="foot">Cycle positions are shared with classroom consent. First names appear only when the guest opts in; emails are never projected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private guest list</button></div>
+<div class="foot">Cycle positions are shared with classroom consent. Only first names appear on the projected screen, with classroom consent. Full names and emails remain private.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private guest list</button></div>
 <dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
  <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
  <h2 style="font-weight:normal;margin-top:0">Private classroom guest list</h2>
@@ -109,11 +111,25 @@ async function refresh(){
     marker.classList.toggle('active',count>0);
     marker.replaceChildren(document.createTextNode(i===27?'28+':String(i+1)));
     if(count){const tag=document.createElement('b');tag.textContent=String(count);marker.appendChild(tag);}
-    marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests');
+    const names=Array.isArray(entry.names)?entry.names.filter(name=>typeof name==='string'&&name.trim()).slice(0,50):[];
+    if(names.length){
+      const nameTag=document.createElement('span');
+      nameTag.className='day-name-tag';
+      const angle=(180+360/56+i*360/28)*Math.PI/180;
+      const x=Math.cos(angle),y=Math.sin(angle);
+      nameTag.classList.add(Math.abs(x)<0.4?(y>0?'below':'above'):(x>0?'inner-left':'inner-right'));
+      nameTag.textContent=names.join(' · ');
+      marker.appendChild(nameTag);
+    }
+    marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests'+(names.length?', '+names.join(', '):''));
   });
 
+  const moonNames=document.getElementById('moonNames');
+  const lunarNames=Array.isArray(body.moon_tracker_names)?body.moon_tracker_names:[];
+  moonNames.hidden=!lunarNames.length;
+  moonNames.textContent=lunarNames.join(' · ');
   const names=Object.values(body.season_names||{}).flat();
-  document.getElementById('visibleFirstNames').textContent=names.length?names.join(' · '):'Guests who opt to display their first names will appear here.';
+  document.getElementById('visibleFirstNames').textContent=names.length?names.join(' · '):'As women join the room, their first names will appear beside their places on the medicine wheel.';
   status.textContent='Live classroom wheel · updates every 5 seconds';
  }catch(e){status.textContent=e.message||'Refresh failed; reconnecting...';}
  finally{inFlight=false}
