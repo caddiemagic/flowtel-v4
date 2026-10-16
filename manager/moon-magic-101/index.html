@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>Moon Magic 101 · Collective Wheel | Flowtel Concierge</title>
+<title>Moon Magic · Collective Flow Map | Flowtel Concierge</title>
 <style>
 :root{--cream:#fbf8f0;--ivory:#fffdf9;--ink:#493e32;--gold:#bd9551;--line:#dccaa8;--muted:#8c7b6a}
 *{box-sizing:border-box}body{margin:0;color:var(--ink);font-family:Georgia,serif;background:radial-gradient(circle at 50% -5%,#fff 4%,transparent 60%),linear-gradient(#faf6ed,#f0e6d7);min-height:100vh}
@@ -75,43 +75,69 @@ body.presentation-active #contactsDialog{display:none!important}
 #locked{display:none;text-align:center;padding:25px;margin:auto;max-width:540px}
 @media(max-width:800px){.layout{grid-template-columns:1fr}.seasons{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:620px){.seasons{grid-template-columns:1fr 1fr}.day{width:23px;height:23px;font-size:10px}.day b{font-size:9px;padding:2px 4px;right:-7px;top:-9px}}
+
+/* Classroom Flow Map · canonical Flowtel layout: Autumn/Summer above Winter/Spring. */
+.flow-map{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));width:100%;height:clamp(635px,72vh,850px);border:1px solid #decba7;border-radius:27px;overflow:hidden;background:radial-gradient(circle at center,#fffef7,#f8f0e1);box-shadow:inset 0 0 38px #a9813517;min-width:0}
+.flow-map:before,.flow-map:after{content:"";position:absolute;z-index:4;background:#c5a264;pointer-events:none}
+.flow-map:before{left:50%;top:4%;bottom:4%;width:1px}.flow-map:after{top:50%;left:4%;right:4%;height:1px}
+.flow-quadrant{position:relative;z-index:2;min-width:0;min-height:0;display:flex;flex-direction:column;padding:27px 23px 17px;overflow:hidden}
+.flow-autumn{background:linear-gradient(140deg,#faf0e19b,#fff8ed00)}.flow-summer{background:linear-gradient(220deg,#fff5e49b,#fff8ed00)}.flow-winter{background:linear-gradient(40deg,#f1eeea9b,#fff8ed00)}.flow-spring{background:linear-gradient(310deg,#ecf1e69b,#fff8ed00)}
+.flow-quadrant header{flex:none;text-align:center;padding:0 8px 7px}
+.flow-quadrant header h2{font:normal clamp(20px,2vw,27px)/1.2 Georgia,serif;margin:0;color:#574636}
+.flow-quadrant header p{font:700 10px/1.5 Arial,sans-serif;letter-spacing:.13em;margin:5px 0 0;color:#9a7c51;text-transform:uppercase}
+.quadrant-total{position:absolute;top:12px;right:13px;display:grid;place-items:center;width:30px;height:30px;border:1px solid #d3b786;border-radius:50%;background:#fffcf6;color:#626f4b;font:700 15px Georgia,serif}
+.map-axis{position:absolute;z-index:8;color:#95764c;font:700 10px Arial,sans-serif;letter-spacing:.16em;pointer-events:none}
+.map-n{left:50%;top:7px;transform:translateX(-50%)}.map-s{left:50%;bottom:7px;transform:translateX(-50%)}.map-w{left:8px;top:50%;transform:translateY(-50%)}.map-e{right:8px;top:50%;transform:translateY(-50%)}
+.map-center{position:absolute;z-index:10;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;background:#fff9e9;border:1px solid #d2b987;border-radius:50%;box-shadow:0 4px 22px #ad8a5e3e;display:grid;place-items:center;pointer-events:none}
+.map-center img{width:85%;height:85%;object-fit:contain}
+.presence-field{display:grid;grid-template-columns:repeat(auto-fit,minmax(83px,1fr));grid-auto-rows:116px;align-content:start;justify-items:center;gap:9px 7px;padding:8px 5px 12px;min-height:0;flex:1;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.presence-orb{--delay:0s;display:flex;flex-direction:column;align-items:center;gap:5px;justify-content:center;min-width:0;width:100%;text-align:center;animation:presenceFloat 5s ease-in-out infinite alternate;animation-delay:var(--delay)}
+.presence-portrait{width:66px;height:66px;flex:none;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff,#f1e4cf);border:1.5px solid #d0b47f;box-shadow:0 7px 16px #574e3326}
+.presence-portrait img{width:78%;height:78%;object-fit:contain}
+.presence-name{max-width:110px;display:block;border:1px solid #d9c199;border-radius:999px;padding:4px 8px;background:#fffdfa;color:#5c674c;font:700 12px/1.3 Arial,sans-serif;overflow-wrap:anywhere}
+.moon-presence .presence-portrait{background:radial-gradient(circle at 30% 25%,#fff9db,#c3a062);border:2px solid #dfbb70}
+.moon-presence .moon-art{font:43px/1 Georgia,serif;color:#fff}
+.moon-presence .presence-name{color:#775925;background:#fff7dc;border-color:#c8a35c}
+.presence-subtitle{font:10px/1.2 Arial,sans-serif;color:#856d45}
+@keyframes presenceFloat{from{transform:translateY(1px)}to{transform:translateY(-6px)}}
+body.presentation-active .flow-map{height:min(77vh,880px)}
+@media(max-width:850px){body.presentation-active .flow-map{height:750px}}
+@media(max-width:800px){.flow-map{height:750px}.classroom-data{max-height:none!important;overflow:visible!important}}
+@media(max-width:520px){.flow-map{height:680px}.flow-quadrant{padding:25px 9px 12px}.flow-quadrant header h2{font-size:18px}.flow-quadrant header p{font-size:9px}.quadrant-total{top:7px;right:7px;width:23px;height:23px;font-size:12px}.presence-field{grid-template-columns:repeat(auto-fit,minmax(63px,1fr));grid-auto-rows:90px;gap:5px;padding:6px 3px}.presence-portrait{width:49px;height:49px}.presence-name{font-size:10px;padding:3px 6px}.map-center{width:50px;height:50px}}
+@media(prefers-reduced-motion:reduce){.presence-orb{animation:none}}
+
 </style>
 </head>
 <body><main>
 <div class="topnav"><a href="/manager/">← Concierge Desk</a><span class="small">Owner Projection Room</span></div>
 <div class="presentation-toolbar" id="presentationToolbar">
- <div><strong>Audience display</strong><p>Show only the live medicine wheel and classroom data. Fullscreen hides the browser address bar and private Concierge controls; press Esc to return.</p></div>
+ <div><strong>Audience display</strong><p>Show only the live Flow Map and classroom data. Fullscreen hides the browser address bar and private Concierge controls; press Esc to return.</p></div>
  <button id="startPresentation" type="button" disabled>Present to class ↗</button>
 </div>
 <header><div class="small">Flowtel · Moon Magic Classroom</div><h1>One Moon, Many Inner Seasons</h1><p>As we gather under the same moon, every guest is moving through their own season.</p></header>
 <section class="panel" id="experience">
 <div class="layout">
- <div class="wheel-shell" aria-label="Collective 28-day medicine wheel">
-  <div class="ring outer"></div><div class="ring inner"></div>
-  <span id="currentMoonMarker" class="moon-orbit-marker" aria-label="Current moon position" title="Current moon position">☾</span>
-  <img class="rose" src="/assets/rose_compass_center.png" alt="" aria-hidden="true">
-  <span class="direction north">NORTH</span><span class="direction east">EAST</span><span class="direction south">SOUTH</span><span class="direction west">WEST</span>
-  <div id="days"></div>
+ <div id="classroomFlowMap" class="flow-map" aria-label="Live four-quadrant Flow Map">
+  <span class="map-axis map-n">NORTH</span><span class="map-axis map-e">EAST</span><span class="map-axis map-s">SOUTH</span><span class="map-axis map-w">WEST</span>
+  <span class="map-center" aria-hidden="true"><img src="/assets/rose_compass_center.png" alt=""></span>
+  <section class="flow-quadrant flow-autumn"><span class="quadrant-total" id="Autumn">0</span><header><h2>Inner Autumn</h2><p>Days 20–26</p></header><div class="presence-field" id="presencesAutumn" aria-label="Guests in Inner Autumn"></div></section>
+  <section class="flow-quadrant flow-summer"><span class="quadrant-total" id="Summer">0</span><header><h2>Inner Summer</h2><p>Days 12–19</p></header><div class="presence-field" id="presencesSummer" aria-label="Guests in Inner Summer"></div></section>
+  <section class="flow-quadrant flow-winter"><span class="quadrant-total" id="Winter">0</span><header><h2>Inner Winter</h2><p>Days 27–5</p></header><div class="presence-field" id="presencesWinter" aria-label="Guests in Inner Winter"></div></section>
+  <section class="flow-quadrant flow-spring"><span class="quadrant-total" id="Spring">0</span><header><h2>Inner Spring</h2><p>Days 6–11</p></header><div class="presence-field" id="presencesSpring" aria-label="Guests in Inner Spring"></div></section>
  </div>
  <div class="classroom-data">
   <div class="metric"><strong id="total">—</strong><span>Guests sharing their place</span></div>
-  <div class="seasons">
-   <div class="season"><h3>Inner Winter</h3><div class="count" id="Winter">0</div><span class="season-moon" id="moonInWinter" hidden>☾ Moon is here</span><p>Days 27–5</p></div>
-   <div class="season"><h3>Inner Spring</h3><div class="count" id="Spring">0</div><span class="season-moon" id="moonInSpring" hidden>☾ Moon is here</span><p>Days 6–11</p></div>
-   <div class="season"><h3>Inner Summer</h3><div class="count" id="Summer">0</div><span class="season-moon" id="moonInSummer" hidden>☾ Moon is here</span><p>Days 12–19</p></div>
-   <div class="season"><h3>Inner Autumn</h3><div class="count" id="Autumn">0</div><span class="season-moon" id="moonInAutumn" hidden>☾ Moon is here</span><p>Days 20–26</p></div>
-  </div>
   <div class="moon-summary" aria-live="polite">
     <span class="small">The Moon Now · Flowtel Time</span>
     <h3 id="actualMoonPhase">Locating the moon…</h3>
     <p id="moonCycleDay" class="moon-line"></p>
     <p class="moon-line">Next full moon: <strong id="nextFullMoon">—</strong></p>
     <p class="moon-line">Next new moon: <strong id="nextNewMoon">—</strong></p>
-    <p class="moon-footer">☾ marks the moon on the 28-day wheel, separate from guest cycle positions. Moon phase times: Griffith Observatory, Pacific Time (2026).</p>
+    <p class="moon-footer">☾ marks the Moon in her current Inner Season, separate from guest counts. Moon phase times: Griffith Observatory, Pacific Time (2026).</p>
   </div>
   <div class="moon-track" style="background:#fff9f0;border:1px solid #e2d1ad">
-    <span class="small">First names on our wheel</span>
-    <div id="visibleFirstNames" style="margin:9px 0 0;font:15px/1.65 Georgia,serif;color:#5d644e">Every guest's name appears on the wheel, even when guests share a cycle day.</div>
+    <span class="small">Guests in our Flow Map</span>
+    <div id="visibleFirstNames" style="margin:9px 0 0;font:15px/1.65 Georgia,serif;color:#5d644e">Every guest floats within their Inner Season on the Flow Map.</div>
   </div>
  </div>
 </div>
@@ -119,10 +145,10 @@ body.presentation-active #contactsDialog{display:none!important}
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
 <section id="roomAdminTools" class="room-admin-tools" hidden>
- <div><h2>Between-class reset</h2><p>Keep the same QR code and start a fresh medicine wheel for your next class.</p><p id="clearRoomFeedback" role="status" aria-live="polite"></p></div>
+ <div><h2>Between-class reset</h2><p>Keep the same QR code and start a fresh Flow Map for your next class.</p><p id="clearRoomFeedback" role="status" aria-live="polite"></p></div>
  <button id="clearClassroom" type="button" disabled>Clear classroom</button>
 </section>
-<div class="foot">Each guest's cycle day and first name appear on the projected wheel, as explained at check-in. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
+<div class="foot">Each guest's first name appears in their Inner Season on the projected Flow Map, as explained at check-in. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
 <dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
  <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
  <h2 style="font-weight:normal;margin-top:0">Private classroom roster</h2>
@@ -158,18 +184,40 @@ document.addEventListener('fullscreenchange',function(){
   document.body.classList.toggle('presentation-active',presenting);
   if(presenting)refresh();
 });
-const wheel=document.getElementById('days');
-const markers=[];
-for(let day=1;day<=28;day++){
- const marker=document.createElement('span');
- marker.className='day';marker.textContent=day===28?'28+':String(day);
- marker.setAttribute('aria-label','Cycle day '+(day===28?'28 and later':day));
- const angle=(180+360/56+(day-1)*360/28)*Math.PI/180;
- marker.style.left=(50+39.5*Math.cos(angle))+'%';
- marker.style.top=(50-39.5*Math.sin(angle))+'%';
- wheel.appendChild(marker);markers.push(marker);
+const seasonKeys=['Winter','Spring','Summer','Autumn'];
+const fields=Object.fromEntries(seasonKeys.map(season=>[season,document.getElementById('presences'+season)]));
+const moonPresence=document.createElement('div');
+moonPresence.className='presence-orb moon-presence';
+moonPresence.setAttribute('aria-label','Current Moon');
+const moonArt=document.createElement('span');moonArt.className='presence-portrait';
+const moonGlyph=document.createElement('span');moonGlyph.className='moon-art';moonGlyph.textContent='☾';moonArt.appendChild(moonGlyph);
+const moonLabel=document.createElement('strong');moonLabel.className='presence-name';moonLabel.textContent='The Moon';
+const moonSubtitle=document.createElement('small');moonSubtitle.className='presence-subtitle';
+moonPresence.append(moonArt,moonLabel,moonSubtitle);
+function seasonForCycleDay(day){return day>=27||day<=5?'Winter':day<=11?'Spring':day<=19?'Summer':'Autumn';}
+function renderPresences(entries){
+ const grouped={Winter:[],Spring:[],Summer:[],Autumn:[]};
+ for(const entry of entries){
+   const day=Number(entry.day);
+   if(!Number.isInteger(day)||day<1||day>28)continue;
+   const season=seasonForCycleDay(day);
+   for(const name of Array.isArray(entry.names)?entry.names:[]){
+     if(typeof name==='string'&&name.trim())grouped[season].push(name.trim());
+   }
+ }
+ for(const season of seasonKeys){
+   const field=fields[season];field.replaceChildren();
+   grouped[season].forEach((name,index)=>{
+     const presence=document.createElement('div');presence.className='presence-orb guest-presence';
+     presence.style.setProperty('--delay',(-index%11)*0.34+'s');
+     presence.setAttribute('aria-label',name+' in Inner '+season);
+     const art=document.createElement('span');art.className='presence-portrait';
+     const image=document.createElement('img');image.src='/assets/rose_compass_center.png';image.alt='';image.setAttribute('aria-hidden','true');art.appendChild(image);
+     const label=document.createElement('strong');label.className='presence-name';label.textContent=name;
+     presence.append(art,label);field.appendChild(presence);
+   });
+ }
 }
-
 // Pacific-time astronomical phase events, published by Griffith Observatory
 // (2026, USNO Data Services). Flowtel moon day comes from shared/moon.js.
 const astronomicalPhases=[
@@ -200,20 +248,11 @@ function updateMoonDisplay(){
  const phaseName=past?(phaseLabels[past.type]||past.label):magic.phase;
  document.getElementById('actualMoonPhase').textContent=phaseName;
  document.getElementById('moonCycleDay').textContent='Moon day '+magic.moonDay+' · '+magic.innerSeason;
- for(const season of ['Winter','Spring','Summer','Autumn']){
-   const moonBadge=document.getElementById('moonIn'+season);
-   moonBadge.hidden=magic.innerSeason!=='Inner '+season;
- }
- document.getElementById('nextFullMoon').textContent=nextFull?formatPacific(nextFull.time):'Date unavailable';
- document.getElementById('nextNewMoon').textContent=nextNew?formatPacific(nextNew.time):'Date unavailable';
- const markerIndex=Math.max(0,Math.min(27,magic.moonDay-1));
- markers.forEach((marker,i)=>marker.classList.toggle('moon-cycle-day',i===markerIndex));
- const angle=(180+360/56+markerIndex*360/28)*Math.PI/180;
- const moonMarker=document.getElementById('currentMoonMarker');
- moonMarker.style.left=(50+46*Math.cos(angle))+'%';
- moonMarker.style.top=(50-46*Math.sin(angle))+'%';
- moonMarker.setAttribute('aria-label',phaseName+', moon day '+magic.moonDay);
- moonMarker.title=phaseName+' · Moon day '+magic.moonDay;
+ const currentSeason=magic.innerSeason.replace('Inner ','');
+ const field=fields[currentSeason];
+ moonSubtitle.textContent='Moon day '+magic.moonDay;
+ moonPresence.setAttribute('aria-label',phaseName+', Inner '+currentSeason+', moon day '+magic.moonDay);
+ if(field && (moonPresence.parentElement!==field || field.firstElementChild!==moonPresence))field.prepend(moonPresence);
 }
 updateMoonDisplay();
 
@@ -246,29 +285,7 @@ async function refresh(){
   if(!clearingRoom)clearRoomButton.disabled=false;
   document.getElementById('total').textContent=String(body.total||0);
   for(const season of ['Winter','Spring','Summer','Autumn'])document.getElementById(season).textContent=String(body.seasons?.[season]||0);
-  (body.days||[]).forEach(function(entry,i){
-    const marker=markers[i];if(!marker)return;
-    const count=Number(entry.count)||0;
-    marker.classList.toggle('active',count>0);
-    marker.replaceChildren(document.createTextNode(i===27?'28+':String(i+1)));
-    if(count){const tag=document.createElement('b');tag.textContent=String(count);marker.appendChild(tag);}
-    const names=Array.isArray(entry.names)?entry.names.filter(name=>typeof name==='string'&&name.trim()):[];
-    if(names.length){
-      const stack=document.createElement('span');
-      stack.className='day-name-stack';
-      const angle=(180+360/56+i*360/28)*Math.PI/180;
-      const x=Math.cos(angle),y=Math.sin(angle);
-      stack.classList.add(Math.abs(x)<0.4?(y>0?'below':'above'):(x>0?'inner-left':'inner-right'));
-      for(const name of names){
-        const chip=document.createElement('span');
-        chip.className='guest-chip';chip.textContent=name;
-        stack.appendChild(chip);
-      }
-      marker.appendChild(stack);
-    }
-    marker.setAttribute('aria-label','Cycle day '+(i===27?'28 or later':i+1)+': '+count+' guests'+(names.length?', '+names.join(', '):''));
-  });
-
+  renderPresences(body.days||[]);
   const namesList=document.getElementById('visibleFirstNames');
   namesList.replaceChildren();
   let anyNames=false;
@@ -284,7 +301,7 @@ async function refresh(){
   }
   if(!anyNames)namesList.textContent='Guests will appear here as they check in.';
   updateMoonDisplay();
-  status.textContent='Live classroom wheel · updates every 5 seconds';
+  status.textContent='Live classroom Flow Map · updates every 5 seconds';
  }catch(e){status.textContent=e.message||'Refresh failed; reconnecting...';}
  finally{inFlight=false}
 }
