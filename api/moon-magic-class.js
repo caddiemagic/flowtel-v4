@@ -9,7 +9,7 @@ function respond(res,status,data){
 }
 function fail(code,message){const e=new Error(message);e.statusCode=code;throw e;}
 function config(){
-  const url=String(process.env.SUPABASE_URL||'').trim().replace(/\/$/,'');
+  const url=String(process.env.SUPABASE_URL||'').trim().replace(/\/+$/,'').replace(/\/rest\/v1$/i,'');
   const key=String(process.env.SUPABASE_SERVICE_ROLE_KEY||'').trim();
   if(!url||!key)fail(503,'The classroom is not yet configured.');
   return {url,key};
