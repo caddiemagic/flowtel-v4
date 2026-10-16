@@ -44,7 +44,7 @@ async function start(){
  if(u.pathname==='/shared/supabase.js'){
  res.setHeader('Content-Type','text/javascript');return res.end(`const role=window.__fictionalRole||'a';export const supabase={auth:{getSession:async()=>({data:{session:{access_token:role}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},storage:{from:()=>({uploadToSignedUrl:async(path,token,file)=>{await fetch('/test-upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,size:file.size,type:file.type})});return {error:null}}})}};`);
  }
- const root=path.resolve(__dirname,'..');let file=path.resolve(root,'.'+decodeURIComponent(u.pathname));if(!file.startsWith(root+path.sep))return send(403,{});if(u.pathname.endsWith('/'))file=path.join(file,'index.html');
+ const root=path.resolve(__dirname,'..');let file=path.resolve(root,'.'+decodeURIComponent(u.pathname));if(!file.startsWith(root+path.sep))return send(403,{});if(u.pathname.endsWith('/')){const cleanFile=file.replace(/\/$/,'')+'.html';try{await fs.access(cleanFile);file=cleanFile}catch{file=path.join(file,'index.html')}}
  const data=await fs.readFile(file);res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.mjs')||file.endsWith('.js')?'text/javascript':'text/plain');res.end(data);
  }catch(error){res.statusCode=500;res.end(JSON.stringify({error:error.message}))}});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;process.env.SUPABASE_URL=origin;process.env.SUPABASE_SERVICE_ROLE_KEY='fictional-service';

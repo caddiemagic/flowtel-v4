@@ -66,3 +66,7 @@ On October 15, 2026 (Flowtel Time), the owner supplied a screenshot of the deplo
 Added All / Upcoming and to be arranged / Session history filters in My Calls, including historical confirmed/proposed sessions and terminal statuses. Fixed prepared-access discovery failures blocking already linked suites, and cleared previous media sources and session dialogs immediately on program refresh/switch. No authentication, database, product-permission, shared navigation, check-in, Caddie Magic, or 13 Moons changes.
 
 80 automated tests and the expanded local Chromium owner/client journey passed. New browser checks cover call filters, existing-suite availability during prepared-access discovery failure, and clearing an open private session dialog/media on a failed refresh.
+
+## Preview route collision correction
+
+The owner's screenshot revealed Vercel cleanUrls was resolving `/mentorship-client-suite/client-suite-preview/` to the older sibling `client-suite-preview.html`, ahead of the new directory index. Renamed the older prototype to `client-suite-preview-legacy.html`, preserving it while removing the collision. The test server now models extensionless HTML precedence and the browser journey asserts the updated navigation and luxury stylesheet at the canonical preview URL. All 80 automated tests and the browser journey passed locally. No Vercel project settings or shared routes were changed.
