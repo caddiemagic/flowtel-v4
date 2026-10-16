@@ -28,10 +28,10 @@ import {pacificTimestamp} from '../pacific-time.mjs';
 const $=id=>document.getElementById(id);
 let token=null,offerings=[],enrollments=[],selected=null;
 function msg(id,message,isError=false){const node=$(id);node.textContent=message;node.className=isError?'error':'success'}
-async function request(method='GET',body=null){
+async function request(method='GET',body=null,query=''){
  const {data:auth,error:authError}=await supabase.auth.getSession();if(authError)throw authError;token=auth.session?.access_token;
  if(!token)throw Error('Sign in to Flowtel as the owner first.');
- const response=await fetch('/api/caddie-acuity?mentorship=owner',{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
+ const response=await fetch('/api/caddie-acuity?mentorship=owner'+query,{method,headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  const data=await response.json().catch(()=>({}));
  if(!response.ok)throw Error(response.status===401?'Your session expired. Sign in again.':response.status===403?'This Flowtel account does not have Concierge owner access.':data.error||'Request failed ('+response.status+')');
  return data;
@@ -101,14 +101,26 @@ async function loadSessions(id){const root=$('sessionList');root.textContent='Lo
  button.onclick=async()=>{if(!date.value||!time.value){msg('detailStatus','Select a date and time first.',true);return}button.disabled=true;try{const instant=pacificTimestamp(date.value,time.value);await request('POST',{action:'set-session-time',enrollmentId:id,sessionId:session.id,scheduledAt:instant});msg('detailStatus','Proposed session time saved. No appointment booked.');await loadSessions(id)}catch(error){localStatus.textContent=error.message;localStatus.className='error';msg('detailStatus',error.message,true)}finally{button.disabled=false}};
  const localStatus=document.createElement('p');localStatus.setAttribute('role','status');line.append(localStatus);
  const inputs=document.createElement('div');inputs.className='row';inputs.append(date,time,button);line.append(heading,inputs);
- button.disabled=!['unscheduled','proposed','confirmed'].includes(session.status);
+ button.disabled=Boolean(session.appointment_id)||!['unscheduled','proposed','confirmed'].includes(session.status);date.disabled=Boolean(session.appointment_id);time.disabled=Boolean(session.appointment_id);
+ if(session.scheduled_at){const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(session.scheduled_at));const part=name=>parts.find(p=>p.type===name)?.value;date.value=part('year')+'-'+part('month')+'-'+part('day');time.value=part('hour')+':'+part('minute');}
+ if(session.appointment_id){const note=document.createElement('p');note.className='small';note.textContent='Linked booking · Make schedule changes in Acuity, then refresh booking details below.';line.append(note);}
  for(const [operation,label,states] of [['confirm','Confirm',['proposed']],['complete','Mark complete',['confirmed']],['cancel','Cancel session',['unscheduled','proposed','confirmed']],['reopen','Reopen session',['cancelled']]]){
  if(operation==='reopen'&&session.status!=='cancelled')continue;
  const control=document.createElement('button');control.type='button';control.textContent=label;control.disabled=!states.includes(session.status);control.onclick=async()=>{control.disabled=true;try{await request('POST',{action:'session-transition',operation,enrollmentId:id,sessionId:session.id});await loadSessions(id);msg('detailStatus','Session updated.')}catch(e){localStatus.textContent=e.message;localStatus.className='error';msg('detailStatus',e.message,true);control.disabled=false}};line.append(control);
  }
+ if(['flexible','empowerment'].includes(session.session_kind)||session.appointment_id){const panel=document.createElement('div');const manage=document.createElement('button');manage.type='button';manage.className='secondary';manage.textContent='Manage session '+session.session_number+' booking';manage.onclick=()=>renderBooking(panel,id,session);panel.append(manage);line.append(panel);}
  const recording=document.createElement('div');line.append(recording);renderRecordings(recording,id,session.id);root.append(line)
 }}catch(error){root.textContent=error.message}}
 
+async function renderBooking(root,enrollmentId,session){
+ root.textContent='Loading matching bookings…';
+ try{const data=await request('GET',null,'&bookingsFor='+session.id+'&enrollmentId='+enrollmentId);root.replaceChildren();const note=document.createElement('p');note.className='small';note.textContent=data.note;root.append(note);
+ const act=async(action,appointmentId)=>{try{await request('POST',{action,enrollmentId,sessionId:session.id,...(appointmentId?{appointmentId}:{})});await loadSessions(enrollmentId);msg('detailStatus',action==='unlink-booking'?'Booking unlinked. The appointment in Acuity was not changed.':'Booking details saved to this mentorship session.');}catch(error){msg('detailStatus',error.message,true);const message=document.createElement('p');message.className='error';message.textContent=error.message;root.append(message);}};
+ if(data.linked){const description=document.createElement('p');description.textContent=data.linked.unavailable?'The linked booking is unavailable.':new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',dateStyle:'medium',timeStyle:'short'}).format(new Date(data.linked.startsAt))+' Pacific · '+data.linked.status+' · '+(data.linked.zoomReady?'Zoom link ready':'Meeting link pending');root.append(description);for(const [action,label] of [['refresh-booking','Refresh booking details'],['unlink-booking','Unlink booking']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.onclick=async()=>{button.disabled=true;try{await act(action);}finally{button.disabled=false;}};root.append(button);}return;}
+ if(!data.bookings?.length){const empty=document.createElement('p');empty.className='small';empty.textContent='No matching bookings are available in Flowtel yet. You can enter the session time manually.';root.append(empty);return;}
+ const select=document.createElement('select');select.setAttribute('aria-label','Session '+session.session_number+' existing booking');select.add(new Option('Choose an existing booking…',''));for(const booking of data.bookings)select.add(new Option(new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',dateStyle:'medium',timeStyle:'short'}).format(new Date(booking.startsAt))+' Pacific · '+booking.durationMinutes+' minutes · '+booking.status,booking.id));const link=document.createElement('button');link.type='button';link.textContent='Link session '+session.session_number+' booking';link.onclick=async()=>{if(!select.value)return;link.disabled=true;try{await act('link-booking',select.value);}finally{link.disabled=false;}};root.append(select,link);
+ }catch(error){root.textContent=error.message;}
+}
 async function renderRecordings(root,enrollmentId,sessionId){
  root.replaceChildren();const title=document.createElement('input');title.placeholder='Recording title';title.maxLength=200;title.setAttribute('aria-label','Recording title');const file=document.createElement('input');file.type='file';file.accept='video/mp4,video/webm,audio/mpeg,audio/mp4,audio/webm';file.setAttribute('aria-label','Session recording');
  const upload=document.createElement('button');upload.type='button';upload.textContent='Upload private recording';

@@ -1,3 +1,4 @@
+const bookings=require('./appointment-link.cjs');
 const controls=require('./session-controls.cjs');
 const recordings=require('./replay-owner.cjs');
 const guards=require('./request.cjs');
@@ -13,11 +14,15 @@ module.exports=async function ownerMentorshipHandler(req,res){
   guards.authenticated(req);
   const ctx=await requireOwner(req);
   if(req.method==='GET'){
+   if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
    if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
    if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});
    return res.status(200).json({ok:true,offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
   }
   const body=await guards.body(req);
+  if(body?.action==='link-booking')return res.status(200).json({ok:true,session:await bookings.linkBooking(ctx,body)});
+  if(body?.action==='unlink-booking')return res.status(200).json({ok:true,session:await bookings.unlinkBooking(ctx,body)});
+  if(body?.action==='refresh-booking')return res.status(200).json({ok:true,session:await bookings.refreshBooking(ctx,body)});
   if(body?.action==='session-transition')return res.status(200).json({ok:true,session:await controls.transition(ctx,body)});
   if(body?.action==='begin-upload')return res.status(200).json({ok:true,upload:await recordings.beginUpload(ctx,body)});
   if(body?.action==='finish-upload')return res.status(201).json({ok:true,replay:await recordings.finishUpload(ctx,body)});

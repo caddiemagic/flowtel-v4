@@ -47,3 +47,16 @@ Current dashboard verification: 61 unit/security/HTTP tests and the owner/client
 ## Session details and calendar downloads
 
 Clients can open a session detail dialog, see that session month's client-visible focus when present, jump directly to its published recordings, and download a private iCalendar file for confirmed sessions. Calendar files use UTC start/end instants, escaped/folded text, stable session UIDs, and no attendees, invitation delivery, or signed playback links. The dashboard section is preserved in the URL fragment on refresh and supports browser back/forward. Recording search and a session filter operate only on already authorized replay metadata. Switching rooms pauses playback, and starting a recording pauses other players.
+
+## Existing Acuity booking links
+
+Owner-defined class names:
+- `four_sessions` flexible calls → `1:1 Intuitive Coaching + Energy Reading`.
+- Empowerment calls → `Madly In Love Mentorship Call`.
+- Activation calls have no configured class and retain manual date entry.
+
+The owner can list matching existing Flowtel appointment records, link one to a mentorship session, refresh its saved details, or unlink it. Matching requires a verified linked client account, the correct Flowtel source product, exact normalized Acuity class name, matching duration, and an unused booking. Unclaimed clients cannot be matched by browser-supplied email. Duplicate and concurrent links are rejected through the existing appointment uniqueness constraint and conditional writes.
+
+No requests create, cancel, reschedule, or import appointments in Acuity. This increment does not add service types or change shared scheduling configuration. It uses appointments already received into Flowtel. Once linked, clients read the saved appointment's latest time/status and safe Zoom location, with ownership and class checks repeated. Wrong-class or unavailable appointments do not display a stale confirmed time or Zoom link. Manual time edits require unlinking first.
+
+76 automated tests and the expanded fictional owner/client browser journey passed locally.

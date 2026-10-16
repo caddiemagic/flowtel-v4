@@ -2,6 +2,7 @@
 // Never accept an enrollment owner or user id from request payload for authorization.
 const {fetchJson,serviceHeaders,userHeaders}=require('../server/guest-house-server.js');
 const {extractZoomMeetingUrl}=require('../server/acuity-server.js');
+const {expectedClass,matchesClass}=require('./booking-rules.cjs');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 function programTitle(snapshot){return typeof snapshot?.title==='string'?snapshot.title.slice(0,160):'Private mentorship';}
 function context(ctx){if(!ctx?.user?.id||!ctx?.supabaseUrl||!ctx?.serviceKey)throw Error('Verified authenticated context required');}
@@ -34,15 +35,23 @@ async function clientSuite(ctx,enrollmentId){
  const appointmentIds=sessions.map(session=>session.appointment_id).filter(value=>typeof value==='string'&&UUID.test(value));
  let appointments=[];
  if(appointmentIds.length){
-  appointments=await fetchJson(ctx.supabaseUrl+'/rest/v1/flowtel_external_appointments?select=id,external_payload,status&customer_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&id=in.('+appointmentIds.join(',')+')&status=eq.scheduled',{headers:serviceHeaders(ctx.serviceKey)});
+  appointments=await fetchJson(ctx.supabaseUrl+'/rest/v1/flowtel_external_appointments?select=id,starts_at,ends_at,external_payload,status&source_product=eq.flowtel&customer_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&id=in.('+appointmentIds.join(',')+')',{headers:serviceHeaders(ctx.serviceKey)});
   if(!Array.isArray(appointments))throw Error('Unexpected appointment response');
  }
  const safeSessions=sessions.map(({appointment_id,...session})=>{
   const appointment=appointments.find(item=>item.id===appointment_id);let meetingUrl=null;
-  if(session.status==='confirmed'&&appointment?.status==='scheduled'){
+  const terminal=['completed','cancelled','missed'].includes(session.status);
+  if(appointment_id&&!terminal){
+   const expected=expectedClass(session,enrollment.offering_snapshot);
+   const length=appointment?(Date.parse(appointment.ends_at)-Date.parse(appointment.starts_at))/60000:null;
+   if(!appointment||!matchesClass(appointment,expected)||length!==session.duration_minutes){return {...session,status:'proposed',scheduled_at:null,meeting_url:null,booking_state:'needs_review'};}
+   session.scheduled_at=appointment.starts_at;
+   session.status={scheduled:'confirmed',rescheduled:'confirmed',completed:'completed',cancelled:'cancelled'}[appointment.status]||'proposed';
+  }
+  if(session.status==='confirmed'&&['scheduled','rescheduled'].includes(appointment?.status)){
    try{const parsed=new URL(extractZoomMeetingUrl(appointment.external_payload||{}));if(parsed.protocol==='https:'&&!parsed.username&&!parsed.password&&(parsed.hostname==='zoom.com'||parsed.hostname.endsWith('.zoom.com')||parsed.hostname==='zoom.us'||parsed.hostname.endsWith('.zoom.us')||parsed.hostname==='zoomgov.com'||parsed.hostname.endsWith('.zoomgov.com')))meetingUrl=parsed.href;}catch{}
   }
-  return {...session,meeting_url:meetingUrl};
+  return {...session,meeting_url:meetingUrl,booking_state:appointment_id?'linked':null};
  });
  return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on,supportEndsOn:enrollment.support_ends_on,programTitle:programTitle(enrollment.offering_snapshot),bookingMode:enrollment.offering_snapshot?.booking_mode||null},sessions:safeSessions,monthlyFocus:focus,replays};
 }

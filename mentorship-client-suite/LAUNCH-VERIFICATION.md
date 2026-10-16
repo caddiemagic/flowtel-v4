@@ -42,3 +42,9 @@ Connected four-room dashboard, safe program-title projection, progress and next-
 Added accessible session detail dialogs, session-specific monthly focus and recording links, private iCalendar downloads for confirmed calls, recording title/session filters, URL-fragment room navigation, and playback pause behavior. No database schema, authentication, entitlement, check-in, Stay, or 13 Moons files changed.
 
 65 unit/security/HTTP tests passed locally. The expanded browser journey passed locally, including calendar download, recording filtering, session detail navigation and preserving My Recordings on refresh. Mobile session-detail and recording-library screenshots were visually inspected. The calendar tests cover Pacific offsets, UTC end times, UTF-8 line folding, property injection, and exclusion of private playback links and attendees.
+
+## Existing appointment linking and owner class mapping
+
+Configured the two exact class names supplied by the owner: four 45-minute sessions use `1:1 Intuitive Coaching + Energy Reading`; empowerment calls use `Madly In Love Mentorship Call`. Activation remains manual because no activation class has been supplied. Added owner-only existing-booking matching, linking, refresh and unlink. Clients see the latest saved appointment status/time and Zoom URL after repeated ownership/class validation. Wrong-class or unavailable records fail closed.
+
+76 automated tests and the expanded browser journey passed locally. The journey now links a fictional empowerment booking, verifies the client's Zoom link, and unlinks it without changing the original appointment. No migrations, service catalog writes, Acuity booking API writes, imports, invitations, shared authentication edits, or production changes were made. Matching currently uses existing Flowtel appointment records; this does not claim live Acuity catalog-ID verification.

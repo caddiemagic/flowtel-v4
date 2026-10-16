@@ -47,7 +47,8 @@ function renderSessions(model){
  for(const s of model.sessions){
  const card=element('article','','card session-card');card.append(element('span',String(s.session_number).padStart(2,'0'),'session-number'));
  const content=element('div','');content.append(element('h4',kindLabel(s.session_kind)),element('p',s.scheduled_at?timeLabel(s.scheduled_at):'Date to be arranged'),element('p',s.duration_minutes+' minutes','muted'));
- if(s.status==='proposed')content.append(element('p','A proposed time, awaiting confirmation.','muted'));
+ if(s.booking_state==='needs_review')content.append(element('p','Your booking details are being reviewed. Your updated time will appear here.','muted'));
+ if(s.status==='proposed'&&s.booking_state!=='needs_review')content.append(element('p','A proposed time, awaiting confirmation.','muted'));
  if(pending.has(s.id))content.append(element('p','Awaiting a session update.','muted'));
  const state=element('div','','session-status');state.append(element('span',s.status,'badge'));if(s.meeting_url){const join=element('a','Join Zoom','text-link');join.href=s.meeting_url;join.target='_blank';join.rel='noopener noreferrer';state.append(join);}const details=element('button','View session '+s.session_number+' details','text-button');details.onclick=()=>showSession(s);content.append(details);card.append(content,state);root.append(card);
  }

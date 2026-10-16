@@ -98,7 +98,19 @@ test('cycle context reuses the existing consent RPC with the client token and fi
 test('cycle context never substitutes service-role authority for a missing user token',async()=>{const {myFlowContext}=require('./client-repository.cjs');const {calls}=await simulate([],()=>assert.rejects(myFlowContext(ctx),e=>e.statusCode===401));assert.equal(calls.length,0);});
 test('Zoom links are read only from client-owned scheduled appointments, never arbitrary URL schemes',async()=>{
  for(const [meeting,expected] of [['https://us02web.zoom.us/j/123','https://us02web.zoom.us/j/123'],['javascript:alert(1)',null],['https://zoom.us.attacker.example/j/123',null]]){
- const {output,calls}=await simulate([[{id:enrollment,status:'active',client_user_id:user}],[{id:session,appointment_id:session,status:'confirmed'}],[],[],[{id:session,status:'scheduled',external_payload:{location:meeting,internal:'PRIVATE-PAYLOAD'}}]],()=>clientSuite(ctx,enrollment));
+ const {output,calls}=await simulate([[{id:enrollment,status:'active',client_user_id:user}],[{id:session,appointment_id:session,status:'confirmed',session_kind:'empowerment',duration_minutes:90}],[],[],[{id:session,status:'scheduled',starts_at:'2027-01-20T19:00:00Z',ends_at:'2027-01-20T20:30:00Z',external_payload:{type:'Madly In Love Mentorship Call',location:meeting,internal:'PRIVATE-PAYLOAD'}}]],()=>clientSuite(ctx,enrollment));
  assert.equal(output.sessions[0].meeting_url,expected);assert.equal(output.sessions[0].appointment_id,undefined);assert.ok(!JSON.stringify(output).includes('PRIVATE-PAYLOAD'));assert.match(calls[4].url,/customer_user_id=eq.11111111/);
+ }
+});
+
+test('linked client sessions follow saved reschedules and cancellations without exposing the appointment payload',async()=>{
+ for(const [bookingStatus,next] of [['rescheduled','confirmed'],['cancelled','cancelled']]){
+ const {output}=await simulate([[{id:enrollment,status:'active',client_user_id:user}],[{id:session,appointment_id:session,status:'confirmed',session_kind:'empowerment',duration_minutes:90,scheduled_at:'2026-01-01T19:00:00Z'}],[],[],[{id:session,status:bookingStatus,starts_at:'2027-01-20T19:00:00Z',ends_at:'2027-01-20T20:30:00Z',external_payload:{type:'Madly In Love Mentorship Call',location:'https://zoom.us/j/123'}}]],()=>clientSuite(ctx,enrollment));
+ assert.equal(output.sessions[0].status,next);assert.equal(output.sessions[0].scheduled_at,'2027-01-20T19:00:00Z');assert.equal(Boolean(output.sessions[0].meeting_url),next==='confirmed');
+ }
+});
+test('missing or wrong-class linked appointments never expose a stale time or Zoom link',async()=>{
+ for(const appointments of [[],[{id:session,status:'scheduled',starts_at:'2027-01-20T19:00:00Z',ends_at:'2027-01-20T20:30:00Z',external_payload:{type:'Unrelated call',location:'https://zoom.us/j/123'}}]]){
+ const {output}=await simulate([[{id:enrollment,status:'active',client_user_id:user}],[{id:session,appointment_id:session,status:'confirmed',session_kind:'empowerment',duration_minutes:90,scheduled_at:'2026-01-01T19:00:00Z'}],[],[],appointments],()=>clientSuite(ctx,enrollment));assert.equal(output.sessions[0].booking_state,'needs_review');assert.equal(output.sessions[0].scheduled_at,null);assert.equal(output.sessions[0].meeting_url,null);
  }
 });

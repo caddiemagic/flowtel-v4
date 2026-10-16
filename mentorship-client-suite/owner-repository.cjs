@@ -111,7 +111,7 @@ async function prepareSessions(ctx,{enrollmentId}){
  for(let i=0;i<(offering.empowerment_count||0);i++)plan.push({session_kind:'empowerment',duration_minutes:offering.empowerment_minutes});
  for(let i=0;i<(offering.flexible_count||0);i++)plan.push({session_kind:'flexible',duration_minutes:offering.flexible_minutes});
  if(!plan.length||plan.length>40||plan.some(x=>!Number.isInteger(x.duration_minutes)||x.duration_minutes<=0))throw Error('Offering session configuration is invalid');
- const existing=await fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
+ const existing=await fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at,appointment_id&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
  if(!Array.isArray(existing))throw Error('Cannot verify existing sessions');
  if(existing.length)return {sessions:existing,created:false};
  const data=plan.map((session,i)=>({...session,enrollment_id:enrollmentId,session_number:i+1,status:'unscheduled'}));
@@ -121,17 +121,18 @@ async function prepareSessions(ctx,{enrollmentId}){
 }
 async function listSessions(ctx,{enrollmentId}){
  ownerContext(ctx);validUUID(enrollmentId);
- return fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
+ return fetchJson(url(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,status,scheduled_at,appointment_id&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&order=session_number.asc'),{headers:serviceHeaders(ctx.serviceKey)});
 }
 async function setSessionTime(ctx,{enrollmentId,sessionId,scheduledAt}){
  ownerContext(ctx);validUUID(enrollmentId);validUUID(sessionId);
  const day=typeof scheduledAt==='string'?new Date(scheduledAt):new Date(NaN);
  if(!Number.isFinite(day.getTime())||!/(Z|[+-]\d{2}:\d{2})$/.test(String(scheduledAt)))throw failure('A timestamp with time zone is required',400);
  // Owners may backfill historical sessions for existing clients.
- const matches=await fetchJson(url(ctx,'sessions','select=id,status,scheduled_at&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ const matches=await fetchJson(url(ctx,'sessions','select=id,status,scheduled_at,appointment_id&enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
  if(!Array.isArray(matches)||matches.length!==1)throw failure('Session not found',404);
+ if(matches[0].appointment_id)throw failure('This session is linked to a booking. Make schedule changes in Acuity, or unlink the booking to edit manually.',409);
  if(!['unscheduled','proposed','confirmed'].includes(matches[0].status))throw failure('This session cannot be rescheduled',409);
- const records=await fetchJson(url(ctx,'sessions','enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&status=eq.'+matches[0].status+'&scheduled_at='+ (matches[0].scheduled_at?'eq.'+encodeURIComponent(matches[0].scheduled_at):'is.null')+'&select=id,status,scheduled_at,timezone'),{
+ const records=await fetchJson(url(ctx,'sessions','enrollment_id=eq.'+encodeURIComponent(enrollmentId)+'&id=eq.'+encodeURIComponent(sessionId)+'&status=eq.'+matches[0].status+'&appointment_id=is.null&scheduled_at='+ (matches[0].scheduled_at?'eq.'+encodeURIComponent(matches[0].scheduled_at):'is.null')+'&select=id,status,scheduled_at,timezone'),{
  method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({scheduled_at:day.toISOString(),timezone:'America/Los_Angeles',status:'proposed'})});
  if(!Array.isArray(records)||records.length!==1)throw failure('This session changed while you were editing. Refresh its details and try again.',409);
  return records[0];

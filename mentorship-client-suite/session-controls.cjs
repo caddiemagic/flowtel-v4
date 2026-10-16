@@ -6,7 +6,7 @@ function context(ctx){if(!ctx?.user?.id||!ctx.serviceKey||!ctx.supabaseUrl)throw
 function endpoint(ctx,table,query){return ctx.supabaseUrl+'/rest/v1/flowtel_mentorship_'+table+'?'+query;}
 async function session(ctx,{enrollmentId,sessionId}){
  context(ctx);validate(enrollmentId);validate(sessionId);
- const rows=await fetchJson(endpoint(ctx,'sessions','select=id,enrollment_id,status,scheduled_at&enrollment_id=eq.'+enrollmentId+'&id=eq.'+sessionId+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ const rows=await fetchJson(endpoint(ctx,'sessions','select=id,enrollment_id,status,scheduled_at,duration_minutes,session_kind,appointment_id&enrollment_id=eq.'+enrollmentId+'&id=eq.'+sessionId+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
  if(!Array.isArray(rows)||rows.length!==1)throw failure('Session not found',404);return rows[0];
 }
 async function transition(ctx,args){
