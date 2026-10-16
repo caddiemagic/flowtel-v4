@@ -25,9 +25,22 @@ async function finishUpload(ctx,args){
  if(!info)throw failure('Uploaded recording was not found',404);
  const size=Number(info.metadata?.size??info.size),mime=info.metadata?.mimetype??info.contentType;
  if(!types[mime]||!Number.isFinite(size)||size<1||size>maxBytes)throw failure('Uploaded recording metadata is invalid');
- const existing=await fetchJson(endpoint(ctx,'replays','select=id&storage_path=eq.'+encodeURIComponent(args.path)),{headers:serviceHeaders(ctx.serviceKey)});
- if(existing.length)throw failure('Recording is already saved',409);
- const records=await fetchJson(endpoint(ctx,'replays','select=id,title,visible_to_client'),{method:'POST',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({session_id:args.sessionId,title:args.title.trim(),storage_path:args.path,visible_to_client:false})});
+ const existing=await fetchJson(endpoint(ctx,'replays','select=id,title,visible_to_client&session_id=eq.'+args.sessionId+'&storage_path=eq.'+encodeURIComponent(args.path)),{headers:serviceHeaders(ctx.serviceKey)});
+ // A successful save response may be lost. A later retry returns the saved row without
+ // duplicating it or resetting publication/title. The session and storage checks still run.
+ if(!Array.isArray(existing))throw Error('Recording save could not be checked');
+ if(existing.length===1)return {id:existing[0].id,title:existing[0].title,visible_to_client:existing[0].visible_to_client};
+ if(existing.length>1)throw failure('Multiple records found for this upload. Refresh the recording list.',409);
+ // The randomized upload UUID is also the new replay ID. Its existing primary key
+ // prevents concurrent finalization of the same upload without a schema change.
+ const replayId=validate(filename.slice(0,36));let records;
+ try{records=await fetchJson(endpoint(ctx,'replays','select=id,title,visible_to_client'),{method:'POST',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({id:replayId,session_id:args.sessionId,title:args.title.trim(),storage_path:args.path,visible_to_client:false})});}
+ catch(error){
+  if(error.statusCode!==409)throw error;
+  const saved=await fetchJson(endpoint(ctx,'replays','select=id,title,visible_to_client&id=eq.'+replayId+'&session_id=eq.'+args.sessionId+'&storage_path=eq.'+encodeURIComponent(args.path)),{headers:serviceHeaders(ctx.serviceKey)});
+  if(!Array.isArray(saved)||saved.length!==1)throw error;
+  return {id:saved[0].id,title:saved[0].title,visible_to_client:saved[0].visible_to_client};
+ }
  if(!Array.isArray(records)||records.length!==1)throw Error('Recording save failed');return records[0];
 }
 async function listReplays(ctx,args){await session(ctx,args);return fetchJson(endpoint(ctx,'replays','select=id,title,visible_to_client,created_at&session_id=eq.'+args.sessionId+'&order=created_at.desc'),{headers:serviceHeaders(ctx.serviceKey)});}

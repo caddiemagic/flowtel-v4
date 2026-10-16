@@ -6,6 +6,7 @@ main{padding:24px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.car
 label{display:block;margin:12px 0 5px;font-weight:600;font-size:13px}input,select,textarea{width:100%;padding:11px;border:1px solid #c7bdb0;border-radius:8px;font:inherit}textarea{min-height:80px}
 button{background:#293d34;color:white;border:0;border-radius:8px;padding:11px 16px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:wait}button.secondary{background:#e9e2d7;color:#293d34}
 p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-size:13px}.small{font-size:12px;color:#777}.entry{border-top:1px solid #e9e2d7;padding:13px 0}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.error{color:#a63827}.success{color:#276749}a{color:#b89058}header a{color:#ead1a9}
+progress{display:block;width:100%;max-width:360px;height:8px;margin:14px 0;accent-color:#a9844e}progress[hidden]{display:none}
 @media(max-width:730px){.grid{grid-template-columns:1fr}}
 </style></head><body><header><div><small>FLOWTEL · OWNER CONCIERGE · DEVELOPMENT PREVIEW</small><h1>Connected Mentorship Desk</h1><p>Secure draft enrollments and monthly client focus</p><a href="../../manager/">← Return to Concierge Desk</a></div></header>
 <main>
@@ -26,6 +27,7 @@ p{line-height:1.5}.note{background:#f2e4d0;padding:13px;border-radius:8px;font-s
 <script type="module">
 import {supabase} from '../../shared/supabase.js';
 import {flowtelTodayISO} from '../../shared/flowtel-date.js';
+import {recordingUpload} from '../recording-upload.mjs';
 import {pacificTimestamp} from '../pacific-time.mjs';
 const $=id=>document.getElementById(id);
 let token=null,offerings=[],enrollments=[],selected=null;
@@ -138,8 +140,26 @@ async function renderBooking(root,enrollmentId,session){
 async function renderRecordings(root,enrollmentId,sessionId){
  root.replaceChildren();const title=document.createElement('input');title.placeholder='Recording title';title.maxLength=200;title.setAttribute('aria-label','Recording title');const file=document.createElement('input');file.type='file';file.accept='video/mp4,video/webm,audio/mpeg,audio/mp4,audio/webm';file.setAttribute('aria-label','Session recording');
  const upload=document.createElement('button');upload.type='button';upload.textContent='Upload private recording';
- upload.onclick=async()=>{upload.disabled=true;try{const chosen=file.files[0];if(!chosen||!title.value.trim())throw Error('Choose a recording and enter its title.');msg('detailStatus','Uploading recording…');const {upload:target}=await request('POST',{action:'begin-upload',enrollmentId,sessionId,mimeType:chosen.type,sizeBytes:chosen.size});const {error}=await supabase.storage.from(target.bucket).uploadToSignedUrl(target.path,target.token,chosen,{contentType:chosen.type});if(error)throw error;await request('POST',{action:'finish-upload',enrollmentId,sessionId,path:target.path,title:title.value});msg('detailStatus','Recording saved privately. Publish it below when ready.');await renderRecordings(root,enrollmentId,sessionId)}catch(e){msg('detailStatus',e.message,true)}finally{upload.disabled=false}};
- root.append(title,file,upload);
+ const progress=document.createElement('progress');progress.hidden=true;progress.setAttribute('aria-label','Recording upload in progress');
+ const uploadStatus=document.createElement('p');uploadStatus.className='small';uploadStatus.setAttribute('role','status');
+ const workflow=recordingUpload({
+  authorize:async data=>(await request('POST',{action:'begin-upload',enrollmentId,sessionId,...data})).upload,
+  transfer:async(target,chosen,mimeType)=>{const {error}=await supabase.storage.from(target.bucket).uploadToSignedUrl(target.path,target.token,chosen,{contentType:mimeType});if(error)throw error;},
+  finalize:data=>request('POST',{action:'finish-upload',enrollmentId,sessionId,...data}),
+  onStage:stage=>{uploadStatus.textContent={authorizing:'Preparing your private upload…',uploading:'Uploading your recording. Keep this page open.',saving:'Upload complete. Saving recording details…',complete:'Recording saved privately.'}[stage];}
+ });
+ upload.onclick=async()=>{
+  upload.disabled=true;file.disabled=true;title.disabled=true;progress.hidden=false;uploadStatus.className='small';
+  try{
+   await workflow.save(file.files[0],title.value);
+   if(root.isConnected&&selected?.id===enrollmentId){msg('detailStatus','Recording saved privately. Publish it below when ready.');await renderRecordings(root,enrollmentId,sessionId);}
+  }catch(error){
+   uploadStatus.textContent=(workflow.uploaded?'Your file is uploaded privately. Retry saving its details without uploading again. ':'')+error.message;
+   uploadStatus.className='error';upload.textContent=workflow.uploaded?'Retry saving recording':'Upload private recording';
+   if(root.isConnected&&selected?.id===enrollmentId)msg('detailStatus',uploadStatus.textContent,true);
+  }finally{progress.hidden=true;upload.disabled=false;file.disabled=workflow.uploaded;title.disabled=false;}
+ };
+ root.append(title,file,upload,progress,uploadStatus);
  try{const response=await fetch('/api/caddie-acuity?mentorship=owner&enrollmentId='+enrollmentId+'&replaysFor='+sessionId,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not load recordings');for(const replay of data.replays||[]){const row=document.createElement('p');row.textContent=replay.title+' · '+(replay.visible_to_client?'Published':'Private')+' ';const toggle=document.createElement('button');toggle.type='button';toggle.textContent=replay.visible_to_client?'Hide from client':'Publish to client';toggle.onclick=async()=>{toggle.disabled=true;try{await request('POST',{action:'replay-visibility',enrollmentId,sessionId,replayId:replay.id,visible:!replay.visible_to_client});await renderRecordings(root,enrollmentId,sessionId)}catch(e){msg('detailStatus',e.message,true);toggle.disabled=false}};row.append(toggle);root.append(row)}}catch(e){root.append(document.createTextNode(e.message))}
 }
 $('makeSessions').addEventListener('click',async()=>{if(!selected)return;$('makeSessions').disabled=true;try{const result=await request('POST',{action:'prepare-sessions',enrollmentId:selected.id});msg('detailStatus',result.created?'Included sessions created. No bookings were made.':'Existing session plan loaded.');await loadSessions(selected.id)}catch(error){msg('detailStatus',error.message,true)}finally{$('makeSessions').disabled=false}});

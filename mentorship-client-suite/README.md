@@ -64,3 +64,7 @@ No requests create, cancel, reschedule, or import appointments in Acuity. This i
 ## Owner monthly focus editing
 
 The owner desk loads the saved client-visible focus for the selected enrollment and Pacific calendar month. An enrollment/month-scoped read returns only month and client-visible text after owner authorization. Unsaved edits are retained in memory while switching months or clients, then cleared on sign-out; they are not stored in browser storage. Stale lookup responses cannot fill another client/month editor, and saving is disabled until the requested month loads. No schema migration or product-access change is needed.
+
+## Recording upload recovery
+
+The owner sees authorization, transfer and saving stages. If transfer succeeds but saving details fails, Retry saving recording reuses the uploaded file while this editor remains open. It does not persist signed tokens or files to browser storage. Empty browser MIME values can use supported filename extensions; server Storage metadata validation still applies. New replay IDs use the randomized upload UUID and the existing primary key to prevent duplicate finalization, including concurrent attempts. Existing recordings retain their original title and visibility on retry. A transferred file is still private until explicitly published. Page reload or leaving the editor can discard recovery state; interrupted uploads can leave private unlisted objects.
