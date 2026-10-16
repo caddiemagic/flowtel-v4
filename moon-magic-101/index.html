@@ -65,6 +65,7 @@ button:disabled{opacity:.55;cursor:wait}
  <p>Want your Flow Map to remember you? Explore the Queendom, where your cycle tracking and reflections become a living practice.</p>
  <a class="alt" href="https://www.theidyllcollective.com/queendomhome">Explore the Queendom</a>
  <a class="alt" href="/tracker/">Track your cycle again</a>
+ <button class="alt" id="anotherGuest" type="button">Check in another guest</button>
 </div>
 </article>
 <div class="footer">FLOWTEL · GUEST EXPERIENCE · <a href="/tracker/">Track Your Cycle</a></div>
@@ -75,9 +76,9 @@ const ROOM='moon-magic-101-2026-10-16';
 const form=document.getElementById('joinForm');
 const dayInput=form.elements.cycle_day,status=document.getElementById('status');
 const button=document.getElementById('join');
-let token='';
-try{token=localStorage.getItem('flowtel:moon-magic-101:guest-token')||'';}catch(e){}
-if(!token){token=crypto.randomUUID();try{localStorage.setItem('flowtel:moon-magic-101:guest-token',token)}catch(e){}}
+// Each check-in has its own identifier. Keeping one token in localStorage caused
+// subsequent names on the same browser to overwrite the previous guest.
+let token=crypto.randomUUID();
 try{
  const saved=JSON.parse(sessionStorage.getItem('flowtel:moon-magic-101:last-tracker-result')||'null');
  if(saved && Date.now()-saved.at<24*60*60*1000 && saved.mode==='bleed' && saved.day>=1 && saved.day<=120)dayInput.value=String(saved.day);
@@ -93,6 +94,9 @@ form.addEventListener('submit',async function(event){
  try{
   const res=await fetch('/api/moon-magic-class',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   const body=await res.json();if(!res.ok)throw Error(body.error||'Check-in could not be saved.');
+  // Retain this token across failed requests, but only until a successful save.
+  // A fresh guest must never overwrite a previous classroom entry.
+  token=crypto.randomUUID();
   document.getElementById('formArea').hidden=true;
   document.getElementById('resultArea').hidden=false;
   const firstName=name.split(/\s+/)[0];
@@ -101,6 +105,16 @@ form.addEventListener('submit',async function(event){
   window.scrollTo({top:0,behavior:'smooth'});
  }catch(error){status.textContent=error.message||'Unable to check in. Please try again.';}
  finally{button.disabled=false}
+});
+document.getElementById('anotherGuest').addEventListener('click',function(){
+  token=crypto.randomUUID();
+  form.reset();
+  dayInput.value='';
+  status.textContent='';
+  document.getElementById('resultArea').hidden=true;
+  document.getElementById('formArea').hidden=false;
+  form.elements.guest_name.focus();
+  window.scrollTo({top:0,behavior:'smooth'});
 });
 })();
 </script></body></html>
