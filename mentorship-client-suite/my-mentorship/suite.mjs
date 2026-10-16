@@ -7,13 +7,13 @@ import {dashboardModel,filterSessions,kindLabel,dateLabel,timeLabel} from '../da
 import {sessionCalendar} from '../session-calendar.mjs';
 const $=id=>document.getElementById(id),base='/api/caddie-acuity?mentorship=client';
 let epoch=0,selection=null,account=null,currentSuite=null,currentVersion=0;
-const panels=['home','calls','recordings','flow'];
-let activePanel=panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
+const panels=['home','calls'];
+let activePanel=location.hash==='#recordings'?'calls':panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
 function stopPlayers(){for(const media of document.querySelectorAll('video,audio'))media.pause();}
 function discardSessionView(){stopPlayers();for(const media of document.querySelectorAll('video,audio')){media.removeAttribute('src');media.load();media.remove();}if($('sessionDialog').open)$('sessionDialog').close();$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';currentSuite=null;}
 function element(tag,text,cls=''){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function empty(root,text){root.replaceChildren(element('p',text,'empty'));}
-function room(name,writeHistory=true){if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}}
+function room(name,writeHistory=true){if(name==='recordings')name='calls';if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}$('recordings').hidden=name!=='calls';}
 window.addEventListener('popstate',()=>room(location.hash.slice(1),false));
 window.addEventListener('hashchange',()=>room(location.hash.slice(1),false));
 for(const button of document.querySelectorAll('[data-panel]'))button.onclick=()=>room(button.dataset.panel);
@@ -28,7 +28,7 @@ async function request(params='',body=null){
 function clearPrivate(){
  discardSessionView();
  epoch++;selection=null;currentSuite=null;
- $('callFilter').value='all';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
+ $('callFilter').value='upcoming';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
  for(const id of ['enrollments','prepared','sessions','focus','replays','nextCall'])$(id).replaceChildren();
  for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','programStatus','progressNote'])$(id).textContent='';
  for(const id of ['completedCount','remainingCount','replayCount'])$(id).textContent='0';
@@ -101,7 +101,7 @@ function showSession(session){
   if(focus?.client_visible_focus){const card=element('section','','session-focus');card.append(element('p','FOCUS FOR '+formatDateOnly(month,{month:'long',year:'numeric'}),'eyebrow'),element('p',focus.client_visible_focus,'session-focus-copy'));root.append(card);}
  }
  const replays=(currentSuite.replays||[]).filter(replay=>replay.sessionId===session.id);
- if(replays.length){root.append(element('h3','Return to this session'));const list=element('ul','','session-recordings');for(const replay of replays)list.append(element('li',replay.title));root.append(list);const button=element('button','Open recordings for this session');button.onclick=()=>{$('sessionDialog').close();$('replaySearch').value='';$('replaySession').value=session.id;renderReplays(currentSuite,selection,currentVersion);room('recordings');};root.append(button);}
+ if(replays.length){root.append(element('h3','Return to this session'));const list=element('ul','','session-recordings');for(const replay of replays)list.append(element('li',replay.title));root.append(list);const button=element('button','Open recordings for this session');button.onclick=()=>{$('sessionDialog').close();$('replaySearch').value='';$('replaySession').value=session.id;renderReplays(currentSuite,selection,currentVersion);room('calls');$('recordings').scrollIntoView({behavior:'smooth',block:'start'});};root.append(button);}
  else root.append(element('p','A recording will appear here if it is published for this session.','muted'));
  if(!$('sessionDialog').open)$('sessionDialog').showModal();
 }
