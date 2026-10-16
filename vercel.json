@@ -35,6 +35,10 @@
       "destination": "/tracker/index.html"
     },
     {
+      "source": "/moon-magic-101",
+      "destination": "/moon-magic-101/index.html"
+    },
+    {
       "source": "/guest-house/replay",
       "destination": "/guest-house/replay/index.html"
     },
@@ -149,6 +153,10 @@
     {
       "source": "/manager/events",
       "destination": "/manager/events/index.html"
+    },
+    {
+      "source": "/manager/moon-magic-101",
+      "destination": "/manager/moon-magic-101/index.html"
     },
     {
       "source": "/manager/membership",
