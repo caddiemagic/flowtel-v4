@@ -69,8 +69,6 @@ button:disabled{opacity:.55;cursor:wait}
  <div class="line"></div>
  <p class="eyebrow">Your next New Moon practice</p>
  <p>You'll find my New Moon Water Ritual video just below, inside the Queendom. Bring this practice home to your next cycle.</p>
- <a class="alt" href="/tracker/">Track your cycle again</a>
- <button class="alt" id="anotherGuest" type="button">Check in another guest</button>
 </div>
 <section class="ritual-invite" aria-labelledby="ritualTitle">
  <span class="ritual-moon" aria-hidden="true">☾</span>
@@ -80,6 +78,9 @@ button:disabled{opacity:.55;cursor:wait}
  <a class="ritual-cta" href="https://www.theidyllcollective.com/queendomlibrary/v/moonmagicwaterritual1" target="_blank" rel="noopener noreferrer">Watch the New Moon Water Ritual ↗</a>
  <p class="fine">The video is inside the Queendom and requires Queendom access. <a href="https://www.theidyllcollective.com/queendomhome">Explore the Queendom →</a></p>
 </section>
+<div id="trackAgainWrap" hidden style="margin-top:15px">
+ <a class="alt" href="/tracker/">Track your cycle again</a>
+</div>
 </article>
 <div class="footer">FLOWTEL · GUEST EXPERIENCE · <a href="/tracker/">Track Your Cycle</a></div>
 </main>
@@ -112,22 +113,13 @@ form.addEventListener('submit',async function(event){
   token=crypto.randomUUID();
   document.getElementById('formArea').hidden=true;
   document.getElementById('resultArea').hidden=false;
+  document.getElementById('trackAgainWrap').hidden=false;
   const firstName=name.split(/\s+/)[0];
   document.getElementById('welcome').textContent='Welcome, '+firstName+'.';
   document.getElementById('seasonResult').textContent='You’re on cycle day '+cycleDay+' · '+season(cycleDay)+'. Your name is now on the collective Flow Map.';
   window.scrollTo({top:0,behavior:'smooth'});
  }catch(error){status.textContent=error.message||'Unable to check in. Please try again.';}
  finally{button.disabled=false}
-});
-document.getElementById('anotherGuest').addEventListener('click',function(){
-  token=crypto.randomUUID();
-  form.reset();
-  dayInput.value='';
-  status.textContent='';
-  document.getElementById('resultArea').hidden=true;
-  document.getElementById('formArea').hidden=false;
-  form.elements.guest_name.focus();
-  window.scrollTo({top:0,behavior:'smooth'});
 });
 })();
 </script></body></html>

@@ -212,7 +212,7 @@ function renderPresences(entries){
      presence.style.setProperty('--delay',(-index%11)*0.34+'s');
      presence.setAttribute('aria-label',name+' in Inner '+season);
      const art=document.createElement('span');art.className='presence-portrait';
-     const image=document.createElement('img');image.src='/assets/rose_compass_center.png';image.alt='';image.setAttribute('aria-hidden','true');art.appendChild(image);
+     const image=document.createElement('img');image.src='/assets/flowtel-pinkrose.png';image.alt='';image.setAttribute('aria-hidden','true');art.appendChild(image);
      const label=document.createElement('strong');label.className='presence-name';label.textContent=name;
      presence.append(art,label);field.appendChild(presence);
    });
