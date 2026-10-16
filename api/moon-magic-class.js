@@ -1,7 +1,6 @@
-// Moon Magic 101 classroom guest check-in: public write, owner-only reads.
+// Reusable Moon Magic classroom: public check-in, private owner/administrator reads, owner-only reset.
 // Does not create authentication accounts or grant any Queendom/Flowtel product access.
 const ROOM='moon-magic-101-2026-10-16';
-const CLOSE_AT=Date.parse('2026-10-17T14:59:59Z'); // End of workshop night in Flowtel Time.
 function respond(res,status,data){
   res.setHeader('Cache-Control','private, no-store, max-age=0');
   res.setHeader('X-Robots-Tag','noindex, nofollow');
@@ -26,7 +25,7 @@ async function queryDB(c,path,options={}){
   const raw=await response.text();
   return raw?JSON.parse(raw):null;
 }
-async function requireOwner(req,c){
+async function requireOwner(req,c,strictOwner=false){
   const authHeader=String(req.headers?.authorization||'');
   const jwt=authHeader.toLowerCase().startsWith('bearer ')?authHeader.slice(7).trim():'';
   if(!jwt)fail(401,'Please sign in to your Concierge Desk.');
@@ -35,7 +34,8 @@ async function requireOwner(req,c){
   const user=await auth.json();
   if(!user?.id)fail(401,'Please sign in to Flowtel.');
   const access=await queryDB(c,'/rest/v1/profiles?select=role&id=eq.'+encodeURIComponent(user.id)+'&limit=1');
-  if(!['owner','admin'].includes(String(access?.[0]?.role||'').toLowerCase()))fail(403,'Only the Flowtel owner can view this classroom.');
+  const role=String(access?.[0]?.role||'').toLowerCase();
+  if(strictOwner ? role!=='owner' : !['owner','admin'].includes(role))fail(403,'Only the Flowtel owner can manage this classroom.');
 }
 function cleanString(value,max){
   return typeof value==='string'?value.trim().replace(/\s+/g,' ').slice(0,max):'';
@@ -82,7 +82,7 @@ function summarize(rows){
     moon_tracker_names:moonTrackerNames,days,seasons,season_names:seasonNames,updated_at:new Date().toISOString()};
 }
 module.exports=async function handler(req,res){
-  if(!['GET','POST'].includes(req.method))return respond(res,405,{ok:false,error:'Method not allowed.'});
+  if(!['GET','POST','DELETE'].includes(req.method))return respond(res,405,{ok:false,error:'Method not allowed.'});
   try{
     const c=config();
     if(req.method==='GET'){
@@ -96,7 +96,16 @@ module.exports=async function handler(req,res){
       }
       return respond(res,200,summarize(rows));
     }
-    if(Date.now()>CLOSE_AT)fail(410,'The Moon Magic 101 classroom is now closed.');
+    if(req.method==='DELETE'){
+      // Only the real Flowtel owner can permanently empty the reusable room.
+      // Never accept a delete request from the public guest entrance.
+      await requireOwner(req,c,true);
+      const raw=typeof req.body==='object'&&req.body!==null?req.body:JSON.parse(req.body||'{}');
+      if(raw.action!=='clear' || raw.room_slug!==ROOM)fail(400,'Room confirmation was missing.');
+      await queryDB(c,'/rest/v1/flowtel_moon_magic_class_entries?room_slug=eq.'+encodeURIComponent(ROOM),
+        {method:'DELETE',headers:{Prefer:'return=minimal'}});
+      return respond(res,200,{ok:true,cleared:true});
+    }
     const length=Number(req.headers?.['content-length']||0);
     if(length>4096)fail(413,'Submission is too large.');
     const raw=typeof req.body==='object'&&req.body!==null?req.body:JSON.parse(req.body||'{}');

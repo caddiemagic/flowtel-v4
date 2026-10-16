@@ -17,7 +17,7 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 .presentation-toolbar button:disabled{opacity:.5;cursor:wait}
 .presentation-toolbar button:focus-visible{outline:3px solid #b9914d;outline-offset:3px}
 body.presentation-active{min-height:100vh;background:linear-gradient(135deg,#fffaf1,#f3ebdb)}
-body.presentation-active .topnav,body.presentation-active .presentation-toolbar,body.presentation-active .foot,body.presentation-active #status{display:none!important}
+body.presentation-active .topnav,body.presentation-active .presentation-toolbar,body.presentation-active .room-admin-tools,body.presentation-active .foot,body.presentation-active #status{display:none!important}
 body.presentation-active main{width:min(98vw,1660px);padding:clamp(9px,1.3vh,20px) 0}
 body.presentation-active header{padding:0 5px clamp(12px,1.5vh,22px)}
 body.presentation-active header .small{display:none}
@@ -63,6 +63,14 @@ body.presentation-active #contactsDialog{display:none!important}
 .metric{text-align:center;padding:18px;border:1px solid #e1d0af;border-radius:16px;margin:0 0 17px;background:#fffaf0}.metric strong{display:block;font:normal 58px Georgia,serif;color:#657255}.metric span{font:12px Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .moon-track{margin-top:16px;background:#f0e9da;border-radius:15px;padding:18px;font-size:15px;line-height:1.5}.moon-track strong{font-size:24px;color:#6b7154}
 .status{font:13px Arial,sans-serif;color:var(--muted);text-align:center;line-height:1.4;min-height:22px;margin:14px auto}
+.room-admin-tools{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:16px 22px;margin:18px auto 0;background:#fffaf3;border:1px solid #ddcaa8;border-radius:18px}
+.room-admin-tools[hidden]{display:none!important}
+.room-admin-tools h2{font:normal 22px Georgia,serif;margin:0 0 4px}
+.room-admin-tools p{font:13px/1.5 Arial,sans-serif;color:#88715c;margin:4px 0}
+.room-admin-tools button{flex:none;border:1px solid #b18d68;color:#79543d;background:#fffdf9;border-radius:999px;padding:12px 18px;min-height:45px;font:700 12px Arial,sans-serif;cursor:pointer}
+.room-admin-tools button:disabled{opacity:.5;cursor:wait}
+#clearRoomFeedback{font:13px/1.5 Arial,sans-serif;color:#61724e;min-height:1em}
+@media(max-width:620px){.room-admin-tools{flex-direction:column;align-items:stretch}.room-admin-tools button{width:100%}}
 .foot{font:14px Arial,sans-serif;text-align:center;line-height:1.5;color:#7e6a57;padding:25px 0}.foot a{color:#5c624d}
 #locked{display:none;text-align:center;padding:25px;margin:auto;max-width:540px}
 @media(max-width:800px){.layout{grid-template-columns:1fr}.seasons{grid-template-columns:repeat(4,1fr)}}
@@ -75,7 +83,7 @@ body.presentation-active #contactsDialog{display:none!important}
  <div><strong>Audience display</strong><p>Show only the live medicine wheel and classroom data. Fullscreen hides the browser address bar and private Concierge controls; press Esc to return.</p></div>
  <button id="startPresentation" type="button" disabled>Present to class ↗</button>
 </div>
-<header><div class="small">Flowtel · October 16, 2026</div><h1>One Moon, Many Inner Seasons</h1><p>As we gather under the same moon, every guest is moving through their own season.</p></header>
+<header><div class="small">Flowtel · Moon Magic Classroom</div><h1>One Moon, Many Inner Seasons</h1><p>As we gather under the same moon, every guest is moving through their own season.</p></header>
 <section class="panel" id="experience">
 <div class="layout">
  <div class="wheel-shell" aria-label="Collective 28-day medicine wheel">
@@ -110,6 +118,10 @@ body.presentation-active #contactsDialog{display:none!important}
 <p id="status" class="status" role="status">Connecting to your Concierge classroom...</p>
 </section>
 <section id="locked"><h2>Private Concierge Room</h2><p id="lockedMessage">Enter Flowtel with your owner account to view the collective wheel.</p><p><a href="/enter/?membership=queendom&next=%2Fmanager%2Fmoon-magic-101%2F">Enter through Flowtel →</a></p></section>
+<section id="roomAdminTools" class="room-admin-tools" hidden>
+ <div><h2>Between-class reset</h2><p>Keep the same QR code and start a fresh medicine wheel for your next class.</p><p id="clearRoomFeedback" role="status" aria-live="polite"></p></div>
+ <button id="clearClassroom" type="button" disabled>Clear classroom</button>
+</section>
 <div class="foot">Each guest's cycle day and first name appear on the projected wheel, as explained at check-in. Full names remain private; no email is collected.<br><a href="/moon-magic-101/">Guest QR entrance</a> · <button id="openContacts" type="button" style="color:#5c624d;border:0;background:none;text-decoration:underline;font:14px Arial,sans-serif;cursor:pointer">Private classroom roster</button></div>
 <dialog id="contactsDialog" style="width:min(550px,93%);max-height:82vh;border:1px solid #d8c9a7;border-radius:20px;padding:22px;color:#493e32">
  <button id="closeContacts" type="button" style="float:right;background:none;border:0;font-size:25px;cursor:pointer">×</button>
@@ -123,6 +135,10 @@ import {supabase} from '/shared/supabase.js';
 import {getMoonMagic} from '/shared/moon.js';
 const ROOM='moon-magic-101-2026-10-16';
 const presentationButton=document.getElementById('startPresentation');
+const roomAdminTools=document.getElementById('roomAdminTools');
+const clearRoomButton=document.getElementById('clearClassroom');
+const clearRoomFeedback=document.getElementById('clearRoomFeedback');
+let clearingRoom=false;
 const presentationToolbar=document.getElementById('presentationToolbar');
 presentationButton.addEventListener('click',async function(){
   if(presentationButton.disabled||document.getElementById('experience').hidden)return;
@@ -206,6 +222,8 @@ let inFlight=false;
 const status=document.getElementById('status');
 function locked(message){
  presentationButton.disabled=true;
+ clearRoomButton.disabled=true;
+ roomAdminTools.hidden=true;
  if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
  document.getElementById('experience').hidden=true;
  document.getElementById('locked').style.display='block';
@@ -224,6 +242,8 @@ async function refresh(){
    throw new Error(body.error||'The wheel could not refresh.');
   }
   presentationButton.disabled=false;
+  roomAdminTools.hidden=false;
+  if(!clearingRoom)clearRoomButton.disabled=false;
   document.getElementById('total').textContent=String(body.total||0);
   for(const season of ['Winter','Spring','Summer','Autumn'])document.getElementById(season).textContent=String(body.seasons?.[season]||0);
   (body.days||[]).forEach(function(entry,i){
@@ -270,6 +290,34 @@ async function refresh(){
 }
 await refresh();
 if(document.getElementById('locked').style.display!=='block')timer=setInterval(refresh,5000);
+clearRoomButton.addEventListener('click',async function(){
+  if(clearingRoom||clearRoomButton.disabled||document.fullscreenElement)return;
+  const guests=Number(document.getElementById('total').textContent)||0;
+  const approved=window.confirm('Clear all '+guests+' guest '+(guests===1?'entry':'entries')+' from this classroom? This permanently deletes their saved names and cycle days. The QR code will stay exactly the same for your next class.');
+  if(!approved)return;
+  clearingRoom=true;
+  clearRoomButton.disabled=true;
+  clearRoomFeedback.textContent='Clearing the classroom…';
+  try{
+    const session=(await supabase.auth.getSession()).data.session;
+    if(!session?.access_token)throw Error('Owner sign-in required to clear the classroom.');
+    const response=await fetch('/api/moon-magic-class',{
+      method:'DELETE',
+      headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'},
+      body:JSON.stringify({action:'clear',room_slug:ROOM}),
+      cache:'no-store'
+    });
+    const result=await response.json();
+    if(!response.ok||result.cleared!==true)throw Error(result.error||'The classroom could not be cleared.');
+    await refresh();
+    clearRoomFeedback.textContent='Classroom cleared. Your QR code is unchanged and the room is ready for the next class.';
+  }catch(error){
+    clearRoomFeedback.textContent=error.message||'Unable to clear the classroom. Please try again.';
+  }finally{
+    clearingRoom=false;
+    if(!roomAdminTools.hidden)clearRoomButton.disabled=false;
+  }
+});
 document.getElementById('openContacts').addEventListener('click',async function(){
  const dialog=document.getElementById('contactsDialog'),content=document.getElementById('contactsBody');
  dialog.showModal();content.textContent='Loading private guest list...';
