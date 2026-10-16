@@ -10,6 +10,31 @@
 main{width:min(1300px,96vw);margin:auto;padding:28px 0 60px}.small{font:700 11px Arial,sans-serif;letter-spacing:.23em;text-transform:uppercase;color:#977849}
 header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5vw,63px);font-weight:normal;line-height:1.05;margin:13px 0 9px}header p{font-size:17px;margin:0 auto;max-width:650px;line-height:1.4}
 .topnav{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;gap:15px}.topnav a{font:13px Arial,sans-serif;color:#675640;text-decoration:none}
+.presentation-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 22px;padding:16px 22px;border:1px solid #dac7a0;border-radius:18px;background:#fffaf0;box-shadow:0 9px 28px #6d523515}
+.presentation-toolbar strong{font:normal 21px Georgia,serif;color:#514432}
+.presentation-toolbar p{margin:5px 0 0;font:13px/1.55 Arial,sans-serif;color:#826e57}
+.presentation-toolbar button{flex:none;padding:12px 22px;min-height:45px;border-radius:50px;border:1px solid #586650;background:#586650;color:#fff;font:700 12px Arial,sans-serif;letter-spacing:.09em;cursor:pointer}
+.presentation-toolbar button:disabled{opacity:.5;cursor:wait}
+.presentation-toolbar button:focus-visible{outline:3px solid #b9914d;outline-offset:3px}
+body.presentation-active{min-height:100vh;background:linear-gradient(135deg,#fffaf1,#f3ebdb)}
+body.presentation-active .topnav,body.presentation-active .presentation-toolbar,body.presentation-active .foot,body.presentation-active #status{display:none!important}
+body.presentation-active main{width:min(98vw,1660px);padding:clamp(9px,1.3vh,20px) 0}
+body.presentation-active header{padding:0 5px clamp(12px,1.5vh,22px)}
+body.presentation-active header .small{display:none}
+body.presentation-active header h1{font-size:clamp(31px,3.5vw,58px);margin:8px 0}
+body.presentation-active header p{font-size:clamp(13px,1.15vw,18px)}
+body.presentation-active .panel{padding:clamp(16px,1.8vw,32px)}
+body.presentation-active .layout{grid-template-columns:minmax(0,1fr) minmax(300px,420px);align-items:start;gap:clamp(15px,2vw,35px)}
+body.presentation-active .wheel-shell{width:min(100%,76vh,890px)}
+body.presentation-active .classroom-data{max-height:77vh;overflow-y:auto;min-width:0;padding-right:3px}
+body.presentation-active .metric{padding:12px;margin-bottom:11px}
+body.presentation-active .metric strong{font-size:46px}
+body.presentation-active .season{padding:13px}
+body.presentation-active .season h3{margin:3px 0 7px}
+body.presentation-active .moon-summary{margin-top:11px;padding:13px 16px}
+body.presentation-active .moon-track{margin-top:11px;padding:12px 15px}
+body.presentation-active #contactsDialog{display:none!important}
+@media(max-width:850px){body.presentation-active .layout{grid-template-columns:1fr}body.presentation-active .wheel-shell{width:min(100%,60vh)}body.presentation-active .classroom-data{max-height:none;overflow:visible}}
 .panel{background:rgba(255,253,248,.92);border:1px solid var(--line);border-radius:26px;box-shadow:0 25px 60px #6d52351a;padding:clamp(14px,3vw,36px)}
 .layout{display:grid;grid-template-columns:minmax(320px,1fr) minmax(260px,315px);gap:30px;align-items:center}
 .wheel-shell{position:relative;width:min(100%,660px);aspect-ratio:1;margin:auto;border:1px solid #f0e5ce;border-radius:50%;background:radial-gradient(circle,#fffdf8 15%,#f8f1e5 80%,#fbf8f1 100%)}
@@ -46,6 +71,10 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 </head>
 <body><main>
 <div class="topnav"><a href="/manager/">← Concierge Desk</a><span class="small">Owner Projection Room</span></div>
+<div class="presentation-toolbar" id="presentationToolbar">
+ <div><strong>Audience display</strong><p>Show only the live medicine wheel and classroom data. Fullscreen hides the browser address bar and private Concierge controls; press Esc to return.</p></div>
+ <button id="startPresentation" type="button" disabled>Present to class ↗</button>
+</div>
 <header><div class="small">Flowtel · October 16, 2026</div><h1>One Moon, Many Inner Seasons</h1><p>As we gather under the same moon, every guest is moving through their own season.</p></header>
 <section class="panel" id="experience">
 <div class="layout">
@@ -56,7 +85,7 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
   <span class="direction north">NORTH</span><span class="direction east">EAST</span><span class="direction south">SOUTH</span><span class="direction west">WEST</span>
   <div id="days"></div>
  </div>
- <div>
+ <div class="classroom-data">
   <div class="metric"><strong id="total">—</strong><span>Guests sharing their place</span></div>
   <div class="seasons">
    <div class="season"><h3>Inner Winter</h3><div class="count" id="Winter">0</div><span class="season-moon" id="moonInWinter" hidden>☾ Moon is here</span><p>Days 27–5</p></div>
@@ -93,6 +122,26 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 import {supabase} from '/shared/supabase.js';
 import {getMoonMagic} from '/shared/moon.js';
 const ROOM='moon-magic-101-2026-10-16';
+const presentationButton=document.getElementById('startPresentation');
+const presentationToolbar=document.getElementById('presentationToolbar');
+presentationButton.addEventListener('click',async function(){
+  if(presentationButton.disabled||document.getElementById('experience').hidden)return;
+  const contactsDialog=document.getElementById('contactsDialog');
+  if(contactsDialog.open)contactsDialog.close();
+  try{
+    if(!document.documentElement.requestFullscreen)throw Error('Fullscreen unavailable');
+    // Only the already-authorized owner page enters the audience display.
+    // Trigger fullscreen directly from the click so browsers allow hiding the URL.
+    await document.documentElement.requestFullscreen({navigationUI:'hide'});
+  }catch(error){
+    presentationToolbar.querySelector('p').textContent='Your browser prevented fullscreen. Move this window to the audience screen, then press F11 to hide its address bar.';
+  }
+});
+document.addEventListener('fullscreenchange',function(){
+  const presenting=Boolean(document.fullscreenElement);
+  document.body.classList.toggle('presentation-active',presenting);
+  if(presenting)refresh();
+});
 const wheel=document.getElementById('days');
 const markers=[];
 for(let day=1;day<=28;day++){
@@ -156,6 +205,8 @@ let timer=null;
 let inFlight=false;
 const status=document.getElementById('status');
 function locked(message){
+ presentationButton.disabled=true;
+ if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});
  document.getElementById('experience').hidden=true;
  document.getElementById('locked').style.display='block';
  document.getElementById('lockedMessage').textContent=message;
@@ -172,6 +223,7 @@ async function refresh(){
    if(response.status===401||response.status===403){locked(body.error||'Owner authorization required.');return;}
    throw new Error(body.error||'The wheel could not refresh.');
   }
+  presentationButton.disabled=false;
   document.getElementById('total').textContent=String(body.total||0);
   for(const season of ['Winter','Spring','Summer','Autumn'])document.getElementById(season).textContent=String(body.seasons?.[season]||0);
   (body.days||[]).forEach(function(entry,i){
