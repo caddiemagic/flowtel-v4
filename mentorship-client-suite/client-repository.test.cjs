@@ -86,3 +86,19 @@ test('prepared enrollment discovery is limited to verified owner of email',async
  assert.equal(output[0].invited_email,undefined);
  assert.match(calls[0].url,/invited_email=eq.pilot%40example.com/);
 });
+
+test('program titles are projected without exposing the offering snapshot',async()=>{
+ const {output}=await simulate([[{id:enrollment,status:'active',offering_snapshot:{title:'Sacred Self-Study',internal:'PRIVATE'}}]],()=>listMyMentorships(ctx));assert.equal(output[0].programTitle,'Sacred Self-Study');assert.equal(output[0].offering_snapshot,undefined);assert.ok(!JSON.stringify(output).includes('PRIVATE'));
+});
+test('cycle context reuses the existing consent RPC with the client token and filters private profile data',async()=>{
+ const {myFlowContext}=require('./client-repository.cjs');
+ const {output,calls}=await simulate([{subject:{email:'PRIVATE'},current:{cycle_day:22,inner_season:'Inner Autumn',latest_checkin_date:'2026-10-15'}}],()=>myFlowContext({...ctx,token:'fictional-client-jwt'}));
+ assert.deepEqual(output,{cycle:{day:22,season:'Inner Autumn',asOf:'2026-10-15'}});assert.equal(calls[0].options.headers.Authorization,'Bearer fictional-client-jwt');assert.equal(JSON.parse(calls[0].options.body).p_subject_id,user);assert.ok(!JSON.stringify(output).includes('PRIVATE'));
+});
+test('cycle context never substitutes service-role authority for a missing user token',async()=>{const {myFlowContext}=require('./client-repository.cjs');const {calls}=await simulate([],()=>assert.rejects(myFlowContext(ctx),e=>e.statusCode===401));assert.equal(calls.length,0);});
+test('Zoom links are read only from client-owned scheduled appointments, never arbitrary URL schemes',async()=>{
+ for(const [meeting,expected] of [['https://us02web.zoom.us/j/123','https://us02web.zoom.us/j/123'],['javascript:alert(1)',null],['https://zoom.us.attacker.example/j/123',null]]){
+ const {output,calls}=await simulate([[{id:enrollment,status:'active',client_user_id:user}],[{id:session,appointment_id:session,status:'confirmed'}],[],[],[{id:session,status:'scheduled',external_payload:{location:meeting,internal:'PRIVATE-PAYLOAD'}}]],()=>clientSuite(ctx,enrollment));
+ assert.equal(output.sessions[0].meeting_url,expected);assert.equal(output.sessions[0].appointment_id,undefined);assert.ok(!JSON.stringify(output).includes('PRIVATE-PAYLOAD'));assert.match(calls[4].url,/customer_user_id=eq.11111111/);
+ }
+});

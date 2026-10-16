@@ -30,3 +30,9 @@ Only additive links in client/index.html and manager/index.html, plus private/no
 ## Remaining release gate
 
 Browser CI is green. This record does not claim a launch-ready deployed preview until actual Supabase/Vercel integration verification succeeds. No production deployment, merge, invitations or live-client onboarding.
+
+## Client dashboard increment
+
+Connected four-room dashboard, safe program-title projection, progress and next-call logic, current-month focus, replay library, existing cycle snapshot via the user's JWT, and client-owned linked Zoom access. No new tables, storage policies, product permissions, Stay logic or shared auth code changed. Historical sessions and cancelled-session reopening remain supported. The fictional design preview uses the same rendering module and never touches real auth or data.
+
+61 automated tests and the expanded Playwright journey passed locally. A pinned Chromium runner is now available locally; desktop and mobile screenshots were inspected. The earlier statement that local Chromium was unavailable describes the initial pass, not the current environment. No production merge or deployment was performed.

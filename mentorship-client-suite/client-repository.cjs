@@ -1,26 +1,28 @@
 // Private mentorship client reads. This module MUST be called only after requireUser(req).
 // Never accept an enrollment owner or user id from request payload for authorization.
-const {fetchJson,serviceHeaders}=require('../server/guest-house-server.js');
+const {fetchJson,serviceHeaders,userHeaders}=require('../server/guest-house-server.js');
+const {extractZoomMeetingUrl}=require('../server/acuity-server.js');
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function programTitle(snapshot){return typeof snapshot?.title==='string'?snapshot.title.slice(0,160):'Private mentorship';}
 function context(ctx){if(!ctx?.user?.id||!ctx?.supabaseUrl||!ctx?.serviceKey)throw Error('Verified authenticated context required');}
 function id(value){if(typeof value!=='string'||!UUID.test(value))throw Error('Invalid mentorship enrollment ID');return value;}
 function endpoint(ctx,table,query){return ctx.supabaseUrl+'/rest/v1/flowtel_mentorship_'+table+'?'+query}
 async function rows(ctx,table,query){const value=await fetchJson(endpoint(ctx,table,query),{headers:serviceHeaders(ctx.serviceKey)});if(!Array.isArray(value))throw Error('Unexpected mentorship response');return value;}
 async function listMyMentorships(ctx){
  context(ctx);
- const records=await rows(ctx,'enrollments','select=id,offering_id,status,starts_on,ends_on&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&order=created_at.desc&limit=30');
- return records.map(record=>({id:record.id,offeringId:record.offering_id,status:record.status,startsOn:record.starts_on,endsOn:record.ends_on}));
+ const records=await rows(ctx,'enrollments','select=id,offering_id,offering_snapshot,status,starts_on,ends_on&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&order=created_at.desc&limit=30');
+ return records.map(record=>({id:record.id,offeringId:record.offering_id,status:record.status,startsOn:record.starts_on,endsOn:record.ends_on,programTitle:programTitle(record.offering_snapshot)}));
 }
 async function ownedEnrollment(ctx,enrollmentId){
  context(ctx);id(enrollmentId);
- const records=await rows(ctx,'enrollments','select=id,offering_id,status,starts_on,ends_on,client_user_id&id=eq.'+encodeURIComponent(enrollmentId)+'&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&limit=1');
+ const records=await rows(ctx,'enrollments','select=id,offering_id,offering_snapshot,status,starts_on,ends_on,support_ends_on,client_user_id&id=eq.'+encodeURIComponent(enrollmentId)+'&client_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&status=in.(invited,active,paused,completed)&limit=1');
  if(records.length!==1) {const err=new Error('Mentorship not found');err.statusCode=404;throw err;}
  return records[0];
 }
 async function clientSuite(ctx,enrollmentId){
  const enrollment=await ownedEnrollment(ctx,enrollmentId);
  const selection='enrollment_id=eq.'+encodeURIComponent(enrollment.id);
- const sessions=await rows(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,scheduled_at,timezone,status&'+selection+'&order=session_number.asc');
+ const sessions=await rows(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,scheduled_at,timezone,status,appointment_id&'+selection+'&order=session_number.asc');
  const focus=await rows(ctx,'monthly_focus','select=focus_month,client_visible_focus&'+selection+'&order=focus_month.desc&limit=12');
  const ids=sessions.filter(s=>typeof s.id==='string'&&UUID.test(s.id)).map(s=>s.id);
  let replays=[];
@@ -29,14 +31,27 @@ async function clientSuite(ctx,enrollmentId){
   const allowed=new Set(ids);
   replays=replayRows.filter(r=>allowed.has(r.session_id)).map(r=>({id:r.id,sessionId:r.session_id,title:r.title,createdAt:r.created_at}));
  }
- return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on},sessions,monthlyFocus:focus,replays};
+ const appointmentIds=sessions.map(session=>session.appointment_id).filter(value=>typeof value==='string'&&UUID.test(value));
+ let appointments=[];
+ if(appointmentIds.length){
+  appointments=await fetchJson(ctx.supabaseUrl+'/rest/v1/flowtel_external_appointments?select=id,external_payload,status&customer_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&id=in.('+appointmentIds.join(',')+')&status=eq.scheduled',{headers:serviceHeaders(ctx.serviceKey)});
+  if(!Array.isArray(appointments))throw Error('Unexpected appointment response');
+ }
+ const safeSessions=sessions.map(({appointment_id,...session})=>{
+  const appointment=appointments.find(item=>item.id===appointment_id);let meetingUrl=null;
+  if(session.status==='confirmed'&&appointment?.status==='scheduled'){
+   try{const parsed=new URL(extractZoomMeetingUrl(appointment.external_payload||{}));if(parsed.protocol==='https:'&&!parsed.username&&!parsed.password&&(parsed.hostname==='zoom.com'||parsed.hostname.endsWith('.zoom.com')||parsed.hostname==='zoom.us'||parsed.hostname.endsWith('.zoom.us')||parsed.hostname==='zoomgov.com'||parsed.hostname.endsWith('.zoomgov.com')))meetingUrl=parsed.href;}catch{}
+  }
+  return {...session,meeting_url:meetingUrl};
+ });
+ return {enrollment:{id:enrollment.id,offeringId:enrollment.offering_id,status:enrollment.status,startsOn:enrollment.starts_on,endsOn:enrollment.ends_on,supportEndsOn:enrollment.support_ends_on,programTitle:programTitle(enrollment.offering_snapshot),bookingMode:enrollment.offering_snapshot?.booking_mode||null},sessions:safeSessions,monthlyFocus:focus,replays};
 }
 async function listPreparedMentorships(ctx){
  context(ctx);
  const email=String(ctx.user.email||'').trim().toLowerCase();
  if(!email||!ctx.user.email_confirmed_at){const e=new Error('Verified email required.');e.statusCode=403;throw e;}
- const matches=await rows(ctx,'enrollments','select=id,offering_id,starts_on,ends_on,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=30');
- return matches.filter(x=>String(x.invited_email||'').trim().toLowerCase()===email).map(x=>({id:x.id,offeringId:x.offering_id,startsOn:x.starts_on,endsOn:x.ends_on}));
+ const matches=await rows(ctx,'enrollments','select=id,offering_id,offering_snapshot,starts_on,ends_on,invited_email&status=eq.invited&client_user_id=is.null&invited_email=eq.'+encodeURIComponent(email)+'&limit=30');
+ return matches.filter(x=>String(x.invited_email||'').trim().toLowerCase()===email).map(x=>({id:x.id,offeringId:x.offering_id,startsOn:x.starts_on,endsOn:x.ends_on,programTitle:programTitle(x.offering_snapshot)}));
 }
 async function claimPreparedMentorship(ctx,enrollmentId){
  context(ctx);id(enrollmentId);
@@ -67,3 +82,15 @@ async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
  return {url:ctx.supabaseUrl+signed.signedURL,expiresInSeconds:300};
 }
 module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
+
+// Reuse the existing consent-aware RPC with the client's JWT, never service-role authorization.
+async function myFlowContext(ctx){
+ context(ctx);if(!ctx.token){const e=new Error('Verified session required');e.statusCode=401;throw e;}
+ const snapshot=await fetchJson(ctx.supabaseUrl+'/rest/v1/rpc/flowtel_get_cycle_subject_snapshot',{method:'POST',headers:userHeaders(ctx.serviceKey,ctx.token),body:JSON.stringify({p_subject_id:ctx.user.id})});
+ const current=snapshot?.current;
+ const day=Number(current?.cycle_day);
+ const seasons=['Inner Winter','Inner Spring','Inner Summer','Inner Autumn'];
+ const cycle=current?.latest_checkin_date?{day:Number.isInteger(day)&&day>0?day:null,season:seasons.includes(current.inner_season)?current.inner_season:null,asOf:String(current.latest_checkin_date).slice(0,10)}:null;
+ return {cycle};
+}
+module.exports.myFlowContext=myFlowContext;

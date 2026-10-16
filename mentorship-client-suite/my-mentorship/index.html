@@ -1,73 +1,18 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flowtel · My Mentorship</title><style>
-:root{font:15px Arial,sans-serif;color:#283d34;background:#f7f3ec}*{box-sizing:border-box}body{margin:0}header{background:#2c4437;color:#fff9f0;padding:35px 22px}header>div,main{max-width:920px;margin:auto}h1,h2{font-family:Georgia,serif;font-weight:normal}h1{font-size:40px;margin:10px 0}h2{font-size:26px}.eyebrow{color:#e4c598;font-size:11px;letter-spacing:2px}main{padding:24px 20px}.card{background:#fff;border:1px solid #e6ddd2;border-radius:15px;padding:22px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px}.muted{color:#71796e}.note{background:#f6e8d0;padding:13px;border-radius:9px}button{border:0;background:#2c4437;color:white;border-radius:8px;padding:11px 16px;cursor:pointer}input{display:block;width:100%;max-width:360px;padding:10px;margin:6px 0 14px;border:1px solid #c9c6bb;border-radius:6px}button:focus-visible{outline:3px solid #bb925a}a{color:#b88750}header a{color:#f2d6aa}.item{padding:12px 0;border-top:1px solid #e8ded1}.error{color:#992f28}
-</style></head><body><header><div><div class="eyebrow">FLOWTEL · PRIVATE CLIENT SUITE</div><h1>My Mentorship</h1><p>A quiet space for your journey, sessions, and current focus.</p><a href="../../client/">Return to Flowtel</a></div></header><main>
-<p class="note"><strong>Development preview.</strong> This page shows only mentorships already linked to your authenticated Flowtel account. It does not create enrollment access or grant unrelated memberships.</p>
-<section class="card"><h2>Your private access</h2><p id="status" aria-live="polite">Checking Flowtel login…</p><form id="login" hidden><p>Use your existing Flowtel account.</p><label for="email">Email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button type="submit">Open my mentorship</button></form><button id="retry" type="button">Refresh</button><p id="error" class="error" role="alert"></p></section>
-<section class="card"><h2>Prepared mentorships</h2><p class="muted">Select the mentorship you want to activate with your verified email.</p><div id="prepared"></div></section><section class="card"><h2>Your mentorships</h2><div id="enrollments"><p class="muted">Waiting for sign-in…</p></div></section>
-<section class="card"><h2>Your Flowtel practices</h2><p><a href="/cycle-data/">Cycle day and Inner Season</a> · <a href="/flow-map/">Open your Flow Map</a></p><p class="muted">Your existing Flowtel membership and sharing choices apply to these rooms.</p></section><section id="detail" hidden><div class="card"><h2 id="title">Your Suite</h2><p id="dates" class="muted"></p><div class="grid"><div><h2>Your calls</h2><div id="sessions"></div></div><div><h2>Monthly focus</h2><div id="focus"></div></div></div></div><div class="card"><h2>Session replays</h2><div id="replays"></div><p class="muted">Playback links last five minutes. Reopen a recording to renew its link.</p></div></section>
-</main><script type="module">
-import {supabase} from '../../shared/supabase.js';
-const $=id=>document.getElementById(id);const base='/api/caddie-acuity?mentorship=client';
-function flowtelDateTime(value){
- if(!value)return 'To be scheduled';
- const instant=new Date(value);
- if(!Number.isFinite(instant.getTime()))return 'Schedule pending';
- return new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit',timeZoneName:'short'}).format(instant);
-}
-function element(tag,text,cls=''){const n=document.createElement(tag);n.textContent=text;if(cls)n.className=cls;return n}
-async function request(params=''){
- const {data,error}=await supabase.auth.getSession();if(error)throw error;
- const token=data.session?.access_token;if(!token)throw Error('Sign into Flowtel to open your mentorship.');
- const res=await fetch(base+params,{headers:{Authorization:'Bearer '+token},cache:'no-store'});
- const json=await res.json().catch(()=>({}));if(!res.ok)throw Error(res.status===404?'This mentorship is not available to this account.':json.error||'Unable to load mentorship.');
- return json;
-}
-async function open(id){
- $('error').textContent='';try{
-  const {suite}=await request('&enrollmentId='+encodeURIComponent(id));
-  $('detail').hidden=false;$('title').textContent='Your private suite';$('dates').textContent=[suite.enrollment.startsOn,suite.enrollment.endsOn].filter(Boolean).join(' → ')||'Dates being prepared';
-  for(const [nodeName,records,mapper] of [
-   ['sessions',suite.sessions||[],s=>'Session '+s.session_number+' · '+s.session_kind+' · '+s.status+' · '+(s.scheduled_at?flowtelDateTime(s.scheduled_at):'To be scheduled')],
-   ['focus',suite.monthlyFocus||[],s=>s.focus_month+' · '+s.client_visible_focus],
-   ['replays',[],s=>s.title]
-  ]){const root=$(nodeName);root.replaceChildren();if(!records.length){root.append(element('p','Not available yet.','muted'));continue}
-   for(const item of records)root.append(element('div',mapper(item),'item'));
-  }
-  const replayRoot=$('replays');replayRoot.replaceChildren();
-  if(!(suite.replays||[]).length)replayRoot.append(element('p','No recordings available yet.','muted'));
-  for(const replay of suite.replays||[]){const item=element('div','','item');item.append(element('p',replay.title));const button=element('button','Play recording');button.onclick=async()=>{button.disabled=true;try{const data=await request('&enrollmentId='+encodeURIComponent(id)+'&playbackReplayId='+encodeURIComponent(replay.id));const media=document.createElement('video');media.controls=true;media.preload='metadata';media.src=data.playback.url;media.style.maxWidth='100%';media.style.width='100%';item.append(media);button.remove()}catch(e){$('error').textContent=e.message;button.disabled=false}};item.append(button);replayRoot.append(item)}
- }catch(e){$('error').textContent=e.message;$('detail').hidden=true}
-}
-async function claim(id,button){
- $('error').textContent='';button.disabled=true;
- try{
-  const {data,error}=await supabase.auth.getSession();if(error)throw error;
-  if(!data.session?.access_token)throw Error('Sign in to Flowtel first.');
-  const response=await fetch(base,{method:'POST',headers:{Authorization:'Bearer '+data.session.access_token,'Content-Type':'application/json'},body:JSON.stringify({action:'claim-prepared',enrollmentId:id}),cache:'no-store'});
-  const json=await response.json().catch(()=>({}));
-  if(!response.ok)throw Error(json.error||'Could not activate this mentorship.');
-  await connect();if(json.enrollment?.id)await open(json.enrollment.id);
- }catch(e){$('error').textContent=e.message}finally{button.disabled=false}
-}
-async function loadPrepared(){
- const {prepared}=await request('&prepared=1');
- const root=$('prepared');root.replaceChildren();
- if(!prepared?.length){root.append(element('p','No invitations are prepared for your verified email.','muted'));return}
- for(const item of prepared){
-  const row=element('div','','item');
-  row.append(element('p','Mentorship begins '+(item.startsOn||'when scheduled')));
-  const button=element('button','Activate this mentorship');
-  button.onclick=()=>claim(item.id,button);row.append(button);root.append(row);
- }
-}
-async function connect(){
- $('error').textContent='';$('login').hidden=true;$('status').textContent='Checking your Flowtel account…';$('detail').hidden=true;
- try{const {enrollments}=await request();await loadPrepared();$('status').textContent='Signed in. Your mentorship access has been checked.';const root=$('enrollments');root.replaceChildren();
- if(!enrollments.length){root.append(element('p','No private mentorship is linked to this account yet.','muted'));return}
- for(const e of (enrollments||[])){const card=element('div','', 'item');card.append(element('p','Mentorship · '+e.status));const button=element('button','Open private suite');button.onclick=()=>open(e.id);card.append(button);root.append(card)}
- }catch(e){$('login').hidden=false;$('status').textContent='Sign-in required';$('error').textContent=e.message;$('enrollments').replaceChildren(element('p','Sign into Flowtel first.','muted'))}
-}
-supabase.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'){for(const id of ['enrollments','prepared','sessions','focus','replays'])$(id).replaceChildren();$('detail').hidden=true;$('status').textContent='Signed out';}});
-$('login').onsubmit=async event=>{event.preventDefault();const button=$('login').querySelector('button');button.disabled=true;try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error)throw error;await connect()}catch(e){$('error').textContent=e.message}finally{button.disabled=false}};
-$('retry').onclick=connect;connect();
-</script></body></html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Flowtel · Your Mentorship Suite</title><link rel="stylesheet" href="./suite.css"></head>
+<body><a class="skip" href="#main">Skip to your suite</a>
+<header class="hero"><div class="shell"><div class="topline"><a href="/client/" class="brand">FLOWTEL <span>· PRIVATE MENTORSHIP</span></a><button id="retry" class="quiet-button" type="button">Refresh suite</button></div><div class="hero-content"><div><p class="eyebrow">A SPACE TO RETURN TO YOURSELF</p><h1>Your mentorship suite.</h1><p class="hero-copy">Your sessions, your focus, your becoming.<br>Held together in one quiet place.</p></div><div class="moon-seal" aria-hidden="true">☾</div></div></div></header>
+<main class="shell" id="main"><p class="preview-label">Development preview · Fictional test accounts</p>
+<section id="access" class="card access-card"><div><p class="eyebrow">YOUR PRIVATE ENTRANCE</p><h2>Welcome back.</h2><p id="status" aria-live="polite">Preparing your suite…</p></div><form id="login" hidden><p>Enter with your existing Flowtel account.</p><label for="email">Email</label><input id="email" type="email" autocomplete="username" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required><button type="submit">Open my mentorship</button></form></section>
+<p id="error" class="error" role="alert"></p>
+<section id="preparedSection" class="card" hidden><p class="eyebrow">YOUR INVITATION</p><h2>Your space is ready.</h2><div id="prepared"></div></section>
+<section id="enrollmentSection" class="card" hidden><div class="section-heading"><div><p class="eyebrow">YOUR JOURNEYS</p><h2>Your mentorships</h2></div></div><div id="enrollments" class="enrollment-list"></div></section>
+<section id="detail" hidden><div class="program-heading"><div><p class="eyebrow">YOUR PRIVATE JOURNEY</p><h2 id="title"></h2><p id="dates" class="muted"></p></div><span id="programStatus" class="badge"></span></div>
+<nav class="suite-nav" aria-label="Mentorship rooms"><button data-panel="home" aria-pressed="true">My Suite</button><button data-panel="calls" aria-pressed="false">My Calls</button><button data-panel="recordings" aria-pressed="false">My Recordings</button><button data-panel="flow" aria-pressed="false">My Flow</button></nav>
+<section id="home" class="panel" aria-label="My Suite"><div class="overview-grid"><article class="card next-card"><p class="eyebrow">YOUR NEXT PRIVATE CALL</p><div id="nextCall"></div></article><article class="card focus-card"><p class="eyebrow">THIS MONTH’S FOCUS</p><h3 id="focusMonth"></h3><p id="currentFocus" class="focus-copy"></p><p class="muted">A thread to return to between sessions.</p></article></div>
+<article class="card journey-card"><div class="section-heading"><div><p class="eyebrow">ONE SESSION AT A TIME</p><h3>Your mentorship journey</h3></div><span id="progressCaption" class="muted"></span></div><div id="progress" class="progress" role="progressbar" aria-label="Sessions completed" aria-valuemin="0" aria-valuemax="100"><span id="progressBar"></span></div><div class="metrics"><div><strong id="completedCount">0</strong><span>Completed</span></div><div><strong id="remainingCount">0</strong><span>To come</span></div><div><strong id="replayCount">0</strong><span>Recordings</span></div></div><p id="progressNote" class="muted"></p></article>
+<div class="overview-grid"><article class="card"><p class="eyebrow">BETWEEN OUR CALLS</p><h3>Make room for integration.</h3><p>You don’t have to turn every insight into an action. Return to your focus, revisit a recording, and notice what is changing.</p><button class="text-button" data-open="recordings">Return to your recordings →</button></article><article class="card flow-invitation"><p class="eyebrow">YOUR OWN RHYTHM</p><h3>Meet yourself where you are.</h3><p>Your cycle and the moon offer two different rhythms to observe.</p><button class="text-button" data-open="flow">Explore My Flow →</button></article></div></section>
+<section id="calls" class="panel" aria-label="My Calls" hidden><div class="section-heading"><div><p class="eyebrow">OUR TIME TOGETHER</p><h3>Your private sessions</h3></div><p class="muted">All session times are shown in Flowtel Time · Pacific.</p></div><div id="sessions" class="session-list"></div></section>
+<section id="recordings" class="panel" aria-label="My Recordings" hidden><div class="section-heading"><div><p class="eyebrow">RETURN AND LISTEN AGAIN</p><h3>Your private recordings</h3><p class="muted">A place to revisit what came through in our time together.</p></div></div><div id="replays" class="replay-grid"></div></section>
+<section id="flow" class="panel" aria-label="My Flow" hidden><div class="overview-grid"><article class="card"><p class="eyebrow">YOUR RECORDED INNER RHYTHM</p><h3 id="cycleHeading">Your cycle</h3><p id="cycleSeason" class="large-copy">Your rhythm is personal.</p><p id="cycleNote" class="muted">Loading your existing Flowtel check-in…</p><a class="text-link" href="/cycle-data/">Visit your cycle journal →</a></article><article class="card moon-card"><p class="eyebrow">THE MOON TODAY</p><h3 id="moonHeading"></h3><p id="moonPhase" class="large-copy"></p><p id="moonTheme"></p><p class="muted">The collective moon rhythm is separate from your personal cycle.</p></article></div><article class="card map-card"><img src="/assets/rose_compass_center.png" alt="" class="compass-art"><div><p class="eyebrow">NOTICE YOUR PATTERNS</p><h3>Your Flow Map</h3><p>Return to your existing map and notice what repeats, what shifts, and what asks for your attention.</p><a href="/flow-map/" class="button-link">Open your Flow Map</a><p class="muted">Your existing Flowtel access applies to your cycle journal and Flow Map.</p></div></article><article class="card"><p class="eyebrow">THE THREAD THROUGH YOUR JOURNEY</p><h3>Your focus over time</h3><div id="focus"></div></article></section>
+</section><footer><span>FLOWTEL · YOUR PRIVATE SUITE</span><a href="/client/">Return to Flowtel →</a></footer></main><script type="module" src="./suite.mjs"></script></body></html>

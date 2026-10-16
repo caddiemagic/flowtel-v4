@@ -2,7 +2,7 @@ const guards=require('./request.cjs');
 // DRAFT server endpoint only. Do not publish under api/ until schema and access review.
 // Unlike owner concierge endpoints, this grants no owner or member-wide privileges.
 const {requireUser,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl}=require('./client-repository.cjs');
+const {clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl,myFlowContext}=require('./client-repository.cjs');
 module.exports=async function mentorshipClientHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -16,6 +16,7 @@ module.exports=async function mentorshipClientHandler(req,res){
    const enrollment=await claimPreparedMentorship(ctx,body.enrollmentId);
    return res.status(200).json({ok:true,enrollment});
   }
+  if(req.query?.context==='1')return res.status(200).json({ok:true,context:await myFlowContext(ctx)});
   if(req.query?.playbackReplayId){
    const playback=await getReplayPlaybackUrl(ctx,{enrollmentId:req.query.enrollmentId,replayId:req.query.playbackReplayId});
    return res.status(200).json({ok:true,playback});

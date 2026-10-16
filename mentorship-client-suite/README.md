@@ -33,3 +33,13 @@ Read `DATABASE-APPLICATION-RECORD.md`. The base and private replay bucket migrat
 Development branch only. No production merge, real-client enrollment, invitations, or automated Acuity bookings are authorized. Acuity and Zoom synchronization, automatic cycle analytics in the mentorship dashboard, and Beginning & Becoming reflections remain outside this increment. Existing Flowtel cycle/Flow Map navigation is available subject to the existing product gates.
 
 Signed playback links remain usable for up to five minutes after hiding a recording; hiding blocks issuance of new links immediately. Interrupted uploads can leave private unlisted objects; no client can discover them through this feature.
+
+## Connected client dashboard
+
+`my-mentorship/` now uses the shared dashboard layout with four rooms: My Suite, My Calls, My Recordings and My Flow. The single-enrollment case opens automatically. Program titles come from a restricted projection of the enrollment offering snapshot; the full snapshot is not sent to the client. The dashboard selects the current Pacific month focus and excludes historical calls from the next-call card. Recorded cycle information is explicitly dated and fetched through the existing consent-aware RPC using the client's JWT. Existing check-in behavior is unchanged.
+
+Zoom links are shown only for confirmed sessions linked to a scheduled external appointment belonging to that client, and only HTTPS Zoom hosts are accepted. This does not create or synchronize appointments.
+
+`client-suite-preview/` uses the identical rendering code with an explicitly fictional, in-memory adapter. It does not load real authentication, fetch client data, send invitations, book appointments, or play real recordings. Use it to review the layout without a client account.
+
+Current dashboard verification: 61 unit/security/HTTP tests and the owner/client A/client B Playwright journey passed locally, including the fictional dashboard and mobile overflow check. Desktop and mobile screenshots were visually inspected. Real protected deployment verification remains subject to the previously recorded Vercel connection restriction.
