@@ -34,7 +34,7 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
 #visibleFirstNames .name-group{display:block;margin:3px 0}
 #visibleFirstNames .name-group strong{color:#a37c43}
 .moon-footer{font:11px/1.6 Arial,sans-serif;color:#967e5c;margin-top:9px}
-.seasons{display:grid;grid-template-columns:1fr 1fr;gap:13px}.season{padding:17px;border:1px solid #e7d8bc;border-radius:16px;background:#fffaf2}.season h3{font-weight:normal;font-size:21px;margin:5px 0}.season .count{font-size:32px;color:#6b7154}.season p{font:12px Arial,sans-serif;color:var(--muted);line-height:1.5;margin:6px 0}
+.seasons{display:grid;grid-template-columns:1fr 1fr;gap:13px}.season{padding:17px;border:1px solid #e7d8bc;border-radius:16px;background:#fffaf2;min-width:0}.season h3{font-weight:normal;font-size:clamp(18px,2vw,24px);line-height:1.1;margin:5px 0 12px}.season .count{font-size:32px;color:#6b7154}.season p{font:12px Arial,sans-serif;color:var(--muted);line-height:1.5;margin:6px 0}.season-moon{display:block;border:1px solid #c8ac6a;background:#f5ead2;color:#716137;border-radius:999px;padding:6px 9px;font:700 11px/1.4 Arial,sans-serif;margin:8px 0}.season-moon[hidden]{display:none!important}
 .metric{text-align:center;padding:18px;border:1px solid #e1d0af;border-radius:16px;margin:0 0 17px;background:#fffaf0}.metric strong{display:block;font:normal 58px Georgia,serif;color:#657255}.metric span{font:12px Arial,sans-serif;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
 .moon-track{margin-top:16px;background:#f0e9da;border-radius:15px;padding:18px;font-size:15px;line-height:1.5}.moon-track strong{font-size:24px;color:#6b7154}
 .status{font:13px Arial,sans-serif;color:var(--muted);text-align:center;line-height:1.4;min-height:22px;margin:14px auto}
@@ -59,10 +59,10 @@ header{text-align:center;padding:8px 10px 28px}header h1{font-size:clamp(35px,5v
  <div>
   <div class="metric"><strong id="total">—</strong><span>Guests sharing their place</span></div>
   <div class="seasons">
-   <div class="season"><span class="small">Inner Winter</span><h3>New Moon</h3><div class="count" id="Winter">0</div><p>Days 27–5</p></div>
-   <div class="season"><span class="small">Inner Spring</span><h3>Waxing</h3><div class="count" id="Spring">0</div><p>Days 6–11</p></div>
-   <div class="season"><span class="small">Inner Summer</span><h3>Full Moon</h3><div class="count" id="Summer">0</div><p>Days 12–19</p></div>
-   <div class="season"><span class="small">Inner Autumn</span><h3>Waning</h3><div class="count" id="Autumn">0</div><p>Days 20–26</p></div>
+   <div class="season"><h3>Inner Winter</h3><div class="count" id="Winter">0</div><span class="season-moon" id="moonInWinter" hidden>☾ Moon is here</span><p>Days 27–5</p></div>
+   <div class="season"><h3>Inner Spring</h3><div class="count" id="Spring">0</div><span class="season-moon" id="moonInSpring" hidden>☾ Moon is here</span><p>Days 6–11</p></div>
+   <div class="season"><h3>Inner Summer</h3><div class="count" id="Summer">0</div><span class="season-moon" id="moonInSummer" hidden>☾ Moon is here</span><p>Days 12–19</p></div>
+   <div class="season"><h3>Inner Autumn</h3><div class="count" id="Autumn">0</div><span class="season-moon" id="moonInAutumn" hidden>☾ Moon is here</span><p>Days 20–26</p></div>
   </div>
   <div class="moon-summary" aria-live="polite">
     <span class="small">The Moon Now · Flowtel Time</span>
@@ -135,6 +135,10 @@ function updateMoonDisplay(){
  const phaseName=past?(phaseLabels[past.type]||past.label):magic.phase;
  document.getElementById('actualMoonPhase').textContent=phaseName;
  document.getElementById('moonCycleDay').textContent='Moon day '+magic.moonDay+' · '+magic.innerSeason;
+ for(const season of ['Winter','Spring','Summer','Autumn']){
+   const moonBadge=document.getElementById('moonIn'+season);
+   moonBadge.hidden=magic.innerSeason!=='Inner '+season;
+ }
  document.getElementById('nextFullMoon').textContent=nextFull?formatPacific(nextFull.time):'Date unavailable';
  document.getElementById('nextNewMoon').textContent=nextNew?formatPacific(nextNew.time):'Date unavailable';
  const markerIndex=Math.max(0,Math.min(27,magic.moonDay-1));
