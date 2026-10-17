@@ -1,4 +1,4 @@
-import {createCycleDayExplorer,createFourCornersExplorer,createSeasonPlanningExplorer} from '/13-moons/lesson-interactions.js';
+import {createCycleDayExplorer,createFourCornersExplorer,createSeasonPlanningExplorer,createBoundaryRitual,createAngelicAltarExplorer} from '/13-moons/lesson-interactions.js';
 import {showMemberMoonPortals} from '/13-moons/member-moon-portals.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
@@ -105,13 +105,15 @@ function makeCeremonialStages(card,moduleIndex){
    while(body.firstChild)panel.append(body.firstChild);
    stages.push(panel);
   }
-  if(topLabel.startsWith('01') && moduleIndex>=1 && moduleIndex<=4){
+  if(topLabel.startsWith('01') && moduleIndex>=1 && moduleIndex<=6){
    const interactive=document.createElement('section');interactive.className='moon-stage';
    const h=document.createElement('h4');
-   const titles={1:'Explore your cycle day',2:'Explore your Inner Seasons',3:'The Four Corners of Creative Flow',4:'Plan with your Inner Seasons'};
+   const titles={1:'Explore your cycle day',2:'Explore your Inner Seasons',3:'The Four Corners of Creative Flow',4:'Plan with your Inner Seasons',5:'Three Boundaries for Your Life Force',6:'Prepare Your Angelic Army Altar'};
    h.textContent=titles[moduleIndex];
    const exercise=moduleIndex<=2?createCycleDayExplorer(moduleIndex===1?'track':'seasons')
-    :moduleIndex===3?createFourCornersExplorer():createSeasonPlanningExplorer();
+    :moduleIndex===3?createFourCornersExplorer()
+    :moduleIndex===4?createSeasonPlanningExplorer()
+    :moduleIndex===5?createBoundaryRitual():createAngelicAltarExplorer();
    interactive.append(h,exercise);
    stages.push(interactive);
   }
