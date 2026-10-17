@@ -1,5 +1,10 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {dashboardModel,dateLabel,filterSessions} from './dashboard-model.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {dashboardModel,dateLabel,filterSessions,replayLibrary} from './dashboard-model.mjs';
 const now=new Date('2026-10-16T00:30:00Z');
+test('replay library shows all recordings by descending call date with added-date fallback',()=>{
+ const replays=[{id:'old',sessionId:'a',createdAt:'2026-10-20T20:00:00Z'},{id:'new',sessionId:'b',createdAt:'2026-10-10T20:00:00Z'},{id:'added',createdAt:'2026-10-12T20:00:00Z'},{id:'undated'}];
+ const suite={sessions:[{id:'a',scheduled_at:'2026-10-01T19:00:00Z'},{id:'b',scheduled_at:'2026-10-15T19:00:00Z'}],replays};
+ const library=replayLibrary(suite);assert.deepEqual(library.map(item=>item.replay.id),['new','added','old','undated']);assert.equal(library[0].recorded,true);assert.equal(library[1].recorded,false);assert.equal(library[3].date,null);assert.deepEqual(suite.replays,replays);assert.equal(library.length,4);
+});
 test('dashboard uses Pacific date and current month without promoting historical calls as upcoming',()=>{
  const suite={sessions:[{id:'past',status:'confirmed',duration_minutes:90,scheduled_at:'2026-10-01T19:00:00Z',session_number:1},{id:'future',status:'confirmed',duration_minutes:90,scheduled_at:'2026-10-20T19:00:00Z',session_number:2},{id:'cancelled',status:'cancelled',session_number:3},{id:'complete',status:'completed',session_number:4},{id:'draft',status:'proposed',duration_minutes:90,scheduled_at:'2026-10-17T19:00:00Z',session_number:5}],monthlyFocus:[{focus_month:'2026-11-01',client_visible_focus:'Future'},{focus_month:'2026-10-01',client_visible_focus:'Current'},{focus_month:'2026-09-01',client_visible_focus:'Past'}]};
  const model=dashboardModel(suite,now);assert.equal(model.today,'2026-10-15');assert.equal(model.nextCall.id,'future');assert.equal(model.pastPending[0].id,'past');assert.equal(model.focus.client_visible_focus,'Current');assert.equal(model.completed,1);assert.equal(model.cancelled,1);assert.equal(model.remaining,3);assert.equal(model.percent,20);

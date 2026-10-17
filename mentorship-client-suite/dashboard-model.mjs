@@ -20,3 +20,12 @@ export function dashboardModel(suite,now=new Date()){
  const focuses=Array.isArray(suite.monthlyFocus)?[...suite.monthlyFocus].sort((a,b)=>b.focus_month.localeCompare(a.focus_month)):[];
  return {sessions,completed,cancelled,total:sessions.length,remaining:sessions.filter(s=>!['completed','cancelled','missed'].includes(s.status)).length,percent:sessions.length?Math.round(100*completed/sessions.length):0,nextCall:upcoming[0]||null,pastPending,focus:focuses.find(f=>f.focus_month===month)||null,focuses,today};
 }
+
+export function replayLibrary(suite){
+ const sessions=new Map((suite.sessions||[]).map(session=>[session.id,session]));
+ return (suite.replays||[]).map(replay=>{
+  const session=sessions.get(replay.sessionId),sessionTime=Date.parse(session?.scheduled_at),addedTime=Date.parse(replay.createdAt);
+  const recorded=Number.isFinite(sessionTime),timestamp=recorded?sessionTime:Number.isFinite(addedTime)?addedTime:null;
+  return {replay,session,recorded,date:timestamp===null?null:new Date(timestamp).toISOString(),timestamp};
+ }).sort((a,b)=>(b.timestamp??-Infinity)-(a.timestamp??-Infinity)||String(a.replay.id).localeCompare(String(b.replay.id)));
+}

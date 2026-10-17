@@ -48,7 +48,7 @@ The owner-triggered live Supabase diagnostic passed, including temporary account
 
 ## Session details and calendar downloads
 
-Clients can open a session detail dialog, see that session month's client-visible focus when present, jump directly to its published recordings, and download a private iCalendar file for confirmed sessions. Calendar files use UTC start/end instants, escaped/folded text, stable session UIDs, and no attendees, invitation delivery, or signed playback links. The dashboard section is preserved in the URL fragment on refresh and supports browser back/forward. Recording search and a session filter operate only on already authorized replay metadata. Switching rooms pauses playback, and starting a recording pauses other players.
+Clients can open a session detail dialog, see that session month's client-visible focus when present, jump directly to its published recordings, and download a private iCalendar file for confirmed sessions. Calendar files use UTC start/end instants, escaped/folded text, stable session UIDs, and no attendees, invitation delivery, or signed playback links. The dashboard section is preserved in the URL fragment on refresh and supports browser back/forward. The separate Call Replay Library shows all authorized recordings in descending call-date order, with added-date fallback; no recording search or session filter is shown. Switching rooms pauses playback, and starting a recording pauses other players.
 
 ## Existing Acuity booking links
 
@@ -76,3 +76,7 @@ The owner sees authorization, transfer and saving stages. If transfer succeeds b
 The dashboard shows cycle day, Inner Season and count of saved reflections on that cycle day across visits. It reuses the consent-aware cycle-data RPC, the existing cycle-start/Pacific-date convention and shared Inner Season rules, including Receiving Season. It does not infer a new period or reset the cycle. Without a start date, it labels the last recorded day. Last check-in is shown explicitly. Reflection totals use an authenticated HEAD count scoped to the user's reflections and stays, including legacy cycle-day fallback, without retrieving reflection text. Count failure appears as unavailable, not zero. No check-in or reflection is written.
 
 The two bottom cards are simply Call Replays and My Flow Map. Both open separately with noopener/noreferrer; the dashboard stays open. The replay link retains the selected enrollment and opens the library; the new page still checks client ownership. Browser settings decide whether a new context is a window or tab.
+
+## Direct replay library
+
+My Dashboard and My Calls link to a separate library view (`?view=replays&enrollmentId=…`). It displays every published recording in the selected authorized mentorship on one page, newest call date first; records without a call date use their saved date, and undated records follow last. The selected enrollment is verified through the normal client API. No signed playback URLs are passed between windows. My Calls shows two destination cards: Call Replay Library and My Flow Map. Both open separately, retaining the dashboard. The My Flow tab and recording search/filter controls are removed. Session-detail recording access also opens the full library.

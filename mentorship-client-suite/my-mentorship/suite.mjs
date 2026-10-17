@@ -2,17 +2,20 @@ const fictionalPreview=document.body.dataset.preview==='fictional';
 const demo=fictionalPreview?await import('../dashboard-preview.mjs'):null;
 const supabase=fictionalPreview?demo.demoAuth:(await import('../../shared/supabase.js')).supabase;
 import {flowtelTodayISO,formatDateOnly} from '../../shared/flowtel-date.js';
-import {dashboardModel,filterSessions,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
+import {dashboardModel,filterSessions,replayLibrary,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
 import {sessionCalendar} from '../session-calendar.mjs';
 const $=id=>document.getElementById(id),base='/api/caddie-acuity?mentorship=client';
 let epoch=0,selection=null,account=null,currentSuite=null,currentVersion=0;
+const libraryMode=new URLSearchParams(location.search).get('view')==='replays';document.body.classList.toggle('library-page',libraryMode);if(libraryMode)document.querySelector('.hero h1').textContent='Your recordings.';
 const panels=['home','calls'];
+function libraryURL(id=selection){return (fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays'+(id?'&enrollmentId='+encodeURIComponent(id):'');}
+function updateLibraryLinks(id){for(const link of document.querySelectorAll('[data-replay-library]'))link.href=libraryURL(id);$('libraryBack').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+(id?'?enrollmentId='+encodeURIComponent(id):'');}
 let activePanel=location.hash==='#recordings'?'calls':panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
 function stopPlayers(){for(const media of document.querySelectorAll('video,audio'))media.pause();}
 function discardSessionView(){stopPlayers();for(const media of document.querySelectorAll('video,audio')){media.removeAttribute('src');media.load();media.remove();}if($('sessionDialog').open)$('sessionDialog').close();$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';currentSuite=null;}
 function element(tag,text,cls=''){const node=document.createElement(tag);node.textContent=text;if(cls)node.className=cls;return node;}
 function empty(root,text){root.replaceChildren(element('p',text,'empty'));}
-function room(name,writeHistory=true){if(name==='recordings')name='calls';if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=!active;}$('recordings').hidden=name!=='calls';}
+function room(name,writeHistory=true){if(name==='recordings')name='calls';if(!panels.includes(name))name='home';stopPlayers();activePanel=name;if(writeHistory&&location.hash!=='#'+name)history.pushState(null,'','#'+name);for(const button of document.querySelectorAll('[data-panel]')){const active=button.dataset.panel===name;button.setAttribute('aria-pressed',String(active));$(button.dataset.panel).hidden=libraryMode||!active;}$('recordings').hidden=!libraryMode;$('callDestinations').hidden=libraryMode||name!=='calls';}
 window.addEventListener('popstate',()=>room(location.hash.slice(1),false));
 window.addEventListener('hashchange',()=>room(location.hash.slice(1),false));
 for(const button of document.querySelectorAll('[data-panel]'))button.onclick=()=>room(button.dataset.panel);
@@ -27,7 +30,7 @@ async function request(params='',body=null){
 function clearPrivate(){
  discardSessionView();
  epoch++;selection=null;currentSuite=null;
- $('callFilter').value='upcoming';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
+ $('callFilter').value='upcoming';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replayResults').textContent='';
  for(const id of ['enrollments','prepared','sessions','replays','nextCall'])$(id).replaceChildren();
  for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','cycleReflections','programStatus','progressNote'])$(id).textContent='';
  for(const id of ['completedCount','remainingCount','replayCount'])$(id).textContent='0';
@@ -62,14 +65,14 @@ function renderFocus(model){
 
 }
 function renderReplays(suite,id,version){
- stopPlayers();const root=$('replays');root.replaceChildren();const search=$('replaySearch').value.trim().toLocaleLowerCase();const sessionFilter=$('replaySession').value;
- const replays=(suite.replays||[]).filter(replay=>(!sessionFilter||replay.sessionId===sessionFilter)&&(!search||String(replay.title||'').toLocaleLowerCase().includes(search)));
- $('replayResults').textContent=replays.length+' recording'+(replays.length===1?'':'s')+(search||sessionFilter?' found':'');
- if(!replays.length){empty(root,(suite.replays||[]).length?'No recordings match these filters. Try another title or choose All sessions.':'No recordings available yet. Published session recordings will be gathered here.');return;}
- for(const replay of replays){
- const card=element('article','','card recording-card');const session=(suite.sessions||[]).find(s=>s.id===replay.sessionId);
- card.append(element('p',session?'SESSION '+session.session_number+' · '+kindLabel(session.session_kind):'YOUR PRIVATE RECORDING','eyebrow'),element('h4',replay.title||'Session recording'));
- if(session?.scheduled_at)card.append(element('p',timeLabel(session.scheduled_at),'muted'));
+ if(!libraryMode)return;
+ stopPlayers();const root=$('replays');root.replaceChildren();const replays=replayLibrary(suite);
+ $('replayResults').textContent=replays.length+' recording'+(replays.length===1?'':'s')+' · Newest first';
+ if(!replays.length){empty(root,'No recordings available yet. Published call recordings will appear here.');return;}
+ for(const {replay,session,date,recorded} of replays){
+ const card=element('article','','card recording-card');card.dataset.replayId=replay.id;
+ card.append(element('p',date?(recorded?'SESSION · ':'ADDED · ')+timeLabel(date):'DATE NOT RECORDED','eyebrow'),element('h4',replay.title||'Session recording'));
+ if(session)card.append(element('p','Session '+session.session_number+' · '+kindLabel(session.session_kind),'muted'));
  const button=element('button','Play recording'),message=element('p','','error');message.setAttribute('role','status');
  button.onclick=async()=>{button.disabled=true;message.textContent='';try{
  const data=await request('&enrollmentId='+encodeURIComponent(id)+'&playbackReplayId='+encodeURIComponent(replay.id));if(version!==epoch||selection!==id)return;
@@ -99,13 +102,13 @@ function showSession(session){
   if(focus?.client_visible_focus){const card=element('section','','session-focus');card.append(element('p','FOCUS FOR '+formatDateOnly(month,{month:'long',year:'numeric'}),'eyebrow'),element('p',focus.client_visible_focus,'session-focus-copy'));root.append(card);}
  }
  const replays=(currentSuite.replays||[]).filter(replay=>replay.sessionId===session.id);
- if(replays.length){root.append(element('h3','Return to this session'));const list=element('ul','','session-recordings');for(const replay of replays)list.append(element('li',replay.title));root.append(list);const button=element('button','Open recordings for this session');button.onclick=()=>{$('sessionDialog').close();$('replaySearch').value='';$('replaySession').value=session.id;renderReplays(currentSuite,selection,currentVersion);room('calls');$('recordings').scrollIntoView({behavior:'smooth',block:'start'});};root.append(button);}
+ if(replays.length){root.append(element('h3','Return to this session'));const list=element('ul','','session-recordings');for(const replay of replays)list.append(element('li',replay.title));root.append(list);const link=element('a','Open call replay library ↗','button-link');link.href=libraryURL();link.target='_blank';link.rel='noopener noreferrer';root.append(link);}
  else root.append(element('p','A recording will appear here if it is published for this session.','muted'));
  if(!$('sessionDialog').open)$('sessionDialog').showModal();
 }
 $('closeSession').onclick=()=>$('sessionDialog').close();
 $('callFilter').addEventListener('change',()=>{if(currentSuite)renderSessions(dashboardModel(currentSuite));});
-for(const [id,event] of [['replaySearch','input'],['replaySession','change']])$(id).addEventListener(event,()=>{if(currentSuite)renderReplays(currentSuite,selection,currentVersion);});
+
 async function renderFlow(version){
  $('cycleHeading').textContent='Your cycle';$('cycleSeason').textContent='';$('cycleReflections').textContent='';$('cycleNote').textContent='Loading your Flowtel cycle…';
  try{const data=await request('&context=1');if(version!==epoch)return;const cycle=data.context?.cycle;
@@ -118,13 +121,11 @@ async function renderFlow(version){
 
 async function open(id){
  const version=++epoch;discardSessionView();selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
- try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);$('callReplaysLink').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays&enrollmentId='+encodeURIComponent(id)+'#calls';
- $('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));
- for(const session of model.sessions)if((suite.replays||[]).some(replay=>replay.sessionId===session.id))$('replaySession').add(new Option('Session '+session.session_number+' · '+kindLabel(session.session_kind),session.id));
+ try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);updateLibraryLinks(id);
  $('title').textContent=suite.enrollment.programTitle||'Your private mentorship';$('dates').textContent='Begins '+dateLabel(suite.enrollment.startsOn)+(suite.enrollment.endsOn?' · Through '+dateLabel(suite.enrollment.endsOn):' · No fixed end date');$('programStatus').textContent=suite.enrollment.status;
  $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.completed+' of '+model.total+' sessions completed';$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
  $('progressNote').textContent=model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
- renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(new URLSearchParams(location.search).get('view')==='replays'){room('calls',false);$('recordings').scrollIntoView({block:'start'});}$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';renderFlow(version);
+ renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(libraryMode)room('calls',false);$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';if(!libraryMode)renderFlow(version);
  }catch(error){if(version===epoch){$('error').textContent=error.message;$('status').textContent='Your suite could not load.';}}
 }
 async function claim(id,button){button.disabled=true;$('error').textContent='';try{const data=await request('',{action:'claim-prepared',enrollmentId:id});await connect(data.enrollment?.id);}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}}
@@ -143,5 +144,5 @@ async function connect(preferred=null){
 }
 $('login').onsubmit=async event=>{event.preventDefault();const button=$('login').querySelector('button');button.disabled=true;try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error)throw error;await connect();}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}};
 supabase.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){clearPrivate();account=null;$('status').textContent='Signed out';$('login').hidden=false;$('access').classList.remove('verified');}else if(event==='SIGNED_IN'&&session?.user?.id!==account){clearPrivate();setTimeout(()=>connect(),0);}});
-$('callReplaysLink').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays#calls';
+updateLibraryLinks();
 $('retry').onclick=()=>connect();connect();

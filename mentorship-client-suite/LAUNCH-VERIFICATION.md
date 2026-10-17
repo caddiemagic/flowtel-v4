@@ -106,3 +106,9 @@ Replaced the large framed green/moon hero with a compact blush/ivory header and 
 Telegram and Sisterhood controls are placed beside that heading for design review but remain disabled: repository and Personal Context searches found no verified destination URLs. No URLs were guessed and no messages or invitations were sent. These two destinations still require the owner to supply the actual links.
 
 Desktop and mobile screenshots were inspected; mobile header height measured 131px. Browser checks verify the floral asset loads and the header stays compact. The static test server now serves SVG with its correct MIME type. Functional dashboard checks remain unchanged; no database/auth/product changes were made.
+
+## Separate chronological replay library — October 17, 2026
+
+Removed the recording search/session filter and My Flow tab. My Calls now presents the requested Call Replay Library and My Flow Map destination cards rather than individual recording previews. The library opens independently and shows all published recordings for the selected authorized enrollment on one page, sorted descending by call date (saved-date fallback; undated last). Dates are explicit on each entry. Actual recording titles remain inside the library. Session-detail access opens this same full library. No access rules, database fields or signed-link protections changed.
+
+92 automated tests and the expanded Chromium journey pass locally. Newest-first ordering, fallback dates, no search/filter UI, popup library access, preservation of the dashboard and selected enrollment, decoded audio playback, publication/hiding and client isolation are covered. Desktop/mobile library layouts were visually inspected. Telegram destinations remain pending owner-supplied links as previously noted.
