@@ -23,3 +23,23 @@ body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%
 .moon-stage-controls button:disabled{opacity:.36;cursor:default}
 @keyframes moon-scene-fade{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(max-width:540px){.moon-stage-frame{min-height:260px}.moon-stage-controls button{padding:.7rem .9rem}}
+
+/* Interactive inner-season / cycle-day exploration without a duplicate journal */
+.moon-explorer{display:grid;gap:14px;margin:10px 0}
+.moon-explorer>p{margin:.3rem 0;line-height:1.75}
+.moon-explorer-label{font:700 12px Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#86677a}
+.moon-explorer input[type=range]{width:100%;accent-color:#89647c;cursor:pointer;min-height:26px}
+.moon-explorer-bounds{display:flex;justify-content:space-between;color:#8a7480;font:700 11px Arial,sans-serif}
+.moon-explorer-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.moon-explorer-choice{border:1px solid #d4bfc9;border-radius:13px;background:#fffafc;color:#65495a;padding:13px 11px;font:600 13px Arial,sans-serif;cursor:pointer}
+.moon-explorer-choice[aria-pressed=true]{background:#76566d;color:white;border-color:#76566d}
+.moon-explorer-choice:focus-visible{outline:3px solid #c3a1b3;outline-offset:3px}
+.moon-explorer-result{background:linear-gradient(150deg,#f6eaf1,#fffafc);border:1px solid #e3cedc;border-radius:17px;padding:clamp(16px,3vw,24px);min-height:110px}
+.moon-explorer-result p{margin:.5rem 0}
+.moon-explorer-result h5{font:normal clamp(1.3rem,3vw,1.8rem) Georgia,serif;color:#624558;margin:.6rem 0}
+.moon-explorer-kicker{font:700 11px Arial,sans-serif;letter-spacing:.13em;color:#936e84}
+.moon-explorer-invitation{font-style:italic;color:#80697a}
+.moon-explorer-scope{font:13px/1.6 Arial,sans-serif!important;color:#897580!important}
+.moon-explorer-actions{display:flex;flex-wrap:wrap;gap:10px}
+.moon-explorer-actions a{display:inline-block;padding:10px 14px;border:1px solid #d4bfc9;border-radius:999px;text-decoration:none;color:#674e60;font:700 12px Arial,sans-serif}
+@media(max-width:520px){.moon-explorer-choices{grid-template-columns:1fr}.moon-explorer-actions a{width:100%;text-align:center}}
