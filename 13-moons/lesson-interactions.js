@@ -134,7 +134,7 @@ export function createBoundaryRitual(){
   make('h5','What boundary would support you?',panel);
   const statement=make('label','The boundary I want to set',panel,'moon-explorer-label');
   const field=make('textarea',undefined,panel);
-  field.id='';field.rows=3;field.maxLength=4000;
+  field.rows=3;field.maxLength=4000;
   field.value=values[index].boundary;
   field.placeholder='I am choosing to…';
   field.setAttribute('aria-label','Boundary '+slot.number+' statement');
@@ -165,7 +165,7 @@ export function createBoundaryRitual(){
  BOUNDARY_SLOTS.forEach((slot,index)=>{
   const button=make('button','Boundary '+slot.number,tabs,'moon-explorer-choice');
   button.type='button';button.setAttribute('aria-pressed','false');
-  button.onclick=()=>show(index);buttons.push(button);
+  button.onclick=()=>{show(index);drawButtons();};buttons.push(button);
  });
  const nav=make('div',undefined,host,'moon-explorer-actions');
  const previous=make('button','← Previous boundary',nav,'moon-quiet-button');
@@ -173,7 +173,6 @@ export function createBoundaryRitual(){
  function drawButtons(){previous.disabled=active===0;next.disabled=active===2;}
  previous.onclick=()=>{show(active-1);drawButtons();};
  next.onclick=()=>{show(active+1);drawButtons();};
- const originalShow=show;
  show(0);drawButtons();
  // Keep the preview gentle: a ritual exercise, not a second member journal.
  make('p','These are temporary notes for exploration. Your original Womb Work remains to name three boundaries that protect your practice; this screen does not save them to Flowtel.',host,'moon-explorer-scope');
