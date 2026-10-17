@@ -1,3 +1,4 @@
+import {showMemberMoonPortals} from '/13-moons/member-moon-portals.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
 import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
@@ -284,6 +285,9 @@ async function load() {
       ? String(saved.start_month).slice(0, 7)
       : flowtelEntryMonth();
     sealed = Boolean(saved?.completed_at);
+    byId('openingVortex').hidden=sealed;
+    byId('memberMoonPortals').hidden=!sealed;
+    if(sealed)showMemberMoonPortals(byId('memberMoonPortals'),{userId:profile.id,startMonth,wishes:Array.isArray(saved?.reflections)?saved.reflections:[]});
     stepStatus('vortexStepStatus', sealed ? 'Complete' : 'In progress');
     const rows = generateBigVisionVortex(startMonth);
     renderRows(rows, Array.isArray(saved?.reflections) ? saved.reflections : []);
@@ -317,6 +321,9 @@ save.addEventListener('click', async () => {
       entries.forEach((input) => { input.disabled = true; });
       save.hidden = true;
       showNotice('Your Big Vision Vortex is complete. Your twelve future wishes are sealed.');
+      byId('openingVortex').hidden=true;
+      byId('memberMoonPortals').hidden=false;
+      showMemberMoonPortals(byId('memberMoonPortals'),{userId:(await getCurrentProfile()).id,startMonth,wishes:reflections});
     } else {
       showNotice('Draft saved. Return whenever you are ready.');
     }
