@@ -5,6 +5,7 @@ on:
     paths:
       - 'mentorship-client-suite/**'
       - 'client/index.html'
+      - 'client/app.js'
       - 'manager/index.html'
       - 'server/guest-house-server.js'
       - 'server/kingdom-membership.js'

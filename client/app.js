@@ -1,3 +1,4 @@
+import { mountMentorshipEntry } from '../mentorship-client-suite/suite-entry.mjs';
 import { supabase } from "../shared/supabase.js";
 import { getCurrentUser, signInWithEmail, createAccountWithEmail, signOut, updateCurrentPassword, sendPasswordResetEmail, onAuthStateChange } from "../shared/auth.js?v=0.10.85";
 import { ensureProfile, getCurrentProfile, updatePowderRoomSharing, profileNeedsPersonalRoomKey, markPersonalRoomKeyCreated, displayNameForProfile, firstNameForProfile, profileNeedsConfirmation } from "../shared/profiles.js?v=0.10.88";
@@ -63,6 +64,7 @@ let personalRoomKeyMode="first-time";
 let passwordRecoveryMode=urlParam("passwordRecovery")==="1";
 let passwordRecoveryHandled=false;
 
+const mentorshipEntry=mountMentorshipEntry({supabase,element:document.getElementById('mentorshipSuiteEntry')});
 let currentProfile=null;
 let currentProductAccess=null;
 let accountCreationMode="member";
@@ -1499,6 +1501,7 @@ async function handlePowderRoomSharingChange(event){
 }
 
 function renderSuite(stay){
+  void mentorshipEntry.refresh();
   currentStay=stay;
   renderSuiteClockInButton();
 

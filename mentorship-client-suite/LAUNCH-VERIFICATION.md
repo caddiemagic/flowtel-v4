@@ -137,3 +137,8 @@ Adds current/archived client list views, explicit Archive client confirmation, a
 Unprepared session plans now say calls are being prepared and hide the empty progress bar instead of implying the journey is complete. The completed-journey message requires every planned session to be completed; all-cancelled/missed plans no longer receive completion copy. No auth, navigation, data, scheduling or email changes.
 
 101 automated tests pass. Expanded browser coverage verifies the unprepared plan, no-cycle check-in guidance, empty recording library, mobile viewport fit, and all-cancelled wording alongside the existing owner/client/private-media workflow.
+
+## Private mentorship suite visibility — October 17
+Replaces the public-to-all-guests suite link with a hidden-by-default doorway controlled by the authenticated mentorship API. Linked eligible and verified prepared clients qualify; ordinary guests, drafts, archived and cancelled mentorships do not. Sign-out, stale responses, API failures and refreshed eligibility are covered. No server authorization, schema, membership, check-in or authentication helpers are changed.
+
+105 automated tests, the expanded fictional browser journey and four existing Flowtel regression scripts pass. The browser uses the real Flowtel suite HTML and new doorway controller against the fictional authenticated API to verify linked-client visibility and unrelated-client hiding. Both directions of navigation open separately and the mentorship header/footer name the Flowtel suite explicitly.
