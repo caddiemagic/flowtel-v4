@@ -1,3 +1,4 @@
+import {CREATIVE_FLOW_CORNERS,INNER_SEASON_PLANNING} from '/shared/13-moons-ceremony-choices.js';
 import {INNER_SEASONS,seasonForWheelDay} from '/shared/13-moons-inner-seasons.js';
 
 const make=(tag,text,parent,cls)=>{
@@ -51,5 +52,66 @@ export function createCycleDayExplorer(mode='track'){
  slider.addEventListener('input',()=>select(Number(slider.value)));
  const ready=make('p','Choose a wheel day or one of the four inner seasons to begin.',result);
  ready.className='moon-explorer-invitation';
+ return host;
+}
+
+export function createFourCornersExplorer(){
+ const host=make('div',undefined,null,'moon-explorer');
+ make('p','The Four Corners of Creative Flow: Time, Space, Purpose, and Energy. Touch one corner at a time and explore what your Big Vision is asking for.',host);
+ const grid=make('div',undefined,host,'moon-explorer-choices');
+ const panel=make('section',undefined,host,'moon-explorer-result');
+ panel.setAttribute('aria-live','polite');
+ const responses=new Map();
+ const buttons=[];
+ function reveal(corner){
+  panel.replaceChildren();
+  make('p','THE '+corner.label.toUpperCase()+' CORNER',panel,'moon-explorer-kicker');
+  make('h5',corner.question,panel);
+  const prompt=make('label','A thought I want to hold…',panel,'moon-explorer-label');
+  const field=make('textarea',undefined,panel);field.maxLength=4000;field.rows=4;
+  field.placeholder='Let your thoughts arrive…';field.value=responses.get(corner.key)||'';
+  field.setAttribute('aria-label','My '+corner.label+' reflection');
+  field.addEventListener('input',()=>responses.set(corner.key,field.value));
+  buttons.forEach(([button,key])=>button.setAttribute('aria-pressed',String(key===corner.key)));
+ }
+ for(const corner of CREATIVE_FLOW_CORNERS){
+  const button=make('button',corner.label,grid,'moon-explorer-choice');
+  button.type='button';button.setAttribute('aria-pressed','false');
+  button.onclick=()=>reveal(corner);buttons.push([button,corner.key]);
+ }
+ make('p','This is a temporary exploration within your lesson. It does not create another saved journal. Your private future-self letter remains the Womb Work writing practice for this initiation.',host,'moon-explorer-scope');
+ reveal(CREATIVE_FLOW_CORNERS[0]);
+ return host;
+}
+
+export function createSeasonPlanningExplorer(){
+ const host=make('div',undefined,null,'moon-explorer');
+ make('p','Explore four kinds of space you might make in your printed moon calendar. The seasons are invitations to notice your real rhythm, not scheduling rules.',host);
+ const options=make('div',undefined,host,'moon-explorer-choices');
+ const panel=make('section',undefined,host,'moon-explorer-result');
+ const responses=new Map(),buttons=[];
+ panel.setAttribute('aria-live','polite');
+ function reveal(season){
+  panel.replaceChildren();
+  make('p',season.label.toUpperCase(),panel,'moon-explorer-kicker');
+  make('h5',season.question,panel);
+  const field=make('textarea',undefined,panel);field.maxLength=4000;field.rows=4;
+  field.placeholder='My intention for this season…';field.value=responses.get(season.key)||'';
+  field.setAttribute('aria-label','Planning intention for '+season.label);
+  field.addEventListener('input',()=>responses.set(season.key,field.value));
+  buttons.forEach(([button,key])=>button.setAttribute('aria-pressed',String(key===season.key)));
+ }
+ for(const season of INNER_SEASON_PLANNING){
+  const button=make('button',season.label,options,'moon-explorer-choice');
+  button.type='button';button.setAttribute('aria-pressed','false');
+  button.onclick=()=>reveal(season);buttons.push([button,season.key]);
+ }
+ const actions=make('div',undefined,host,'moon-explorer-actions');
+ const calendar=make('a','Open my existing Cycle Data →',actions);
+ calendar.href='/cycle-data/';calendar.target='_blank';calendar.rel='noopener noreferrer';
+ const map=make('a','Review my Flow Map →',actions);
+ map.href='/flow-map/?cycle=previous&return=%2F13-moons%2F';map.target='_blank';map.rel='noopener noreferrer';
+ make('p','These ideas are temporary while you explore. Put your plan on your printed moon calendar or use your existing Flowtel records; nothing here changes your calendar.',host,'moon-explorer-scope');
+ reveal(INNER_SEASON_PLANNING[0]);
  return host;
 }
