@@ -21,6 +21,7 @@ progress{display:block;width:100%;max-width:360px;height:8px;margin:14px 0;accen
 <section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><label for="search">Find an enrollment</label><input id="search" type="search" placeholder="Search email, offering, or status"><div id="enrollments">Sign in to view drafts.</div></section></div>
 <section class="card" id="detail" hidden><h2>Manage mentorship</h2><p id="selected"></p>
 <form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label>Program end · calculated automatically</label><p id="ends" class="note">Choose a start date to see the end date.</p></div></div><button id="saveDates" type="submit">Save program dates</button></form><div><h3>Included sessions</h3><p class="small">Prepare the session list from the chosen program; no appointments are booked. Past session dates are supported when entering client history.</p><button id="makeSessions" type="button">Prepare included sessions</button><div id="sessionList"></div></div><div id="preparePanel"><h3>Prepare private access</h3><p class="small">After preparing access, the client may sign into their Client Suite with a verified Flowtel account using this exact email. No invitation email is sent.</p><button id="prepare" type="button">Prepare access (no email sent)</button></div>
+<section id="accessEmailPanel" hidden><h3>Send access email</h3><p id="accessEmailRecipient" class="small"></p><p id="accessEmailSubject"></p><label for="accessEmailCopy">Welcome message</label><textarea id="accessEmailCopy" readonly rows="12"></textarea><p><a id="accessEmailLink" target="_blank" rel="noopener noreferrer">Open client access link ↗</a></p><p class="small">This message requires the client’s verified Flowtel sign-in. It does not create an account or grant other memberships. Repeated attempts with the same message are protected against duplicates for 24 hours.</p><button id="sendAccessEmail" type="button" disabled>Send access email</button><p id="accessEmailStatus" role="status" aria-live="polite"></p></section>
 <form id="focusForm"><label for="month">Monthly focus · month</label><input type="month" id="month" required>
 <label for="focus">Client-visible focus</label><textarea id="focus" maxlength="5000" required></textarea><button type="submit" id="saveFocus" disabled>Save monthly focus</button><p id="focusStatus" role="status" class="small"></p></form><p id="detailStatus" role="status"></p></section>
 </main>
@@ -31,6 +32,7 @@ import {recordingUpload} from '../recording-upload.mjs';
 import {pacificTimestamp} from '../pacific-time.mjs';
 const $=id=>document.getElementById(id);
 let token=null,offerings=[],enrollments=[],selected=null;
+let emailVersion=0;
 let focusVersion=0,focusKey=null;const focusDrafts=new Map();
 function msg(id,message,isError=false){const node=$(id);node.textContent=message;node.className=isError?'error':'success'}
 async function request(method='GET',body=null,query=''){
@@ -56,7 +58,7 @@ async function connect(){
   for(const o of offerings)dropdown.add(new Option(o.title+' · $'+(o.price_cents/100).toLocaleString('en-US'),o.id));
   render();
   if(selectedId){const current=enrollments.find(item=>item.id===selectedId);if(current)open(current);else{$('detail').hidden=true;selected=null}}
-  msg('status','Connected. You can create fictional draft enrollments.');
+  msg('status','Connected. You can manage mentorship enrollments.');
  }catch(error){$('session').textContent='Unable to connect to the Concierge API.';$('enrollments').textContent='No enrollment data loaded.';msg('status',error.message,true)}
 }
 function render(){
@@ -76,7 +78,7 @@ function render(){
 function refreshEnd(){if(!selected)return;const offer=offerings.find(o=>o.id===selected.offering_id);const start=$('starts').value;let text='Set a start date';if(offer&&start){const base=new Date(start+'T12:00:00Z');if(Number.isFinite(base.getTime())&&base.toISOString().slice(0,10)===start){if(offer.duration_months>0){const t=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+offer.duration_months,1,12));const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0,12)).getUTCDate();t.setUTCDate(Math.min(base.getUTCDate(),last));text=t.toISOString().slice(0,10)}else if(offer.duration_days>0){base.setUTCDate(base.getUTCDate()+offer.duration_days);text=base.toISOString().slice(0,10)}else{text='No fixed expiration for this package'}}} $('ends').textContent=text;}
 $('starts').addEventListener('change',refreshEnd);
 $('search').addEventListener('input',render);
-function open(item){selected=item;$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
+function open(item){selected=item;loadAccessEmail(item);$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
  $('starts').value=item.starts_on||'';refreshEnd();
  $('saveDates').disabled=item.status!=='draft';
  $('preparePanel').hidden=item.status!=='draft';
@@ -163,6 +165,13 @@ async function renderRecordings(root,enrollmentId,sessionId){
  try{const response=await fetch('/api/caddie-acuity?mentorship=owner&enrollmentId='+enrollmentId+'&replaysFor='+sessionId,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not load recordings');for(const replay of data.replays||[]){const row=document.createElement('p');row.textContent=replay.title+' · '+(replay.visible_to_client?'Published':'Private')+' ';const toggle=document.createElement('button');toggle.type='button';toggle.textContent=replay.visible_to_client?'Hide from client':'Publish to client';toggle.onclick=async()=>{toggle.disabled=true;try{await request('POST',{action:'replay-visibility',enrollmentId,sessionId,replayId:replay.id,visible:!replay.visible_to_client});await renderRecordings(root,enrollmentId,sessionId)}catch(e){msg('detailStatus',e.message,true);toggle.disabled=false}};row.append(toggle);root.append(row)}}catch(e){root.append(document.createTextNode(e.message))}
 }
 $('makeSessions').addEventListener('click',async()=>{if(!selected)return;$('makeSessions').disabled=true;try{const result=await request('POST',{action:'prepare-sessions',enrollmentId:selected.id});msg('detailStatus',result.created?'Included sessions created. No bookings were made.':'Existing session plan loaded.');await loadSessions(selected.id)}catch(error){msg('detailStatus',error.message,true)}finally{$('makeSessions').disabled=false}});
+async function loadAccessEmail(item){
+ const version=++emailVersion;$('accessEmailPanel').hidden=!['invited','active'].includes(item.status);$('sendAccessEmail').disabled=true;$('accessEmailCopy').value='';$('accessEmailRecipient').textContent='';$('accessEmailSubject').textContent='';$('accessEmailLink').removeAttribute('href');$('accessEmailStatus').textContent='';
+ if($('accessEmailPanel').hidden)return;
+ msg('accessEmailStatus','Loading welcome message…');
+ try{const {emailPreview:m}=await request('GET',null,'&accessEmailFor='+encodeURIComponent(item.id));if(version!==emailVersion||selected?.id!==item.id)return;$('accessEmailRecipient').textContent='To: '+m.email;$('accessEmailSubject').textContent='Subject: '+m.subject;$('accessEmailCopy').value=m.text;$('accessEmailLink').href=m.url;$('sendAccessEmail').disabled=!m.configured;msg('accessEmailStatus',m.configured?'Ready to send when you choose.':'Email delivery is not configured. You can copy the client access link above.',!m.configured);}catch(e){if(version===emailVersion)msg('accessEmailStatus',e.message,true);}
+}
+$('sendAccessEmail').addEventListener('click',async()=>{const id=selected?.id,version=emailVersion;if(!id)return;const button=$('sendAccessEmail');button.disabled=true;msg('accessEmailStatus','Sending access email…');try{const result=await request('POST',{action:'send-access-email',enrollmentId:id});if(version===emailVersion&&selected?.id===id)msg('accessEmailStatus',result.message+' To: '+result.email);}catch(e){if(version===emailVersion&&selected?.id===id)msg('accessEmailStatus',e.message,true);}finally{if(version===emailVersion&&selected?.id===id)button.disabled=false;}});
 $('prepare').addEventListener('click',async()=>{if(!selected||selected.status!=='draft')return;$('prepare').disabled=true;try{await request('POST',{action:'prepare-access',enrollmentId:selected.id});await connect();msg('detailStatus','Access prepared. No email sent. Client can claim with their verified Flowtel email.')}catch(error){msg('detailStatus',error.message,true);$('prepare').disabled=false}});
 async function loadFocus(){
  const version=++focusVersion,id=selected?.id,month=$('month').value;
@@ -189,6 +198,6 @@ $('focusForm').addEventListener('submit',async e=>{
  }catch(error){if(focusKey===key)msg('focusStatus',error.message,true);}
  finally{if(focusKey===key)$('saveFocus').disabled=false;}
 });
-supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){focusVersion++;focusKey=null;focusDrafts.clear();$('focusStatus').textContent='';$('saveFocus').disabled=true;$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
+supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){emailVersion++;$('accessEmailPanel').hidden=true;$('accessEmailCopy').value='';$('accessEmailRecipient').textContent='';$('accessEmailSubject').textContent='';$('accessEmailStatus').textContent='';$('accessEmailLink').removeAttribute('href');$('sendAccessEmail').disabled=true;focusVersion++;focusKey=null;focusDrafts.clear();$('focusStatus').textContent='';$('saveFocus').disabled=true;$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
 connect();
 </script></body></html>

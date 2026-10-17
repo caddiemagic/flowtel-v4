@@ -9,7 +9,7 @@ Use `/mentorship-client-suite/` for the cohesive preview entrance:
 
 ## Implemented
 
-Automatic calendar end dates, persisted enrollment drafts, prepared verified-email claim without email delivery, session plans, Pacific time proposals/rescheduling, confirmation/completion/cancellation, client-visible monthly focus, private owner uploads, explicit recording publication/hiding, and five-minute client playback links. Uploads bypass Vercel body limits using the existing private bucket's signed upload protocol. Recordings start hidden; finalization checks actual object metadata. Storage MIME and 500 MB limits remain unchanged.
+Automatic calendar end dates, persisted enrollment drafts, prepared verified-email claim with an optional owner-triggered access email, session plans, Pacific time proposals/rescheduling, confirmation/completion/cancellation, client-visible monthly focus, private owner uploads, explicit recording publication/hiding, and five-minute client playback links. Uploads bypass Vercel body limits using the existing private bucket's signed upload protocol. Recordings start hidden; finalization checks actual object metadata. Storage MIME and 500 MB limits remain unchanged.
 
 Owner/client handlers are already dispatched by `api/caddie-acuity.js?mentorship=owner|client`. Their historical DRAFT filenames do not indicate unrouted endpoints.
 
@@ -32,7 +32,7 @@ Read `DATABASE-APPLICATION-RECORD.md`. The base and private replay bucket migrat
 
 ## Release boundary
 
-Development branch only. No production merge, real-client enrollment, invitations, or automated Acuity bookings are authorized. Acuity and Zoom synchronization, automatic cycle analytics in the mentorship dashboard, and Beginning & Becoming reflections remain outside this increment. Existing Flowtel cycle/Flow Map navigation is available subject to the existing product gates.
+The initial suite is live in Flowtel after the owner-authorized October 17 release. The access-email follow-up adds explicit owner-triggered sending; no messages are sent by creating or preparing an enrollment. Automated Acuity bookings remain outside scope. Acuity and Zoom synchronization, automatic cycle analytics in the mentorship dashboard, and Beginning & Becoming reflections remain outside this increment. Existing Flowtel cycle/Flow Map navigation is available subject to the existing product gates.
 
 Signed playback links remain usable for up to five minutes after hiding a recording; hiding blocks issuance of new links immediately. Interrupted uploads can leave private unlisted objects; no client can discover them through this feature.
 
@@ -80,3 +80,10 @@ The two bottom cards are simply Call Replays and My Flow Map. Both open separate
 ## Direct replay library
 
 My Dashboard and My Calls link to a separate library view (`?view=replays&enrollmentId=…`). It displays every published recording in the selected authorized mentorship on one page, newest call date first; records without a call date use their saved date, and undated records follow last. The selected enrollment is verified through the normal client API. No signed playback URLs are passed between windows. My Calls shows two destination cards: Call Replay Library and My Flow Map. Both open separately, retaining the dashboard. The My Flow tab and recording search/filter controls are removed. Session-detail recording access also opens the full library.
+
+## Owner-triggered access email
+After preparing access, Manage shows the server-generated recipient, subject, full welcome text and access link. Only Send access email contacts Resend; database recipient/status are rechecked on every send. Existing Flowtel sender configuration is reused (RESEND_API_KEY and FLOWTEL_FROM_EMAIL, with the existing Guest House sender fallback; optional FLOWTEL_EMAIL_REPLY_TO). No secret values are exposed. Missing configuration disables sending and leaves the copyable access link available.
+
+The message explains existing-account sign-in and directs new users to the unchanged /client/ membership/account entrance, then back to their exact mentorship. This is a welcome/access message, not a magic-login link or an Auth account invitation. No account creation, password reset, membership grants, or check-in writes occur. Provider acceptance is reported separately from inbox delivery. No persistent delivery/open tracking is added.
+
+Repeated identical sends use a stable Resend idempotency key; Resend retains keys for 24 hours. A later deliberate send can deliver again. Reference: https://resend.com/docs/dashboard/emails/idempotency-keys .
