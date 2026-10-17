@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const file=await readFile(new URL('../shared/13-moons-monthly-practices.js',import.meta.url),'utf8');
+const {thirteenMonthsAfter, MONTHLY_INITIATION_PRACTICES}=await import('data:text/javascript;base64,'+Buffer.from(file).toString('base64'));
+assert.equal(MONTHLY_INITIATION_PRACTICES.length,14);
+assert.equal(thirteenMonthsAfter('2026-10-14'),'2027-11-14');
+assert.equal(thirteenMonthsAfter('2024-01-31'),'2025-02-28');
+assert.equal(thirteenMonthsAfter('2023-01-31'),'2024-02-29');
+assert.equal(thirteenMonthsAfter('2026-02-30'),'');
+assert.equal(thirteenMonthsAfter('invalid'),'');
+console.log('13 Moons monthly practices and future-letter date checks passed');

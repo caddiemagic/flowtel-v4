@@ -1,0 +1,60 @@
+name: 13 Moons Release 1 checks
+on:
+  push:
+    branches:
+      - feature/13-moons-vortex-release1
+  pull_request:
+    paths:
+      - '13-moons/**'
+      - 'shared/13-moon-vortex.js'
+      - 'shared/13-moons-monthly-practices.js'
+      - 'shared/13-moons-inner-seasons.js'
+      - 'shared/13-moons-ceremony-choices.js'
+      - 'shared/13-moons-boundaries-altar.js'
+      - 'tests/13-moons-boundaries-altar.test.mjs'
+      - 'tests/13-moons-ceremony-choices.test.mjs'
+      - 'tests/13-moons-inner-seasons.test.mjs'
+      - 'tests/13-moons-monthly-practices.test.mjs'
+      - 'server/13-moons-purchase-classification.js'
+      - 'tests/13-moon-vortex.test.mjs'
+      - 'scripts/test-13-moons-purchase-classification.cjs'
+      - '.github/workflows/13-moons-checks.yml'
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check JavaScript syntax
+        run: |
+          node --check 13-moons/page.js
+          node --check 13-moons/lesson-interactions.js
+          node --check 13-moons/member-navigation.js
+          node --check 13-moons/member-moon-portals.js
+          node --check shared/13-moons-inner-seasons.js
+          node --check shared/13-moons-ceremony-choices.js
+          node --check shared/13-moons-boundaries-altar.js
+          node --check 13-moons/showcase/ceremony/page.js
+          node --check 13-moons/showcase/moon/page.js
+          node --check 13-moons/showcase/moon-portals.js
+          node --check server/13-moons-purchase-classification.js
+          node --check shared/13-moon-vortex.js
+          node --check shared/13-moons-monthly-practices.js
+          node --check 13-moons/showcase/lesson/page.js
+          node --check 13-moons/showcase/lesson/teaching-drafts.js
+      - name: Calendar regression tests
+        run: node tests/13-moon-vortex.test.mjs
+      - name: Inner-season interactive explorer boundary tests
+        run: node tests/13-moons-inner-seasons.test.mjs
+      - name: Interactive four-corners and season-planning prompts
+        run: node tests/13-moons-ceremony-choices.test.mjs
+      - name: Boundary ritual and Angelic altar compass tests
+        run: node tests/13-moons-boundaries-altar.test.mjs
+      - name: Monthly practice and future-letter date tests
+        run: node tests/13-moons-monthly-practices.test.mjs
+      - name: Entitlement classifier regression tests
+        run: node scripts/test-13-moons-purchase-classification.cjs

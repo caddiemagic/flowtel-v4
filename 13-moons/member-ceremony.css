@@ -1,0 +1,71 @@
+body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%,#f9f3ef 45%,#fcfaf7 100%)!important;color:#483744}.moon-ceremony-shell{max-width:940px;margin:auto;padding:25px 18px 80px}.ceremony-header{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:25px;font:700 11px Arial,sans-serif;letter-spacing:.16em;color:#7f6776}.ceremony-header a{color:#77596a;text-decoration:none}.ceremony-stage{min-height:600px;border:1px solid #e1cfd8;border-radius:32px;padding:clamp(26px,6vw,62px);background:rgba(255,253,251,.95);box-shadow:0 25px 75px #60435919}.ceremony-mark{text-align:center;font-size:50px;color:#ba96a9}.ceremony-intro{text-align:center;margin:14px 0 30px}.ceremony-kicker{font:700 11px Arial,sans-serif;letter-spacing:.15em;color:#a37c90;text-transform:uppercase}.ceremony-intro h1{font:normal clamp(2.8rem,7vw,5rem)/1.12 Georgia,serif;color:#553f4e;margin:16px 0}.ceremony-intro p{line-height:1.65;font-size:1.08rem}.ceremony-status{font:normal 1.7rem Georgia,serif;text-align:center}.ceremony-greeting{text-align:center;font-style:italic;color:#776270}.ceremony-nav{display:flex;justify-content:center;flex-wrap:wrap;gap:9px;margin:30px 0}.ceremony-nav button{border:1px solid #d8c4cf;background:#fff8fb;color:#715667;border-radius:999px;padding:11px 18px;cursor:pointer}.ceremony-nav button[aria-current=true]{background:#755366;color:#fff}.ceremony-pane{max-width:680px;margin:20px auto;padding:clamp(18px,4vw,34px);border:1px solid #e4d6dd;background:#fffafb;border-radius:20px}.ceremony-pane h2,.ceremony-room>h2{font:normal clamp(1.8rem,4vw,2.6rem) Georgia,serif;margin:10px 0}.ceremony-pane p,.ceremony-room>p{line-height:1.65}.ceremony-actions{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}.ceremony-actions a,.ceremony-pane button{display:inline-block;border:1px solid #997689;background:#765468;border-radius:999px;color:white;padding:12px 18px;text-decoration:none;cursor:pointer}.ceremony-room[hidden],#openingVortex[hidden],#memberMoonPortals[hidden],#memberView[hidden]{display:none!important}.ceremony-lesson-nav{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:12px;margin:24px auto}.ceremony-lesson-nav button,.ceremony-lesson-nav select{border:1px solid #cbb1c0;border-radius:999px;padding:10px 15px;background:white;color:#65465a;cursor:pointer}.ceremony-lesson-nav select{max-width:min(100%,360px)}.ceremony-lesson-nav button:disabled{opacity:.35;cursor:default}#initiationPath{display:block}#initiationPath>.initiation-lesson-card{margin:auto;max-width:690px}#initiationPath>.initiation-lesson-card[hidden]{display:none}.ceremony-disclaimer{text-align:center;margin:20px 0;font:13px/1.7 Arial,sans-serif;color:#84717c}.ceremony-disclaimer a{color:#765468}#vortexMonths>.moon-path-card{background:white;border:1px solid #e6d7df;border-radius:16px}#saveStatus{line-height:1.6}@media(max-width:550px){.ceremony-stage{border-radius:20px}.ceremony-header{flex-wrap:wrap}.ceremony-nav button{font-size:12px;padding:10px}.ceremony-lesson-nav select{width:100%}}
+.ceremony-stage:has(#memberView:not([hidden]))>#status,.ceremony-stage:has(#memberView:not([hidden]))>#detail{display:none}
+#vortexMonths>section[hidden]{display:none!important}
+#vortexMonths>section:not([hidden]){max-width:620px;margin:12px auto 0!important}
+#openingPracticeDetails{margin-top:12px}
+#openingPracticeDetails #saveVortex{display:block;margin:20px auto}
+#openingPracticeDetails .ceremony-lesson-nav{margin-top:12px}
+
+.ceremony-pane[hidden],.ceremony-substep-hidden{display:none!important}
+
+/* Member teaching becomes a single intentional reading scene, not stacked accordions. */
+.moon-stage-reader{max-width:660px;margin:1.6rem auto 0}
+.moon-stage-progress{text-align:center;font:700 11px Arial,sans-serif;letter-spacing:.18em;color:#a17b91;margin:1.2rem 0}
+.moon-stage-frame{min-height:300px;padding:clamp(1.1rem,3vw,2rem);background:linear-gradient(145deg,#fffbfd,#f9f1f5);border:1px solid #e6d5df;border-radius:22px}
+.moon-stage-frame .moon-stage{animation:moon-scene-fade .25s ease}
+.moon-stage h4{font:normal clamp(1.6rem,4vw,2.35rem) Georgia,serif;color:#5d4556;margin:.5rem 0 1rem}
+.moon-stage p,.moon-stage blockquote{font-size:1.06rem;line-height:1.85;color:#63525e}
+.moon-stage blockquote{white-space:pre-wrap;border-left:3px solid #bd96ab;margin:1rem 0;padding:1rem;background:#fffafc}
+.moon-stage a{color:#78576c;text-underline-offset:4px;overflow-wrap:anywhere}
+.moon-stage textarea{max-width:100%}
+.moon-stage-controls{display:flex;justify-content:space-between;gap:14px;margin:1.3rem 0}
+.moon-stage-controls button{border:1px solid #a98a9b;border-radius:999px;background:#745368;color:white;padding:.8rem 1.3rem;cursor:pointer}
+.moon-stage-controls button:disabled{opacity:.36;cursor:default}
+@keyframes moon-scene-fade{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:540px){.moon-stage-frame{min-height:260px}.moon-stage-controls button{padding:.7rem .9rem}}
+
+/* Interactive inner-season / cycle-day exploration without a duplicate journal */
+.moon-explorer{display:grid;gap:14px;margin:10px 0}
+.moon-explorer>p{margin:.3rem 0;line-height:1.75}
+.moon-explorer-label{font:700 12px Arial,sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#86677a}
+.moon-explorer input[type=range]{width:100%;accent-color:#89647c;cursor:pointer;min-height:26px}
+.moon-explorer-bounds{display:flex;justify-content:space-between;color:#8a7480;font:700 11px Arial,sans-serif}
+.moon-explorer-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.moon-explorer-choice{border:1px solid #d4bfc9;border-radius:13px;background:#fffafc;color:#65495a;padding:13px 11px;font:600 13px Arial,sans-serif;cursor:pointer}
+.moon-explorer-choice[aria-pressed=true]{background:#76566d;color:white;border-color:#76566d}
+.moon-explorer-choice:focus-visible{outline:3px solid #c3a1b3;outline-offset:3px}
+.moon-explorer-result{background:linear-gradient(150deg,#f6eaf1,#fffafc);border:1px solid #e3cedc;border-radius:17px;padding:clamp(16px,3vw,24px);min-height:110px}
+.moon-explorer-result p{margin:.5rem 0}
+.moon-explorer-result h5{font:normal clamp(1.3rem,3vw,1.8rem) Georgia,serif;color:#624558;margin:.6rem 0}
+.moon-explorer-kicker{font:700 11px Arial,sans-serif;letter-spacing:.13em;color:#936e84}
+.moon-explorer-invitation{font-style:italic;color:#80697a}
+.moon-explorer-scope{font:13px/1.6 Arial,sans-serif!important;color:#897580!important}
+.moon-explorer-actions{display:flex;flex-wrap:wrap;gap:10px}
+.moon-explorer-actions a{display:inline-block;padding:10px 14px;border:1px solid #d4bfc9;border-radius:999px;text-decoration:none;color:#674e60;font:700 12px Arial,sans-serif}
+@media(max-width:520px){.moon-explorer-choices{grid-template-columns:1fr}.moon-explorer-actions a{width:100%;text-align:center}}
+
+/* Big Vision and season-planning interaction scenes */
+.moon-explorer-result textarea{display:block;width:100%;box-sizing:border-box;min-height:116px;margin-top:.85rem;padding:14px 16px;background:#fffefd;border:1px solid #d8c1cf;border-radius:13px;resize:vertical;font:inherit;line-height:1.6;color:#533d4b}
+.moon-explorer-result textarea:focus-visible{outline:2px solid #956d84;outline-offset:2px}
+.moon-explorer-result label{display:block;margin-top:.8rem}
+.future-letter-stage{width:100%;min-width:0}
+.future-letter-stage textarea{display:block;max-width:100%}
+
+/* Initiations 5–6: intimate boundary ritual and interactive altar, one scene at a time. */
+.moon-boundary-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.moon-boundary-tabs button{padding:12px 5px;min-width:0}
+.moon-boundary-preview{margin:1.2rem 0 0;padding:.9rem 1rem;border-left:2px solid #b68ca5;background:#fff9fc;color:#67515f;font:italic 15px/1.7 Georgia,serif;overflow-wrap:anywhere}
+.moon-quiet-button{border:1px solid #d5c0ca;border-radius:999px;background:#fffafc;color:#785a6d;padding:12px 16px;font:700 13px Arial,sans-serif;cursor:pointer}
+.moon-quiet-button:disabled{opacity:.35;cursor:default}
+.moon-altar-compass{display:grid;grid-template-columns:minmax(0,1fr) minmax(80px,.85fr) minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;justify-items:stretch;gap:8px;margin:14px auto 16px;max-width:460px;min-height:225px}
+.moon-altar-point{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:70px;padding:12px 8px;border-radius:17px;border:1px solid #d8bdce;background:#fffafd;color:#6d4f63;cursor:pointer}
+.moon-altar-point strong{font:normal 1.15rem Georgia,serif}
+.moon-altar-point small{font:11px/1.35 Arial,sans-serif;text-align:center;overflow-wrap:anywhere}
+.moon-altar-point[aria-pressed=true]{background:#76546b;color:#fff;border-color:#76546b;box-shadow:0 6px 17px rgba(87,57,73,.14)}
+.moon-altar-point:focus-visible{outline:3px solid #ab829d;outline-offset:3px}
+.moon-altar-north{grid-column:2;grid-row:1}
+.moon-altar-east{grid-column:3;grid-row:2}
+.moon-altar-south{grid-column:2;grid-row:3}
+.moon-altar-west{grid-column:1;grid-row:2}
+.moon-altar-center{grid-column:2;grid-row:2;text-align:center;color:#a27d91;font:700 11px/1.6 Arial,sans-serif;letter-spacing:.09em}
+@media(max-width:560px){.moon-boundary-tabs{grid-template-columns:1fr}.moon-boundary-tabs button{min-height:42px}.moon-altar-compass{grid-template-columns:minmax(0,1fr) minmax(66px,.8fr) minmax(0,1fr);gap:5px}.moon-altar-point{padding:9px 4px}.moon-altar-point strong{font-size:1rem}.moon-altar-center{font-size:9px}}
