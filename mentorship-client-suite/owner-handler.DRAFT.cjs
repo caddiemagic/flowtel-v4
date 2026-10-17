@@ -6,7 +6,7 @@ const guards=require('./request.cjs');
 const verification=require('./development-check.cjs');
 // Owner handler routed through the existing caddie-acuity mentorship dispatcher.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
-const {getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
+const {archiveEnrollment,getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
 function bodyEmailError(error){return /^(Flowtel email delivery|Email delivery)/.test(error.message||'');}
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
@@ -22,9 +22,10 @@ module.exports=async function ownerMentorshipHandler(req,res){
    if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
    if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
    if(req.query?.sessionsFor)return res.status(200).json({ok:true,sessions:await listSessions(ctx,{enrollmentId:req.query.sessionsFor})});
-   return res.status(200).json({ok:true,developmentVerification:verification.available(),offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
+   return res.status(200).json({ok:true,developmentVerification:verification.available(),offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx,{archived:req.query?.enrollmentView==='archived'})});
   }
   const body=await guards.body(req);
+  if(body?.action==='archive-client'||body?.action==='restore-client')return res.status(200).json({ok:true,enrollment:await archiveEnrollment(ctx,{enrollmentId:body.enrollmentId,restore:body.action==='restore-client'})});
   if(body?.action==='send-access-email')return res.status(200).json({ok:true,...await accessEmail.send(ctx,{enrollmentId:body.enrollmentId})});
   if(body?.action==='verify-development')return res.status(200).json({ok:true,verification:await verification.run(ctx)});
   if(body?.action==='link-booking')return res.status(200).json({ok:true,session:await bookings.linkBooking(ctx,body)});

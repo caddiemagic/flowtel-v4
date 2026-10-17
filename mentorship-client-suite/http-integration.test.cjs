@@ -61,3 +61,26 @@ test('access email preview and sending require owner authorization and prepared 
  h.tables.enrollments[0].status='draft';r=await get();assert.equal(r.status,409);
  }finally{await h.close();}
 });
+test('owner archive removes mentorship access, preserves history and supports conservative restoration',async()=>{
+ const h=await start();const id=h.ids.enrollment;
+ const req=async(role,action)=>fetch(h.origin+'/api/caddie-acuity?mentorship=owner',{method:'POST',headers:{Authorization:'Bearer '+role,'Content-Type':'application/json'},body:JSON.stringify({action,enrollmentId:id})});
+ const get=async(role,kind,query='')=>fetch(h.origin+'/api/caddie-acuity?mentorship='+kind+query,{headers:{Authorization:'Bearer '+role}});
+ try{
+ for(const action of ['archive-client','restore-client']){assert.equal((await req('a',action)).status,403);assert.equal((await req('b',action)).status,403);}
+ const sessions=JSON.stringify(h.tables.sessions);assert.equal((await req('owner','archive-client')).status,200);
+ assert.equal(h.tables.enrollments[0].status,'archived');assert.equal(JSON.stringify(h.tables.sessions),sessions);
+ assert.equal((await (await get('owner','owner')).json()).enrollments.length,0);
+ assert.equal((await (await get('owner','owner','&enrollmentView=archived')).json()).enrollments.length,1);
+ assert.equal((await (await get('a','client')).json()).enrollments.length,0);
+ assert.equal((await get('a','client','&enrollmentId='+id)).status,404);
+ assert.equal((await get('a','client','&enrollmentId='+id+'&playbackReplayId=ffffffff-ffff-4fff-8fff-ffffffffffff')).status,404);
+ assert.equal((await get('owner','owner','&accessEmailFor='+id)).status,409);
+ assert.equal((await req('owner','archive-client')).status,200);
+ assert.equal((await req('owner','restore-client')).status,200);assert.equal(h.tables.enrollments[0].status,'paused');
+ assert.equal((await get('a','client','&enrollmentId='+id)).status,200);
+ assert.equal((await req('owner','restore-client')).status,409);
+ h.tables.enrollments[0].client_user_id=null;h.tables.enrollments[0].status='invited';
+ assert.equal((await req('owner','archive-client')).status,200);assert.equal((await req('owner','restore-client')).status,200);assert.equal(h.tables.enrollments[0].status,'draft');
+ assert.equal(h.tables.enrollments.length,1);assert.equal(JSON.stringify(h.tables.sessions),sessions);
+ }finally{await h.close();}
+});
