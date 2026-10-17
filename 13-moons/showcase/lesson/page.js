@@ -1,5 +1,4 @@
 import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
-import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { WOMB_WORK_MODULES } from '/shared/womb-work.js';
 import { LESSON_TEACHING_DRAFTS } from './teaching-drafts.js';
 import { MONTHLY_INITIATION_PRACTICES, thirteenMonthsAfter } from '/shared/13-moons-monthly-practices.js';
