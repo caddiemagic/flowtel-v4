@@ -42,3 +42,27 @@ vortexNext.onclick=()=>showVortexPosition(vortexPosition+1);
 const vortexObserver=new MutationObserver(()=>showVortexPosition(vortexPosition));
 vortexObserver.observe(vortexContainer,{childList:true});
 showVortexPosition(0);
+
+const openingRoom=document.getElementById('openingRoom');
+const profilePane=openingRoom.querySelector('.ceremony-pane');
+const vortexPane=document.getElementById('openingVortex');
+const openingControls=document.createElement('div');
+openingControls.className='ceremony-lesson-nav';
+const openingBack=document.createElement('button');openingBack.type='button';openingBack.textContent='← Profile';
+const openingForward=document.createElement('button');openingForward.type='button';openingForward.textContent='Continue to wishes →';
+openingControls.append(openingBack,openingForward);
+openingRoom.append(openingControls);
+let openingStep=0;
+function showOpeningStep(index){
+ const vortexAvailable=!vortexPane.hidden;
+ openingStep=vortexAvailable?Math.max(0,Math.min(1,index)):0;
+ profilePane.hidden=openingStep!==0;
+ if(vortexAvailable)vortexPane.classList.toggle('ceremony-substep-hidden',openingStep===0);
+ openingBack.hidden=openingStep===0;
+ openingForward.hidden=openingStep===1||!vortexAvailable;
+}
+openingBack.onclick=()=>showOpeningStep(0);
+openingForward.onclick=()=>showOpeningStep(1);
+showOpeningStep(0);
+const openingObserver=new MutationObserver(()=>showOpeningStep(openingStep));
+openingObserver.observe(vortexPane,{attributes:true,attributeFilter:['hidden']});
