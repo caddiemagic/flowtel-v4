@@ -7,3 +7,19 @@ body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%
 #openingPracticeDetails .ceremony-lesson-nav{margin-top:12px}
 
 .ceremony-pane[hidden],.ceremony-substep-hidden{display:none!important}
+
+/* Member teaching becomes a single intentional reading scene, not stacked accordions. */
+.moon-stage-reader{max-width:660px;margin:1.6rem auto 0}
+.moon-stage-progress{text-align:center;font:700 11px Arial,sans-serif;letter-spacing:.18em;color:#a17b91;margin:1.2rem 0}
+.moon-stage-frame{min-height:300px;padding:clamp(1.1rem,3vw,2rem);background:linear-gradient(145deg,#fffbfd,#f9f1f5);border:1px solid #e6d5df;border-radius:22px}
+.moon-stage-frame .moon-stage{animation:moon-scene-fade .25s ease}
+.moon-stage h4{font:normal clamp(1.6rem,4vw,2.35rem) Georgia,serif;color:#5d4556;margin:.5rem 0 1rem}
+.moon-stage p,.moon-stage blockquote{font-size:1.06rem;line-height:1.85;color:#63525e}
+.moon-stage blockquote{white-space:pre-wrap;border-left:3px solid #bd96ab;margin:1rem 0;padding:1rem;background:#fffafc}
+.moon-stage a{color:#78576c;text-underline-offset:4px;overflow-wrap:anywhere}
+.moon-stage textarea{max-width:100%}
+.moon-stage-controls{display:flex;justify-content:space-between;gap:14px;margin:1.3rem 0}
+.moon-stage-controls button{border:1px solid #a98a9b;border-radius:999px;background:#745368;color:white;padding:.8rem 1.3rem;cursor:pointer}
+.moon-stage-controls button:disabled{opacity:.36;cursor:default}
+@keyframes moon-scene-fade{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(max-width:540px){.moon-stage-frame{min-height:260px}.moon-stage-controls button{padding:.7rem .9rem}}
