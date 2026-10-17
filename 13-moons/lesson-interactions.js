@@ -1,3 +1,4 @@
+import {BOUNDARY_SLOTS,ALTAR_DIRECTIONS,findAltarDirection} from '/shared/13-moons-boundaries-altar.js';
 import {CREATIVE_FLOW_CORNERS,INNER_SEASON_PLANNING} from '/shared/13-moons-ceremony-choices.js';
 import {INNER_SEASONS,seasonForWheelDay} from '/shared/13-moons-inner-seasons.js';
 
@@ -113,5 +114,116 @@ export function createSeasonPlanningExplorer(){
  map.href='/flow-map/?cycle=previous&return=%2F13-moons%2F';map.target='_blank';map.rel='noopener noreferrer';
  make('p','These ideas are temporary while you explore. Put your plan on your printed moon calendar or use your existing Flowtel records; nothing here changes your calendar.',host,'moon-explorer-scope');
  reveal(INNER_SEASON_PLANNING[0]);
+ return host;
+}
+
+export function createBoundaryRitual(){
+ const host=make('div',undefined,null,'moon-explorer moon-boundary-ritual');
+ make('p','Begin with one boundary. Move gently through three places where your life force deserves a clearer container.',host);
+ const tabs=make('div',undefined,host,'moon-boundary-tabs');
+ const panel=make('section',undefined,host,'moon-explorer-result');
+ panel.setAttribute('aria-live','polite');
+ const values=BOUNDARY_SLOTS.map(()=>({boundary:'',protects:''}));
+ const buttons=[];
+ let active=0;
+ function show(index){
+  active=index;
+  panel.replaceChildren();
+  const slot=BOUNDARY_SLOTS[index];
+  make('p','BOUNDARY '+slot.number+' OF 3',panel,'moon-explorer-kicker');
+  make('h5','What boundary would support you?',panel);
+  const statement=make('label','The boundary I want to set',panel,'moon-explorer-label');
+  const field=make('textarea',undefined,panel);
+  field.id='';field.rows=3;field.maxLength=4000;
+  field.value=values[index].boundary;
+  field.placeholder='I am choosing to…';
+  field.setAttribute('aria-label','Boundary '+slot.number+' statement');
+  const protection=make('label','What will this protect?',panel,'moon-explorer-label');
+  const second=make('textarea',undefined,panel);
+  second.rows=2;second.maxLength=4000;
+  second.value=values[index].protects;
+  second.placeholder='My time, energy, creative space…';
+  second.setAttribute('aria-label','What boundary '+slot.number+' protects');
+  const marker=make('p','An intention for this boundary will appear here as you write.',panel,'moon-boundary-preview');
+  const reflect=()=>{
+   values[index].boundary=field.value;
+   values[index].protects=second.value;
+   marker.textContent=field.value.trim()?
+     'I choose: '+field.value.trim()+(second.value.trim()?' · Protecting: '+second.value.trim():''):
+     'An intention for this boundary will appear here as you write.';
+   updateTabs();
+  };
+  field.addEventListener('input',reflect);second.addEventListener('input',reflect);
+  reflect();
+  buttons.forEach((button,i)=>button.setAttribute('aria-pressed',String(i===active)));
+ }
+ function updateTabs(){
+  buttons.forEach((button,i)=>{
+   button.textContent='Boundary '+(i+1)+(values[i].boundary.trim()?' ✓':'');
+  });
+ }
+ BOUNDARY_SLOTS.forEach((slot,index)=>{
+  const button=make('button','Boundary '+slot.number,tabs,'moon-explorer-choice');
+  button.type='button';button.setAttribute('aria-pressed','false');
+  button.onclick=()=>show(index);buttons.push(button);
+ });
+ const nav=make('div',undefined,host,'moon-explorer-actions');
+ const previous=make('button','← Previous boundary',nav,'moon-quiet-button');
+ const next=make('button','Next boundary →',nav,'moon-quiet-button');
+ function drawButtons(){previous.disabled=active===0;next.disabled=active===2;}
+ previous.onclick=()=>{show(active-1);drawButtons();};
+ next.onclick=()=>{show(active+1);drawButtons();};
+ const originalShow=show;
+ show(0);drawButtons();
+ // Keep the preview gentle: a ritual exercise, not a second member journal.
+ make('p','These are temporary notes for exploration. Your original Womb Work remains to name three boundaries that protect your practice; this screen does not save them to Flowtel.',host,'moon-explorer-scope');
+ return host;
+}
+
+export function createAngelicAltarExplorer(){
+ const host=make('div',undefined,null,'moon-explorer moon-altar-explorer');
+ make('p','Imagine a simple altar for your Angelic Army. Choose a direction to consider what support you would invite there and a symbol that could represent it.',host);
+ const compass=make('div',undefined,host,'moon-altar-compass');
+ const values=Object.fromEntries(ALTAR_DIRECTIONS.map(direction=>[direction.key,{support:'',symbol:''}]));
+ const buttons=new Map();
+ let active='north';
+ const display=make('section',undefined,host,'moon-explorer-result');
+ display.setAttribute('aria-live','polite');
+ const center=make('div','✧ YOUR ALTAR ✧',compass,'moon-altar-center');
+ function show(key){
+  const direction=findAltarDirection(key);
+  if(!direction)return;
+  active=key;
+  display.replaceChildren();
+  make('p',direction.label.toUpperCase()+' · '+direction.element.toUpperCase(),display,'moon-explorer-kicker');
+  make('h5',direction.invitation,display);
+  const first=make('label','Who or what are you inviting into this direction?',display,'moon-explorer-label');
+  const support=make('textarea',undefined,display);
+  support.rows=3;support.maxLength=4000;support.value=values[key].support;
+  support.placeholder='An ally, ancestor, angel, quality, or source of support…';
+  support.setAttribute('aria-label','Support invited in the '+direction.label);
+  const second=make('label','What symbol or object might honor that support?',display,'moon-explorer-label');
+  const symbol=make('textarea',undefined,display);
+  symbol.rows=2;symbol.maxLength=4000;symbol.value=values[key].symbol;
+  symbol.placeholder='A flower, stone, candle, written intention…';
+  symbol.setAttribute('aria-label','Symbol for the '+direction.label);
+  function update(){
+   values[key].support=support.value;
+   values[key].symbol=symbol.value;
+   buttons.get(key).querySelector('small').textContent=direction.element+(support.value.trim()||symbol.value.trim()?' · ✧':'');
+  }
+  support.addEventListener('input',update);symbol.addEventListener('input',update);
+  for(const [directionKey,button] of buttons){button.setAttribute('aria-pressed',String(directionKey===active));}
+ }
+ ALTAR_DIRECTIONS.forEach(direction=>{
+  const button=make('button',undefined,compass,'moon-altar-point moon-altar-'+direction.key);
+  button.type='button';button.setAttribute('aria-pressed','false');
+  make('strong',direction.label,button);
+  make('small',direction.element,button);
+  button.onclick=()=>show(direction.key);
+  buttons.set(direction.key,button);
+ });
+ show('north');
+ make('p','Your altar can be as simple as a note or a symbolic arrangement. This design exercise is temporary and does not record spiritual information or change your existing Flowtel profile.',host,'moon-explorer-scope');
  return host;
 }
