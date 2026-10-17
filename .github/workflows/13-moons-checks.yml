@@ -8,6 +8,8 @@ on:
       - '13-moons/**'
       - 'shared/13-moon-vortex.js'
       - 'shared/13-moons-monthly-practices.js'
+      - 'shared/13-moons-inner-seasons.js'
+      - 'tests/13-moons-inner-seasons.test.mjs'
       - 'tests/13-moons-monthly-practices.test.mjs'
       - 'server/13-moons-purchase-classification.js'
       - 'tests/13-moon-vortex.test.mjs'
@@ -26,6 +28,13 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check 13-moons/page.js
+          node --check 13-moons/lesson-interactions.js
+          node --check 13-moons/member-navigation.js
+          node --check 13-moons/member-moon-portals.js
+          node --check shared/13-moons-inner-seasons.js
+          node --check 13-moons/showcase/ceremony/page.js
+          node --check 13-moons/showcase/moon/page.js
+          node --check 13-moons/showcase/moon-portals.js
           node --check server/13-moons-purchase-classification.js
           node --check shared/13-moon-vortex.js
           node --check shared/13-moons-monthly-practices.js
@@ -33,6 +42,8 @@ jobs:
           node --check 13-moons/showcase/lesson/teaching-drafts.js
       - name: Calendar regression tests
         run: node tests/13-moon-vortex.test.mjs
+      - name: Inner-season interactive explorer boundary tests
+        run: node tests/13-moons-inner-seasons.test.mjs
       - name: Monthly practice and future-letter date tests
         run: node tests/13-moons-monthly-practices.test.mjs
       - name: Entitlement classifier regression tests
