@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="420" height="210" viewBox="0 0 420 210" fill="none">
+ <defs>
+  <radialGradient id="light"><stop stop-color="#fff9ed"/><stop offset="1" stop-color="#f1dcd5" stop-opacity="0"/></radialGradient>
+  <linearGradient id="petal" x1="210" y1="45" x2="210" y2="162" gradientUnits="userSpaceOnUse"><stop stop-color="#fff8ef"/><stop offset="1" stop-color="#dfb4aa"/></linearGradient>
+  <linearGradient id="outer" x1="120" y1="90" x2="290" y2="155" gradientUnits="userSpaceOnUse"><stop stop-color="#f5ddd6"/><stop offset=".5" stop-color="#fff2e9"/><stop offset="1" stop-color="#e8c4b8"/></linearGradient>
+ </defs>
+ <ellipse cx="210" cy="108" rx="198" ry="103" fill="url(#light)"/>
+ <circle cx="210" cy="102" r="76" stroke="#b3935d" stroke-opacity=".3" stroke-width=".8"/>
+ <path d="M134 102a76 76 0 0 1 152 0" stroke="#b3935d" stroke-opacity=".35" stroke-width=".8" stroke-dasharray="1 7"/>
+ <ellipse cx="210" cy="169" rx="91" ry="8" fill="#d5b3a4" fill-opacity=".13"/>
+ <path d="M210 155C165 153 130 132 115 93c47 0 83 21 95 62Z" fill="url(#outer)" stroke="#b99377" stroke-width=".8"/>
+ <path d="M210 155c45-2 80-23 95-62-47 0-83 21-95 62Z" fill="url(#outer)" stroke="#b99377" stroke-width=".8"/>
+ <path d="M210 156c-41-18-65-50-61-86 40 15 62 43 61 86Z" fill="url(#petal)" stroke="#b99377" stroke-width=".8"/>
+ <path d="M210 156c41-18 65-50 61-86-40 15-62 43-61 86Z" fill="url(#petal)" stroke="#b99377" stroke-width=".8"/>
+ <path d="M210 158c-34-23-35-69 0-111 35 42 34 88 0 111Z" fill="url(#petal)" stroke="#b99377" stroke-width=".8"/>
+ <path d="M210 151c-13-19-14-43 0-66 14 23 13 47 0 66Z" fill="#fff7ec" fill-opacity=".65" stroke="#c2a285" stroke-width=".6"/>
+ <path d="M134 174c42 12 110 12 152 0M155 184c34 6 76 6 110 0" stroke="#b3935d" stroke-opacity=".35" stroke-width=".7" stroke-linecap="round"/>
+ <path d="m210 17 2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5Z" fill="#b3935d" fill-opacity=".65"/>
+ <circle cx="111" cy="138" r="1.5" fill="#b3935d" fill-opacity=".55"/><circle cx="309" cy="138" r="1.5" fill="#b3935d" fill-opacity=".55"/>
+</svg>
