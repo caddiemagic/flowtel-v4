@@ -5,3 +5,5 @@ body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%
 #openingPracticeDetails{margin-top:12px}
 #openingPracticeDetails #saveVortex{display:block;margin:20px auto}
 #openingPracticeDetails .ceremony-lesson-nav{margin-top:12px}
+
+.ceremony-pane[hidden],.ceremony-substep-hidden{display:none!important}
