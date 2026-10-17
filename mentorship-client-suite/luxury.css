@@ -114,5 +114,3 @@ footer{border-color:#ddc7a5;color:#927b64;padding-top:22px;margin-top:15px}
 .suite-nav>#telegramAccess{margin-left:auto}
 .quick-links .button-link{font-size:13px;min-width:190px;text-align:center}
 @media(max-width:700px){.suite-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.suite-nav>#telegramAccess{margin-left:0}.suite-nav>a.community-button{padding:10px 8px}.quick-links .button-link{min-width:190px;max-width:100%}}
-
-.first-visit{margin-top:24px;padding-top:18px;border-top:1px solid var(--line)}.first-visit>p:first-child{font-family:Georgia,serif;font-size:21px;margin-top:0}.first-visit .button-link{font-size:13px}.first-visit .muted{margin-bottom:0}

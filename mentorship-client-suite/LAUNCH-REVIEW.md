@@ -1,6 +1,6 @@
 # Mentorship Client Suite — development review
 
-Reviewed October 17, 2026. Repository: caddiemagic/flowtel-v4. Branch: feature/client-suite-v1. No production release is authorized.
+Reviewed October 17, 2026. Repository: caddiemagic/flowtel-v4. Branch: feature/client-suite-v1. The owner explicitly authorized merging and deploying this feature into live Flowtel on October 17, 2026. Client invitations remain outside this release.
 
 ## Core build complete
 
@@ -11,7 +11,7 @@ Reviewed October 17, 2026. Repository: caddiemagic/flowtel-v4. Branch: feature/c
 - Private recording uploads, explicit publication/hiding, save retry without repeating a successful transfer, duplicate-safe finalization and authorized signed playback.
 - Compact blush/ivory dashboard with the existing rose gold Flowtel seal, cycle/season/reflection summary, My Dashboard and My Calls, and matching Telegram/Sisterhood buttons. Separate newest-first recording library and Flow Map open without replacing the dashboard.
 - Session details, calendar downloads and mobile layout. The recording library shows all authorized recordings without search or filters.
-- Signed-out clients can open the existing Flowtel account entrance in a separate tab and return to sign in. No new signup mechanism or membership grants are introduced.
+- Existing Flowtel sign-in and membership setup remain unchanged; the additional first-time setup link was removed at the owner’s request.
 - Existing Acuity booking links use the two owner-defined class names. Ownership, class, duration and booking reuse are checked. No Acuity appointments are created or changed.
 
 ## Verification completed
@@ -32,7 +32,7 @@ Shared changes are two additive navigation links, two mentorship dispatcher bran
 
 1. Owner acceptance of the connected dashboard and owner workflow, including one genuine supported recording uploaded/published and played in the intended client browser. Do not use real client information or invite anyone for this test. Automated access to the protected deployed browser remains unavailable.
 2. The legacy scripts/test-member-integrity.mjs cannot run because its required api/beta-request.js is missing in both this branch and inspected main. This is pre-existing; the passing checks above do not constitute full verification of that obsolete admission route or the one-Stay rule. Existing Stay implementation was not changed.
-3. Final shared-branch/migration review at the then-current heads, followed by explicit owner approval to merge and deploy production. Client invitations remain a separate authorized action.
+3. Final shared-branch/migration review at the then-current heads, followed by the production release explicitly approved on October 17. Client invitations remain a separate authorized action.
 
 ## Deferred scope
 

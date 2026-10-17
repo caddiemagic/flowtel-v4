@@ -117,3 +117,8 @@ Removed the recording search/session filter and My Flow tab. My Calls now presen
 Added an account-setup doorway inside the signed-out mentorship login. It opens the existing /client/ entrance in a separate tab and tells the client to use the enrollment email, complete existing account/membership setup, then return to sign in. Existing signup, confirmation, membership, and auth implementations remain unchanged. No invitations were sent.
 
 All 92 automated tests and the expanded browser journey pass, including signed-out privacy and the first-time account doorway. This verifies the doorway, not an actual hosted email-confirmation or first-registration journey. Telegram/Sisterhood destinations are now supplied and connected with matching buttons on the navigation bar.
+
+## Owner-authorized Flowtel production release — October 17
+The owner clarified explicit approval to merge and deploy the suite into existing live Flowtel. Removed the first-time account-setup UI added in the previous turn; shared registration/authentication is unchanged. Updated real client and owner pages to remove development-only labels; fictional preview remains clearly fictional. Enabled the existing mentorship CI workflow on main.
+
+Pre-release verification: 92 automated tests, the Chromium fictional owner/client isolation and recording journey, and four existing Flowtel regression scripts pass. Current main 5076049 and 13 Moons 9396a9c merge-tree checks find no textual conflicts. No schema changes, real-client data, invitations, or Acuity writes are included. Hosted intended-client-browser acceptance remains unverified; earlier live Supabase isolation/media diagnostic passed as recorded above.
