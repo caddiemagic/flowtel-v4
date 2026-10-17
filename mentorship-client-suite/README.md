@@ -87,3 +87,8 @@ After preparing access, Manage shows the server-generated recipient, subject, fu
 The message explains existing-account sign-in and directs new users to the unchanged /client/ membership/account entrance, then back to their exact mentorship. This is a welcome/access message, not a magic-login link or an Auth account invitation. No account creation, password reset, membership grants, or check-in writes occur. Provider acceptance is reported separately from inbox delivery. No persistent delivery/open tracking is added.
 
 Repeated identical sends use a stable Resend idempotency key; Resend retains keys for 24 hours. A later deliberate send can deliver again. Reference: https://resend.com/docs/dashboard/emails/idempotency-keys .
+
+## Archive old clients
+Owner Manage includes Archive client with a confirmation. The Current clients view excludes archived enrollments at the server query; Archived clients has its own query so archived records do not consume the current-list limit. Archive changes only mentorship status/updated_at, retaining recordings, sessions, focus, account and other product permissions. Existing client suite/playback/claim eligibility excludes archived records; no new replay URLs can be issued. Previously signed playback links may remain usable for up to five minutes; external appointments are not cancelled.
+
+Restore client is available in the archived view: linked enrollments return paused (with mentorship access), while unclaimed ones return draft and require access preparation again. Original pre-archive status is not persisted. Both actions require owner authorization and use conditional status writes to reject concurrent changes. No migration or deletion is performed.

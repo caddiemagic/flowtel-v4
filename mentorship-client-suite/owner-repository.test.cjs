@@ -143,3 +143,10 @@ test('proposed session rejects timezone-free timestamps without database writes'
  const {requests}=await mockFetch([],()=>assert.rejects(setSessionTime(ctx,{enrollmentId:enrollment,sessionId:offering,scheduledAt:'2026-11-20T11:00:00'})));
  assert.equal(requests.length,0);
 });
+test('archive rejects invalid IDs and handles concurrent enrollment changes without overwriting them',async()=>{
+ const {archiveEnrollment}=require('./owner-repository.cjs');
+ await mockFetch([],async()=>assert.rejects(archiveEnrollment(ctx,{enrollmentId:'invalid'}),e=>e.statusCode===400));
+ const {requests}=await mockFetch([[{id:enrollment,status:'active',client_user_id:user}],[]],async()=>assert.rejects(archiveEnrollment(ctx,{enrollmentId:enrollment}),e=>e.statusCode===409));
+ assert.match(requests[1].url,/status=eq.active/);assert.equal(JSON.parse(requests[1].body).status,'archived');
+ assert.equal(requests.some(r=>r.method==='DELETE'),false);
+});

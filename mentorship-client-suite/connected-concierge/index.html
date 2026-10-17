@@ -18,8 +18,8 @@ progress{display:block;width:100%;max-width:360px;height:8px;margin:14px 0;accen
 <label for="email">Client email</label><input type="email" id="email" required placeholder="client@example.com" maxlength="254">
 <label for="offering">Offering</label><select id="offering" required><option value="">Select an offering…</option></select>
 <label for="newStart">Mentorship start date</label><input type="date" id="newStart"><p class="small">The end date is calculated automatically from the offering duration.</p><button type="submit" id="save" disabled style="margin-top:16px">Save draft to Flowtel</button></form><p id="createStatus" role="status"></p></section>
-<section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><label for="search">Find an enrollment</label><input id="search" type="search" placeholder="Search email, offering, or status"><div id="enrollments">Sign in to view drafts.</div></section></div>
-<section class="card" id="detail" hidden><h2>Manage mentorship</h2><p id="selected"></p>
+<section class="card"><h2>Saved enrollments</h2><p class="small">Drafts saved on this screen are stored in Supabase. No invitations are sent.</p><label for="clientView">Client list</label><select id="clientView"><option value="current">Current clients</option><option value="archived">Archived clients</option></select><label for="search">Find an enrollment</label><input id="search" type="search" placeholder="Search email, offering, or status"><div id="enrollments">Sign in to view drafts.</div></section></div>
+<section class="card" id="detail" hidden><h2>Manage mentorship</h2><p id="selected"></p><section><button id="archiveClient" type="button" class="secondary">Archive client</button><button id="restoreClient" type="button" class="secondary" hidden>Restore client</button><p id="archiveNote" class="small">Archiving removes this mentorship from the current list and stops client access. Session history and recordings are preserved. Their Flowtel account and other memberships are unchanged.</p><p id="archiveStatus" role="status"></p></section>
 <form id="update"><div class="grid"><div><label for="starts">Program start</label><input type="date" id="starts"></div><div><label>Program end · calculated automatically</label><p id="ends" class="note">Choose a start date to see the end date.</p></div></div><button id="saveDates" type="submit">Save program dates</button></form><div><h3>Included sessions</h3><p class="small">Prepare the session list from the chosen program; no appointments are booked. Past session dates are supported when entering client history.</p><button id="makeSessions" type="button">Prepare included sessions</button><div id="sessionList"></div></div><div id="preparePanel"><h3>Prepare private access</h3><p class="small">After preparing access, the client may sign into their Client Suite with a verified Flowtel account using this exact email. No invitation email is sent.</p><button id="prepare" type="button">Prepare access (no email sent)</button></div>
 <section id="accessEmailPanel" hidden><h3>Send access email</h3><p id="accessEmailRecipient" class="small"></p><p id="accessEmailSubject"></p><label for="accessEmailCopy">Welcome message</label><textarea id="accessEmailCopy" readonly rows="12"></textarea><p><a id="accessEmailLink" target="_blank" rel="noopener noreferrer">Open client access link ↗</a></p><p class="small">This message requires the client’s verified Flowtel sign-in. It does not create an account or grant other memberships. Repeated attempts with the same message are protected against duplicates for 24 hours.</p><button id="sendAccessEmail" type="button" disabled>Send access email</button><p id="accessEmailStatus" role="status" aria-live="polite"></p></section>
 <form id="focusForm"><label for="month">Monthly focus · month</label><input type="month" id="month" required>
@@ -50,7 +50,7 @@ async function connect(){
   const {data,error}=await supabase.auth.getSession();if(error)throw error;
   if(!data.session?.access_token){$('session').textContent='Not signed in. Use the Flowtel sign-in link above.';$('enrollments').textContent='Sign in to view enrollments.';return}
   token=data.session.access_token;
-  const result=await request();offerings=result.offerings||[];enrollments=result.enrollments||[];
+  const result=await request('GET',null,$('clientView').value==='archived'?'&enrollmentView=archived':'');offerings=result.offerings||[];enrollments=result.enrollments||[];
   $('verificationPanel').hidden=!result.developmentVerification;
   $('session').textContent='Owner session verified. Connected to Flowtel.';
   $('save').disabled=false;
@@ -78,7 +78,8 @@ function render(){
 function refreshEnd(){if(!selected)return;const offer=offerings.find(o=>o.id===selected.offering_id);const start=$('starts').value;let text='Set a start date';if(offer&&start){const base=new Date(start+'T12:00:00Z');if(Number.isFinite(base.getTime())&&base.toISOString().slice(0,10)===start){if(offer.duration_months>0){const t=new Date(Date.UTC(base.getUTCFullYear(),base.getUTCMonth()+offer.duration_months,1,12));const last=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth()+1,0,12)).getUTCDate();t.setUTCDate(Math.min(base.getUTCDate(),last));text=t.toISOString().slice(0,10)}else if(offer.duration_days>0){base.setUTCDate(base.getUTCDate()+offer.duration_days);text=base.toISOString().slice(0,10)}else{text='No fixed expiration for this package'}}} $('ends').textContent=text;}
 $('starts').addEventListener('change',refreshEnd);
 $('search').addEventListener('input',render);
-function open(item){selected=item;loadAccessEmail(item);$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
+$('clientView').addEventListener('change',()=>{selected=null;$('detail').hidden=true;emailVersion++;focusVersion++;connect();});
+function open(item){selected=item;$('archiveClient').hidden=item.status==='archived';$('restoreClient').hidden=item.status!=='archived';$('archiveStatus').textContent='';$('archiveNote').textContent=item.status==='archived'?'History and recordings are preserved. Restoring a linked client returns the mentorship as paused; unclaimed mentorships return to draft and must have access prepared again.':'Archiving removes this mentorship from the current list and stops client access. Session history and recordings are preserved. Their Flowtel account and other memberships are unchanged. Already issued playback links can remain valid for up to five minutes; booked appointments are unchanged.';loadAccessEmail(item);$('detail').hidden=false;$('selected').textContent='Enrollment: '+(item.invited_email||item.id)+' · '+item.status;
  $('starts').value=item.starts_on||'';refreshEnd();
  $('saveDates').disabled=item.status!=='draft';
  $('preparePanel').hidden=item.status!=='draft';
@@ -165,6 +166,13 @@ async function renderRecordings(root,enrollmentId,sessionId){
  try{const response=await fetch('/api/caddie-acuity?mentorship=owner&enrollmentId='+enrollmentId+'&replaysFor='+sessionId,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const data=await response.json();if(!response.ok)throw Error(data.error||'Could not load recordings');for(const replay of data.replays||[]){const row=document.createElement('p');row.textContent=replay.title+' · '+(replay.visible_to_client?'Published':'Private')+' ';const toggle=document.createElement('button');toggle.type='button';toggle.textContent=replay.visible_to_client?'Hide from client':'Publish to client';toggle.onclick=async()=>{toggle.disabled=true;try{await request('POST',{action:'replay-visibility',enrollmentId,sessionId,replayId:replay.id,visible:!replay.visible_to_client});await renderRecordings(root,enrollmentId,sessionId)}catch(e){msg('detailStatus',e.message,true);toggle.disabled=false}};row.append(toggle);root.append(row)}}catch(e){root.append(document.createTextNode(e.message))}
 }
 $('makeSessions').addEventListener('click',async()=>{if(!selected)return;$('makeSessions').disabled=true;try{const result=await request('POST',{action:'prepare-sessions',enrollmentId:selected.id});msg('detailStatus',result.created?'Included sessions created. No bookings were made.':'Existing session plan loaded.');await loadSessions(selected.id)}catch(error){msg('detailStatus',error.message,true)}finally{$('makeSessions').disabled=false}});
+async function changeClientArchive(restore){
+ const item=selected;if(!item)return;
+ if(!restore&&!confirm('Archive '+(item.invited_email||'this client')+'? This stops mentorship access and preserves their history and recordings.'))return;
+ $('archiveClient').disabled=true;$('restoreClient').disabled=true;
+ try{await request('POST',{action:restore?'restore-client':'archive-client',enrollmentId:item.id});selected=null;$('detail').hidden=true;emailVersion++;focusVersion++;await connect();msg('status',restore?'Client restored. Linked mentorships return paused; unclaimed ones return to draft. Switch to Current clients to manage them.':'Client archived. History and recordings are preserved. Find them under Archived clients.');}catch(e){msg('archiveStatus',e.message,true);}finally{$('archiveClient').disabled=false;$('restoreClient').disabled=false;}
+}
+$('archiveClient').onclick=()=>changeClientArchive(false);$('restoreClient').onclick=()=>changeClientArchive(true);
 async function loadAccessEmail(item){
  const version=++emailVersion;$('accessEmailPanel').hidden=!['invited','active'].includes(item.status);$('sendAccessEmail').disabled=true;$('accessEmailCopy').value='';$('accessEmailRecipient').textContent='';$('accessEmailSubject').textContent='';$('accessEmailLink').removeAttribute('href');$('accessEmailStatus').textContent='';
  if($('accessEmailPanel').hidden)return;
@@ -182,7 +190,7 @@ async function loadFocus(){
   const draft=focusDrafts.get(key);const result=draft===undefined?await request('GET',null,'&focusFor='+encodeURIComponent(id)+'&month='+encodeURIComponent(month+'-01')):null;
   if(version!==focusVersion||selected?.id!==id)return;
   $('focus').value=draft===undefined?(result.focus?.focus||''):draft;
-  $('focus').disabled=false;$('saveFocus').disabled=false;
+  $('focus').disabled=false;$('saveFocus').disabled=selected?.status==='archived';
   msg('focusStatus',draft!==undefined?'Unsaved changes restored.':result.focus?'Saved focus loaded.':'No focus saved for this month yet.');
  }catch(error){if(version===focusVersion)msg('focusStatus','Could not load saved focus. Choose the month again to retry. '+error.message,true);}
 }
@@ -196,7 +204,7 @@ $('focusForm').addEventListener('submit',async e=>{
   if(focusDrafts.get(key)===text)focusDrafts.delete(key);
   if(focusKey===key){msg('focusStatus',focusDrafts.has(key)?'Earlier version saved. Your new changes are still unsaved.':'Monthly focus saved.');msg('detailStatus','Client-visible monthly focus saved. No invitation was sent.');}
  }catch(error){if(focusKey===key)msg('focusStatus',error.message,true);}
- finally{if(focusKey===key)$('saveFocus').disabled=false;}
+ finally{if(focusKey===key)$('saveFocus').disabled=selected?.status==='archived';}
 });
 supabase.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT'){emailVersion++;$('accessEmailPanel').hidden=true;$('accessEmailCopy').value='';$('accessEmailRecipient').textContent='';$('accessEmailSubject').textContent='';$('accessEmailStatus').textContent='';$('accessEmailLink').removeAttribute('href');$('sendAccessEmail').disabled=true;focusVersion++;focusKey=null;focusDrafts.clear();$('focusStatus').textContent='';$('saveFocus').disabled=true;$('verificationPanel').hidden=true;$('verificationResults').replaceChildren();$('verificationCleanup').textContent='';token=null;selected=null;offerings=[];enrollments=[];$('detail').hidden=true;$('sessionList').replaceChildren();$('enrollments').replaceChildren();$('focus').value='';$('email').value='';$('save').disabled=true;$('session').textContent='Signed out';}});
 connect();

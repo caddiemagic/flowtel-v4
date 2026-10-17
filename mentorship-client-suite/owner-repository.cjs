@@ -55,9 +55,9 @@ async function getClientFocus(ctx,{enrollmentId,month}){
 }
 
 
-async function listEnrollments(ctx){
+async function listEnrollments(ctx,{archived=false}={}){
  ownerContext(ctx);
- const rows=await fetchJson(url(ctx,'enrollments','select=id,invited_email,offering_id,status,starts_on,ends_on,created_at,updated_at&order=created_at.desc&limit=100'),{
+ const rows=await fetchJson(url(ctx,'enrollments','select=id,invited_email,offering_id,status,starts_on,ends_on,created_at,updated_at&status='+ (archived?'eq.archived':'in.(draft,invited,active,paused,completed,cancelled)')+'&order=created_at.desc&limit=100'),{
   headers:serviceHeaders(ctx.serviceKey)
  });
  if(!Array.isArray(rows))throw Error('Enrollment list was not confirmed');
@@ -147,4 +147,17 @@ async function setSessionTime(ctx,{enrollmentId,sessionId,scheduledAt}){
  if(!Array.isArray(records)||records.length!==1)throw failure('This session changed while you were editing. Refresh its details and try again.',409);
  return records[0];
 }
-module.exports={getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime};
+async function archiveEnrollment(ctx,{enrollmentId,restore=false}){
+ ownerContext(ctx);validUUID(enrollmentId);
+ const found=await fetchJson(url(ctx,'enrollments','select=id,status,client_user_id&id=eq.'+enrollmentId+'&limit=1'),{headers:serviceHeaders(ctx.serviceKey)});
+ if(!Array.isArray(found)||found.length!==1)throw failure('Enrollment not found',404);
+ const row=found[0];
+ if(restore&&row.status!=='archived')throw failure('Only archived clients can be restored',409);
+ if(!restore&&row.status==='archived')return {id:row.id,status:'archived'};
+ // Restore conservatively: linked clients return paused; unclaimed access returns to draft.
+ const status=restore?(row.client_user_id?'paused':'draft'):'archived';
+ const result=await fetchJson(url(ctx,'enrollments','id=eq.'+enrollmentId+'&status=eq.'+encodeURIComponent(row.status)+'&select=id,status'),{method:'PATCH',headers:serviceHeaders(ctx.serviceKey,'return=representation'),body:JSON.stringify({status,updated_at:new Date().toISOString()})});
+ if(!Array.isArray(result)||result.length!==1)throw failure('This enrollment changed. Refresh before trying again.',409);
+ return result[0];
+}
+module.exports={archiveEnrollment,getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime};
