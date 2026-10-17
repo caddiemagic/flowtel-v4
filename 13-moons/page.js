@@ -1,3 +1,4 @@
+import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
 import { createMoonMagicMedicineWheel } from '/shared/moon-magic-medicine-wheel.js';
 import { getCurrentProfile, profileNeedsConfirmation } from '/shared/profiles.js';
@@ -183,20 +184,21 @@ function renderRows(rows, reflections) {
     heading.textContent = row.month + ' · ' + row.name;
     const wing = document.createElement('p');
     wing.textContent = row.wing + ' · ' + row.season;
+    const theme=document.createElement('p');theme.textContent=MOON_WISH_THEMES[row.calendarMonth];
     const label = document.createElement('label');
     const fieldId = 'vortex-reflection-' + i;
     label.htmlFor = fieldId;
-    label.textContent = 'What do you sense about this moon?';
+    label.textContent = i===0?'This is your current moon. You will wish on its return as Moon 13.':'My wish for '+row.name+' ('+row.month+')';
     label.style.cssText = 'display:block;margin:.75rem 0;';
     const input = document.createElement('textarea');
     input.id = fieldId;
     input.rows = 4;
     input.maxLength = 4000;
-    input.value = typeof reflections[i] === 'string' ? reflections[i] : '';
-    input.disabled = sealed;
+    input.value = i===0?'':typeof reflections[i] === 'string' ? reflections[i] : '';
+    input.disabled = sealed || i===0;
     input.style.cssText = 'display:block;width:100%;box-sizing:border-box;padding:.75rem;font:inherit;';
     input.addEventListener('input', () => { if (!sealed) showNotice('Unsaved changes'); });
-    section.append(heading, wing, label, input);
+    section.append(heading, wing, theme, label, input);
     months.append(section);
     return input;
   });
@@ -275,7 +277,7 @@ async function load() {
       save.hidden = true;
       message('Your thirteen moons — calendar preview', 'Private reflection storage is not installed yet, so saving is disabled. This view does not collect your writing.');
       stepStatus('vortexStepStatus', 'Storage not installed');
-      showNotice('Read-only preview. Do not enter reflections here.');
+      showNotice('Read-only preview. Do not enter wishes here.');
       return;
     }
     startMonth = saved?.start_month
@@ -290,7 +292,7 @@ async function load() {
     view.hidden = false;
     renderInitiationPath(profile.id);
     message('Your opening Big Vision Vortex',
-      'Write the impressions that arise for all thirteen moons. Save a draft anytime. Filling every moon seals your opening reflections.');
+      'Read each moon name and theme. Skip wishing on your current month and make one wish for each of the next twelve calendar months, including the return of your current moon as Moon 13. Save a draft anytime; all twelve future wishes seal your Vortex.');
     if (!sealed) showNotice('Not saved yet. Your writing stays in this browser until you save.');
   } catch (error) {
     console.error('13 Moons onboarding could not load', error);
@@ -301,7 +303,7 @@ async function load() {
 save.addEventListener('click', async () => {
   if (sealed || save.disabled) return;
   save.disabled = true;
-  showNotice('Saving your reflections…');
+  showNotice('Saving your wishes…');
   try {
     const reflections = entries.map((input) => input.value);
     const { data, error } = await supabase.rpc('flowtel_save_13_moons_vortex', {
@@ -314,7 +316,7 @@ save.addEventListener('click', async () => {
       stepStatus('vortexStepStatus', 'Complete');
       entries.forEach((input) => { input.disabled = true; });
       save.hidden = true;
-      showNotice('Your Big Vision Vortex is complete. Your opening reflections are sealed.');
+      showNotice('Your Big Vision Vortex is complete. Your twelve future wishes are sealed.');
     } else {
       showNotice('Draft saved. Return whenever you are ready.');
     }
