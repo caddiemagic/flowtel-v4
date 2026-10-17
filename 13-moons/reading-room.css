@@ -28,3 +28,17 @@
 .initiation-completion button:disabled{opacity:.55;cursor:not-allowed}
 .initiation-completion p{font-size:.88rem;margin-top:.6rem}
 @media(max-width:560px){.initiation-lesson-card{border-radius:15px}.initiation-lesson-contents{gap:.7rem}.initiation-section-body{padding:.9rem}.initiation-section-summary{padding:.9rem}}
+
+/* Sealed wish portals: one calendar month, one reflection room */
+#memberMoonPortals{margin:1.3rem 0 2rem}
+.moon-portal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.moon-portal-card,.moon-portal-detail{border:1px solid #dccad2;border-radius:18px;background:linear-gradient(145deg,#fffcfa,#f9f0f4);padding:1.3rem}
+.moon-portal-card small,.moon-portal-detail small{display:block;text-transform:uppercase;letter-spacing:.1em;color:#846679;font:700 .73rem Arial,sans-serif}
+.moon-portal-card h3{font:normal 1.5rem Georgia,serif;margin:.75rem 0}
+.moon-portal-card button,.moon-portal-detail button,#memberMoonPortals>button{border:1px solid #916b82;border-radius:999px;background:#735368;color:white;padding:.75rem 1rem;cursor:pointer}
+.moon-portal-detail{margin-top:1rem;padding:clamp(1.25rem,3vw,2rem)}
+.moon-portal-detail h2{font:normal clamp(2rem,5vw,3rem) Georgia,serif}
+.moon-portal-detail blockquote{white-space:pre-wrap;background:#f5e9ef;border-left:3px solid #a67d92;padding:1rem 1.2rem;margin:1rem 0;line-height:1.7}
+.moon-portal-detail textarea{width:100%;box-sizing:border-box;padding:1rem;margin:.6rem 0;resize:vertical;border:1px solid #d0bac7;border-radius:12px;font:inherit}
+.moon-portal-detail button:disabled{opacity:.5;cursor:not-allowed}
+.moon-witness-entry{padding:1rem 0;border-top:1px solid #e2d2db;line-height:1.65}
