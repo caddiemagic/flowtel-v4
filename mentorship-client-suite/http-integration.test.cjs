@@ -84,3 +84,24 @@ test('owner archive removes mentorship access, preserves history and supports co
  assert.equal(h.tables.enrollments.length,1);assert.equal(JSON.stringify(h.tables.sessions),sessions);
  }finally{await h.close();}
 });
+test('owner client profile reuses the client projection and permission-checked cycle chart without impersonation',async()=>{
+ const h=await start();const id=h.ids.enrollment;const get=(role,query)=>fetch(h.origin+'/api/caddie-acuity?mentorship=owner'+query,{headers:{Authorization:'Bearer '+role}});
+ try{
+ for(const role of ['a','b'])assert.equal((await get(role,'&profileFor='+id)).status,403);
+ let r=await get('owner','&profileFor='+id);assert.equal(r.status,200);const profile=await r.json();assert.equal(profile.flow.name,'Fictional Aurora');assert.equal(profile.flow.cycle.day,22);assert.equal(profile.flow.totalCheckins,3);assert.equal(profile.flow.reflections[0].text,'Fictional shared reflection: making room to receive.');assert.ok(!JSON.stringify(profile).includes('PRIVATE-SHOULD-NOT-LEAK'));
+ const client=await fetch(h.origin+'/api/caddie-acuity?mentorship=client&enrollmentId='+id,{headers:{Authorization:'Bearer a'}});assert.deepEqual(profile.suite,(await client.json()).suite);
+ h.tables.enrollments[0].client_user_id=h.ids.b;r=await get('owner','&profileFor='+id);const denied=await r.json();assert.equal(denied.flow.available,false);assert.deepEqual(denied.flow.reflections,[]);assert.equal(denied.flow.subjectId,null);
+ h.tables.enrollments[0].client_user_id=null;r=await get('owner','&profileFor='+id);assert.match((await r.json()).flow.reason,/has not connected/);
+ assert.equal((await get('owner','&profileFor=invalid')).status,400);
+ }finally{await h.close();}
+});
+test('owner replay playback is restricted to the requested enrollment and session',async()=>{
+ const h=await start();try{const rid='ffffffff-ffff-4fff-8fff-ffffffffffff',path=h.ids.enrollment+'/'+h.ids.session+'/'+rid+'.mp3';h.tables.replays.push({id:rid,session_id:h.ids.session,title:'Fictional private replay',storage_path:path,visible_to_client:false});
+ const query='&ownerReplay='+rid+'&sessionId='+h.ids.session+'&enrollmentId='+h.ids.enrollment;
+ const get=(role,q=query)=>fetch(h.origin+'/api/caddie-acuity?mentorship=owner'+q,{headers:{Authorization:'Bearer '+role}});
+ assert.equal((await get('a')).status,403);assert.equal((await get('b')).status,403);
+ const r=await get('owner');assert.equal(r.status,200);assert.equal((await r.json()).playback.expiresInSeconds,300);
+ assert.equal((await get('owner',query.replace(h.ids.session,h.ids.offering))).status,404);
+ h.tables.replays[0].storage_path=h.ids.offering+'/'+h.ids.session+'/'+rid+'.mp3';assert.equal((await get('owner')).status,404);
+ }finally{await h.close();}
+});

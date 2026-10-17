@@ -22,6 +22,9 @@ async function ownedEnrollment(ctx,enrollmentId){
 }
 async function clientSuite(ctx,enrollmentId){
  const enrollment=await ownedEnrollment(ctx,enrollmentId);
+ return suiteForEnrollment(ctx,enrollment);
+}
+async function suiteForEnrollment(ctx,enrollment){
  const selection='enrollment_id=eq.'+encodeURIComponent(enrollment.id);
  const sessions=await rows(ctx,'sessions','select=id,session_number,session_kind,duration_minutes,scheduled_at,timezone,status,appointment_id&'+selection+'&order=session_number.asc');
  const focus=await rows(ctx,'monthly_focus','select=focus_month,client_visible_focus&'+selection+'&order=focus_month.desc&limit=12');
@@ -35,7 +38,7 @@ async function clientSuite(ctx,enrollmentId){
  const appointmentIds=sessions.map(session=>session.appointment_id).filter(value=>typeof value==='string'&&UUID.test(value));
  let appointments=[];
  if(appointmentIds.length){
-  appointments=await fetchJson(ctx.supabaseUrl+'/rest/v1/flowtel_external_appointments?select=id,starts_at,ends_at,external_payload,status&source_product=eq.flowtel&customer_user_id=eq.'+encodeURIComponent(ctx.user.id)+'&id=in.('+appointmentIds.join(',')+')',{headers:serviceHeaders(ctx.serviceKey)});
+  appointments=await fetchJson(ctx.supabaseUrl+'/rest/v1/flowtel_external_appointments?select=id,starts_at,ends_at,external_payload,status&source_product=eq.flowtel&customer_user_id=eq.'+encodeURIComponent(enrollment.client_user_id)+'&id=in.('+appointmentIds.join(',')+')',{headers:serviceHeaders(ctx.serviceKey)});
   if(!Array.isArray(appointments))throw Error('Unexpected appointment response');
  }
  const safeSessions=sessions.map(({appointment_id,...session})=>{
@@ -94,7 +97,7 @@ async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
  if(resolved.origin!==new URL(ctx.supabaseUrl).origin)throw Error('Playback link unavailable');
  return {url:resolved.href,expiresInSeconds:300};
 }
-module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
+module.exports={suiteForEnrollment,ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
 
 // Reuse the existing consent-aware RPC with the client's JWT, never service-role authorization.
 async function myFlowContext(ctx,now=new Date()){

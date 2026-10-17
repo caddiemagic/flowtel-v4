@@ -1,3 +1,6 @@
+const ownerPreview=document.body.dataset.ownerPreview==='true';
+let ownerProfile=null;
+const ownerEnrollmentId=new URLSearchParams(location.search).get('enrollmentId');
 const fictionalPreview=document.body.dataset.preview==='fictional';
 const demo=fictionalPreview?await import('../dashboard-preview.mjs'):null;
 const supabase=fictionalPreview?demo.demoAuth:(await import('../../shared/supabase.js')).supabase;
@@ -8,8 +11,8 @@ const $=id=>document.getElementById(id),base='/api/caddie-acuity?mentorship=clie
 let epoch=0,selection=null,account=null,currentSuite=null,currentVersion=0;
 const libraryMode=new URLSearchParams(location.search).get('view')==='replays';document.body.classList.toggle('library-page',libraryMode);if(libraryMode)document.querySelector('.hero h1').textContent='Your recordings.';
 const panels=['home','calls'];
-function libraryURL(id=selection){return (fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays'+(id?'&enrollmentId='+encodeURIComponent(id):'');}
-function updateLibraryLinks(id){for(const link of document.querySelectorAll('[data-replay-library]'))link.href=libraryURL(id);$('libraryBack').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+(id?'?enrollmentId='+encodeURIComponent(id):'');}
+function libraryURL(id=selection){if(ownerPreview)return '/mentorship-client-suite/owner-dashboard/?view=replays&enrollmentId='+encodeURIComponent(ownerEnrollmentId||'');return (fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays'+(id?'&enrollmentId='+encodeURIComponent(id):'');}
+function updateLibraryLinks(id){for(const link of document.querySelectorAll('[data-replay-library]'))link.href=libraryURL(id);$('libraryBack').href=ownerPreview?'/mentorship-client-suite/owner-dashboard/?enrollmentId='+encodeURIComponent(ownerEnrollmentId||''):(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+(id?'?enrollmentId='+encodeURIComponent(id):'');}
 let activePanel=location.hash==='#recordings'?'calls':panels.includes(location.hash.slice(1))?location.hash.slice(1):'home';
 function stopPlayers(){for(const media of document.querySelectorAll('video,audio'))media.pause();}
 function discardSessionView(){stopPlayers();for(const media of document.querySelectorAll('video,audio')){media.removeAttribute('src');media.load();media.remove();}if($('sessionDialog').open)$('sessionDialog').close();$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';currentSuite=null;}
@@ -22,12 +25,26 @@ for(const button of document.querySelectorAll('[data-panel]'))button.onclick=()=
 for(const button of document.querySelectorAll('[data-open]'))button.onclick=()=>{room(button.dataset.open);$(button.dataset.open).scrollIntoView({behavior:'smooth',block:'start'});};
 async function request(params='',body=null){
  if(fictionalPreview)return demo.demoRequest(params,body);
+ if(ownerPreview){
+  const ownerEpoch=epoch;
+  if(body)throw Error('This owner preview is read-only.');
+  const {data,error}=await supabase.auth.getSession();if(error)throw error;const token=data.session?.access_token;if(!token)throw Object.assign(Error('Sign into Flowtel as the owner to view this dashboard.'),{status:401});
+  const q=new URLSearchParams(params);let url='/api/caddie-acuity?mentorship=owner';
+  if(q.has('playbackReplayId')){const replay=ownerProfile?.suite.replays.find(r=>r.id===q.get('playbackReplayId'));if(!replay)throw Error('Published recording not available.');url+='&ownerReplay='+encodeURIComponent(replay.id)+'&sessionId='+encodeURIComponent(replay.sessionId)+'&enrollmentId='+encodeURIComponent(ownerEnrollmentId||'');}
+  else if(ownerProfile){if(q.has('prepared'))return {prepared:[]};if(q.has('context'))return {context:{cycle:ownerProfile.flow.cycle}};if(q.has('enrollmentId'))return {suite:ownerProfile.suite};return {enrollments:[ownerProfile.suite.enrollment]};}
+  else url+='&profileFor='+encodeURIComponent(ownerEnrollmentId||'');
+  const response=await fetch(url,{headers:{Authorization:'Bearer '+token},cache:'no-store'});const result=await response.json();if(!response.ok)throw Object.assign(Error(result.error||'Owner access is required for this preview.'),{status:response.status});if(q.has('playbackReplayId'))return result;if(ownerEpoch!==epoch)throw Error('This preview changed. Refresh to reopen it.');ownerProfile=result;
+  for(const link of document.querySelectorAll('a[href="/flow-map/"]')){if(result.flow.subjectId)link.href='/flow-map/?client='+encodeURIComponent(result.flow.subjectId);else link.hidden=true;}
+  const cycleLink=document.querySelector('.cycle-summary .button-link');if(result.flow.subjectId){cycleLink.href='/flow-map/?client='+encodeURIComponent(result.flow.subjectId);cycleLink.textContent='Her Flow Map ↗';}else cycleLink.hidden=true;
+  return {enrollments:[result.suite.enrollment]};
+ }
  const {data,error}=await supabase.auth.getSession();if(error)throw error;
  const token=data.session?.access_token;if(!token)throw Object.assign(Error('Sign into Flowtel to open your mentorship.'),{status:401});
  const res=await fetch(base+params,{method:body?'POST':'GET',headers:{Authorization:'Bearer '+token,...(body?{'Content-Type':'application/json'}:{})},body:body?JSON.stringify(body):undefined,cache:'no-store'});
  const json=await res.json().catch(()=>({}));if(!res.ok)throw Object.assign(Error(res.status===404?'This mentorship is not available to this account.':json.error||'Your suite could not load. Please try again.'),{status:res.status});return json;
 }
 function clearPrivate(){
+ ownerProfile=null;
  discardSessionView();
  epoch++;selection=null;currentSuite=null;
  $('callFilter').value='upcoming';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replayResults').textContent='';
@@ -114,9 +131,9 @@ $('callFilter').addEventListener('change',()=>{if(currentSuite)renderSessions(da
 async function renderFlow(version){
  $('cycleHeading').textContent='Your cycle';$('cycleSeason').textContent='';$('cycleReflections').textContent='';$('cycleNote').textContent='Loading your Flowtel cycle…';
  try{const data=await request('&context=1');if(version!==epoch)return;const cycle=data.context?.cycle;
- if(!cycle){$('cycleNote').textContent='Check into the Flowtel to record your cycle day.';return;}
+ if(!cycle){$('cycleNote').textContent=(ownerPreview?ownerProfile?.flow.reason||'Her first Flowtel cycle check-in will appear here.':'Check into the Flowtel to record your cycle day.');return;}
  $('cycleHeading').textContent=cycle.day?(cycle.calculated?'Cycle day ':'Recorded day ')+cycle.day:'Your last check-in';$('cycleSeason').textContent=cycle.season||'Inner Season not recorded';
- $('cycleReflections').textContent=Number.isInteger(cycle.reflections)?cycle.reflections+' reflection'+(cycle.reflections===1?'':'s')+' on cycle day '+cycle.day:'Reflection count unavailable.';
+ $('cycleReflections').textContent=Number.isInteger(cycle.reflections)?cycle.reflections+' reflection'+(cycle.reflections===1?'':'s')+' on cycle day '+cycle.day:(ownerPreview?'Her shared check-in reflections are available in her client profile.':'Reflection count unavailable.');
  $('cycleNote').textContent='Last checked in '+dateLabel(cycle.asOf)+(cycle.calculated&&cycle.asOf!==flowtelTodayISO()?' · Based on your recorded cycle start.':'');
  }catch{if(version===epoch)$('cycleNote').textContent='Your cycle is unavailable right now. Check into the Flowtel to view it.';}
 }
@@ -127,14 +144,14 @@ async function open(id){
  $('title').textContent=suite.enrollment.programTitle||'Your private mentorship';$('dates').textContent='Begins '+dateLabel(suite.enrollment.startsOn)+(suite.enrollment.endsOn?' · Through '+dateLabel(suite.enrollment.endsOn):' · No fixed end date');$('programStatus').textContent=suite.enrollment.status;
  $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.total?model.completed+' of '+model.total+' sessions completed':'Your session plan is being prepared';$('progress').hidden=!model.total;$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
  $('progressNote').textContent=!model.total?'Your progress will appear once your included sessions are ready.':model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
- renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(libraryMode)room('calls',false);$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';if(!libraryMode)renderFlow(version);
+ renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(libraryMode)room('calls',false);$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':(ownerPreview?'Owner preview · Read-only client dashboard.':'Your private suite is ready.');if(!libraryMode)renderFlow(version);
  }catch(error){if(version===epoch){$('error').textContent=error.message;$('status').textContent='Your suite could not load.';}}
 }
 async function claim(id,button){button.disabled=true;$('error').textContent='';try{const data=await request('',{action:'claim-prepared',enrollmentId:id});await connect(data.enrollment?.id);}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}}
 async function connect(preferred=null){
- const prior=preferred||selection||new URLSearchParams(location.search).get('enrollmentId');clearPrivate();const version=epoch;$('error').textContent='';$('login').hidden=true;$('access').classList.remove('verified');$('status').textContent='Preparing your suite…';
+ const prior=preferred||selection||new URLSearchParams(location.search).get('enrollmentId');ownerProfile=null;clearPrivate();const version=epoch;$('error').textContent='';$('login').hidden=true;$('access').classList.remove('verified');$('status').textContent='Preparing your suite…';
  try{const {data}=await supabase.auth.getSession();account=data.session?.user?.id||null;const {enrollments}=await request();if(version!==epoch)return;
- $('access').classList.add('verified');$('status').textContent=fictionalPreview?'Fictional design preview · No client data or bookings.':'Your private mentorship access is verified.';$('enrollmentSection').hidden=enrollments.length===1;
+ $('access').classList.add('verified');$('status').textContent=fictionalPreview?'Fictional design preview · No client data or bookings.':(ownerPreview?'Owner preview · Read-only client dashboard.':'Your private mentorship access is verified.');$('enrollmentSection').hidden=enrollments.length===1;
  const root=$('enrollments');root.replaceChildren();
  if(!enrollments.length)empty(root,'No private mentorship is linked to this account yet.');
  for(const enrollment of enrollments){const card=element('div','','enrollment-choice');card.append(element('p',enrollment.programTitle||'Private mentorship'),element('p',enrollment.status,'muted'));const button=element('button','Open private suite');button.onclick=()=>open(enrollment.id);card.append(button);root.append(card);}

@@ -1,3 +1,4 @@
+const ownerClient=require('./owner-client.cjs');
 const accessEmail=require('./access-email.cjs');
 const bookings=require('./appointment-link.cjs');
 const controls=require('./session-controls.cjs');
@@ -17,6 +18,8 @@ module.exports=async function ownerMentorshipHandler(req,res){
   guards.authenticated(req);
   const ctx=await requireOwner(req);
   if(req.method==='GET'){
+   if(req.query?.profileFor)return res.status(200).json({ok:true,...await ownerClient.profile(ctx,req.query.profileFor)});
+   if(req.query?.ownerReplay)return res.status(200).json({ok:true,playback:await ownerClient.playback(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.sessionId,replayId:req.query.ownerReplay})});
    if(req.query?.accessEmailFor)return res.status(200).json({ok:true,emailPreview:await accessEmail.preview(ctx,{enrollmentId:req.query.accessEmailFor})});
    if(req.query?.focusFor)return res.status(200).json({ok:true,focus:await getClientFocus(ctx,{enrollmentId:req.query.focusFor,month:req.query.month})});
    if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
