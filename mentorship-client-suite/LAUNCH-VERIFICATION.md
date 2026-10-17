@@ -132,3 +132,8 @@ Adds a private email preview and explicit Send access email action after enrollm
 Adds current/archived client list views, explicit Archive client confirmation, and Restore client. Uses the existing archived enum; no schema changes or deletes. Client access and new recording links fail closed under existing enrollment eligibility. Sessions, recordings, Auth identities, other memberships and external appointments are preserved. Restored linked clients return paused; unclaimed clients return draft.
 
 101 automated tests, the fictional Chromium journey and four existing Flowtel regression scripts pass. Coverage includes non-owner denial, archival idempotency, concurrent changes, list separation, client suite/playback denial, access-email denial, history preservation, conservative restore, and dismiss/accept confirmation. No real clients are archived or emailed during testing.
+
+## Client first-visit clarity — October 17
+Unprepared session plans now say calls are being prepared and hide the empty progress bar instead of implying the journey is complete. The completed-journey message requires every planned session to be completed; all-cancelled/missed plans no longer receive completion copy. No auth, navigation, data, scheduling or email changes.
+
+101 automated tests pass. Expanded browser coverage verifies the unprepared plan, no-cycle check-in guidance, empty recording library, mobile viewport fit, and all-cancelled wording alongside the existing owner/client/private-media workflow.

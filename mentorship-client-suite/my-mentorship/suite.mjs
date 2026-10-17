@@ -40,7 +40,9 @@ function clearPrivate(){
 function renderNext(model){
  const root=$('nextCall');root.replaceChildren();
  if(model.nextCall){const s=model.nextCall;root.append(element('h3',timeLabel(s.scheduled_at)),element('p',kindLabel(s.session_kind)+' · '+s.duration_minutes+' minutes'),element('span','Confirmed','badge'));if(s.meeting_url){const link=element('a','Join Zoom','button-link');link.href=s.meeting_url;link.target='_blank';link.rel='noopener noreferrer';root.append(link);}else root.append(element('p','Your meeting link will appear when it is ready.','muted'));}
- else{root.append(element('h3',model.remaining?'A little space before our next call.':'Your journey, witnessed.'),element('p',model.remaining?'Your next confirmed session will appear here.':'Your session history and recordings are here to revisit.'));}
+ else if(!model.total){root.append(element('h3','Your calls are being prepared.'),element('p','Your included sessions and confirmed times will appear here when Megan has prepared your call schedule.'));}
+ else if(model.completed===model.total){root.append(element('h3','Your journey, witnessed.'),element('p','Your session history and recordings are here to revisit.'));}
+ else{root.append(element('h3','A little space before our next call.'),element('p','Your next confirmed session will appear here. You can view your full session history in My Calls.'));}
  const button=element('button',model.nextCall?'View session details →':'View your sessions →','text-button');button.onclick=()=>model.nextCall?showSession(model.nextCall):room('calls');root.append(button);if(model.nextCall&&currentSuite)root.append(calendarButton(model.nextCall));
 }
 function renderSessions(model){
@@ -123,8 +125,8 @@ async function open(id){
  const version=++epoch;discardSessionView();selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
  try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);updateLibraryLinks(id);
  $('title').textContent=suite.enrollment.programTitle||'Your private mentorship';$('dates').textContent='Begins '+dateLabel(suite.enrollment.startsOn)+(suite.enrollment.endsOn?' · Through '+dateLabel(suite.enrollment.endsOn):' · No fixed end date');$('programStatus').textContent=suite.enrollment.status;
- $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.completed+' of '+model.total+' sessions completed';$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
- $('progressNote').textContent=model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
+ $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.total?model.completed+' of '+model.total+' sessions completed':'Your session plan is being prepared';$('progress').hidden=!model.total;$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
+ $('progressNote').textContent=!model.total?'Your progress will appear once your included sessions are ready.':model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
  renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(libraryMode)room('calls',false);$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';if(!libraryMode)renderFlow(version);
  }catch(error){if(version===epoch){$('error').textContent=error.message;$('status').textContent='Your suite could not load.';}}
 }
