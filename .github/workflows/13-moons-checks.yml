@@ -10,6 +10,8 @@ on:
       - 'shared/13-moons-monthly-practices.js'
       - 'shared/13-moons-inner-seasons.js'
       - 'shared/13-moons-ceremony-choices.js'
+      - 'shared/13-moons-boundaries-altar.js'
+      - 'tests/13-moons-boundaries-altar.test.mjs'
       - 'tests/13-moons-ceremony-choices.test.mjs'
       - 'tests/13-moons-inner-seasons.test.mjs'
       - 'tests/13-moons-monthly-practices.test.mjs'
@@ -35,6 +37,7 @@ jobs:
           node --check 13-moons/member-moon-portals.js
           node --check shared/13-moons-inner-seasons.js
           node --check shared/13-moons-ceremony-choices.js
+          node --check shared/13-moons-boundaries-altar.js
           node --check 13-moons/showcase/ceremony/page.js
           node --check 13-moons/showcase/moon/page.js
           node --check 13-moons/showcase/moon-portals.js
@@ -49,6 +52,8 @@ jobs:
         run: node tests/13-moons-inner-seasons.test.mjs
       - name: Interactive four-corners and season-planning prompts
         run: node tests/13-moons-ceremony-choices.test.mjs
+      - name: Boundary ritual and Angelic altar compass tests
+        run: node tests/13-moons-boundaries-altar.test.mjs
       - name: Monthly practice and future-letter date tests
         run: node tests/13-moons-monthly-practices.test.mjs
       - name: Entitlement classifier regression tests
