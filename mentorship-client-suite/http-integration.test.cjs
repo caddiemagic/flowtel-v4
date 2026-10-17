@@ -49,3 +49,15 @@ test('owner can backfill, confirm and complete a historical session',async()=>{
  assert.equal((await action({action:'session-transition',operation:'complete'})).session.status,'completed');
  }finally{await h.close()}
 });
+test('access email preview and sending require owner authorization and prepared access',async()=>{
+ const h=await start();try{
+ for(const role of ['a','b']){
+ const headers={Authorization:'Bearer '+role,'Content-Type':'application/json'};
+ assert.equal((await fetch(h.origin+'/api/caddie-acuity?mentorship=owner&accessEmailFor='+h.ids.enrollment,{headers})).status,403);
+ assert.equal((await fetch(h.origin+'/api/caddie-acuity?mentorship=owner',{method:'POST',headers,body:JSON.stringify({action:'send-access-email',enrollmentId:h.ids.enrollment})})).status,403);
+ }
+ const get=()=>fetch(h.origin+'/api/caddie-acuity?mentorship=owner&accessEmailFor='+h.ids.enrollment,{headers:{Authorization:'Bearer owner'}});
+ let r=await get();assert.equal(r.status,200);const m=(await r.json()).emailPreview;assert.equal(m.email,'fictional-a@example.com');assert.ok(!JSON.stringify(m).includes('fictional-service'));
+ h.tables.enrollments[0].status='draft';r=await get();assert.equal(r.status,409);
+ }finally{await h.close();}
+});

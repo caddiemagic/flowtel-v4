@@ -1,3 +1,4 @@
+const accessEmail=require('./access-email.cjs');
 const bookings=require('./appointment-link.cjs');
 const controls=require('./session-controls.cjs');
 const recordings=require('./replay-owner.cjs');
@@ -6,6 +7,7 @@ const verification=require('./development-check.cjs');
 // Owner handler routed through the existing caddie-acuity mentorship dispatcher.
 const {requireOwner,readRequestBody,sendError,setPublicCors}=require('../server/guest-house-server.js');
 const {getClientFocus,listOfferings,createDraftEnrollment,saveClientFocus,listEnrollments,updateDraftEnrollment,prepareInvitation,prepareSessions,listSessions,setSessionTime}=require('./owner-repository.cjs');
+function bodyEmailError(error){return /^(Flowtel email delivery|Email delivery)/.test(error.message||'');}
 module.exports=async function ownerMentorshipHandler(req,res){
  setPublicCors(res,'GET, POST, OPTIONS');
  if(req.method==='OPTIONS')return res.status(204).end();
@@ -15,6 +17,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
   guards.authenticated(req);
   const ctx=await requireOwner(req);
   if(req.method==='GET'){
+   if(req.query?.accessEmailFor)return res.status(200).json({ok:true,emailPreview:await accessEmail.preview(ctx,{enrollmentId:req.query.accessEmailFor})});
    if(req.query?.focusFor)return res.status(200).json({ok:true,focus:await getClientFocus(ctx,{enrollmentId:req.query.focusFor,month:req.query.month})});
    if(req.query?.bookingsFor)return res.status(200).json({ok:true,...await bookings.listBookings(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.bookingsFor})});
    if(req.query?.replaysFor)return res.status(200).json({ok:true,replays:await recordings.listReplays(ctx,{enrollmentId:req.query.enrollmentId,sessionId:req.query.replaysFor})});
@@ -22,6 +25,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
    return res.status(200).json({ok:true,developmentVerification:verification.available(),offerings:await listOfferings(ctx),enrollments:await listEnrollments(ctx)});
   }
   const body=await guards.body(req);
+  if(body?.action==='send-access-email')return res.status(200).json({ok:true,...await accessEmail.send(ctx,{enrollmentId:body.enrollmentId})});
   if(body?.action==='verify-development')return res.status(200).json({ok:true,verification:await verification.run(ctx)});
   if(body?.action==='link-booking')return res.status(200).json({ok:true,session:await bookings.linkBooking(ctx,body)});
   if(body?.action==='unlink-booking')return res.status(200).json({ok:true,session:await bookings.unlinkBooking(ctx,body)});
@@ -57,6 +61,7 @@ module.exports=async function ownerMentorshipHandler(req,res){
   return res.status(400).json({ok:false,error:'Unsupported action'});
  }catch(error){
   // Avoid reflecting database internals in browser for 5xx failures.
+  if([502,503].includes(error?.statusCode)&&bodyEmailError(error))return res.status(error.statusCode).json({ok:false,error:error.message});
   if(!error?.statusCode || Number(error.statusCode)>=500){
     console.error('Mentorship owner request failed',error);
     return res.status(500).json({ok:false,error:'This mentorship action could not be saved. Please try again; if it repeats, tell us which button you clicked.'});
