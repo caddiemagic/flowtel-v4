@@ -43,3 +43,10 @@ body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%
 .moon-explorer-actions{display:flex;flex-wrap:wrap;gap:10px}
 .moon-explorer-actions a{display:inline-block;padding:10px 14px;border:1px solid #d4bfc9;border-radius:999px;text-decoration:none;color:#674e60;font:700 12px Arial,sans-serif}
 @media(max-width:520px){.moon-explorer-choices{grid-template-columns:1fr}.moon-explorer-actions a{width:100%;text-align:center}}
+
+/* Big Vision and season-planning interaction scenes */
+.moon-explorer-result textarea{display:block;width:100%;box-sizing:border-box;min-height:116px;margin-top:.85rem;padding:14px 16px;background:#fffefd;border:1px solid #d8c1cf;border-radius:13px;resize:vertical;font:inherit;line-height:1.6;color:#533d4b}
+.moon-explorer-result textarea:focus-visible{outline:2px solid #956d84;outline-offset:2px}
+.moon-explorer-result label{display:block;margin-top:.8rem}
+.future-letter-stage{width:100%;min-width:0}
+.future-letter-stage textarea{display:block;max-width:100%}
