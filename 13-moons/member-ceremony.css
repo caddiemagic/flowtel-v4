@@ -50,3 +50,22 @@ body.flowfm-platform-page{background:radial-gradient(ellipse at 50% 0,#eadddf 0%
 .moon-explorer-result label{display:block;margin-top:.8rem}
 .future-letter-stage{width:100%;min-width:0}
 .future-letter-stage textarea{display:block;max-width:100%}
+
+/* Initiations 5–6: intimate boundary ritual and interactive altar, one scene at a time. */
+.moon-boundary-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.moon-boundary-tabs button{padding:12px 5px;min-width:0}
+.moon-boundary-preview{margin:1.2rem 0 0;padding:.9rem 1rem;border-left:2px solid #b68ca5;background:#fff9fc;color:#67515f;font:italic 15px/1.7 Georgia,serif;overflow-wrap:anywhere}
+.moon-quiet-button{border:1px solid #d5c0ca;border-radius:999px;background:#fffafc;color:#785a6d;padding:12px 16px;font:700 13px Arial,sans-serif;cursor:pointer}
+.moon-quiet-button:disabled{opacity:.35;cursor:default}
+.moon-altar-compass{display:grid;grid-template-columns:minmax(0,1fr) minmax(80px,.85fr) minmax(0,1fr);grid-template-rows:auto auto auto;align-items:center;justify-items:stretch;gap:8px;margin:14px auto 16px;max-width:460px;min-height:225px}
+.moon-altar-point{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:70px;padding:12px 8px;border-radius:17px;border:1px solid #d8bdce;background:#fffafd;color:#6d4f63;cursor:pointer}
+.moon-altar-point strong{font:normal 1.15rem Georgia,serif}
+.moon-altar-point small{font:11px/1.35 Arial,sans-serif;text-align:center;overflow-wrap:anywhere}
+.moon-altar-point[aria-pressed=true]{background:#76546b;color:#fff;border-color:#76546b;box-shadow:0 6px 17px rgba(87,57,73,.14)}
+.moon-altar-point:focus-visible{outline:3px solid #ab829d;outline-offset:3px}
+.moon-altar-north{grid-column:2;grid-row:1}
+.moon-altar-east{grid-column:3;grid-row:2}
+.moon-altar-south{grid-column:2;grid-row:3}
+.moon-altar-west{grid-column:1;grid-row:2}
+.moon-altar-center{grid-column:2;grid-row:2;text-align:center;color:#a27d91;font:700 11px/1.6 Arial,sans-serif;letter-spacing:.09em}
+@media(max-width:560px){.moon-boundary-tabs{grid-template-columns:1fr}.moon-boundary-tabs button{min-height:42px}.moon-altar-compass{grid-template-columns:minmax(0,1fr) minmax(66px,.8fr) minmax(0,1fr);gap:5px}.moon-altar-point{padding:9px 4px}.moon-altar-point strong{font-size:1rem}.moon-altar-center{font-size:9px}}
