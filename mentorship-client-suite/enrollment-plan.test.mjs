@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import {prepareEnrollment} from "./enrollment-plan.mjs";
+const basic={startDate:"2026-10-20",activationDate:"2026-10-20",firstEmpowermentDate:"2026-11-03",localTime:"11:00"};
+const a=prepareEnrollment({...basic,offeringKey:"womb_activation"});
+assert.equal(a.sessions.length,1);assert.equal(a.endDate,"2026-11-03");assert.equal(a.supportEnd,"2026-11-03");
+const b=prepareEnrollment({...basic,offeringKey:"sacred_self_study"});
+assert.equal(b.sessions.length,7);assert.equal(b.sessions[2].localDate,"2026-11-17");assert.equal(b.endDate,"2027-01-20");
+const c=prepareEnrollment({...basic,offeringKey:"kundalini_creatrix"});
+assert.equal(c.sessions.length,19);assert.equal(c.supportEnd,"2027-07-20");
+const f=prepareEnrollment({offeringKey:"four_sessions",localTime:"11:00"});
+assert.equal(f.sessions.length,4);assert.ok(f.sessions.every(s=>s.localDate===null));assert.equal(f.supportEnd,null);
+assert.equal(prepareEnrollment({...basic,startDate:"2027-01-31",offeringKey:"sacred_self_study"}).endDate,"2027-04-30");
+assert.throws(()=>prepareEnrollment({...basic,startDate:"2026-02-30",offeringKey:"womb_activation"}));
+console.log("Enrollment planning tests passed.");

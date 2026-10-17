@@ -1,0 +1,48 @@
+name: Client Suite Tests
+on:
+  push:
+    branches: [main, feature/client-suite-v1]
+    paths:
+      - 'mentorship-client-suite/**'
+      - 'client/index.html'
+      - 'manager/index.html'
+      - 'server/guest-house-server.js'
+      - 'server/kingdom-membership.js'
+      - 'shared/flowtel-date.js'
+      - 'shared/time-and-space-core.js'
+      - 'shared/hourly-flow-rate-calculations.js'
+      - 'shared/initiation.js'
+      - 'scripts/test-call-your-caddie.mjs'
+      - 'scripts/test-kingdom-membership.cjs'
+      - 'scripts/test-four-seasons-time-space.mjs'
+      - 'scripts/test-queendom-beta-launch-readiness.mjs'
+      - 'api/caddie-acuity.js'
+      - 'vercel.json'
+      - '.github/workflows/client-suite-tests.yml'
+  workflow_dispatch:
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Client Suite tests
+        run: node --test mentorship-client-suite/*.test.*
+      - name: Run existing Flowtel regression checks
+        run: |
+          node scripts/test-call-your-caddie.mjs
+          node scripts/test-kingdom-membership.cjs
+          node scripts/test-four-seasons-time-space.mjs
+          node scripts/test-queendom-beta-launch-readiness.mjs
+      - name: Install pinned browser test runner
+        run: npm install --prefix /tmp/mentorship-browser --no-save --ignore-scripts playwright@1.56.1
+      - name: Install Chromium
+        run: /tmp/mentorship-browser/node_modules/.bin/playwright install --with-deps chromium
+      - name: Run fictional browser journey
+        run: node mentorship-client-suite/browser-e2e.cjs
+        env:
+          NODE_PATH: /tmp/mentorship-browser/node_modules

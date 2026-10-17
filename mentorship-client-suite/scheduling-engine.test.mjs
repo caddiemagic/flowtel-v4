@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { previewSchedule } from "./scheduling-engine.mjs";
+const base = { activationDate:"2026-10-20", firstEmpowermentDate:"2026-11-03", localTime:"11:00" };
+const a = previewSchedule({ ...base, offeringKey:"womb_activation" });
+assert.equal(a.length, 1); assert.equal(a[0].durationMinutes, 180);
+const b = previewSchedule({ ...base, offeringKey:"sacred_self_study" });
+assert.equal(b.length, 7); assert.equal(b[1].date, "2026-11-03"); assert.equal(b[2].date, "2026-11-17");
+const c = previewSchedule({ ...base, offeringKey:"kundalini_creatrix" });
+assert.equal(c.length, 19); assert.equal(c[18].kind, "empowerment");
+const d = previewSchedule({ ...base, offeringKey:"four_sessions" });
+assert.equal(d.length, 4); assert.ok(d.every(x => x.date === null && x.status === "unscheduled"));
+assert.throws(() => previewSchedule({ ...base, offeringKey:"womb_activation", activationDate:"2026-02-30" }));
+console.log("PASS: four offerings, recurrence, flexible scheduling, and invalid date");
