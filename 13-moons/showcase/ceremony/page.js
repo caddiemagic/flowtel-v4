@@ -1,4 +1,4 @@
-import {readWishPreview,writeWishPreview} from '/13-moons/showcase/wish-preview-store.js';
+import {readWishPreview,writeWishPreview,sealWishPreview} from '/13-moons/showcase/wish-preview-store.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import {generateBigVisionVortex,flowtelEntryMonth} from '/shared/13-moon-vortex.js';
 import {thirteenMonthsAfter} from '/shared/13-moons-monthly-practices.js';
@@ -21,7 +21,7 @@ const answers={season:'',checkin:'',reflection:'',letter:'',startDate:'',vortex:
 const vortex=generateBigVisionVortex(flowtelEntryMonth());
 let vortexIndex=0;
 const previousWishes=readWishPreview();
-if(opening===2&&previousWishes?.startMonth===vortex[0].month)answers.vortex=previousWishes.wishes.slice();
+if(opening===2&&previousWishes?.startMonth===vortex[0].month){answers.vortex=previousWishes.wishes.slice();if(previousWishes.sealed)location.replace('/13-moons/showcase/');}
 const add=(tag,text,parent=root)=>{const el=document.createElement(tag);if(text!==undefined)el.textContent=text;parent.append(el);return el;};
 function heading(title,body){add('h1',title);if(body)add('p',body);}
 function render(){
@@ -79,12 +79,17 @@ function render(){
   const controls=add('div');controls.className='options';
   const previous=add('button','← Previous moon',controls);previous.className='option';previous.disabled=vortexIndex===0;
   previous.onclick=()=>{vortexIndex=Math.max(0,vortexIndex-1);render();};
-  const next=add('button',vortexIndex===12?'Close the Vortex →':current?'Begin wishing →':'Next moon →',controls);next.className='option';
+  const next=add('button',vortexIndex===12?'Review my wishes →':current?'Begin wishing →':'Next moon →',controls);next.className='option';
   next.onclick=()=>{if(vortexIndex<12){vortexIndex++;render();}else{step++;render();}};
  }else if(scene==='vortexClose'){
-  add('span','✺').className='moon-mark';heading('Your twelve wishes across thirteen moons','The current month was your starting point, not a wish. You returned to it in the thirteenth position, one year later. In the future member experience, your wishes will be privately saved and sealed.');
-  const returnLink=add('a','Return to the Wish & Witness room →');returnLink.href='/13-moons/showcase/#wishesPreview';
-  add('p','Your preview wishes are stored only in this browser tab, not in Flowtel. You can clear them in the library.');
+  add('span','✺').className='moon-mark';heading('Seal your twelve wishes','The current moon held your arrival. The next twelve months now hold the wishes you will return to one moon at a time.');
+  const count=answers.vortex.slice(1).filter(w=>w.trim()).length;
+  add('p',count+' of 12 wishes written.');
+  add('p','Once sealed, the opening Vortex will disappear from your library. Each calendar moon portal will hold only that moon’s wish and ongoing reflections.');
+  const seal=add('button','Seal my twelve wishes');seal.type='button';seal.className='seal-wishes';seal.disabled=count!==12;
+  const result=add('p',count===12?'Ready to seal. This is a design preview, not a Flowtel save.':'Return to the moons to finish your wishes.');
+  seal.onclick=()=>{if(sealWishPreview(vortex[0].month,answers.vortex)){location.href='/13-moons/showcase/#calendarPortals';}else result.textContent='Unable to seal. Please check all twelve wishes.';};
+  add('p','In this preview, the sealed wishes remain only in this browser tab session.');
   const link=add('a','Enter Initiation 1 →');link.href='?lesson=1';
  }else if(scene==='arrival'){
   add('span','☾').className='moon-mark';
