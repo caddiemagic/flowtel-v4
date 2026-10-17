@@ -107,3 +107,10 @@ footer{border-color:#ddc7a5;color:#927b64;padding-top:22px;margin-top:15px}
 /* Keep small secondary text legible against the soft palette. */
 .metrics span,.muted{color:#7d6757}.preview-label{color:#806c5a}.eyebrow,.mini{color:#896940}.brand span{color:#876c48}.badge{color:#7a5c3d}
 .library-page .suite-nav,.library-page .community-actions{display:none}.library-page #recordings{border:0;padding-top:10px;margin-top:0}.library-page .replay-grid{grid-template-columns:1fr}.library-page .recording-card{min-height:0;padding:26px 30px}.library-page .recording-card>button{margin-top:8px}.library-page .recording-card h4{margin-bottom:5px}.library-page #libraryBack{display:inline-block;margin:0 0 12px}.library-page .program-heading{padding-top:5px}@media(max-width:700px){.suite-nav{grid-template-columns:repeat(2,minmax(0,1fr))}.library-page .recording-card{padding:23px}}
+
+/* Matching destination and community buttons, with community access on the right. */
+.suite-nav>a.community-button{display:inline-flex;align-items:center;justify-content:center;background:linear-gradient(120deg,#97705f,#806152);border:1px solid #b49363;color:#fff7e9;line-height:1.65;text-align:center}
+.suite-nav>a.community-button:hover{background:#715144;color:#fff7e9}
+.suite-nav>#telegramAccess{margin-left:auto}
+.quick-links .button-link{font-size:13px;min-width:190px;text-align:center}
+@media(max-width:700px){.suite-nav{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.suite-nav>#telegramAccess{margin-left:0}.suite-nav>a.community-button{padding:10px 8px}.quick-links .button-link{min-width:190px;max-width:100%}}
