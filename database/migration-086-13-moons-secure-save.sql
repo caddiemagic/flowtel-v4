@@ -28,7 +28,7 @@ begin
   end if;
   if p_reflections is null or jsonb_typeof(p_reflections) <> 'array'
      or jsonb_array_length(p_reflections) <> 13 then
-    raise exception 'Exactly 13 reflections required';
+    raise exception 'Exactly 13 moon positions required';
   end if;
   if exists (
     select 1 from jsonb_array_elements(p_reflections) as entry(value)
@@ -36,9 +36,12 @@ begin
   ) then
     raise exception 'Invalid reflection';
   end if;
+  if p_reflections->>0 <> '' then
+    raise exception 'Current moon must remain unwished' using errcode='22023';
+  end if;
   v_complete := not exists (
-    select 1 from jsonb_array_elements_text(p_reflections) as entry(value)
-    where length(btrim(entry.value)) = 0
+    select 1 from jsonb_array_elements_text(p_reflections) with ordinality as entry(value,position)
+    where entry.position > 1 and length(btrim(entry.value)) = 0
   );
   select * into v_existing from public.flowtel_13_moons_vortices
   where user_id=v_uid for update;
