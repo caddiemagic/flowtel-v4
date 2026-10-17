@@ -70,6 +70,61 @@ function lessonSection(label, hint, content, open=false) {
 function lessonText(tag,text){
   const node=document.createElement(tag);node.textContent=text;return node;
 }
+function makeCeremonialStages(card){
+ const disclosure=card.querySelector('.initiation-lesson-open');
+ const contents=disclosure?.querySelector('.initiation-lesson-contents');
+ if(!disclosure||!contents)return;
+ const stages=[];
+ const heading=card.querySelector('.initiation-lesson-intro');
+ const welcome=document.createElement('section');
+ welcome.className='moon-stage';
+ const title=document.createElement('h4');title.textContent='The invitation';
+ const description=document.createElement('p');description.textContent=heading?.textContent||'';
+ welcome.append(title,description);stages.push(welcome);
+ const sections=[...contents.querySelectorAll(':scope > .initiation-lesson-section')];
+ for(const section of sections){
+  const topLabel=section.querySelector(':scope > summary strong')?.textContent||'Your initiation';
+  const body=section.querySelector(':scope > .initiation-section-body');
+  if(!body)continue;
+  const nested=[...body.querySelectorAll(':scope > .initiation-lesson-section')];
+  if(nested.length){
+   for(const child of nested){
+    const panel=document.createElement('section');panel.className='moon-stage';
+    const title=document.createElement('h4');
+    title.textContent=child.querySelector(':scope > summary strong')?.textContent||topLabel;
+    const inner=child.querySelector(':scope > .initiation-section-body');
+    panel.append(title);
+    if(inner)while(inner.firstChild)panel.append(inner.firstChild);
+    stages.push(panel);
+   }
+  } else {
+   const panel=document.createElement('section');panel.className='moon-stage';
+   const title=document.createElement('h4');title.textContent=topLabel;
+   panel.append(title);
+   while(body.firstChild)panel.append(body.firstChild);
+   stages.push(panel);
+  }
+ }
+ const reader=document.createElement('div');reader.className='moon-stage-reader';
+ const progress=document.createElement('p');progress.className='moon-stage-progress';progress.setAttribute('aria-live','polite');
+ const frame=document.createElement('div');frame.className='moon-stage-frame';
+ const controls=document.createElement('nav');controls.className='moon-stage-controls';
+ const previous=document.createElement('button');previous.type='button';previous.textContent='← Previous';
+ const next=document.createElement('button');next.type='button';next.textContent='Continue →';
+ controls.append(previous,next);
+ reader.append(progress,frame,controls);
+ let index=0;
+ function show(n){
+  index=Math.max(0,Math.min(stages.length-1,n));
+  frame.replaceChildren(stages[index]);
+  progress.textContent='STEP '+(index+1)+' OF '+stages.length;
+  previous.disabled=index===0;next.disabled=index===stages.length-1;
+  next.textContent=index===stages.length-1?'End of this initiation':'Continue →';
+ }
+ previous.onclick=()=>show(index-1);next.onclick=()=>show(index+1);
+ disclosure.replaceWith(reader);
+ show(0);
+}
 function renderInitiationPath(userId) {
   const root=byId('initiationPath');
   if(!root)return;
@@ -173,6 +228,7 @@ function renderInitiationPath(userId) {
     card.append(lesson);
     card.id='initiation-'+module.index;
     root.append(card);
+    makeCeremonialStages(card);
   }
 }
 function renderRows(rows, reflections) {
