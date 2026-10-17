@@ -97,13 +97,29 @@ async function getReplayPlaybackUrl(ctx,{enrollmentId,replayId}){
 module.exports={ownedEnrollment,clientSuite,listMyMentorships,listPreparedMentorships,claimPreparedMentorship,getReplayPlaybackUrl};
 
 // Reuse the existing consent-aware RPC with the client's JWT, never service-role authorization.
-async function myFlowContext(ctx){
+async function myFlowContext(ctx,now=new Date()){
  context(ctx);if(!ctx.token){const e=new Error('Verified session required');e.statusCode=401;throw e;}
- const snapshot=await fetchJson(ctx.supabaseUrl+'/rest/v1/rpc/flowtel_get_cycle_subject_snapshot',{method:'POST',headers:userHeaders(ctx.serviceKey,ctx.token),body:JSON.stringify({p_subject_id:ctx.user.id})});
- const current=snapshot?.current;
- const day=Number(current?.cycle_day);
- const seasons=['Inner Winter','Inner Spring','Inner Summer','Inner Autumn'];
- const cycle=current?.latest_checkin_date?{day:Number.isInteger(day)&&day>0?day:null,season:seasons.includes(current.inner_season)?current.inner_season:null,asOf:String(current.latest_checkin_date).slice(0,10)}:null;
- return {cycle};
+ const headers=userHeaders(ctx.serviceKey,ctx.token);
+ // Reuse the same consent-aware cycle-data RPC as Flowtel, with a narrow projection.
+ const history=await fetchJson(ctx.supabaseUrl+'/rest/v1/rpc/flowtel_get_cycle_data_entries?select=cycle_start_date,checkin_date,cycle_day_actual,inner_season&order=checkin_date.desc,checked_in_at.desc&limit=1',{method:'POST',headers,body:JSON.stringify({p_subject_id:ctx.user.id,p_scope:'self'})});
+ if(!Array.isArray(history))throw Error('Cycle data unavailable');
+ const latest=history[0];if(!latest?.checkin_date)return {cycle:null};
+ const [{flowtelTodayISO,dateOnlyParts},{getInnerSeason}]=await Promise.all([import('../shared/flowtel-date.js'),import('../shared/seasons.js')]);
+ const today=flowtelTodayISO(now),start=dateOnlyParts(latest.cycle_start_date),todayParts=dateOnlyParts(today);
+ let day=Number(latest.cycle_day_actual),calculated=false;
+ if(start&&start.iso<=today){day=Math.max(1,Math.round((Date.UTC(todayParts.year,todayParts.month-1,todayParts.day)-Date.UTC(start.year,start.month-1,start.day))/86400000)+1);calculated=true;}
+ if(!Number.isInteger(day)||day<1)day=null;
+ const season=day?getInnerSeason(day):null;
+ let reflections=null;
+ if(day){
+  const q=new URLSearchParams({select:'id,flowtel_stays!inner(id)',client_id:'eq.'+ctx.user.id,'flowtel_stays.client_id':'eq.'+ctx.user.id,'flowtel_stays.or':'(cycle_day_actual.eq.'+day+',and(cycle_day_actual.is.null,cycle_day_calculated.eq.'+day+'),and(cycle_day_actual.is.null,cycle_day_calculated.is.null,cycle_day_claimed.eq.'+day+'))'});
+  try{
+   // HEAD counts rows without retrieving reflection text. Both tables remain under user RLS.
+   const response=await fetch(ctx.supabaseUrl+'/rest/v1/flowtel_reflections?'+q,{method:'HEAD',headers:{...headers,Prefer:'count=exact'}});
+   if(response.ok){const match=response.headers.get('content-range')?.match(/\/(\d+)$/);if(match)reflections=Number(match[1]);}
+  }catch{} // An unavailable count must not turn into a false zero or hide the cycle.
+ }
+ return {cycle:{day,season,asOf:String(latest.checkin_date).slice(0,10),calculated,reflections}};
 }
+
 module.exports.myFlowContext=myFlowContext;

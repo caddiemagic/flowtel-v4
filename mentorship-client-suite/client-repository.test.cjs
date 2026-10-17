@@ -6,7 +6,7 @@ const enrollment='22222222-2222-4222-8222-222222222222';
 const session='33333333-3333-4333-8333-333333333333';
 const ctx={user:{id:user},supabaseUrl:'https://example.supabase.co',serviceKey:'test-service-key'};
 async function simulate(responses,action){
- const before=global.fetch;const calls=[];global.fetch=async (url,options)=>{calls.push({url:String(url),options});const reply=responses.shift();assert.notEqual(reply,undefined,'Unexpected fetch');return {ok:true,status:200,text:async()=>JSON.stringify(reply)}};
+ const before=global.fetch;const calls=[];global.fetch=async (url,options)=>{calls.push({url:String(url),options});const reply=responses.shift();assert.notEqual(reply,undefined,'Unexpected fetch');return {ok:reply.ok!==false,status:200,headers:{get:()=>Number.isInteger(reply.count)?'*/'+reply.count:null},text:async()=>JSON.stringify(reply)}};
  try{return {output:await action(),calls}}finally{global.fetch=before}
 }
 test('rejects missing authenticated context before database request',async()=>{
@@ -90,10 +90,24 @@ test('prepared enrollment discovery is limited to verified owner of email',async
 test('program titles are projected without exposing the offering snapshot',async()=>{
  const {output}=await simulate([[{id:enrollment,status:'active',offering_snapshot:{title:'Sacred Self-Study',internal:'PRIVATE'}}]],()=>listMyMentorships(ctx));assert.equal(output[0].programTitle,'Sacred Self-Study');assert.equal(output[0].offering_snapshot,undefined);assert.ok(!JSON.stringify(output).includes('PRIVATE'));
 });
-test('cycle context reuses the existing consent RPC with the client token and filters private profile data',async()=>{
+test('cycle section reuses existing cycle data with client authorization and returns only safe fields',async()=>{
  const {myFlowContext}=require('./client-repository.cjs');
- const {output,calls}=await simulate([{subject:{email:'PRIVATE'},current:{cycle_day:22,inner_season:'Inner Autumn',latest_checkin_date:'2026-10-15'}}],()=>myFlowContext({...ctx,token:'fictional-client-jwt'}));
- assert.deepEqual(output,{cycle:{day:22,season:'Inner Autumn',asOf:'2026-10-15'}});assert.equal(calls[0].options.headers.Authorization,'Bearer fictional-client-jwt');assert.equal(JSON.parse(calls[0].options.body).p_subject_id,user);assert.ok(!JSON.stringify(output).includes('PRIVATE'));
+ const {output,calls}=await simulate([[{cycle_day_actual:22,cycle_start_date:'2026-09-24',checkin_date:'2026-10-15',inner_season:'Inner Autumn',reflection_text:'PRIVATE',client_name:'PRIVATE'}],{count:4}],()=>myFlowContext({...ctx,token:'fictional-client-jwt'},new Date('2026-10-16T02:00:00Z')));
+ assert.deepEqual(output,{cycle:{day:22,season:'Inner Autumn',asOf:'2026-10-15',calculated:true,reflections:4}});
+ assert.equal(calls.length,2);for(const call of calls)assert.equal(call.options.headers.Authorization,'Bearer fictional-client-jwt');
+ assert.equal(JSON.parse(calls[0].options.body).p_subject_id,user);assert.equal(JSON.parse(calls[0].options.body).p_scope,'self');assert.ok(!JSON.stringify(output).includes('PRIVATE'));
+ assert.equal(calls[1].options.method,'HEAD');assert.equal(calls[1].options.headers.Prefer,'count=exact');const query=new URL(calls[1].url).searchParams;assert.equal(query.get('client_id'),'eq.'+user);assert.equal(query.get('flowtel_stays.client_id'),'eq.'+user);assert.match(query.get('flowtel_stays.or'),/cycle_day_actual.eq.22/);
+});
+test('cycle section follows Pacific dates and shared Receiving Season rules without resetting the cycle',async()=>{
+ const {myFlowContext}=require('./client-repository.cjs');
+ const {output}=await simulate([[{cycle_day_actual:33,cycle_start_date:'2026-09-12',checkin_date:'2026-10-14'}],{count:0}],()=>myFlowContext({...ctx,token:'client'},new Date('2026-10-16T02:00:00Z')));
+ assert.equal(output.cycle.day,34);assert.equal(output.cycle.season,'Receiving Season');assert.equal(output.cycle.reflections,0);
+});
+test('cycle section handles no records, missing cycle starts, and count failure without invented data',async()=>{
+ const {myFlowContext}=require('./client-repository.cjs');
+ assert.deepEqual((await simulate([[]],()=>myFlowContext({...ctx,token:'client'}))).output,{cycle:null});
+ const {output}=await simulate([[{cycle_day_actual:22,checkin_date:'2026-10-15',cycle_start_date:null}],{ok:false}],()=>myFlowContext({...ctx,token:'client'}));
+ assert.equal(output.cycle.day,22);assert.equal(output.cycle.calculated,false);assert.equal(output.cycle.reflections,null);
 });
 test('cycle context never substitutes service-role authority for a missing user token',async()=>{const {myFlowContext}=require('./client-repository.cjs');const {calls}=await simulate([],()=>assert.rejects(myFlowContext(ctx),e=>e.statusCode===401));assert.equal(calls.length,0);});
 test('Zoom links are read only from client-owned scheduled appointments, never arbitrary URL schemes',async()=>{

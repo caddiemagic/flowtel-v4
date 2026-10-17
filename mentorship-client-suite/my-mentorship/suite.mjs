@@ -1,7 +1,6 @@
 const fictionalPreview=document.body.dataset.preview==='fictional';
 const demo=fictionalPreview?await import('../dashboard-preview.mjs'):null;
 const supabase=fictionalPreview?demo.demoAuth:(await import('../../shared/supabase.js')).supabase;
-import {getMoonMagic} from '../../shared/moon.js';
 import {flowtelTodayISO,formatDateOnly} from '../../shared/flowtel-date.js';
 import {dashboardModel,filterSessions,kindLabel,dateLabel,timeLabel} from '../dashboard-model.mjs';
 import {sessionCalendar} from '../session-calendar.mjs';
@@ -29,8 +28,8 @@ function clearPrivate(){
  discardSessionView();
  epoch++;selection=null;currentSuite=null;
  $('callFilter').value='upcoming';$('callResults').textContent='';$('sessionDetailBody').replaceChildren();$('sessionDetailTitle').textContent='';$('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));$('replayResults').textContent='';
- for(const id of ['enrollments','prepared','sessions','focus','replays','nextCall'])$(id).replaceChildren();
- for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','programStatus','progressNote'])$(id).textContent='';
+ for(const id of ['enrollments','prepared','sessions','replays','nextCall'])$(id).replaceChildren();
+ for(const id of ['title','dates','currentFocus','focusMonth','cycleHeading','cycleSeason','cycleNote','cycleReflections','programStatus','progressNote'])$(id).textContent='';
  for(const id of ['completedCount','remainingCount','replayCount'])$(id).textContent='0';
  $('progressBar').style.width='0%';$('progressCaption').textContent='';
  for(const id of ['detail','preparedSection','enrollmentSection'])$(id).hidden=true;
@@ -60,8 +59,7 @@ function renderSessions(model){
 function renderFocus(model){
  $('focusMonth').textContent=new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'America/Los_Angeles'}).format(new Date(model.today+'T12:00:00-08:00'));
  $('currentFocus').textContent=model.focus?.client_visible_focus||'Your focus for this month will appear here when it is ready.';
- const root=$('focus');root.replaceChildren();if(!model.focuses.length){empty(root,'As your journey unfolds, your monthly focus will be gathered here.');return;}
- for(const f of model.focuses){const row=element('div','','focus-entry');row.append(element('strong',formatDateOnly(f.focus_month,{month:'long',year:'numeric'})),element('p',f.client_visible_focus));root.append(row);}
+
 }
 function renderReplays(suite,id,version){
  stopPlayers();const root=$('replays');root.replaceChildren();const search=$('replaySearch').value.trim().toLocaleLowerCase();const sessionFilter=$('replaySession').value;
@@ -109,28 +107,29 @@ $('closeSession').onclick=()=>$('sessionDialog').close();
 $('callFilter').addEventListener('change',()=>{if(currentSuite)renderSessions(dashboardModel(currentSuite));});
 for(const [id,event] of [['replaySearch','input'],['replaySession','change']])$(id).addEventListener(event,()=>{if(currentSuite)renderReplays(currentSuite,selection,currentVersion);});
 async function renderFlow(version){
- const moon=getMoonMagic();$('moonHeading').textContent=moon.emoji+' Moon day '+moon.moonDay;$('moonPhase').textContent=moon.phase;$('moonTheme').textContent=moon.theme;
- $('cycleHeading').textContent='Your cycle';$('cycleSeason').textContent='Your rhythm is personal.';$('cycleNote').textContent='Loading your existing Flowtel check-in…';
+ $('cycleHeading').textContent='Your cycle';$('cycleSeason').textContent='';$('cycleReflections').textContent='';$('cycleNote').textContent='Loading your Flowtel cycle…';
  try{const data=await request('&context=1');if(version!==epoch)return;const cycle=data.context?.cycle;
- if(!cycle){$('cycleNote').textContent='No cycle check-in recorded yet. There is no need to guess your day.';return;}
- $('cycleHeading').textContent=cycle.day?'Recorded day '+cycle.day:'Your last check-in';$('cycleSeason').textContent=cycle.season||'Inner Season not recorded';
- $('cycleNote').textContent='Last recorded '+dateLabel(cycle.asOf)+(cycle.asOf===flowtelTodayISO()?' · Today’s check-in.':' · This is a past check-in, not a prediction of today’s cycle day.');
- }catch{if(version===epoch)$('cycleNote').textContent='Your cycle snapshot is unavailable. You can return to your existing Flowtel journal below.';}
+ if(!cycle){$('cycleNote').textContent='Check into the Flowtel to record your cycle day.';return;}
+ $('cycleHeading').textContent=cycle.day?(cycle.calculated?'Cycle day ':'Recorded day ')+cycle.day:'Your last check-in';$('cycleSeason').textContent=cycle.season||'Inner Season not recorded';
+ $('cycleReflections').textContent=Number.isInteger(cycle.reflections)?cycle.reflections+' reflection'+(cycle.reflections===1?'':'s')+' on cycle day '+cycle.day:'Reflection count unavailable.';
+ $('cycleNote').textContent='Last checked in '+dateLabel(cycle.asOf)+(cycle.calculated&&cycle.asOf!==flowtelTodayISO()?' · Based on your recorded cycle start.':'');
+ }catch{if(version===epoch)$('cycleNote').textContent='Your cycle is unavailable right now. Check into the Flowtel to view it.';}
 }
+
 async function open(id){
  const version=++epoch;discardSessionView();selection=id;$('error').textContent='';$('detail').hidden=true;$('replays').replaceChildren();$('status').textContent='Preparing your private journey…';
- try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);
+ try{const {suite}=await request('&enrollmentId='+encodeURIComponent(id));if(version!==epoch)return;currentSuite=suite;currentVersion=version;const model=dashboardModel(suite);$('callReplaysLink').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays&enrollmentId='+encodeURIComponent(id)+'#calls';
  $('replaySearch').value='';$('replaySession').replaceChildren(new Option('All sessions',''));
  for(const session of model.sessions)if((suite.replays||[]).some(replay=>replay.sessionId===session.id))$('replaySession').add(new Option('Session '+session.session_number+' · '+kindLabel(session.session_kind),session.id));
  $('title').textContent=suite.enrollment.programTitle||'Your private mentorship';$('dates').textContent='Begins '+dateLabel(suite.enrollment.startsOn)+(suite.enrollment.endsOn?' · Through '+dateLabel(suite.enrollment.endsOn):' · No fixed end date');$('programStatus').textContent=suite.enrollment.status;
  $('completedCount').textContent=model.completed;$('remainingCount').textContent=model.remaining;$('replayCount').textContent=(suite.replays||[]).length;$('progressCaption').textContent=model.completed+' of '+model.total+' sessions completed';$('progress').setAttribute('aria-valuenow',String(model.percent));$('progressBar').style.width=model.percent+'%';
  $('progressNote').textContent=model.cancelled?model.cancelled+' cancelled session'+(model.cancelled===1?'':'s')+' shown in your session history.':'Each session is one part of your unfolding.';
- renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';renderFlow(version);
+ renderNext(model);renderSessions(model);renderFocus(model);renderReplays(suite,id,version);room(activePanel,false);$('detail').hidden=false;if(new URLSearchParams(location.search).get('view')==='replays'){room('calls',false);$('recordings').scrollIntoView({block:'start'});}$('status').textContent=fictionalPreview?'You are exploring a fictional client suite.':'Your private suite is ready.';renderFlow(version);
  }catch(error){if(version===epoch){$('error').textContent=error.message;$('status').textContent='Your suite could not load.';}}
 }
 async function claim(id,button){button.disabled=true;$('error').textContent='';try{const data=await request('',{action:'claim-prepared',enrollmentId:id});await connect(data.enrollment?.id);}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}}
 async function connect(preferred=null){
- const prior=preferred||selection;clearPrivate();const version=epoch;$('error').textContent='';$('login').hidden=true;$('access').classList.remove('verified');$('status').textContent='Preparing your suite…';
+ const prior=preferred||selection||new URLSearchParams(location.search).get('enrollmentId');clearPrivate();const version=epoch;$('error').textContent='';$('login').hidden=true;$('access').classList.remove('verified');$('status').textContent='Preparing your suite…';
  try{const {data}=await supabase.auth.getSession();account=data.session?.user?.id||null;const {enrollments}=await request();if(version!==epoch)return;
  $('access').classList.add('verified');$('status').textContent=fictionalPreview?'Fictional design preview · No client data or bookings.':'Your private mentorship access is verified.';$('enrollmentSection').hidden=enrollments.length===1;
  const root=$('enrollments');root.replaceChildren();
@@ -144,4 +143,5 @@ async function connect(preferred=null){
 }
 $('login').onsubmit=async event=>{event.preventDefault();const button=$('login').querySelector('button');button.disabled=true;try{const {error}=await supabase.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});$('password').value='';if(error)throw error;await connect();}catch(error){$('error').textContent=error.message;}finally{button.disabled=false;}};
 supabase.auth.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'){clearPrivate();account=null;$('status').textContent='Signed out';$('login').hidden=false;$('access').classList.remove('verified');}else if(event==='SIGNED_IN'&&session?.user?.id!==account){clearPrivate();setTimeout(()=>connect(),0);}});
+$('callReplaysLink').href=(fictionalPreview?'/mentorship-client-suite/client-suite-preview/':'/mentorship-client-suite/my-mentorship/')+'?view=replays#calls';
 $('retry').onclick=()=>connect();connect();

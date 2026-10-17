@@ -15,6 +15,8 @@ async function start(){
  if(u.pathname==='/auth/v1/logout')return send(204,null);
  if(u.pathname==='/auth/v1/user'){const token=req.headers.authorization?.slice(7);if(users.has(token))return send(200,users.get(token));if(!['owner','a','b'].includes(token))return send(401,{message:'Invalid fictional token'});return send(200,{id:token==='a'?ids.a:token==='b'?ids.b:ids.offering,email:'fictional-'+token+'@example.com',email_confirmed_at:'2026-01-01T00:00:00Z'})}
  if(u.pathname==='/rest/v1/rpc/flowtel_current_user_is_concierge')return send(200,req.headers.authorization==='Bearer owner');
+ if(u.pathname==='/rest/v1/rpc/flowtel_get_cycle_data_entries'){const data=await read();const user=req.headers.authorization==='Bearer a'?ids.a:req.headers.authorization==='Bearer b'?ids.b:null;if(!user||data.p_subject_id!==user||data.p_scope!=='self')return send(403,{});return send(200,[{cycle_day_actual:22,inner_season:'Inner Autumn',checkin_date:'2026-10-15',cycle_start_date:null}]);}
+ if(u.pathname==='/rest/v1/flowtel_reflections'&&req.method==='HEAD'){res.writeHead(200,{'Content-Range':'*/3'});return res.end();}
  if(u.pathname==='/rest/v1/rpc/flowtel_get_cycle_subject_snapshot'){const data=await read();const user=req.headers.authorization==='Bearer a'?ids.a:req.headers.authorization==='Bearer b'?ids.b:null;if(!user||data.p_subject_id!==user)return send(403,{message:'Consent required'});return send(200,{subject:{email:'PRIVATE-SHOULD-NOT-LEAK'},current:{cycle_day:22,inner_season:'Inner Autumn',latest_checkin_date:'2026-10-15'}})}
  if(u.pathname.startsWith('/rest/v1/flowtel_mentorship_')||u.pathname==='/rest/v1/flowtel_external_appointments'){
  if(req.headers.apikey!=='fictional-service')return send(403,{message:'Service access required'});

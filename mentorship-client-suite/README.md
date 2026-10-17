@@ -38,7 +38,7 @@ Signed playback links remain usable for up to five minutes after hiding a record
 
 ## Connected client dashboard
 
-`my-mentorship/` opens My Dashboard. My Suite links directly to `/client/?suite=1`; My Flow links directly to `/flow-map/`. My Calls combines upcoming sessions, session history and the private replay library. The single-enrollment case opens automatically. Program titles come from a restricted projection of the enrollment offering snapshot; the full snapshot is not sent to the client. The dashboard selects the current Pacific month focus and excludes historical calls from the next-call card. Recorded cycle information is explicitly dated and fetched through the existing consent-aware RPC using the client's JWT. Existing check-in behavior is unchanged.
+`my-mentorship/` opens My Dashboard. The My Suite tab is replaced by an on-dashboard cycle summary and Check into the Flowtel today button. My Flow links directly to `/flow-map/` in a new browsing context. My Calls combines upcoming sessions, session history and the private replay library. The single-enrollment case opens automatically. Program titles come from a restricted projection of the enrollment offering snapshot; the full snapshot is not sent to the client. The dashboard selects the current Pacific month focus and excludes historical calls from the next-call card. Recorded cycle information is explicitly dated and fetched through the existing consent-aware RPC using the client's JWT. Existing check-in behavior is unchanged.
 
 Zoom links are shown only for confirmed sessions linked to a scheduled external appointment belonging to that client, and only HTTPS Zoom hosts are accepted. This does not create or synchronize appointments.
 
@@ -70,3 +70,9 @@ The owner desk loads the saved client-visible focus for the selected enrollment 
 ## Recording upload recovery
 
 The owner sees authorization, transfer and saving stages. If transfer succeeds but saving details fails, Retry saving recording reuses the uploaded file while this editor remains open. It does not persist signed tokens or files to browser storage. Empty browser MIME values can use supported filename extensions; server Storage metadata validation still applies. New replay IDs use the randomized upload UUID and the existing primary key to prevent duplicate finalization, including concurrent attempts. Existing recordings retain their original title and visibility on retry. A transferred file is still private until explicitly published. Page reload or leaving the editor can discard recovery state; interrupted uploads can leave private unlisted objects.
+
+## Dashboard cycle summary and direct links
+
+The dashboard shows cycle day, Inner Season and count of saved reflections on that cycle day across visits. It reuses the consent-aware cycle-data RPC, the existing cycle-start/Pacific-date convention and shared Inner Season rules, including Receiving Season. It does not infer a new period or reset the cycle. Without a start date, it labels the last recorded day. Last check-in is shown explicitly. Reflection totals use an authenticated HEAD count scoped to the user's reflections and stays, including legacy cycle-day fallback, without retrieving reflection text. Count failure appears as unavailable, not zero. No check-in or reflection is written.
+
+The two bottom cards are simply Call Replays and My Flow Map. Both open separately with noopener/noreferrer; the dashboard stays open. The replay link retains the selected enrollment and opens the library; the new page still checks client ownership. Browser settings decide whether a new context is a window or tab.

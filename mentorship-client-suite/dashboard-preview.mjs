@@ -12,7 +12,7 @@ export async function demoRequest(params,body){
  if(body)throw Error('This is a fictional preview. No changes are saved.');
  const query=new URLSearchParams(params.replace(/^&/,''));
  if(query.has('playbackReplayId'))throw Error('This is a fictional preview. Recordings are not connected.');
- if(query.get('context')==='1')return {context:{cycle:{day:22,season:'Inner Autumn',asOf:today}}};
+ if(query.get('context')==='1')return {context:{cycle:{day:22,season:'Inner Autumn',asOf:today,calculated:true,reflections:5}}};
  if(query.get('prepared')==='1')return {prepared:[]};
  if(query.has('enrollmentId'))return {suite};
  return {enrollments:[enrollment]};
