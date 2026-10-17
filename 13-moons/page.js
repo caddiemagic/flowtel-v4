@@ -1,3 +1,4 @@
+import {createCycleDayExplorer} from '/13-moons/lesson-interactions.js';
 import {showMemberMoonPortals} from '/13-moons/member-moon-portals.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
@@ -70,7 +71,7 @@ function lessonSection(label, hint, content, open=false) {
 function lessonText(tag,text){
   const node=document.createElement(tag);node.textContent=text;return node;
 }
-function makeCeremonialStages(card){
+function makeCeremonialStages(card,moduleIndex){
  const disclosure=card.querySelector('.initiation-lesson-open');
  const contents=disclosure?.querySelector('.initiation-lesson-contents');
  if(!disclosure||!contents)return;
@@ -103,6 +104,13 @@ function makeCeremonialStages(card){
    panel.append(title);
    while(body.firstChild)panel.append(body.firstChild);
    stages.push(panel);
+  }
+  if(topLabel.startsWith('01') && (moduleIndex===1||moduleIndex===2)){
+   const interactive=document.createElement('section');interactive.className='moon-stage';
+   const h=document.createElement('h4');
+   h.textContent=moduleIndex===1?'Explore your cycle day':'Explore your Inner Seasons';
+   interactive.append(h,createCycleDayExplorer(moduleIndex===1?'track':'seasons'));
+   stages.push(interactive);
   }
  }
  const reader=document.createElement('div');reader.className='moon-stage-reader';
@@ -228,7 +236,7 @@ function renderInitiationPath(userId) {
     card.append(lesson);
     card.id='initiation-'+module.index;
     root.append(card);
-    makeCeremonialStages(card);
+    makeCeremonialStages(card,module.index);
   }
 }
 function renderRows(rows, reflections) {
