@@ -32,7 +32,7 @@ async function start(){
  if(u.pathname.startsWith('/storage/v1/object/authenticated/'))return send(403,{});
  if(u.pathname.startsWith('/storage/v1/object/upload/sign/')&&req.method==='PUT'){const chunks=[];for await(const chunk of req)chunks.push(chunk);const bytes=Buffer.concat(chunks);objects.set(u.pathname.split('flowtel-mentorship-replays/')[1],{bytes,metadata:{size:bytes.length,mimetype:req.headers['content-type']}});return send(200,{})}
  if(u.pathname.startsWith('/storage/v1/object/upload/sign/'))return send(200,{url:'/upload?token=fictional-upload'});
- if(u.pathname==='/test-upload'){const data=await read();objects.set(data.path,{metadata:{size:data.size,mimetype:data.type}});return send(200,{})}
+ if(u.pathname==='/test-upload'){const data=await read();objects.set(data.path,{bytes:data.bytes?Buffer.from(data.bytes,'base64'):undefined,metadata:{size:data.size,mimetype:data.type}});return send(200,{})}
  if(u.pathname==='/storage/v1/object/list/flowtel-mentorship-replays'){const data=await read();const value=objects.get(data.prefix+'/'+data.search);return send(200,value?[{name:data.search,...value}]:[])}
  if(u.pathname.startsWith('/storage/v1/object/sign/')&&req.method==='GET'){const object=objects.get(u.pathname.split('flowtel-mentorship-replays/')[1]);if(!object)return send(404,{});res.writeHead(200,{'Content-Type':'audio/mpeg'});return res.end(object.bytes)}
  if(u.pathname.startsWith('/storage/v1/object/sign/'))return send(200,{signedURL:u.pathname.replace('/storage/v1','')+'?token=fictional-playback'});
@@ -42,7 +42,7 @@ async function start(){
  return await (req.query.mentorship==='owner'?owner:client)(req,res);
  }
  if(u.pathname==='/shared/supabase.js'){
- res.setHeader('Content-Type','text/javascript');return res.end(`const role=window.__fictionalRole||'a';export const supabase={auth:{getSession:async()=>({data:{session:{access_token:role}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},storage:{from:()=>({uploadToSignedUrl:async(path,token,file)=>{await fetch('/test-upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,size:file.size,type:file.type})});return {error:null}}})}};`);
+ res.setHeader('Content-Type','text/javascript');return res.end(`const role=window.__fictionalRole||'a';export const supabase={auth:{getSession:async()=>({data:{session:{access_token:role}}}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},storage:{from:()=>({uploadToSignedUrl:async(path,token,file)=>{await fetch('/test-upload',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path,size:file.size,type:file.type,bytes:btoa(String.fromCharCode(...new Uint8Array(await file.arrayBuffer())))})});return {error:null}}})}};`);
  }
  const root=path.resolve(__dirname,'..');let file=path.resolve(root,'.'+decodeURIComponent(u.pathname));if(!file.startsWith(root+path.sep))return send(403,{});if(u.pathname.endsWith('/')){const cleanFile=file.replace(/\/$/,'')+'.html';try{await fs.access(cleanFile);file=cleanFile}catch{file=path.join(file,'index.html')}}
  const data=await fs.readFile(file);res.setHeader('Content-Type',file.endsWith('.html')?'text/html':file.endsWith('.css')?'text/css':file.endsWith('.mjs')||file.endsWith('.js')?'text/javascript':'text/plain');res.end(data);

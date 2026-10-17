@@ -1,3 +1,5 @@
+Current launch status and remaining acceptance checks: [LAUNCH-REVIEW.md](LAUNCH-REVIEW.md).
+
 # Flowtel Mentorship Client Suite — development
 
 Use `/mentorship-client-suite/` for the cohesive preview entrance:
