@@ -16,3 +16,29 @@ const watch=new MutationObserver(()=>{if(view.hidden)return;const openingAvailab
 watch.observe(view,{attributes:true,attributeFilter:['hidden']});
 watch.observe(document.getElementById('openingVortex'),{attributes:true,attributeFilter:['hidden']});
 watch.observe(document.getElementById('initiationPath'),{childList:true});
+
+let vortexPosition=0;
+const vortexContainer=document.getElementById('vortexMonths');
+const vortexControls=document.createElement('nav');
+vortexControls.className='ceremony-lesson-nav';
+vortexControls.setAttribute('aria-label','Navigate your moon wishes');
+const vortexPrevious=document.createElement('button');vortexPrevious.type='button';vortexPrevious.textContent='← Previous moon';
+const vortexCount=document.createElement('span');vortexCount.setAttribute('aria-live','polite');
+const vortexNext=document.createElement('button');vortexNext.type='button';vortexNext.textContent='Next moon →';
+vortexControls.append(vortexPrevious,vortexCount,vortexNext);
+vortexContainer.after(vortexControls);
+function showVortexPosition(index){
+ const cards=[...vortexContainer.querySelectorAll(':scope > section')];
+ if(!cards.length){vortexControls.hidden=true;return;}
+ vortexControls.hidden=false;
+ vortexPosition=Math.max(0,Math.min(cards.length-1,index));
+ cards.forEach((card,i)=>{card.hidden=i!==vortexPosition;});
+ vortexPrevious.disabled=vortexPosition===0;
+ vortexNext.disabled=vortexPosition===cards.length-1;
+ vortexCount.textContent='Moon '+(vortexPosition+1)+' of '+cards.length;
+}
+vortexPrevious.onclick=()=>showVortexPosition(vortexPosition-1);
+vortexNext.onclick=()=>showVortexPosition(vortexPosition+1);
+const vortexObserver=new MutationObserver(()=>showVortexPosition(vortexPosition));
+vortexObserver.observe(vortexContainer,{childList:true});
+showVortexPosition(0);
