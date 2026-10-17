@@ -25,5 +25,5 @@ export function generateBigVisionVortex(startMonth){
   });
 }
 export function isVortexComplete(reflections){
-  return Array.isArray(reflections)&&reflections.length===13&&reflections.every(s=>typeof s==='string'&&s.trim().length>0);
+  // Position 1 is the present moon and intentionally receives no wish.\n  // Positions 2–13 must each contain one future-month wish before sealing.\n  return Array.isArray(reflections)&&reflections.length===13&&\n    reflections[0]===''&&reflections.slice(1).every(s=>typeof s==='string'&&s.trim().length>0&&s.length<=4000);
 }
