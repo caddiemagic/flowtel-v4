@@ -7,7 +7,9 @@ const make=(tag,text,parent,cls)=>{
  if(parent)parent.append(element);
  return element;
 };
+let explorerCounter=0;
 export function createCycleDayExplorer(mode='track'){
+ const scopeId='moon-explorer-scope-'+(++explorerCounter);
  const host=make('div',undefined,null,'moon-explorer');
  const intro=make('p',mode==='track'
   ? 'Explore the 28-day teaching wheel, then use your existing Flowtel Cycle Data to record your real observations.'
@@ -16,7 +18,7 @@ export function createCycleDayExplorer(mode='track'){
  const slider=make('input',undefined,host);
  slider.type='range';slider.min='1';slider.max='28';slider.step='1';slider.value='1';
  slider.setAttribute('aria-label','Explore a day on the 28-day medicine wheel');
- slider.setAttribute('aria-describedby','moon-explorer-scope');
+ slider.setAttribute('aria-describedby',scopeId);
  const bounds=make('div',undefined,host,'moon-explorer-bounds');
  make('small','DAY 1',bounds);make('small','DAY 28',bounds);
  const choices=make('div',undefined,host,'moon-explorer-choices');
@@ -29,7 +31,7 @@ export function createCycleDayExplorer(mode='track'){
  const result=make('section',undefined,host,'moon-explorer-result');
  result.setAttribute('aria-live','polite');
  const note=make('p','This is the symbolic 28-day Medicine Wheel used in the teaching. Individual menstrual cycles vary; these day numbers do not predict ovulation or the astronomical moon phase.',host,'moon-explorer-scope');
- note.id='moon-explorer-scope';
+ note.id=scopeId;
  const actions=make('div',undefined,host,'moon-explorer-actions');
  const link=make('a','Record my actual cycle observations →',actions);
  link.href='/cycle-data/';link.target='_blank';link.rel='noopener noreferrer';
