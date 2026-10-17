@@ -9,13 +9,14 @@ Reviewed October 17, 2026. Repository: caddiemagic/flowtel-v4. Branch: feature/c
 - Verified-account claiming of prepared mentorship access without sending invitations or granting unrelated memberships.
 - Owner monthly client focus editing, saved-note retrieval and in-memory draft recovery.
 - Private recording uploads, explicit publication/hiding, save retry without repeating a successful transfer, duplicate-safe finalization and authorized signed playback.
-- Approved green/gold dashboard: My Dashboard; My Suite opens the existing Flowtel suite; My Flow opens the existing Flow Map; My Calls combines schedule/history with the replay library.
-- Session details, calendar downloads, session/title replay filters and mobile layout.
+- Compact blush/ivory dashboard with the existing rose gold Flowtel seal, cycle/season/reflection summary, My Dashboard and My Calls, and matching Telegram/Sisterhood buttons. Separate newest-first recording library and Flow Map open without replacing the dashboard.
+- Session details, calendar downloads and mobile layout. The recording library shows all authorized recordings without search or filters.
+- Signed-out clients can open the existing Flowtel account entrance in a separate tab and return to sign in. No new signup mechanism or membership grants are introduced.
 - Existing Acuity booking links use the two owner-defined class names. Ownership, class, duration and booking reuse are checked. No Acuity appointments are created or changed.
 
 ## Verification completed
 
-89 automated tests, the Chromium fictional owner/client A/client B journey, and existing Call Your Caddie, Kingdom membership, Flowtel date/launch-readiness and Four Seasons/Time + Space checks pass locally. CI now runs those existing regression scripts too.
+92 automated tests, the Chromium fictional owner/client A/client B journey, and existing Call Your Caddie, Kingdom membership, Flowtel date/launch-readiness and Four Seasons/Time + Space checks pass locally. CI now runs those existing regression scripts too.
 
 The browser journey now uploads a valid generated silent MP3, verifies media metadata/duration, starts playback, and waits for playback to end. This proves browser decoding through the fictional authenticated upload/publication/signed-delivery flow; it does not claim real Vercel/Supabase browser playback or coverage of every video codec.
 
