@@ -1,4 +1,4 @@
-import {createCycleDayExplorer} from '/13-moons/lesson-interactions.js';
+import {createCycleDayExplorer,createFourCornersExplorer,createSeasonPlanningExplorer} from '/13-moons/lesson-interactions.js';
 import {showMemberMoonPortals} from '/13-moons/member-moon-portals.js';
 import {MOON_WISH_THEMES} from '/shared/13-moons-wish-themes.js';
 import { addFutureSelfLetterEditor, addFutureSelfLetterReflection } from '/13-moons/future-letter.js';
@@ -105,11 +105,14 @@ function makeCeremonialStages(card,moduleIndex){
    while(body.firstChild)panel.append(body.firstChild);
    stages.push(panel);
   }
-  if(topLabel.startsWith('01') && (moduleIndex===1||moduleIndex===2)){
+  if(topLabel.startsWith('01') && moduleIndex>=1 && moduleIndex<=4){
    const interactive=document.createElement('section');interactive.className='moon-stage';
    const h=document.createElement('h4');
-   h.textContent=moduleIndex===1?'Explore your cycle day':'Explore your Inner Seasons';
-   interactive.append(h,createCycleDayExplorer(moduleIndex===1?'track':'seasons'));
+   const titles={1:'Explore your cycle day',2:'Explore your Inner Seasons',3:'The Four Corners of Creative Flow',4:'Plan with your Inner Seasons'};
+   h.textContent=titles[moduleIndex];
+   const exercise=moduleIndex<=2?createCycleDayExplorer(moduleIndex===1?'track':'seasons')
+    :moduleIndex===3?createFourCornersExplorer():createSeasonPlanningExplorer();
+   interactive.append(h,exercise);
    stages.push(interactive);
   }
  }
@@ -192,7 +195,15 @@ function renderInitiationPath(userId) {
       contents.append(lessonSection('02 · Daily Practice','A rhythm to carry into each day',dailyContent).panel);
     }
     const womb=lessonSection('03 · Your Womb Work','One intentional assignment',[lessonText('p',module.practice)]);
-    if(module.index===3)void addFutureSelfLetterEditor(womb.body,userId);
+    if(module.index===3){
+      // The stage builder moves child elements out of the section body.
+      // Mount the editor into a child that will be moved intact, so async
+      // database reads still attach to the visible member stage.
+      const letterMount=document.createElement('div');
+      letterMount.className='future-letter-stage';
+      womb.body.append(letterMount);
+      void addFutureSelfLetterEditor(letterMount,userId);
+    }
     contents.append(womb.panel);
     const reflection=lessonSection('04 · Reflection','Let your experience speak',[lessonText('p',module.prompt)]);
     contents.append(reflection.panel);
@@ -206,7 +217,12 @@ function renderInitiationPath(userId) {
     journalLink.href='/cycle-data/';journalLink.textContent='Open my Cycle Data →';
     closingContent.push(flowLink,journalLink);
     const moonClose=lessonSection('05 · Moon Close','Return to your Flow Map',closingContent);
-    if(module.index===13)void addFutureSelfLetterReflection(moonClose.body,userId);
+    if(module.index===13){
+      const reunionMount=document.createElement('div');
+      reunionMount.className='future-letter-stage';
+      moonClose.body.append(reunionMount);
+      void addFutureSelfLetterReflection(reunionMount,userId);
+    }
     const completion=document.createElement('div');completion.className='initiation-completion';
     const completionStatus=lessonText('p',!progress?'Completion saving is not active yet. Your teaching is available for review.':completed?'This initiation is complete.':current?'When you have finished your Womb Work and reflection, mark this initiation complete.':'Complete earlier initiations in order first.');
     completionStatus.setAttribute('role','status');
